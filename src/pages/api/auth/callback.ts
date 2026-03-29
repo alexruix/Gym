@@ -2,26 +2,21 @@ import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../../lib/supabase-ssr';
 
 export const GET: APIRoute = async (context) => {
-  const { request, cookies, redirect } = context;
+  const { request, redirect } = context;
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const next = requestUrl.searchParams.get('next') || '/profesor';
 
   if (code) {
     const supabase = createSupabaseServerClient(context);
+    const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code);
     
-    // 1. Intercambiamos el código por la sesión. 
-    // @supabase/ssr se encarga de buscar el verifier en las cookies automáticamente.
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    
-    if (!error && data.user) {
-      // 2. Lógica de Redirección Dinámica (SSOT)
-      
-      // Intentamos buscarlo como Profesor
+    if (!error && user) {
+      // 1. Verificar si es Profesor
       const { data: profData } = await supabase
         .from('profesores')
         .select('nombre')
-        .eq('id', data.user.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (profData) {
@@ -29,18 +24,39 @@ export const GET: APIRoute = async (context) => {
         return redirect(next);
       }
 
-      // Si no es profesor, buscamos si es Alumno
-      const { data: alumData } = await supabase
+      // 2. Verificar si es Alumno (Por user_id o por Email)
+      // Buscamos si ya tiene el user_id vinculado
+      let { data: alumData } = await supabase
         .from('alumnos')
-        .select('id')
-        .eq('user_id', data.user.id)
+        .select('id, user_id')
+        .eq('user_id', user.id)
         .maybeSingle();
+
+      // Si no lo tiene, buscamos por email para VINCULARLO (Onboarding automático)
+      if (!alumData) {
+        const { data: alumByEmail } = await supabase
+          .from('alumnos')
+          .select('id')
+          .eq('email', user.email)
+          .is('user_id', null) // Solo si no está reclamado
+          .maybeSingle();
+
+        if (alumByEmail) {
+          // Vínculo Vital: Asociamos la identidad de Auth con la ficha de MiGym
+          await supabase
+            .from('alumnos')
+            .update({ user_id: user.id })
+            .eq('id', alumByEmail.id);
+          
+          return redirect('/entrenamiento');
+        }
+      }
 
       if (alumData) {
         return redirect('/entrenamiento');
       }
 
-      // Si no existe en ninguna, es un Profesor nuevo (Onboarding)
+      // 3. Si no es ninguno, asumimos que es un Profesor que arranca Onboarding
       return redirect('/onboarding');
     }
     
@@ -49,6 +65,5 @@ export const GET: APIRoute = async (context) => {
     }
   }
 
-  // Si algo falla, al login con error
   return redirect('/login?error=auth_callback_failed');
 };

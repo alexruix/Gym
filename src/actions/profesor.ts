@@ -90,68 +90,55 @@ export const profesorActions = {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
 
-      if (!user) {
-        throw new Error("No estás logueado.");
-      }
+      if (!user) throw new Error("No autorizado");
 
-      // 1. Insertar el Plan Maestro
-      const { data: plan, error: planError } = await supabase
-        .from("planes")
-        .insert({
-          profesor_id: user.id,
-          nombre: input.nombre,
-          duracion_semanas: input.duracion_semanas,
-          frecuencia_semanal: input.frecuencia_semanal,
-        })
-        .select()
-        .single();
+      // Usamos el RPC para garantizar transaccionalidad total (todo o nada)
+      // y validación de propiedad de ejercicios en el servidor.
+      const { data: planId, error } = await supabase.rpc('crear_plan_completo', {
+        p_profesor_id: user.id,
+        p_nombre: input.nombre,
+        p_duracion_semanas: input.duracion_semanas,
+        p_frecuencia_semanal: input.frecuencia_semanal,
+        p_rutinas: input.rutinas // Pasamos el JSON completo
+      });
 
-      if (planError || !plan) {
-        throw new Error(`Error DB (Plan): ${planError?.message || "Sin datos"}`);
-      }
-
-      // 2. Insertar Rutinas Diarias en cascada
-      for (const rutina of input.rutinas) {
-        const { data: rutinaData, error: rutinaError } = await supabase
-          .from("rutinas_diarias")
-          .insert({
-            plan_id: plan.id,
-            dia_numero: rutina.dia_numero,
-            nombre_dia: rutina.nombre_dia || `Día ${rutina.dia_numero}`,
-            orden: rutina.dia_numero,
-          })
-          .select()
-          .single();
-
-        if (rutinaError || !rutinaData) {
-          throw new Error(`Error DB (Rutina ${rutina.dia_numero}): ${rutinaError?.message}`);
-        }
-
-        // 3. Insertar Ejercicios de esta Rutina
-        if (rutina.ejercicios && rutina.ejercicios.length > 0) {
-          const ejerciciosPlan = rutina.ejercicios.map((e, idx) => ({
-            rutina_id: rutinaData.id,
-            ejercicio_id: e.ejercicio_id,
-            series: e.series,
-            reps_target: e.reps_target,
-            descanso_seg: e.descanso_seg,
-            orden: e.orden || idx,
-          }));
-
-          const { error: ejerciciosError } = await supabase
-            .from("ejercicios_plan")
-            .insert(ejerciciosPlan);
-
-          if (ejerciciosError) {
-            throw new Error(`Error DB (Ejercicios Día ${rutina.dia_numero}): ${ejerciciosError.message}`);
-          }
-        }
+      if (error) {
+        console.error("[Action: createPlan] RPC Error:", error);
+        throw new Error(`Error al crear el plan: ${error.message}`);
       }
 
       return {
         success: true,
-        plan_id: plan.id,
-        mensaje: "El plan, las rutinas y sus ejercicios se guardaron correctamente.",
+        plan_id: planId,
+        mensaje: "✅ El plan se guardó correctamente con transaccionalidad garantizada.",
+      };
+    },
+  }),
+
+  deleteStudent: defineAction({
+    accept: "json",
+    input: z.object({ id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // SOFT DELETE: No borramos la fila, solo marcamos deleted_at
+      // Esto protege los datos históricos de pagos y sesiones.
+      const { error } = await supabase
+        .from("alumnos")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", input.id)
+        .eq("profesor_id", user.id);
+
+      if (error) {
+        console.error("[Action: deleteStudent] Error:", error);
+        throw new Error(`Error al eliminar alumno: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        mensaje: "✅ Alumno eliminado (Soft Delete activo).",
       };
     },
   }),
@@ -185,14 +172,13 @@ export const profesorActions = {
         }
 
         // 1. Crear alumno en DB
-        // Nota: Postgres 'date' prefiere YYYY-MM-DD
         const dbDate = input.fecha_inicio.toISOString().split('T')[0];
 
         const { data: student, error: dbError } = await supabase
           .from("alumnos")
           .insert({
             profesor_id: user.id,
-            email: input.email,
+            email: input.email.toLowerCase().trim(),
             nombre: input.nombre,
             plan_id: input.plan_id || null,
             fecha_inicio: dbDate,
@@ -224,8 +210,6 @@ export const profesorActions = {
 
         if (authError) {
           console.error("[Action: inviteStudent] Auth SignIn Error:", authError);
-          // No lanzamos error aquí para no perder el registro del alumno, 
-          // el profesor puede reenviar la invitación luego.
           return {
             success: true,
             student_id: student.id,
