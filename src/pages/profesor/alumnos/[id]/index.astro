@@ -1,9 +1,102 @@
 ---
 import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
+import { AthleteHeader } from '@/components/organisms/profesor/perfil/AthleteHeader';
+import { HealthSidebar } from '@/components/organisms/profesor/perfil/HealthSidebar';
+import { AthleteWorkspace } from '@/components/organisms/profesor/perfil/AthleteWorkspace';
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+
+const { id } = Astro.params;
+const supabase = createSupabaseServerClient(Astro);
+
+// 1. Auth & Safety check
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/login");
+
+// 2. Fetch Alumno (SSR)
+// Incluimos el join con planes para el nombre
+const { data: alumno, error } = await supabase
+  .from("alumnos")
+  .select(`
+    *,
+    planes (
+      id,
+      nombre
+    )
+  `)
+  .eq("id", id)
+  .eq("profesor_id", user.id)
+  .single();
+
+if (error || !alumno) {
+  return Astro.redirect("/profesor/alumnos?error=not-found");
+}
+
+// 3. Mapeo de datos para componentes
+const studentData = {
+  id: alumno.id,
+  nombre: alumno.nombre,
+  email: alumno.email || "",
+  estado: (alumno.estado as any) || 'activo',
+  telefono: alumno.telefono || undefined
+};
+
+const planName = Array.isArray(alumno.planes) ? alumno.planes[0]?.nombre : (alumno.planes as any)?.nombre;
+
+// Mock de métricas (Serían fetched de progreso_alumno en el futuro)
+const mockMetrics = [
+  { tipo: "Peso", valor: "78.4kg", cambio: "-1.2kg", subida: false },
+  { tipo: "Grasa", valor: "18.5%", cambio: "-0.5%", subida: false }
+];
 ---
 
-<ProfesorLayout title="Ficha del Alumno - MiGym">
-  <div class="p-6 max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold">Perfil del Alumno</h1>
+<ProfesorLayout title={`${alumno.nombre} - Athlete Snapshot`}>
+  <div class="px-5 py-6 md:py-12 md:px-10 max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
+    
+    {/* 1. ANCLA (CABECERA VITAL) */}
+    <section class="animate-in slide-in-from-top-4 duration-500">
+      <AthleteHeader client:load alumno={studentData} planName={planName} />
+    </section>
+
+    {/* 2. SOPORTE Y DETALLE (GRID DE 3 COLUMNAS) */}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      {/* COLUMNA IZQUIERDA: BIOMETRÍA & HEALTH (30%) */}
+      <aside class="order-2 lg:order-1 lg:col-span-4 xl:col-span-3 animate-in slide-in-from-left-4 duration-500 delay-150">
+        <HealthSidebar 
+          client:load 
+          notasCriticas={alumno.notas} 
+          metricas={mockMetrics} 
+        />
+      </aside>
+
+      {/* COLUMNA CENTRAL: WORKSPACE & TABS (70%) */}
+      <main class="order-1 lg:order-2 lg:col-span-8 xl:col-span-9 animate-in slide-in-from-right-4 duration-500 delay-300">
+        <AthleteWorkspace 
+          client:load 
+          planData={alumno.planes} 
+          historial={[]} 
+        />
+      </main>
+
+    </div>
+
   </div>
 </ProfesorLayout>
+
+<style is:global>
+  /* Industrial Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #a1a1aa; /* Zinc 400 */
+    border-radius: 20px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #71717a; /* Zinc 500 */
+  }
+</style>

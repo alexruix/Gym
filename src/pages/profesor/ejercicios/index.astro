@@ -1,9 +1,42 @@
 ---
-import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
+import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
+import { ExerciseLibrary } from "@/components/organisms/profesor/ejercicios/ExerciseLibrary";
+import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+
+const supabase = createSupabaseServerClient(Astro);
+const { data: userData } = await supabase.auth.getUser();
+const userId = userData.user?.id;
+
+if (!userId) {
+  return Astro.redirect("/login");
+}
+
+// Fetch existing exercises from DB
+const { data: exercises, error } = await supabase
+  .from("biblioteca_ejercicios")
+  .select("id, nombre, descripcion, media_url, created_at")
+  .eq("profesor_id", userId)
+  .order("created_at", { ascending: false });
+
+if (error) {
+  console.error("Error cargando ejercicios:", error);
+}
 ---
 
-<ProfesorLayout title="Ejercicios - MiGym">
-  <div class="p-6 max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold mb-6">Biblioteca de Ejercicios</h1>
+<ProfesorLayout title={`${exerciseLibraryCopy.header.title} | MiGym`}>
+  <div class="px-4 py-6 md:py-10 max-w-7xl mx-auto space-y-8">
+    <header class="space-y-1">
+      <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+        {exerciseLibraryCopy.header.title}
+      </h1>
+      <p class="text-base text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
+        {exerciseLibraryCopy.header.subtitle}
+      </p>
+    </header>
+
+    <div class="bg-white/50 dark:bg-zinc-950/20 p-1 sm:p-2 rounded-2xl">
+      <ExerciseLibrary client:load initialExercises={exercises || []} />
+    </div>
   </div>
 </ProfesorLayout>

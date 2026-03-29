@@ -1,21 +1,42 @@
 ---
-import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
-import { PlanForm } from '../../../components/organisms/PlanForm';
+import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
+import { PlanForm } from "@/components/organisms/profesor/planes/PlanForm";
+import { planesCopy } from "@/data/es/profesor/planes";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+
+const supabase = createSupabaseServerClient(Astro);
+const { data: userData } = await supabase.auth.getUser();
+const userId = userData.user?.id;
+
+if (!userId) {
+  return Astro.redirect("/login");
+}
+
+// Fetch exercise library
+const { data: exercises, error } = await supabase
+  .from("biblioteca_ejercicios")
+  .select("id, nombre, media_url")
+  .eq("profesor_id", userId)
+  .order("nombre", { ascending: true });
+
+if (error) {
+  console.error("Error cargando ejercicios:", error);
+}
 ---
 
-<ProfesorLayout title="Nuevo Plan">
-  <div class="max-w-4xl mx-auto">
-    <header class="mb-12 p-4 text-center md:text-left">
-      <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter italic text-zinc-950 leading-none">
-        Crear Nuevo <span class="text-lime-500">Plan</span>
-      </h2>
-      <p class="mt-4 text-zinc-500 font-bold text-lg max-w-2xl">
-        Diseñá la rutina perfecta para tus alumnos. Luego podrás asignarla de forma masiva o individual.
+<ProfesorLayout title={`${planesCopy.header.title} | MiGym`}>
+  <div class="px-4 py-6 md:py-10 max-w-5xl mx-auto space-y-8">
+    <header class="space-y-1">
+      <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+        {planesCopy.header.title}
+      </h1>
+      <p class="text-base text-zinc-500 dark:text-zinc-400">
+        {planesCopy.header.subtitle}
       </p>
     </header>
 
-    <div class="bg-white rounded-[2.5rem] border border-zinc-100 shadow-xl shadow-zinc-100/50 p-6 md:px-12 md:py-16">
-      <PlanForm client:load />
+    <div class="bg-white dark:bg-zinc-950/50 p-6 sm:p-8 rounded-b-3xl rounded-t-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <PlanForm client:load library={exercises || []} />
     </div>
   </div>
 </ProfesorLayout>

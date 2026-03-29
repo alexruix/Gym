@@ -8,10 +8,13 @@ import {
   CreditCard, 
   Settings,
   LogOut,
-  Bell
+  Bell,
+  Search
 } from 'lucide-react';
 
 import { globalCopy } from '../data/es/global';
+import { dashboardCopy } from '../data/es/profesor/dashboard';
+import { LogoutButton } from '../components/atoms/auth/LogoutButton';
 
 interface Props {
   title: string;
@@ -65,13 +68,10 @@ const currentPath = Astro.url.pathname;
 
       <div class="p-4 border-t border-zinc-100">
         <a href="/profesor/configuracion" class="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
-          <Settings className="w-5 h-5" />
+          <Settings className="w-5 h-5" aria-hidden="true" />
           <span class="text-sm font-bold uppercase tracking-wide">{globalCopy.layout.profesorNav.configuracion}</span>
         </a>
-        <button class="w-full mt-2 flex items-center gap-3 px-3 py-2.5 rounded-2xl text-red-500 hover:bg-red-50 transition-all">
-          <LogOut className="w-5 h-5" />
-          <span class="text-sm font-bold uppercase tracking-wide">{globalCopy.layout.profesorNav.salir}</span>
-        </button>
+        <LogoutButton client:load />
       </div>
     </aside>
 
@@ -83,8 +83,21 @@ const currentPath = Astro.url.pathname;
             <span class="font-black text-xl tracking-tighter">{globalCopy.brand.nameLine1}<span class="text-lime-500">{globalCopy.brand.nameHighlight}</span></span>
         </div>
         
-        <div class="flex-1 px-4 hidden md:block">
-            <h1 class="text-sm font-black uppercase tracking-widest text-zinc-400">{title}</h1>
+        <div class="flex-1 px-4 hidden md:flex items-center gap-6">
+            <h1 class="text-sm font-black uppercase tracking-widest text-zinc-400 shrink-0">{title}</h1>
+            {/* Global Search */}
+            <div class="relative w-full max-w-md hidden lg:block group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
+              <input 
+                type="text" 
+                placeholder={dashboardCopy.layout.globalSearch} 
+                class="w-full bg-zinc-100/50 hover:bg-zinc-100 border border-transparent focus:border-lime-500 focus:bg-white rounded-2xl pl-10 pr-4 py-2 text-sm outline-none transition-all shadow-sm" 
+              />
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <kbd class="hidden xl:inline-block bg-white text-zinc-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-zinc-200">⌘</kbd>
+                <kbd class="hidden xl:inline-block bg-white text-zinc-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-zinc-200">K</kbd>
+              </div>
+            </div>
         </div>
 
         <div class="flex items-center gap-4">

@@ -27,19 +27,15 @@ export const authCopy = {
   },
   onboarding: {
     title: "¡Hola! Bienvenido a MiGym",
-    subtitle: "En 2 pasos armamos tu espacio de trabajo.",
+    subtitle: "Configurá tu espacio en un segundo.",
     step1: {
-      label: "¿Cómo te llamás?",
-      placeholder: "ej: Nicolás Varela",
-      btn: "Siguiente",
-    },
-    step2: {
-      label: "¿Cómo se llama tu gimnasio o estudio?",
-      placeholder: "ej: CrossFit Ur, NicoFit, etc",
+      label: "Tu nombre o el de tu espacio",
+      placeholder: "ej: Nicolás Varela o CrossFit Ur",
       btn: "Empezar a usar MiGym",
+      description: "Así te verán tus alumnos dentro de la app.",
     },
     states: {
-      loading: "Preparando tu espacio...",
+      loading: "Creando tu espacio...",
       error: "No pudimos guardar tus datos. Reintentá en unos segundos."
     }
   }

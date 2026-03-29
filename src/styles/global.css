@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: "Inter", "Geist", system-ui, sans-serif;
+  --font-sans: "Geist", "Inter", system-ui, sans-serif;
   --font-heading: "Geist Sans", "Inter", system-ui, sans-serif;
   
   --spacing-4: 1rem;

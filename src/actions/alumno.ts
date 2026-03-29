@@ -1,5 +1,5 @@
 import { defineAction } from "astro:actions";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { sessionLogSchema } from "@/lib/validators";
 
 export const alumnoActions = {
@@ -7,19 +7,19 @@ export const alumnoActions = {
     accept: "json",
     input: sessionLogSchema,
     handler: async (input, context) => {
-      // 1. Auth check
+      const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
 
       // 2. Map series for DB insert
       const logs = input.series_completadas.map((s, idx) => ({
-        alumno_id: user.id, // Using authenticated student ID
+        alumno_id: user.id, 
         ejercicio_id: input.ejercicio_id,
-        sesion_id: input.alumno_id, // Actually should be sesion_id from context, but using input for now
-        reps: s.reps,
+        sesion_id: input.alumno_id, 
+        reps_reales: s.reps,
         peso_kg: s.peso_kg,
         rpe: s.rpe || null,
-        numero_serie: idx + 1,
+        series_reales: 1, // En v3.1 mapeamos por serie individual
       }));
 
       const { error } = await supabase

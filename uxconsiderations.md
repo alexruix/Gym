@@ -16,7 +16,16 @@ disciplinas distintas**. Este archivo actúa como checklist de diseño previo a 
 
 ---
 
-## 2. Jerarquía Visual (Lo más importante)
+## 2. Core Philosophy (Gestión Deportiva > Gestión Financiera)
+
+MiGym es una herramienta para profesores y personal trainers. Su dolor principal es **armar rutinas y seguir el progreso**, el cobro es secundario (ya lo resuelven con MercadoPago/Efectivo).
+- **Tablas y Filtros:** Priorizar filtros por "Plan" o "Objetivo" en lugar de "Estado de pago".
+- **Llamados a la Acción (CTAs):** La acción principal siempre es "Editar Rutina" o "Ver Progreso", seguida de herramientas técnicas (Magic Link) o de comunicación (WhatsApp). "Registrar Pago" es útil pero no es la estrella.
+- **Micro-interacciones de tabla:** Cada alumno debe tener un menú de acciones rápidas (Dropdown) que le permita al profesor resolver cualquier necesidad en 1 clic sin salir del Dashboard.
+
+---
+
+## 3. Jerarquía Visual (Lo más importante)
 
 La jerarquía visual guía el ojo del usuario. Sin ella, todo se ve igual de importante → nada importa.
 

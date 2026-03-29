@@ -5,6 +5,7 @@ Este archivo contiene el código SQL final corregido para **MiGym**, incluyendo 
 ---
 
 ## 🛠️ Configuración Global
+
 ```sql
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
@@ -14,12 +15,12 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ## 📊 Tablas Principales
 
 ### 1. Profesores
+
 ```sql
 CREATE TABLE profesores (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email text UNIQUE NOT NULL,
-  nombre text,
-  gym_nombre text,
+  nombre text, -- Nombre público (Personal o Gimnasio)
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
@@ -32,6 +33,7 @@ CREATE POLICY "Inserción vía onboarding" ON profesores FOR INSERT WITH CHECK (
 ```
 
 ### 2. Biblioteca de Ejercicios
+
 ```sql
 CREATE TABLE biblioteca_ejercicios (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -48,7 +50,9 @@ CREATE POLICY "Profesores gestionan su biblioteca" ON biblioteca_ejercicios FOR 
 ```
 
 ### 3. Planes
+
 Agregado: `frecuencia_semanal` para filtros y organización.
+
 ```sql
 CREATE TABLE planes (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -65,6 +69,7 @@ CREATE POLICY "Profesores gestionan sus planes" ON planes FOR ALL USING (auth.ui
 ```
 
 ### 4. Rutinas Diarias
+
 ```sql
 CREATE TABLE rutinas_diarias (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -81,7 +86,9 @@ CREATE POLICY "Profesores gestionan sus rutinas" ON rutinas_diarias
 ```
 
 ### 5. Ejercicios del Plan (Métricas Granulares)
+
 Agregado: Separación de `series`, `reps_target` y `descanso_seg`.
+
 ```sql
 CREATE TABLE ejercicios_plan (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -106,7 +113,9 @@ CREATE POLICY "Profesores gestionan ejercicios del plan" ON ejercicios_plan
 ```
 
 ### 6. Alumnos (Identidad Segura)
+
 Agregado: `user_id` para vincular con `auth.users` y evitar pérdida de historial.
+
 ```sql
 CREATE TABLE alumnos (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -127,6 +136,7 @@ CREATE POLICY "Alumnos ven su propio perfil heredado" ON alumnos FOR SELECT USIN
 ```
 
 ### 7. Pagos y Tracking
+
 ```sql
 CREATE TABLE pagos (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -162,5 +172,24 @@ ALTER TABLE pagos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sesiones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ejercicio_logs ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE alumnos
+ADD COLUMN IF NOT EXISTS telefono text,
+ADD COLUMN IF NOT EXISTS dia_pago int DEFAULT 15,
+ADD COLUMN IF NOT EXISTS monto numeric,
+ADD COLUMN IF NOT EXISTS notas text;
+
+
 -- Políticas simplificadas: El profesor ve todo lo de sus alumnos. El alumno ve lo propio vía user_id o email.
 ```
+
+-- 1. Eliminamos la política problemática
+DROP POLICY IF EXISTS "Alumnos ven su propio perfil heredado" ON alumnos;
+
+-- 2. La recreamos usando auth.jwt()
+CREATE POLICY "Alumnos ven su propio perfil heredado" ON alumnos
+FOR SELECT
+USING (
+auth.uid() = user_id
+OR
+email = (auth.jwt() ->> 'email')
+);

@@ -5,7 +5,7 @@ declare namespace App {
     user: {
       id: string;
       email: string;
-      role: "profesor" | "alumno";
+      role?: "profesor" | "alumno" | "invitado";
     } | null;
   }
 }

@@ -1,35 +1,126 @@
 ---
 import ProfesorLayout from '../../layouts/ProfesorLayout.astro';
+import { dashboardCopy } from '@/data/es/profesor/dashboard';
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+
+// Organismos
+import { DashboardMetrics } from '@/components/organisms/profesor/dashboard/DashboardMetrics';
+import { AlertCenter, type AlertData } from '@/components/organisms/profesor/dashboard/AlertCenter';
+import { ActivityFeed, type ActivityLog } from '@/components/organisms/profesor/dashboard/ActivityFeed';
+import { RecentStudentsTable, type RecentStudent } from '@/components/organisms/profesor/dashboard/RecentStudentsTable';
+import { QuickActionFab } from '@/components/organisms/profesor/dashboard/QuickActionFab';
+import { DashboardOnboarding } from '@/components/organisms/profesor/dashboard/DashboardOnboarding';
+
+// Contexto SSR (usuario actual)
+const supabase = createSupabaseServerClient(Astro);
+const { data: userAuth } = await supabase.auth.getUser();
+const user = userAuth?.user;
+
+if (!user) return Astro.redirect('/login');
+
+// 1. Fetch de Alumnos (Todos para métricas principales)
+const { data: allStudents, error: studentsError } = await supabase
+  .from("alumnos")
+  .select(`
+    id,
+    nombre,
+    estado,
+    created_at,
+    planes ( id, nombre )
+  `)
+  .eq("profesor_id", user.id)
+  .order("created_at", { ascending: false });
+
+if (studentsError) {
+  console.error("Error cargando dashboard data:", studentsError);
+}
+
+const students = allStudents || [];
+
+// 2. Cálculo de Métricas
+const activeStudentsCount = students.filter(s => s.estado === 'activo').length;
+const studentsWithPlan = students.filter(s => s.planes !== null).length;
+const totalStudents = students.length;
+const adherenceRate = totalStudents > 0 ? Math.round((studentsWithPlan / totalStudents) * 100) : 0;
+
+// 3. Preparación de Alertas
+const noPlanStudents: AlertData[] = students
+  .filter(s => s.planes === null)
+  .map(s => ({ id: s.id, studentName: s.nombre }));
+
+// Por ahora mockeamos pagos morosos hasta tener tabla de pagos real
+const mockPayments: AlertData[] = students
+  .filter(s => s.estado === 'moroso')
+  .map(s => ({ id: s.id, studentName: s.nombre, daysLate: 2, phone: '5491112345678' }));
+
+// 4. Mapeo para Tabla Reciente (Top 5)
+const recentStudents: RecentStudent[] = students.slice(0, 5).map(s => ({
+  id: s.id,
+  name: s.nombre,
+  planName: Array.isArray(s.planes) ? s.planes[0]?.nombre || null : (s.planes as any)?.nombre || null,
+  status: s.estado as any
+}));
+
+// 5. Feed de Actividad (Mock por ahora)
+const mockActivities: ActivityLog[] = [
+  { id: 'a1', type: 'session_completed', studentName: 'Micaela Díaz', timeAgo: 'Hace 2 horas' },
+  { id: 'a2', type: 'weight_logged', studentName: 'Lucas Castro', details: '80kg en Sentadilla', timeAgo: 'Hace 5 horas' },
+];
+
+const c = dashboardCopy.header;
 ---
 
-<ProfesorLayout title="Dashboard Profesor - MiGym">
-  <div class="p-6 max-w-7xl mx-auto space-y-8">
-    <header class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold">Dashboard</h1>
-      <div class="flex gap-2">
-        <a href="/profesor/alumnos/new" class="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-bold">Nuevo Alumno</a>
-        <a href="/profesor/planes/new" class="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg font-bold">Crear Plan</a>
+<ProfesorLayout title={`${c.title} - MiGym`}>
+  <div class="p-6 max-w-7xl mx-auto space-y-8 pb-32 md:pb-6">
+    
+    <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div>
+        <h1 class="text-3xl font-extrabold text-zinc-950 dark:text-zinc-50">{c.title}</h1>
+        <p class="text-zinc-500 dark:text-zinc-400 font-medium tracking-tight">Bienvenido de nuevo, preparate para una gran semana.</p>
+      </div>
+      
+      <div class="hidden md:flex gap-3">
+        <a 
+          href="/profesor/alumnos/new" 
+          class="bg-white border border-zinc-200 text-zinc-950 px-5 py-2.5 rounded-2xl font-bold shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm"
+        >
+          {c.actions.newStudent}
+        </a>
+        <a 
+          href="/profesor/planes/new" 
+          class="bg-zinc-950 text-lime-400 px-5 py-2.5 rounded-2xl font-black tracking-widest uppercase shadow-xl hover:shadow-2xl hover:shadow-lime-500/20 hover:-translate-y-0.5 transition-all text-xs flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/round" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          {c.actions.createPlan}
+        </a>
       </div>
     </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      {/* Tarjetas de Resumen */}
-      <div class="bg-card p-6 rounded-xl border shadow-sm">
-        <p class="text-sm font-medium text-muted-foreground uppercase tracking-widest">Alumnos Activos</p>
-        <p class="text-3xl font-bold mt-1">45</p>
+    <DashboardOnboarding client:load />
+
+    <DashboardMetrics
+      activeStudents={activeStudentsCount}
+      pendingRoutines={noPlanStudents.length}
+      adherenceRate={adherenceRate}
+    />
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-6">
+        <AlertCenter
+          client:load
+          expiringPayments={mockPayments}
+          atRiskStudents={[]}
+          noPlanStudents={noPlanStudents}
+        />
+
+        <RecentStudentsTable client:load students={recentStudents} />
       </div>
-      <div class="bg-card p-6 rounded-xl border shadow-sm">
-        <p class="text-sm font-medium text-muted-foreground uppercase tracking-widest">Planes</p>
-        <p class="text-3xl font-bold mt-1">8</p>
-      </div>
-      <div class="bg-card p-6 rounded-xl border shadow-sm">
-        <p class="text-sm font-medium text-muted-foreground uppercase tracking-widest">Vencen Hoy</p>
-        <p class="text-3xl font-bold mt-1 text-yellow-600">12</p>
-      </div>
-      <div class="bg-card p-6 rounded-xl border shadow-sm">
-        <p class="text-sm font-medium text-muted-foreground uppercase tracking-widest">Morosos</p>
-        <p class="text-3xl font-bold mt-1 text-destructive">3</p>
+
+      <div class="lg:col-span-1 border-t lg:border-t-0 pt-6 lg:pt-0 border-zinc-100 dark:border-zinc-800">
+        <ActivityFeed activities={mockActivities} />
       </div>
     </div>
   </div>
+
+  <QuickActionFab client:load />
 </ProfesorLayout>

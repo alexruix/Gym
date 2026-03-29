@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-export type StatusType = "activo" | "pausado" | "vencido" | "pendiente";
+export type StatusType = "activo" | "pausado" | "vencido" | "pendiente" | "moroso" | "inactivo";
 
 interface StatusBadgeProps {
   status: StatusType;
@@ -12,6 +12,8 @@ const statusMap: Record<StatusType, { label: string; variant: "success" | "warni
   activo: { label: "Activo", variant: "success" },
   pausado: { label: "Pausado", variant: "warning" },
   vencido: { label: "Vencido", variant: "destructive" },
+  moroso: { label: "Moroso", variant: "destructive" },
+  inactivo: { label: "Inactivo", variant: "secondary" },
   pendiente: { label: "Pendiente", variant: "secondary" },
 };
 

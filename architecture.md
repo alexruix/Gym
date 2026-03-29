@@ -11,6 +11,18 @@ MiGym es una plataforma SaaS donde **Profesores** crean planes de entrenamiento 
 
 ---
 
+## 🏷️ Glosario de Términos (Training Domain)
+
+Para evitar ambigüedad en el código y la UX, MiGym utiliza esta jerarquía:
+
+- **Plan:** El contenedor de alto nivel (ej: "Hipertrofia 3 Días"). Define el objetivo general y la frecuencia semanal.
+- **Rutina (Diaria):** Una unidad de entrenamiento dentro de un plan (ej: "Día A: Pecho/Biceps"). Un plan contiene N rutinas.
+- **Ejercicio del Plan:** La instancia de un ejercicio de la biblioteca dentro de una rutina específica, con variables de carga (series, reps, descanso).
+- **Sesión:** El registro histórico de cuando un alumno ejecuta una rutina un día específico.
+- **Biblioteca de Ejercicios:** El catálogo global de movimientos del profesor, sin variables de carga asignadas.
+
+---
+
 ## 🛠️ Stack Tecnológico
 
 | Capa | Tecnología | Propósito | Razón |
@@ -39,8 +51,7 @@ MiGym es una plataforma SaaS donde **Profesores** crean planes de entrenamiento 
 ├─────────────────┤
 │ id (PK)         │
 │ email           │
-│ nombre          │
-│ gym_nombre      │
+│ nombre (público)│
 │ created_at      │
 └────────┬────────┘
          │ 1:N
@@ -107,8 +118,7 @@ MiGym es una plataforma SaaS donde **Profesores** crean planes de entrenamiento 
 **PROFESOR**
 - `id` (UUID)
 - `email` (único)
-- `nombre`
-- `gym_nombre` (ej: "CrossFit Sur")
+- `nombre` (Identidad pública: ej. "CrossFit Sur" o "Nico Varela")
 - `created_at`
 
 **BIBLIOTECA_EJERCICIOS**
@@ -118,21 +128,21 @@ MiGym es una plataforma SaaS donde **Profesores** crean planes de entrenamiento 
 - `descripcion` (instrucciones técnicas globales)
 - `media_url` (Video/Imagen)
 
-**PLAN**
+**PLAN** (Contenedor Maestro)
 - `id` (UUID)
 - `profesor_id` (FK → PROFESOR)
 - `nombre` (ej: "Plan Principiante")
 - `duracion_semanas` (int: 2, 3, 4 etc)
-- `frecuencia_semanal` (int: 1, 2, 3, 4, 5, 6 etc)
+- `frecuencia_semanal` (int: Cantidad de rutinas distintas que componen el plan)
 - `created_at`
 
-**RUTINA_DIARIA**
+**RUTINA_DIARIA** (Día de entrenamiento)
 - `id` (UUID)
 - `plan_id` (FK → PLAN)
 - `dia_numero` (int: 1, 2, 3...)
-- `nombre_dia` (ej: "Empuje / Cuádriceps")
+- `nombre_dia` (ej: "Día 1: Empuje")
 
-**EJERCICIO_PLAN**
+**EJERCICIO_PLAN** (Instancia con carga)
 - `id` (UUID)
 - `rutina_id` (FK → RUTINA_DIARIA)
 - `ejercicio_id` (FK → BIBLIOTECA_EJERCICIOS)
@@ -429,7 +439,7 @@ migym/
 ### Página estática (Profesor dashboard)
 
 ```
-Astro page: /profesor/dashboard.astro
+Astro page: /profesor/index.astro
   ↓
 getStaticProps(userId) → Query Supabase
   ↓

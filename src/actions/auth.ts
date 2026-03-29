@@ -1,37 +1,34 @@
 import { defineAction } from "astro:actions";
 import { z } from "astro:content";
-import { supabase } from "../lib/supabase";
+import { createSupabaseServerClient } from "../lib/supabase-ssr";
 
 export const authActions = {
   completeOnboarding: defineAction({
     accept: "json",
     input: z.object({
-      nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-      gymName: z.string().min(2, "El nombre del gimnasio es muy corto"),
+      publicName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
     }),
     handler: async (input, context) => {
-      // 1. Verificar sesión autenticada. Dependiendo del Setup de Astro,
-      // acá podríamos obtener el id usando el JWT de res.locals o verificarlo contra supabase cookie.
-      // Para mayor seguridad validaremos desde el token de Supabase en Astro 5.
+      // Usamos el cliente servidor pasándole el contexto de Astro (cookies)
+      const supabase = createSupabaseServerClient(context);
       
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
       
-      if (sessionError || !session || !session.user) {
+      if (authError || !user) {
          throw new Error("No estás autenticado o la sesión expiró.");
       }
 
-      const userId = session.user.id;
-      const userEmail = session.user.email;
+      const userId = user.id;
+      const userEmail = user.email;
 
-      // 2. Guardar los datos en la tabla profesores (upsert en caso de que ya exista pero le falten datos)
+      // 2. Guardar los datos en la tabla profesores
       const { error: upsertError } = await supabase
         .from("profesores")
         .upsert({
           id: userId,
-          email: userEmail,
-          nombre: input.nombre,
-          gym_nombre: input.gymName,
-          created_at: new Date().toISOString()
+          email: userEmail || '',
+          nombre: input.publicName, // Nombre público unificado
+          updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
 
       if (upsertError) {
