@@ -3,6 +3,64 @@ export const planesCopy = {
     title: "Diseñar Nuevo Plan",
     subtitle: "Creá un plan de entrenamiento con rutinas separadas por días.",
   },
+  list: {
+    header: {
+      title: "Tus Planes",
+      subtitle: "Gestioná tu biblioteca de rutinas y programas.",
+      newBtn: "Nuevo Plan"
+    },
+    table: {
+      title: "Todos los Planes",
+      searchPlaceholder: "Buscar por nombre...",
+      empty: "Todavía no tenés planes creados.",
+      emptySearch: "No encontramos planes con ese nombre.",
+      columns: {
+        name: "Nombre del Plan",
+        duration: "Duración",
+        frequency: "Frecuencia",
+        studentsCount: "Alumnos Activos",
+      },
+      dropdownMenu: {
+        triggerAria: "Opciones del plan",
+        viewDetails: "Ver Detalle",
+        editPlan: "Editar Plan",
+        duplicatePlan: "Duplicar Plan",
+        deletePlan: "Eliminar"
+      }
+    }
+  },
+  detail: {
+    breadcrumb: "Tus Planes",
+    meta: {
+      duration: "Duración",
+      frequency: "Frecuencia",
+      weeks: "sem",
+      daysPerWeek: "días / sem",
+      createdAt: "Creado el",
+      studentsCount: "Alumnos activos",
+    },
+    tabs: {
+      routines: "Rutinas",
+      students: "Alumnos",
+    },
+    routines: {
+      dayLabel: "Día",
+      emptyDay: "Sin ejercicios asignados a este día.",
+      sets: "Series",
+      reps: "Reps",
+      rest: "Descanso",
+      seconds: "seg",
+    },
+    students: {
+      empty: "Ningún alumno está usando este plan.",
+      assignBtn: "Asignar Alumno",
+    },
+    actions: {
+      edit: "Editar Plan",
+      duplicate: "Duplicar",
+      back: "← Volvé a Planes",
+    }
+  },
   form: {
     basic: {
       title: "1. Info del Plan",
