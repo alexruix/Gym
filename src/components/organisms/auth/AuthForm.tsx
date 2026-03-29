@@ -65,7 +65,7 @@ export function AuthForm() {
         redirectTo: `${window.location.origin}/api/auth/callback`,
         queryParams: {
           access_type: 'offline',
-          prompt: 'consent',
+          prompt: 'select_account',
         },
       },
     });
