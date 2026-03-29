@@ -35,7 +35,6 @@ export const exerciseLibrarySchema = z.object({
 });
 export type ExerciseLibraryFormData = z.infer<typeof exerciseLibrarySchema>;
 
-// Alumno validation (SSOT for inviting/editing students)
 export const studentSchema = z.object({
   nombre: z.string().min(1, "Nombre requerido"),
   email: z.string().email("Email inválido"),
@@ -43,6 +42,23 @@ export const studentSchema = z.object({
   plan_id: z.string().uuid("Plan inválido").optional(),
   fecha_inicio: z.coerce.date().default(() => new Date()),
   dia_pago: z.number().min(1).max(31).default(1),
+});
+
+export const updateStudentSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email("Email inválido").optional(),
+  telefono: z.string().optional().nullable(),
+  fecha_inicio: z.coerce.date().optional(),
+  dia_pago: z.number().min(1).max(31).optional(),
+  notas: z.string().max(500).optional().nullable(),
+});
+
+export const personalizeExerciseSchema = z.object({
+  alumno_id: z.string().uuid(),
+  ejercicio_plan_id: z.string().uuid(),
+  series: z.number().int().min(1),
+  reps_target: z.string().min(1),
+  descanso_seg: z.number().int().min(0),
 });
 
 export const inviteStudentSchema = z.object({

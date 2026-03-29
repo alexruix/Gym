@@ -13,22 +13,22 @@ export function StatusBadge({ status, size = 'md', className }: Props) {
     activo: {
       label: "ACTIVO",
       icon: Check,
-      colors: "bg-lime-500 text-zinc-950 border-lime-400 shadow-lime-500/30",
+      colors: "bg-primary text-primary-foreground border-primary shadow-primary/20",
     },
     moroso: {
       label: "MOROSO",
       icon: AlertCircle,
-      colors: "bg-red-500 text-white border-red-400 shadow-red-500/30",
+      colors: "bg-destructive text-destructive-foreground border-destructive shadow-destructive/20",
     },
     inactivo: {
       label: "SIN PLAN",
       icon: Clock,
-      colors: "bg-zinc-700 text-zinc-300 border-zinc-600 shadow-zinc-900/10",
+      colors: "bg-muted text-muted-foreground border-border shadow-sm",
     },
     pendiente: {
       label: "PENDIENTE",
       icon: Clock,
-      colors: "bg-amber-400 text-zinc-950 border-amber-300 shadow-amber-400/20",
+      colors: "bg-secondary text-secondary-foreground border-secondary border shadow-sm",
     }
   };
 

@@ -1,7 +1,8 @@
 import React from "react";
 import { CheckCircle2, TrendingUp, UserPlus, Clock } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
-import { Card } from "@/components/ui/card";
+import { DashboardCard } from "@/components/atoms/DashboardCard";
+import { IconWrapper } from "@/components/atoms/IconWrapper";
 
 export interface ActivityLog {
   id: string;
@@ -20,34 +21,21 @@ export function ActivityFeed({ activities }: Props) {
 
   if (activities.length === 0) {
     return (
-      <Card className="p-6 border-zinc-100 shadow-sm flex flex-col items-center justify-center text-center py-12 h-full">
-        <div className="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mb-4">
-          <Clock className="w-8 h-8 text-zinc-400" aria-hidden="true" />
-        </div>
+      <DashboardCard variant="base" className="p-6 flex-col items-center justify-center text-center py-12 h-full">
+        <IconWrapper icon={Clock} color="muted" size="xl" shape="circle" className="mb-4" />
         <p className="text-zinc-500 font-medium max-w-[200px]">{c.empty}</p>
-      </Card>
+      </DashboardCard>
     );
   }
 
-  const getIcon = (type: ActivityLog["type"]) => {
+  const getLogSettings = (type: ActivityLog["type"]) => {
     switch (type) {
       case "session_completed":
-        return <CheckCircle2 className="w-5 h-5 text-lime-600" aria-hidden="true" />;
+        return { icon: CheckCircle2, color: "primary" as const };
       case "weight_logged":
-        return <TrendingUp className="w-5 h-5 text-blue-600" aria-hidden="true" />;
+        return { icon: TrendingUp, color: "info" as const };
       case "new_student":
-        return <UserPlus className="w-5 h-5 text-purple-600" aria-hidden="true" />;
-    }
-  };
-
-  const getBgColor = (type: ActivityLog["type"]) => {
-    switch (type) {
-      case "session_completed":
-        return "bg-lime-100";
-      case "weight_logged":
-        return "bg-blue-100";
-      case "new_student":
-        return "bg-purple-100";
+        return { icon: UserPlus, color: "warning" as const };
     }
   };
 
@@ -75,11 +63,9 @@ export function ActivityFeed({ activities }: Props) {
   };
 
   return (
-    <Card className="overflow-hidden h-full flex flex-col border-zinc-100 shadow-sm">
+    <DashboardCard variant="base" className="h-full">
       <div className="p-6 border-b border-zinc-100 bg-zinc-50/50 flex items-center gap-3">
-        <div className="p-2 bg-zinc-100 rounded-xl">
-          <Clock className="w-5 h-5 text-zinc-600" aria-hidden="true" />
-        </div>
+        <IconWrapper icon={Clock} color="muted" size="md" shape="rounded" />
         <h2 className="text-lg font-bold text-zinc-950">{c.title}</h2>
       </div>
 
@@ -88,11 +74,18 @@ export function ActivityFeed({ activities }: Props) {
           {activities.map((log) => (
             <div key={log.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
               {/* Timeline dot */}
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-white ${getBgColor(log.type)} shadow-sm shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 transition-transform duration-300 group-hover:scale-110`}
-              >
-                {getIcon(log.type)}
-              </div>
+              {(() => {
+                const settings = getLogSettings(log.type);
+                return (
+                  <IconWrapper 
+                    icon={settings.icon} 
+                    color={settings.color}
+                    size="lg" 
+                    shape="circle" 
+                    className="border-4 border-white md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 transition-transform duration-300 group-hover:scale-110"
+                  />
+                );
+              })()}
 
               {/* Content card */}
               <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-zinc-50/50 border border-zinc-100 p-4 rounded-2xl shadow-sm group-hover:shadow-md transition-shadow">
@@ -107,6 +100,6 @@ export function ActivityFeed({ activities }: Props) {
           ))}
         </div>
       </div>
-    </Card>
+    </DashboardCard>
   );
 }

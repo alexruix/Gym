@@ -1,5 +1,7 @@
 ---
 import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
+import PageHeader from '@/components/molecules/PageHeader.astro';
+import ActionLink from '@/components/atoms/ActionLink.astro';
 import { RecentStudentsTable, type RecentStudent } from '@/components/organisms/profesor/dashboard/RecentStudentsTable';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 
@@ -41,24 +43,17 @@ const mappedStudents: RecentStudent[] = (alumnos || []).map(a => ({
 
 <ProfesorLayout title="Alumnos - MiGym">
   <div class="px-4 py-6 md:py-10 max-w-7xl mx-auto space-y-8">
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-          Tus Alumnos
-        </h1>
-        <p class="text-base text-zinc-500 dark:text-zinc-400">
-          Gestioná la base de datos de tus estudiantes.
-        </p>
-      </div>
-      <div class="flex gap-2 w-full md:w-auto">
-        <a href="/profesor/alumnos/import" class="w-full md:w-auto text-center bg-white border border-zinc-200 text-zinc-950 px-5 py-2.5 rounded-2xl font-bold hover:-translate-y-0.5 transition-transform shadow-sm text-sm">
-          📥 Importar Excel
-        </a>
-        <a href="/profesor/alumnos/new" class="w-full md:w-auto text-center bg-lime-400 text-zinc-950 px-5 py-2.5 rounded-2xl font-bold hover:bg-lime-500 transition-colors shadow-none text-sm uppercase tracking-widest">
-          ➕ Nuevo
-        </a>
-      </div>
-    </header>
+    <PageHeader 
+      title="Tus alumnos" 
+      subtitle="Gestioná la base de datos de tus estudiantes."
+    >
+      <ActionLink href="/profesor/alumnos/import" variant="secondary" class="flex-1 md:flex-none">
+        📥 Importar Excel
+      </ActionLink>
+      <ActionLink href="/profesor/alumnos/new" variant="primary" uppercase class="flex-1 md:flex-none">
+        ➕ Nuevo
+      </ActionLink>
+    </PageHeader>
 
     <div class="bg-white dark:bg-zinc-950/50 rounded-b-3xl rounded-t-xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex-1">
       <RecentStudentsTable client:load students={mappedStudents} title="Todos los Alumnos" hideAction />

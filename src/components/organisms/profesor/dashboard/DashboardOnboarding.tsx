@@ -1,21 +1,30 @@
 import React, { useState } from "react";
 import { CheckCircle2, Circle, X, BookOpen, UserPlus, ClipboardList } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
+import { DashboardCard } from "@/components/atoms/DashboardCard";
+import { IconWrapper } from "@/components/atoms/IconWrapper";
 
-export function DashboardOnboarding() {
+interface Props {
+  hasPlans: boolean;
+  hasStudents: boolean;
+}
+
+export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
   const [isVisible, setIsVisible] = useState(true);
   const c = dashboardCopy.onboarding;
 
-  if (!isVisible) return null;
+  if (!isVisible || (hasPlans && hasStudents)) return null;
+
+  const completedSteps = 1 + (hasPlans ? 1 : 0) + (hasStudents ? 1 : 0);
 
   return (
-    <div className="my-6 bg-zinc-950 text-white p-6 rounded-3xl border border-zinc-900 shadow-2xl relative overflow-hidden group">
+    <DashboardCard variant="neon">
       {/* Elemento de diseño de fondo */}
       <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-64 h-64 bg-lime-500/20 rounded-full blur-3xl pointer-events-none" />
 
       <button 
         onClick={() => setIsVisible(false)}
-        className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
+        className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/10 z-20"
         aria-label="Ocultar guía de inicio"
       >
         <X className="w-4 h-4" />
@@ -31,7 +40,7 @@ export function DashboardOnboarding() {
             {c.description}
           </p>
           <div className="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-lime-400 h-full w-1/3 rounded-full" />
+            <div className="bg-lime-400 h-full transition-all duration-500 rounded-full" style={{ width: `${(completedSteps / 3) * 100}%` }} />
           </div>
           <p className="text-xs text-zinc-500 mt-2 font-bold uppercase tracking-widest">{c.progressText}</p>
         </div>
@@ -40,40 +49,45 @@ export function DashboardOnboarding() {
           {/* Paso 1: Auth (Completado por lógica) */}
           <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col h-full opacity-60">
             <div className="flex justify-between items-start mb-3">
-              <div className="p-2 bg-lime-400/20 text-lime-400 rounded-xl">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
+              <IconWrapper icon={CheckCircle2} color="primary" size="md" shape="rounded" />
             </div>
             <h3 className="text-sm font-bold text-white line-through decoration-zinc-500">{c.steps.profile.title}</h3>
             <p className="text-xs text-zinc-400 mt-1">{c.steps.profile.desc}</p>
           </div>
 
           {/* Paso 2: Crear un plan */}
-          <a href="/profesor/planes/new" className="bg-white/5 border border-lime-500/30 p-4 rounded-2xl flex flex-col h-full hover:bg-white/10 hover:-translate-y-1 transition-all group/card cursor-pointer relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+          <a href={hasPlans ? "#" : "/profesor/planes/new"} className={`border p-4 rounded-2xl flex flex-col h-full transition-all ${hasPlans ? 'bg-white/5 border-white/10 opacity-60 cursor-default' : 'bg-white/5 border-lime-500/30 hover:bg-white/10 hover:-translate-y-1 group/card cursor-pointer relative overflow-hidden'}`}>
+            {!hasPlans && <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />}
             <div className="flex justify-between items-start mb-3 relative z-10">
-              <div className="p-2 bg-white/10 text-white rounded-xl group-hover/card:bg-lime-400 group-hover/card:text-zinc-950 transition-colors">
-                <ClipboardList className="w-4 h-4" />
-              </div>
-              <Circle className="w-4 h-4 text-zinc-500" />
+              <IconWrapper 
+                icon={hasPlans ? CheckCircle2 : ClipboardList} 
+                color={hasPlans ? "primary" : "base"} 
+                size="md" 
+                shape="rounded"
+                className={!hasPlans ? "group-hover/card:bg-lime-400 group-hover/card:text-zinc-950 transition-colors" : ""}
+              />
+              {!hasPlans && <Circle className="w-4 h-4 text-zinc-500" />}
             </div>
-            <h3 className="text-sm font-bold text-white relative z-10">{c.steps.plan.title}</h3>
+            <h3 className={`text-sm font-bold relative z-10 ${hasPlans ? 'text-white line-through decoration-zinc-500' : 'text-white'}`}>{c.steps.plan.title}</h3>
             <p className="text-xs text-zinc-400 mt-1 relative z-10">{c.steps.plan.desc}</p>
           </a>
 
           {/* Paso 3: Agregar Alumno */}
-          <a href="/profesor/alumnos/new" className="bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col h-full hover:bg-white/10 hover:-translate-y-1 transition-all group/card cursor-pointer">
+          <a href={hasStudents ? "#" : "/profesor/alumnos/new"} className={`border p-4 rounded-2xl flex flex-col h-full transition-all ${hasStudents ? 'bg-white/5 border-white/10 opacity-60 cursor-default' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:-translate-y-1 group/card cursor-pointer'}`}>
             <div className="flex justify-between items-start mb-3">
-              <div className="p-2 bg-white/10 text-white rounded-xl">
-                <UserPlus className="w-4 h-4" />
-              </div>
-              <Circle className="w-4 h-4 text-zinc-500" />
+              <IconWrapper 
+                icon={hasStudents ? CheckCircle2 : UserPlus} 
+                color={hasStudents ? "primary" : "base"} 
+                size="md" 
+                shape="rounded"
+              />
+              {!hasStudents && <Circle className="w-4 h-4 text-zinc-500" />}
             </div>
-            <h3 className="text-sm font-bold text-white">{c.steps.student.title}</h3>
+            <h3 className={`text-sm font-bold ${hasStudents ? 'text-white line-through decoration-zinc-500' : 'text-white'}`}>{c.steps.student.title}</h3>
             <p className="text-xs text-zinc-400 mt-1">{c.steps.student.desc}</p>
           </a>
         </div>
       </div>
-    </div>
+    </DashboardCard>
   );
 }

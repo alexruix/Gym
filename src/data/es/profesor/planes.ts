@@ -5,12 +5,12 @@ export const planesCopy = {
   },
   list: {
     header: {
-      title: "Tus Planes",
+      title: "Tus planes",
       subtitle: "Gestioná tu biblioteca de rutinas y programas.",
       newBtn: "Nuevo Plan"
     },
     table: {
-      title: "Todos los Planes",
+      title: "Todos los planes",
       searchPlaceholder: "Buscar por nombre...",
       empty: "Todavía no tenés planes creados.",
       emptySearch: "No encontramos planes con ese nombre.",
@@ -30,7 +30,7 @@ export const planesCopy = {
     }
   },
   detail: {
-    breadcrumb: "Tus Planes",
+    breadcrumb: "Tus planes",
     meta: {
       duration: "Duración",
       frequency: "Frecuencia",
@@ -58,7 +58,7 @@ export const planesCopy = {
     actions: {
       edit: "Editar Plan",
       duplicate: "Duplicar",
-      back: "← Volvé a Planes",
+      back: "Volvé a Planes",
     }
   },
   form: {
@@ -77,11 +77,11 @@ export const planesCopy = {
       }
     },
     routines: {
-      title: "2. Rutinas Diarias",
+      title: "2. Rutinas diarias",
       selectDayTitle: "Día",
       dayNamePlaceholder: "Ej: Pecho y Tríceps",
       emptyDay: "No hay ejercicios en esta rutina aún.",
-      addExerciseBtn: "+ Buscar y Agregar Ejercicio",
+      addExerciseBtn: "Agregar ejercicio",
       exerciseCard: {
         series: "Series",
         reps: "Reps Target (Ej. 10-12)",
@@ -91,14 +91,14 @@ export const planesCopy = {
       }
     },
     exerciseModal: {
-      title: "Agregar Ejercicios",
+      title: "Agregar ejercicios",
       searchPlaceholder: "Buscar en tu biblioteca...",
       empty: "No encontraste lo que buscabas? Creá el ejercicio primero en tu Biblioteca.",
       addBtn: "Agregar",
       closeBtn: "Cerrar",
     },
     submit: {
-      btn: "Guardar Plan Completo",
+      btn: "Guardar plan completo",
       loading: "Guardando...",
     },
     messages: {

@@ -16,47 +16,35 @@ export const athleteProfileCopy = {
   },
   sidebar: {
     criticalNotes: {
-      label: "Notas Críticas",
-      empty: "Sin observaciones médicas registradas actualmente."
+      label: "Notas Internas (Solo Profe)",
+      empty: "Sin observaciones o notas registradas."
     },
-    starMetric: {
-      label: "Métrica Estrella",
-      trendUp: "subió",
-      trendDown: "bajó",
-      progress: "progreso"
-    },
-    progressVisual: {
-      label: "Progreso Visual",
-      before: "Antes",
-      now: "Ahora",
-      compareBtn: "Comparar Evolución"
+    info: {
+      label: "Información del Alumno",
+      email: "Email",
+      phone: "Teléfono",
+      startDate: "Fecha de inicio",
+      payDay: "Día de pago",
+      contactWhatsApp: "Contactar por WhatsApp",
+      emptyPhone: "No registrado",
+      emptyEmail: "No registrado"
     }
   },
   workspace: {
-    tabs: {
-      training: "Entrenamiento",
-      history: "Historial",
-      docs: "Documentación"
-    },
-    training: {
-      todayTitle: "Hoy: {session}",
-      statusInProgress: "En curso",
-      newRoutineBtn: "Nueva Rutina",
+    routine: {
+      title: "Rutina Asignada",
+      emptyState: {
+        title: "Aún no tiene un plan asignado.",
+        description: "Podés asignarle una rutina yendo a tus Planes.",
+        btnLabel: "Ver Tus Planes"
+      },
+      dayLabel: "Día",
       restLabel: "Descanso",
       targetLabel: "Target",
-      smartRpe: "Smart RPE",
-      completed: "Completado"
-    },
-    history: {
-      empty: "No hay actividad reciente registrada.",
-      viewMore: "Ver Historial Completo",
-      daysAgo: "Hace {n} días",
-      typeTraining: "Entrenamiento"
-    },
-    docs: {
-      uploadBtn: "Subir Documento",
-      updatedToday: "Actualizado hoy",
-      updatedMonth: "Marzo 2024"
+      sets: "Series",
+      reps: "Reps",
+      seconds: "seg",
+      emptyDay: "Sin ejercicios asignados a este día."
     }
   }
-};
+} as const;

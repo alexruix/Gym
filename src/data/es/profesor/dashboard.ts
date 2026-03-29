@@ -8,7 +8,7 @@ export const dashboardCopy = {
   },
   metrics: {
     activeStudents: {
-      label: "Comunidad actual", // Alumnos activos
+      label: "Alumnos activos", // Alumnos activos
       tooltip: "Alumnos siguiendo un plan activamente",
     },
     pendingRoutines: {
@@ -48,7 +48,7 @@ export const dashboardCopy = {
     }
   },
   recentStudents: {
-    title: "Últimos ingresos",
+    title: "Alumnos",
     empty: "Aún no tenés alumnos.",
     emptySearch: "No hay resultados para tu búsqueda.",
     action: "Ver todos",

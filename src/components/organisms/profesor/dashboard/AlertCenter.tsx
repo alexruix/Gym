@@ -8,7 +8,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { DashboardCard } from "@/components/atoms/DashboardCard";
+import { IconWrapper } from "@/components/atoms/IconWrapper";
 
 export interface AlertData {
   id: string;
@@ -28,23 +29,12 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
   const c = dashboardCopy.alerts;
   const totalAlerts = expiringPayments.length + atRiskStudents.length + noPlanStudents.length;
 
-  if (totalAlerts === 0) {
-    return (
-      <Card className="p-6 border-zinc-100 shadow-sm flex flex-col items-center justify-center text-center py-12 h-full">
-        <div className="w-16 h-16 bg-lime-50 rounded-full flex items-center justify-center mb-4">
-          <span className="text-3xl" aria-hidden="true">🎯</span>
-        </div>
-        <p className="text-zinc-500 font-medium max-w-[200px]">{c.empty}</p>
-      </Card>
-    );
-  }
+  if (totalAlerts === 0) return null;
 
   return (
-    <Card className="overflow-hidden h-full flex flex-col border-zinc-100 shadow-sm">
+    <DashboardCard variant="base" className="h-full">
       <div className="p-6 border-b border-zinc-100 bg-zinc-50/50 flex items-center gap-3">
-        <div className="p-2 bg-red-100 rounded-xl">
-          <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" />
-        </div>
+        <IconWrapper icon={AlertTriangle} color="destructive" size="md" shape="rounded" />
         <div>
           <h2 className="text-lg font-bold text-zinc-950">{c.title}</h2>
           <p className="text-sm text-zinc-500 font-medium">{totalAlerts} pendientes</p>
@@ -56,9 +46,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
           <AccordionItem value="payments" className="border-b border-zinc-100 px-6">
             <AccordionTrigger className="hover:no-underline py-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
-                  <DollarSign className="w-4 h-4 text-red-600" aria-hidden="true" />
-                </div>
+                <IconWrapper icon={DollarSign} color="destructive" size="md" shape="circle" />
                 <span className="font-bold text-zinc-950">{c.types.payment.title} ({expiringPayments.length})</span>
               </div>
             </AccordionTrigger>
@@ -90,9 +78,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
           <AccordionItem value="risk" className="border-b border-zinc-100 px-6">
             <AccordionTrigger className="hover:no-underline py-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center">
-                  <Frown className="w-4 h-4 text-orange-600" aria-hidden="true" />
-                </div>
+                <IconWrapper icon={Frown} color="warning" size="md" shape="circle" />
                 <span className="font-bold text-zinc-950">{c.types.risk.title} ({atRiskStudents.length})</span>
               </div>
             </AccordionTrigger>
@@ -124,9 +110,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
           <AccordionItem value="noplan" className="px-6 border-b-0">
             <AccordionTrigger className="hover:no-underline py-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                  <FilePlus className="w-4 h-4 text-blue-600" aria-hidden="true" />
-                </div>
+                <IconWrapper icon={FilePlus} color="info" size="md" shape="circle" />
                 <span className="font-bold text-zinc-950">{c.types.noPlan.title} ({noPlanStudents.length})</span>
               </div>
             </AccordionTrigger>
@@ -149,6 +133,6 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
           </AccordionItem>
         )}
       </Accordion>
-    </Card>
+    </DashboardCard>
   );
 }

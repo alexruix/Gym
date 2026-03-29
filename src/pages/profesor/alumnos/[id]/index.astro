@@ -1,8 +1,8 @@
 ---
 import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
 import { AthleteHeader } from '@/components/organisms/profesor/perfil/AthleteHeader';
-import { HealthSidebar } from '@/components/organisms/profesor/perfil/HealthSidebar';
-import { AthleteWorkspace } from '@/components/organisms/profesor/perfil/AthleteWorkspace';
+import { StudentProfileSidebar } from '@/components/organisms/profesor/perfil/StudentProfileSidebar.tsx';
+import { StudentRoutineWorkspace } from '@/components/organisms/profesor/perfil/StudentRoutineWorkspace.tsx';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 
 const { id } = Astro.params;
@@ -12,15 +12,32 @@ const supabase = createSupabaseServerClient(Astro);
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) return Astro.redirect("/login");
 
-// 2. Fetch Alumno (SSR)
-// Incluimos el join con planes para el nombre
+// 2. Fetch Alumno Completo con todo el árbol de su plan (SSR)
 const { data: alumno, error } = await supabase
   .from("alumnos")
   .select(`
     *,
     planes (
       id,
-      nombre
+      nombre,
+      rutinas_diarias (
+        id,
+        dia_numero,
+        nombre_dia,
+        orden,
+        ejercicios_plan (
+          id,
+          orden,
+          series,
+          reps_target,
+          descanso_seg,
+          biblioteca_ejercicios (
+            id,
+            nombre,
+            media_url
+          )
+        )
+      )
     )
   `)
   .eq("id", id)
@@ -40,16 +57,13 @@ const studentData = {
   telefono: alumno.telefono || undefined
 };
 
-const planName = Array.isArray(alumno.planes) ? alumno.planes[0]?.nombre : (alumno.planes as any)?.nombre;
+// En Supabase al pedir un objeto relacionado (.single no se usa en el join unless we know it's 1:1, but here planes is 1 for the alumno technically, though it returns an array/object depending on setup)
+const assignedPlan = Array.isArray(alumno.planes) ? alumno.planes[0] : alumno.planes;
+const planName = assignedPlan?.nombre;
 
-// Mock de métricas (Serían fetched de progreso_alumno en el futuro)
-const mockMetrics = [
-  { tipo: "Peso", valor: "78.4kg", cambio: "-1.2kg", subida: false },
-  { tipo: "Grasa", valor: "18.5%", cambio: "-0.5%", subida: false }
-];
 ---
 
-<ProfesorLayout title={`${alumno.nombre} - Athlete Snapshot`}>
+<ProfesorLayout title={`${alumno.nombre} - Ficha del Alumno | MiGym`}>
   <div class="px-5 py-6 md:py-12 md:px-10 max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
     
     {/* 1. ANCLA (CABECERA VITAL) */}
@@ -60,21 +74,25 @@ const mockMetrics = [
     {/* 2. SOPORTE Y DETALLE (GRID DE 3 COLUMNAS) */}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
-      {/* COLUMNA IZQUIERDA: BIOMETRÍA & HEALTH (30%) */}
+      {/* COLUMNA IZQUIERDA: CONTACTO & NOTAS (30%) */}
       <aside class="order-2 lg:order-1 lg:col-span-4 xl:col-span-3 animate-in slide-in-from-left-4 duration-500 delay-150">
-        <HealthSidebar 
+        <StudentProfileSidebar 
           client:load 
           notasCriticas={alumno.notas} 
-          metricas={mockMetrics} 
+          alumno={{
+            email: alumno.email,
+            telefono: alumno.telefono,
+            fecha_inicio: alumno.fecha_inicio,
+            dia_pago: alumno.dia_pago,
+          }}
         />
       </aside>
 
-      {/* COLUMNA CENTRAL: WORKSPACE & TABS (70%) */}
+      {/* COLUMNA CENTRAL: RUTINA ASIGNADA (70%) */}
       <main class="order-1 lg:order-2 lg:col-span-8 xl:col-span-9 animate-in slide-in-from-right-4 duration-500 delay-300">
-        <AthleteWorkspace 
+        <StudentRoutineWorkspace 
           client:load 
-          planData={alumno.planes} 
-          historial={[]} 
+          planData={assignedPlan}
         />
       </main>
 
