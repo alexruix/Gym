@@ -1,0 +1,62 @@
+---
+import Layout from './Layout.astro';
+import { 
+  Home, 
+  Dumbbell, 
+  TrendingUp, 
+  User 
+} from 'lucide-react';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<Layout title={title}>
+  <div class="min-h-screen bg-zinc-50/30 pb-20 md:pb-0">
+    <!-- Header Alumno (Mobile) -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-zinc-100 p-4 sticky top-0 z-10 flex justify-between items-center md:px-8">
+      <div class="flex items-center gap-2">
+        <span class="font-black text-xl tracking-tighter italic text-zinc-950">MI<span class="text-lime-500">GYM</span></span>
+      </div>
+      <a href="/alumno/perfil" class="w-10 h-10 rounded-2xl bg-zinc-100 flex items-center justify-center text-zinc-600 hover:bg-zinc-200 transition-colors">
+        <User className="w-5 h-5" />
+      </a>
+    </header>
+
+    <main class="flex-1 p-4 md:p-8 max-w-lg mx-auto md:max-w-4xl">
+      <slot />
+    </main>
+
+    <!-- Bottom Navigation (Mobile) - Focus: Thumb Zone -->
+    <nav class="fixed bottom-4 left-4 right-4 bg-zinc-950 text-white rounded-3xl h-16 flex items-center justify-around md:hidden border border-white/10 shadow-2xl z-50 px-2">
+      <a href="/alumno" class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath === '/alumno' ? 'text-lime-400' : 'text-zinc-400'}`}>
+        <Home className="w-6 h-6 mb-1" />
+        <span class="text-[9px] font-black uppercase tracking-widest">Inicio</span>
+      </a>
+      
+      <!-- Central Action Button (Focus) -->
+      <a href="/alumno/mi-plan" class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath.includes('/mi-plan') ? 'text-lime-400' : 'text-zinc-400'}`}>
+        <div class={`p-3 rounded-2xl -mt-8 shadow-xl transition-all ${currentPath.includes('/mi-plan') ? 'bg-lime-400 text-zinc-950' : 'bg-zinc-800 text-white'}`}>
+          <Dumbbell className="w-6 h-6" />
+        </div>
+        <span class="text-[9px] font-black uppercase tracking-widest mt-1">Mi Plan</span>
+      </a>
+
+      <a href="/alumno/progreso" class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath.includes('/progreso') ? 'text-lime-400' : 'text-zinc-400'}`}>
+        <TrendingUp className="w-6 h-6 mb-1" />
+        <span class="text-[9px] font-black uppercase tracking-widest">Progreso</span>
+      </a>
+    </nav>
+  </div>
+</Layout>
+
+<style>
+  /* Optional: Add extra padding for iPhone safe areas if not handled by fixed position */
+  nav {
+    margin-bottom: env(safe-area-inset-bottom, 0);
+  }
+</style>

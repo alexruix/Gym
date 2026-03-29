@@ -1,0 +1,23 @@
+---
+import AlumnoLayout from '../../layouts/AlumnoLayout.astro';
+---
+
+<AlumnoLayout title="Home Alumno - MiGym">
+  <div class="p-6 space-y-6 max-w-md mx-auto">
+     <section class="bg-card p-8 rounded-3xl border shadow-lg text-center space-y-4">
+        <p class="text-sm font-bold text-muted-foreground uppercase tracking-widest">Hoy (Entrenamiento)</p>
+        <a href="/alumno/sesion/1" class="block w-full bg-primary text-primary-foreground py-4 rounded-2xl font-black text-xl shadow-xl shadow-primary/20 active:scale-95 transition-all">
+          🚀 EMPEZAR SESIÓN
+        </a>
+        <p class="text-orange-500 font-bold">🔥 3 días seguidos</p>
+     </section>
+
+     <section class="space-y-2">
+       <h2 class="text-lg font-bold uppercase tracking-wider">Mi Progreso</h2>
+       <div class="bg-background border rounded-2xl p-4 flex items-center justify-between">
+          <span class="font-bold">6 / 8 Sesiones</span>
+          <span class="text-primary font-bold">75%</span>
+       </div>
+     </section>
+  </div>
+</AlumnoLayout>
