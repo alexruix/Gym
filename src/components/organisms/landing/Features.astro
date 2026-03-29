@@ -1,0 +1,71 @@
+---
+import { landingCopy } from '../../../data/es/landing';
+
+const { features } = landingCopy;
+const emojiMap: Record<string, string> = {};
+features.items.forEach(item => { emojiMap[item.title] = item.emoji; });
+---
+
+<section class="py-24 px-5 md:px-8 bg-white relative overflow-hidden">
+    <!-- Decoración de fondo -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[radial-gradient(ellipse_at_center,rgba(163,230,53,0.07),transparent_70%)] pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+
+        <!-- Header de sección -->
+        <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 animate-in fade-in duration-500">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-lime-50 border border-lime-200 text-lime-700 font-black text-[10px] uppercase tracking-widest">
+                {features.badge}
+            </span>
+            <h2 class="text-4xl md:text-5xl font-black tracking-tighter text-zinc-950 leading-tight">
+                {features.title}<br/>
+                <span class="text-lime-500 italic">{features.titleHighlight}</span>
+            </h2>
+        </div>
+
+        <!-- Grid de features: 2x2 en desktop -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {features.items.map((feature, index) => (
+                <div
+                    class={`group p-8 rounded-3xl border transition-all duration-300 hover:-translate-y-1 cursor-default ${
+                        index === 0
+                            ? 'bg-zinc-950 border-zinc-800 hover:border-lime-400/40 hover:shadow-2xl hover:shadow-lime-500/10'
+                            : 'bg-zinc-50 border-zinc-200 hover:bg-white hover:shadow-xl hover:shadow-zinc-900/5 hover:border-lime-200'
+                    }`}
+                >
+                    <!-- Emoji / Icono -->
+                    <div class={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6 transition-all duration-300 ${
+                        index === 0
+                            ? 'bg-zinc-800 group-hover:bg-lime-400 group-hover:scale-110'
+                            : 'bg-zinc-100 group-hover:bg-lime-100 group-hover:scale-110'
+                    }`}>
+                        {feature.emoji}
+                    </div>
+
+                    <!-- Número de feature -->
+                    <div class={`text-[10px] font-black uppercase tracking-widest mb-2 ${
+                        index === 0 ? 'text-lime-400' : 'text-zinc-400'
+                    }`}>
+                        0{index + 1}
+                    </div>
+
+                    <!-- Título -->
+                    <h3 class={`text-xl font-black uppercase tracking-tight mb-3 leading-tight transition-colors ${
+                        index === 0
+                            ? 'text-white group-hover:text-lime-400'
+                            : 'text-zinc-950 group-hover:text-lime-600'
+                    }`}>
+                        {feature.title}
+                    </h3>
+
+                    <!-- Descripción -->
+                    <p class={`font-medium leading-relaxed ${
+                        index === 0 ? 'text-zinc-400' : 'text-zinc-500'
+                    }`}>
+                        {feature.desc}
+                    </p>
+                </div>
+            ))}
+        </div>
+    </div>
+</section>

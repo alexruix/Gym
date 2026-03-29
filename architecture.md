@@ -40,44 +40,53 @@ MiGym es una plataforma SaaS donde **Profesores** crean planes de entrenamiento 
 │ id (PK)         │
 │ email           │
 │ nombre          │
+│ gym_nombre      │
 │ created_at      │
 └────────┬────────┘
          │ 1:N
-         ▼
-┌─────────────────┐         ┌──────────────────┐
-│      PLAN       │────────▶│   EJERCICIO      │
-├─────────────────┤         ├──────────────────┤
-│ id (PK)         │   1:N   │ id (PK)          │
-│ profesor_id (FK)├─────────│ nombre           │
-│ nombre          │         │ descripcion      │
-│ duracion_semanas│         │ series x reps    │
-│ created_at      │         │ media_url        │
-└────────┬────────┘         └──────────────────┘
+         ├──────────────────────────────────┐
+         ▼                                  ▼
+┌─────────────────┐                ┌──────────────────┐
+│      PLAN       │                │BIBLIO_EJERCICIOS │
+├─────────────────┤                ├──────────────────┤
+│ id (PK)         │                │ id (PK)          │
+│ profesor_id (FK)│                │ profesor_id (FK) │
+│ nombre          │                │ nombre           │
+│ duracion_semanas│                │ descripcion      │
+│ frecuencia_sem  │                │ media_url        │
+└────────┬────────┘                └────────┬─────────┘
+         │ 1:N                              │ 1:N
+         ▼                                  │
+┌─────────────────┐                         │
+│ RUTINA_DIARIA   │                         │
+├─────────────────┤                         │
+│ id (PK)         │                         │
+│ plan_id (FK)    │                         │
+│ dia_numero      │                         │
+│ nombre_dia      │                         ▼
+└────────┬────────┘                ┌──────────────────┐
+         │ 1:N                     │  EJERCICIO_PLAN  │
+         ▼                         ├──────────────────┤
+┌─────────────────┐                │ id (PK)          │
+│     ALUMNO      │◀───────────────┤ rutina_id (FK)   │
+├─────────────────┤                │ ejercicio_id (FK)│
+│ id (PK)         │                │ series (int)     │
+│ user_id (FK)    │                │ reps_target(txt) │
+│ profesor_id (FK)│                │ descanso_seg(int)│
+│ email           │                │ orden            │
+└────────┬────────┘                └──────────────────┘
          │ 1:N
-         ▼
-┌─────────────────┐
-│     ALUMNO      │
-├─────────────────┤
-│ id (PK)         │
-│ profesor_id (FK)│
-│ email           │
-│ nombre          │
-│ plan_id (FK)    │
-│ fecha_inicio    │
-│ created_at      │
-└────────┬────────┘
-         │ 1:N
-         ▼
-┌─────────────────┐
-│     SESION      │
-├─────────────────┤
-│ id (PK)         │
-│ alumno_id (FK)  │
-│ fecha           │
-│ completada      │
-│ notas           │
-│ created_at      │
-└────────┬────────┘
+         ├──────────────────────────────────┐
+         ▼                                  ▼
+┌─────────────────┐                ┌──────────────────┐
+│     SESION      │                │      PAGOS       │
+├─────────────────┤                ├──────────────────┤
+│ id (PK)         │                │ id (PK)          │
+│ alumno_id (FK)  │                │ alumno_id (FK)   │
+│ fecha           │                │ monto            │
+│ completada      │                │ fecha_venc       │
+│ estado           │               │ estado           │
+└────────┬────────┘                └──────────────────┘
          │ 1:N
          ▼
 ┌──────────────────┐
@@ -99,51 +108,63 @@ MiGym es una plataforma SaaS donde **Profesores** crean planes de entrenamiento 
 - `id` (UUID)
 - `email` (único)
 - `nombre`
+- `gym_nombre` (ej: "CrossFit Sur")
 - `created_at`
+
+**BIBLIOTECA_EJERCICIOS**
+- `id` (UUID)
+- `profesor_id` (FK → PROFESOR)
+- `nombre` (ej: "Press de Banca")
+- `descripcion` (instrucciones técnicas globales)
+- `media_url` (Video/Imagen)
 
 **PLAN**
 - `id` (UUID)
 - `profesor_id` (FK → PROFESOR)
-- `nombre` (ej: "Plan Principiante - 4 semanas")
-- `duracion_semanas` (int)
-- `descripcion` (texto)
-- `created_at`, `updated_at`
+- `nombre` (ej: "Plan Principiante")
+- `duracion_semanas` (int: 2, 3, 4 etc)
+- `frecuencia_semanal` (int: 1, 2, 3, 4, 5, 6 etc)
+- `created_at`
 
-**EJERCICIO**
+**RUTINA_DIARIA**
 - `id` (UUID)
 - `plan_id` (FK → PLAN)
-- `nombre` (ej: "Flexiones")
-- `descripcion` (ej: "Control en la bajada, 2 seg")
-- `series_reps` (ej: "3 x 10")
-- `media_url` (opcional: video/imagen técnica)
-- `orden` (int para secuencia en sesión)
+- `dia_numero` (int: 1, 2, 3...)
+- `nombre_dia` (ej: "Empuje / Cuádriceps")
+
+**EJERCICIO_PLAN**
+- `id` (UUID)
+- `rutina_id` (FK → RUTINA_DIARIA)
+- `ejercicio_id` (FK → BIBLIOTECA_EJERCICIOS)
+- `series` (int: 4)
+- `reps_target` (text: "12" o "Al fallo")
+- `descanso_seg` (int: 90)
+- `orden` (int)
 
 **ALUMNO**
 - `id` (UUID)
+- `user_id` (FK → auth.users.id, permite cambio de email/social login)
 - `profesor_id` (FK → PROFESOR)
-- `email`
-- `nombre`
-- `plan_id` (FK → PLAN, puede ser NULL si aún no asignado)
-- `fecha_inicio` (cuándo arranca)
-- `estado` (activo, pausado, completado)
+- `email`, `nombre`, `plan_id`, `fecha_inicio`
+- `estado` (activo, pausado, moroso)
+
+**PAGOS**
+- `id` (UUID)
+- `alumno_id` (FK → ALUMNO)
+- `monto` (ARS)
+- `fecha_vencimiento` (date)
+- `estado` (pagado, pendiente, vencido)
 
 **SESION**
 - `id` (UUID)
 - `alumno_id` (FK → ALUMNO)
-- `plan_id` (FK → PLAN, desnormalización para queries rápidas)
-- `numero_sesion` (1, 2, 3... de la semana)
-- `fecha` (date)
-- `completada` (boolean)
-- `notas` (texto: "Muy pesado", "Fácil")
-- `created_at`
+- `fecha`, `completada`, `notas`
 
 **EJERCICIO_LOGS**
 - `id` (UUID)
 - `sesion_id` (FK → SESION)
-- `ejercicio_id` (FK → EJERCICIO)
-- `series_reales`, `reps_reales` (int)
-- `peso_kg` (numeric)
-- `rpe` (optional int)
+- `ejercicio_id` (FK → EJERCICIO_PLAN)
+- `series_reales`, `reps_reales`, `peso_kg`, `rpe`
 *(Nota: Reemplaza JSON para facilitar queries analíticas de evolución del volumen de carga).*
 
 ---

@@ -1,4 +1,29 @@
 export const globalCopy = {
+  brand: {
+    nameLine1: "MI",
+    nameHighlight: "GYM",
+    proBadge: "PRO",
+  },
+  layout: {
+    profesorNav: {
+      dashboard: "Dashboard",
+      planes: "Planes",
+      alumnos: "Alumnos",
+      ejercicios: "Ejercicios",
+      pagos: "Pagos",
+      configuracion: "Configuración",
+      salir: "Salir"
+    },
+    alumnoNav: {
+      inicio: "Inicio",
+      miPlan: "Mi Plan",
+      progreso: "Progreso"
+    },
+    profesorHeader: {
+      role: "Profesor",
+      gymNamePlaceholder: "Gimnasio Central"
+    }
+  },
   actions: {
     back: "Volver",
     continue: "Continuar",

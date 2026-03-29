@@ -11,6 +11,8 @@ import {
   Bell
 } from 'lucide-react';
 
+import { globalCopy } from '../data/es/global';
+
 interface Props {
   title: string;
 }
@@ -19,11 +21,11 @@ const { title } = Astro.props;
 
 // Mock navigation items
 const navItems = [
-  { name: 'Dashboard', href: '/profesor', icon: LayoutDashboard },
-  { name: 'Planes', href: '/profesor/planes', icon: ClipboardList },
-  { name: 'Alumnos', href: '/profesor/alumnos', icon: Users },
-  { name: 'Ejercicios', href: '/profesor/ejercicios', icon: Dumbbell },
-  { name: 'Pagos', href: '/profesor/pagos', icon: CreditCard },
+  { name: globalCopy.layout.profesorNav.dashboard, href: '/profesor', icon: LayoutDashboard },
+  { name: globalCopy.layout.profesorNav.planes, href: '/profesor/planes', icon: ClipboardList },
+  { name: globalCopy.layout.profesorNav.alumnos, href: '/profesor/alumnos', icon: Users },
+  { name: globalCopy.layout.profesorNav.ejercicios, href: '/profesor/ejercicios', icon: Dumbbell },
+  { name: globalCopy.layout.profesorNav.pagos, href: '/profesor/pagos', icon: CreditCard },
 ];
 
 const currentPath = Astro.url.pathname;
@@ -35,8 +37,8 @@ const currentPath = Astro.url.pathname;
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-zinc-200 fixed h-full z-20">
       <div class="h-16 flex items-center px-6 border-b border-zinc-200">
         <span class="font-black text-2xl tracking-tighter flex items-center">
-          MI<span class="text-lime-500">GYM</span>
-          <span class="ml-1.5 px-1.5 py-0.5 rounded bg-zinc-950 text-white text-[10px] uppercase tracking-widest font-extrabold">PRO</span>
+          {globalCopy.brand.nameLine1}<span class="text-lime-500">{globalCopy.brand.nameHighlight}</span>
+          <span class="ml-1.5 px-1.5 py-0.5 rounded bg-zinc-950 text-white text-[10px] uppercase tracking-widest font-extrabold">{globalCopy.brand.proBadge}</span>
         </span>
       </div>
       
@@ -64,11 +66,11 @@ const currentPath = Astro.url.pathname;
       <div class="p-4 border-t border-zinc-100">
         <a href="/profesor/configuracion" class="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
           <Settings className="w-5 h-5" />
-          <span class="text-sm font-bold uppercase tracking-wide">Configuración</span>
+          <span class="text-sm font-bold uppercase tracking-wide">{globalCopy.layout.profesorNav.configuracion}</span>
         </a>
         <button class="w-full mt-2 flex items-center gap-3 px-3 py-2.5 rounded-2xl text-red-500 hover:bg-red-50 transition-all">
           <LogOut className="w-5 h-5" />
-          <span class="text-sm font-bold uppercase tracking-wide">Salir</span>
+          <span class="text-sm font-bold uppercase tracking-wide">{globalCopy.layout.profesorNav.salir}</span>
         </button>
       </div>
     </aside>
@@ -78,7 +80,7 @@ const currentPath = Astro.url.pathname;
       <!-- Top Header -->
       <header class="h-16 bg-white/80 backdrop-blur-md border-b border-zinc-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
         <div class="md:hidden">
-            <span class="font-black text-xl tracking-tighter">MI<span class="text-lime-500">GYM</span></span>
+            <span class="font-black text-xl tracking-tighter">{globalCopy.brand.nameLine1}<span class="text-lime-500">{globalCopy.brand.nameHighlight}</span></span>
         </div>
         
         <div class="flex-1 px-4 hidden md:block">
@@ -93,8 +95,8 @@ const currentPath = Astro.url.pathname;
           
           <div class="flex items-center gap-3 pl-4 border-l border-zinc-200">
             <div class="text-right hidden sm:block">
-              <p class="text-xs font-black uppercase tracking-wider text-zinc-900 leading-none">Profesor</p>
-              <p class="text-[10px] font-bold text-zinc-400">Gimnasio Central</p>
+              <p class="text-xs font-black uppercase tracking-wider text-zinc-900 leading-none">{globalCopy.layout.profesorHeader.role}</p>
+              <p class="text-[10px] font-bold text-zinc-400">{globalCopy.layout.profesorHeader.gymNamePlaceholder}</p>
             </div>
             <div class="w-10 h-10 rounded-2xl bg-zinc-950 flex items-center justify-center text-lime-400 font-black text-lg shadow-inner">
               P

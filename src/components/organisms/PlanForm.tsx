@@ -253,4 +253,18 @@ export const PlanForm = () => {
                 <p className="text-zinc-500 font-bold max-w-xs mx-auto text-lg leading-tight">{planesCopy.create.step4.subtitle}</p>
             </div>
             <div className="pt-6 space-y-3">
-                <Button onClick={() => window.location.href = "/p
+                <Button onClick={() => window.location.href = "/profesor/planes"} className="w-full h-16 rounded-2xl bg-zinc-950 text-white font-black uppercase tracking-widest shadow-xl">
+                    {planesCopy.create.step4.dashboardButton}
+                </Button>
+                <Button onClick={() => setStep(1)} variant="outline" className="w-full h-14 rounded-2xl border-zinc-200 text-zinc-500 font-bold uppercase tracking-widest">
+                    Crear otro plan
+                </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+PlanForm.displayName = "PlanForm";

@@ -13,20 +13,26 @@ export interface Database {
         Row: {
           id: string
           email: string
-          nombre: string
+          nombre: string | null
+          gym_nombre: string | null
           created_at: string
+          updated_at: string
         }
         Insert: {
           id: string
           email: string
-          nombre: string
+          nombre?: string | null
+          gym_nombre?: string | null
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
           email?: string
-          nombre?: string
+          nombre?: string | null
+          gym_nombre?: string | null
           created_at?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -37,33 +43,64 @@ export interface Database {
           }
         ]
       }
+      biblioteca_ejercicios: {
+        Row: {
+          id: string
+          profesor_id: string
+          nombre: string
+          descripcion: string | null
+          media_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          profesor_id: string
+          nombre: string
+          descripcion?: string | null
+          media_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          profesor_id?: string
+          nombre?: string
+          descripcion?: string | null
+          media_url?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biblioteca_ejercicios_profesor_id_fkey"
+            columns: ["profesor_id"]
+            referencedRelation: "profesores"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       planes: {
         Row: {
           id: string
           profesor_id: string
           nombre: string
           duracion_semanas: number
-          descripcion: string | null
+          frecuencia_semanal: number
           created_at: string
-          updated_at: string
         }
         Insert: {
           id?: string
           profesor_id: string
           nombre: string
-          duracion_semanas: number
-          descripcion?: string | null
+          duracion_semanas?: number
+          frecuencia_semanal?: number
           created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
           profesor_id?: string
           nombre?: string
           duracion_semanas?: number
-          descripcion?: string | null
+          frecuencia_semanal?: number
           created_at?: string
-          updated_at?: string
         }
         Relationships: [
           {
@@ -74,48 +111,76 @@ export interface Database {
           }
         ]
       }
-      ejercicios: {
+      rutinas_diarias: {
         Row: {
           id: string
           plan_id: string
-          nombre: string
-          descripcion: string | null
-          series: number
-          reps: number
-          descanso_seg: number
-          media_url: string | null
+          dia_numero: number
+          nombre_dia: string | null
           orden: number
-          created_at: string
         }
         Insert: {
           id?: string
           plan_id: string
-          nombre: string
-          descripcion?: string | null
-          series: number
-          reps: number
-          descanso_seg?: number
-          media_url?: string | null
-          orden: number
-          created_at?: string
+          dia_numero: number
+          nombre_dia?: string | null
+          orden?: number
         }
         Update: {
           id?: string
           plan_id?: string
-          nombre?: string
-          descripcion?: string | null
-          series?: number
-          reps?: number
-          descanso_seg?: number
-          media_url?: string | null
+          dia_numero?: number
+          nombre_dia?: string | null
           orden?: number
-          created_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "ejercicios_plan_id_fkey"
+            foreignKeyName: "rutinas_diarias_plan_id_fkey"
             columns: ["plan_id"]
             referencedRelation: "planes"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      ejercicios_plan: {
+        Row: {
+          id: string
+          rutina_id: string
+          ejercicio_id: string
+          series: number
+          reps_target: string
+          descanso_seg: number
+          orden: number
+        }
+        Insert: {
+          id?: string
+          rutina_id: string
+          ejercicio_id: string
+          series?: number
+          reps_target?: string
+          descanso_seg?: number
+          orden?: number
+        }
+        Update: {
+          id?: string
+          rutina_id?: string
+          ejercicio_id?: string
+          series?: number
+          reps_target?: string
+          descanso_seg?: number
+          orden?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ejercicios_plan_rutina_id_fkey"
+            columns: ["rutina_id"]
+            referencedRelation: "rutinas_diarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ejercicios_plan_ejercicio_id_fkey"
+            columns: ["ejercicio_id"]
+            referencedRelation: "biblioteca_ejercicios"
             referencedColumns: ["id"]
           }
         ]
@@ -123,38 +188,44 @@ export interface Database {
       alumnos: {
         Row: {
           id: string
+          user_id: string | null
           profesor_id: string
-          email: string
-          nombre: string
           plan_id: string | null
+          email: string | null
+          nombre: string
           fecha_inicio: string
-          dia_pago: number
-          estado: 'activo' | 'pausado' | 'completado'
+          estado: string
           created_at: string
         }
         Insert: {
           id?: string
+          user_id?: string | null
           profesor_id: string
-          email: string
-          nombre: string
           plan_id?: string | null
+          email?: string | null
+          nombre: string
           fecha_inicio?: string
-          dia_pago?: number
-          estado?: 'activo' | 'pausado' | 'completado'
+          estado?: string
           created_at?: string
         }
         Update: {
           id?: string
+          user_id?: string | null
           profesor_id?: string
-          email?: string
-          nombre?: string
           plan_id?: string | null
+          email?: string | null
+          nombre?: string
           fecha_inicio?: string
-          dia_pago?: number
-          estado?: 'activo' | 'pausado' | 'completado'
+          estado?: string
           created_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "alumnos_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "alumnos_profesor_id_fkey"
             columns: ["profesor_id"]
@@ -169,13 +240,48 @@ export interface Database {
           }
         ]
       }
+      pagos: {
+        Row: {
+          id: string
+          alumno_id: string
+          monto: number
+          fecha_vencimiento: string
+          fecha_pago: string | null
+          estado: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          alumno_id: string
+          monto: number
+          fecha_vencimiento: string
+          fecha_pago?: string | null
+          estado?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          alumno_id?: string
+          monto?: number
+          fecha_vencimiento?: string
+          fecha_pago?: string | null
+          estado?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_alumno_id_fkey"
+            columns: ["alumno_id"]
+            referencedRelation: "alumnos"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       sesiones: {
         Row: {
           id: string
           alumno_id: string
-          plan_id: string
           fecha: string
-          numero_sesion: number
           completada: boolean
           notas: string | null
           created_at: string
@@ -183,9 +289,7 @@ export interface Database {
         Insert: {
           id?: string
           alumno_id: string
-          plan_id: string
           fecha: string
-          numero_sesion: number
           completada?: boolean
           notas?: string | null
           created_at?: string
@@ -193,9 +297,7 @@ export interface Database {
         Update: {
           id?: string
           alumno_id?: string
-          plan_id?: string
           fecha?: string
-          numero_sesion?: number
           completada?: boolean
           notas?: string | null
           created_at?: string
@@ -206,12 +308,6 @@ export interface Database {
             columns: ["alumno_id"]
             referencedRelation: "alumnos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sesiones_plan_id_fkey"
-            columns: ["plan_id"]
-            referencedRelation: "planes"
-            referencedColumns: ["id"]
           }
         ]
       }
@@ -220,10 +316,9 @@ export interface Database {
           id: string
           sesion_id: string
           ejercicio_id: string
-          alumno_id: string
-          numero_serie: number
-          reps: number
-          peso_kg: number
+          series_reales: number | null
+          reps_reales: number | null
+          peso_kg: number | null
           rpe: number | null
           created_at: string
         }
@@ -231,10 +326,9 @@ export interface Database {
           id?: string
           sesion_id: string
           ejercicio_id: string
-          alumno_id: string
-          numero_serie: number
-          reps: number
-          peso_kg: number
+          series_reales?: number | null
+          reps_reales?: number | null
+          peso_kg?: number | null
           rpe?: number | null
           created_at?: string
         }
@@ -242,10 +336,9 @@ export interface Database {
           id?: string
           sesion_id?: string
           ejercicio_id?: string
-          alumno_id?: string
-          numero_serie?: number
-          reps?: number
-          peso_kg?: number
+          series_reales?: number | null
+          reps_reales?: number | null
+          peso_kg?: number | null
           rpe?: number | null
           created_at?: string
         }
@@ -259,13 +352,7 @@ export interface Database {
           {
             foreignKeyName: "ejercicio_logs_ejercicio_id_fkey"
             columns: ["ejercicio_id"]
-            referencedRelation: "ejercicios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ejercicio_logs_alumno_id_fkey"
-            columns: ["alumno_id"]
-            referencedRelation: "alumnos"
+            referencedRelation: "ejercicios_plan"
             referencedColumns: ["id"]
           }
         ]
