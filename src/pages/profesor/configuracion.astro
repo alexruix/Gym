@@ -1,9 +1,128 @@
 ---
-import ProfesorLayout from '../../layouts/ProfesorLayout.astro';
+import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { ProfileSection } from "@/components/organisms/profesor/ProfileSection";
+import { PublicProfileSection } from "@/components/organisms/profesor/PublicProfileSection";
+import { NotificationsSection } from "@/components/organisms/profesor/NotificationsSection";
+import { SecuritySection } from "@/components/organisms/profesor/SecuritySection";
+import { configurationCopy } from "@/data/es/profesor/configuracion";
+
+const supabase = createSupabaseServerClient(Astro);
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+const { data: authUser } = await supabase.auth.getUser();
+const lastPasswordUpdate = authUser.user?.updated_at;
+
+const { data: profesor } = await supabase
+  .from("profesores")
+  .select("*")
+  .eq("id", user.id)
+  .single();
+
+const safeProfesor = {
+  id: user.id,
+  nombre: profesor?.nombre || "",
+  email: profesor?.email || user.email || "",
+  telefono: profesor?.telefono || "",
+  bio: profesor?.bio || "",
+  foto_url: profesor?.foto_url || "",
+  slug: profesor?.slug || "",
+  instagram: profesor?.instagram || "",
+  youtube: profesor?.youtube || "",
+  tiktok: profesor?.tiktok || "",
+  x_twitter: profesor?.x_twitter || "",
+  especialidades: profesor?.especialidades || [],
+  perfil_publico: profesor?.perfil_publico || false,
+  notif_cuotas_vencer: profesor?.notif_cuotas_vencer ?? true,
+  notif_cuota_vencida: profesor?.notif_cuota_vencida ?? true,
+  notif_alumno_completado: profesor?.notif_alumno_completado ?? true,
+  notif_nuevo_alumno: profesor?.notif_nuevo_alumno ?? true,
+  notif_email_semanal: profesor?.notif_email_semanal ?? false,
+  notif_frecuencia: (profesor?.notif_frecuencia as any) || "evento",
+};
 ---
 
-<ProfesorLayout title="Configuración - MiGym">
-  <div class="p-6 max-w-2xl mx-auto">
-    <h1 class="text-3xl font-bold mb-8">Configuración</h1>
+<ProfesorLayout title={`${configurationCopy.title} | MiGym`}>
+  <div class="px-4 py-6 md:py-10 max-w-7xl mx-auto space-y-8">
+    <header class="space-y-1">
+      <h1
+        class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50"
+      >
+        {configurationCopy.title}
+      </h1>
+      <p
+        class="text-base text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed"
+      >
+        {configurationCopy.subtitle}
+      </p>
+    </header>
+
+    <div class="bg-white/50 dark:bg-zinc-950/20 p-4 sm:p-8 rounded-2xl">
+      <!-- Layout Base: Sidebar Desktop / Stacked Mobile -->
+      <div class="flex flex-col md:flex-row gap-8 lg:gap-12 relative">
+        <aside class="md:w-64 flex-shrink-0">
+          <nav
+            class="flex md:flex-col space-x-4 md:space-x-0 md:space-y-2 overflow-x-auto pb-2 md:pb-0 md:sticky md:top-8"
+          >
+            <a
+              href="#perfil"
+              class="text-sm rounded-md px-3 py-2 font-medium hover:bg-muted bg-muted/50 mb-1 inline-flex items-center text-foreground"
+            >
+              {configurationCopy.profile.section}
+            </a>
+            <a
+              href="#seguridad"
+              class="text-sm rounded-md px-3 py-2 font-medium hover:bg-muted bg-muted/50 mb-1 inline-flex items-center text-foreground"
+            >
+              {configurationCopy.security.section}
+            </a>
+            <!-- <a
+              href="#publico"
+              class="text-sm rounded-md px-3 py-2 font-medium hover:bg-muted text-muted-foreground inline-flex items-center"
+            >
+              {configurationCopy.publicProfile.section}
+            </a> -->
+            <a
+              href="#notificaciones"
+              class="text-sm rounded-md px-3 py-2 font-medium hover:bg-muted text-muted-foreground inline-flex items-center"
+            >
+              {configurationCopy.notifications.section}
+            </a>
+          </nav>
+        </aside>
+
+        <main class="flex-1 space-y-12">
+          <section id="perfil" class="scroll-m-8">
+            <ProfileSection profesor={safeProfesor} client:load />
+          </section>
+
+          <div class="h-[1px] w-full bg-border"></div>
+
+          <section id="seguridad" class="scroll-m-8">
+            <SecuritySection
+              client:load
+              lastPasswordUpdate={lastPasswordUpdate}
+            />
+            <!-- <PublicProfileSection profesor={safeProfesor} client:load /> -->
+          </section>
+
+          <section id="publico" class="scroll-m-8">
+            <!-- <PublicProfileSection profesor={safeProfesor} client:load /> -->
+          </section>
+
+          <div class="h-[1px] w-full bg-border"></div>
+
+          <section id="notificaciones" class="scroll-m-8">
+            <NotificationsSection profesor={safeProfesor} client:load />
+          </section>
+
+          <!-- <div class="h-[1px] w-full bg-border"></div> -->
+        </main>
+      </div>
+    </div>
   </div>
 </ProfesorLayout>

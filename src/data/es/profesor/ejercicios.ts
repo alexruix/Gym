@@ -1,26 +1,26 @@
 export const exerciseLibraryCopy = {
   header: {
-    title: "Biblioteca de Ejercicios",
-    subtitle: "El catálogo de todos los movimientos y técnicas que usás en tus rutinas.",
+    title: "Ejercicios",
+    subtitle: "Crea y organiza tu biblioteca de ejercicios que usas en tus rutinas.",
   },
   emptyState: {
     title: "Aún no sumaste ejercicios",
     description: "Los ejercicios son la base de tus planes. Guardalos una vez y reutilizalos con todos tus alumnos para ahorrar tiempo.",
-    action: "+ Crear tu primer ejercicio"
+    action: "Crear tu primer ejercicio"
   },
   list: {
     searchPlaceholder: "Buscar ejercicio por nombre...",
-    action: "+ Nuevo ejercicio",
+    action: "Crear",
     noResults: "No se encontraron ejercicios con esa búsqueda.",
     mediaIconTitle: "Tiene recurso audiovisual",
   },
   form: {
     title: "Crear nuevo ejercicio",
-    description: "Añadí un nuevo movimiento a tu catálogo personal.",
+    description: "Añadí un nuevo ejercicio a tu listado.",
     labels: {
-      nombre: "Nombre del Ejercicio",
-      descripcion: "Descripción o Notas Técnicas (Opcional)",
-      mediaUrl: "Enlace a Video o Imagen (YouTube, Drive, etc.) - Opcional",
+      nombre: "Nombre",
+      descripcion: "Descripción (Opcional)",
+      mediaUrl: "Enlace a video o imagen (Opcional)",
     },
     placeholders: {
       nombre: "Ej: Sentadilla con Barra Libres",
@@ -33,8 +33,20 @@ export const exerciseLibraryCopy = {
       submitting: "Guardando...",
     },
     messages: {
-      success: "✅ Ejercicio guardado en tu biblioteca",
+      success: "Ejercicio guardado correctamente",
       error: "Hubo un error al guardar el ejercicio.",
     }
+  },
+  import: {
+    title: "Importar Ejercicios",
+    description: "Subí un archivo Excel (.xlsx) o CSV para añadir ejercicios masivamente.",
+    dropzone: "Arrastrá tu archivo o hacé clic para buscar",
+    hint: "El archivo debe tener al menos una columna llamada 'Nombre'.",
+    preview: "Previsualización de datos",
+    confirm: "Importar ejercicios",
+    cancel: "Cancelar",
+    success: "✅ {count} ejercicios importados exitosamente",
+    error: "❌ Error al procesar el archivo. Verificá el formato.",
+    empty: "No se encontraron datos válidos en el archivo.",
   }
 } as const;

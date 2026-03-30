@@ -1,41 +1,30 @@
-# 🗄️ Esquema de Base de Datos (Supabase) - v3.0 (Final Audit Corrected)
-
-Este archivo contiene el código SQL final corregido para **MiGym**, incluyendo identidad vinculada a Auth, frecuencia de planes y métricas granulares de ejercicios.
-
----
-
-## 🛠️ Configuración Global
-
-```sql
+-- Asegurar que la extensión de UUIDs esté activa
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-```
 
----
-
-## 📊 Tablas Principales
-
-### 1. Profesores
-
-```sql
-CREATE TABLE profesores (
+--- 1. Profesores
+CREATE TABLE IF NOT EXISTS profesores (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email text UNIQUE NOT NULL,
-  nombre text, -- Nombre público (Personal o Gimnasio)
+  nombre text,
+  gym_nombre text,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
 
 ALTER TABLE profesores ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Dueño puede ver su propio perfil" ON profesores;
 CREATE POLICY "Dueño puede ver su propio perfil" ON profesores FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Dueño puede actualizar su propio perfil" ON profesores;
 CREATE POLICY "Dueño puede actualizar su propio perfil" ON profesores FOR UPDATE USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Inserción vía onboarding" ON profesores;
 CREATE POLICY "Inserción vía onboarding" ON profesores FOR INSERT WITH CHECK (true);
-```
 
-### 2. Biblioteca de Ejercicios
 
-```sql
-CREATE TABLE biblioteca_ejercicios (
+--- 2. Biblioteca de Ejercicios
+CREATE TABLE IF NOT EXISTS biblioteca_ejercicios (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
   nombre text NOT NULL,
@@ -46,15 +35,12 @@ CREATE TABLE biblioteca_ejercicios (
 
 ALTER TABLE biblioteca_ejercicios ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Profesores gestionan su biblioteca" ON biblioteca_ejercicios;
 CREATE POLICY "Profesores gestionan su biblioteca" ON biblioteca_ejercicios FOR ALL USING (auth.uid() = profesor_id);
-```
 
-### 3. Planes
 
-Agregado: `frecuencia_semanal` para filtros y organización.
-
-```sql
-CREATE TABLE planes (
+--- 3. Planes
+CREATE TABLE IF NOT EXISTS planes (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
   nombre text NOT NULL,
@@ -65,13 +51,12 @@ CREATE TABLE planes (
 
 ALTER TABLE planes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Profesores gestionan sus planes" ON planes;
 CREATE POLICY "Profesores gestionan sus planes" ON planes FOR ALL USING (auth.uid() = profesor_id);
-```
 
-### 4. Rutinas Diarias
 
-```sql
-CREATE TABLE rutinas_diarias (
+--- 4. Rutinas Diarias
+CREATE TABLE IF NOT EXISTS rutinas_diarias (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   plan_id uuid REFERENCES planes(id) ON DELETE CASCADE NOT NULL,
   dia_numero int NOT NULL,
@@ -81,16 +66,13 @@ CREATE TABLE rutinas_diarias (
 
 ALTER TABLE rutinas_diarias ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Profesores gestionan sus rutinas" ON rutinas_diarias;
 CREATE POLICY "Profesores gestionan sus rutinas" ON rutinas_diarias
-  FOR ALL USING (EXISTS (SELECT 1 FROM planes WHERE planes.id = rutinas_diarias.plan_id AND planes.profesor_id = auth.uid()));
-```
+  FOR ALL USING (EXISTS (SELECT 1 FROM planes WHERE id = rutinas_diarias.plan_id AND profesor_id = auth.uid()));
 
-### 5. Ejercicios del Plan (Métricas Granulares)
 
-Agregado: Separación de `series`, `reps_target` y `descanso_seg`.
-
-```sql
-CREATE TABLE ejercicios_plan (
+--- 5. Ejercicios del Plan (Métricas Granulares)
+CREATE TABLE IF NOT EXISTS ejercicios_plan (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   rutina_id uuid REFERENCES rutinas_diarias(id) ON DELETE CASCADE NOT NULL,
   ejercicio_id uuid REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE NOT NULL,
@@ -102,6 +84,7 @@ CREATE TABLE ejercicios_plan (
 
 ALTER TABLE ejercicios_plan ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Profesores gestionan ejercicios del plan" ON ejercicios_plan;
 CREATE POLICY "Profesores gestionan ejercicios del plan" ON ejercicios_plan
   FOR ALL USING (
     EXISTS (
@@ -110,14 +93,10 @@ CREATE POLICY "Profesores gestionan ejercicios del plan" ON ejercicios_plan
       WHERE rd.id = ejercicios_plan.rutina_id AND p.profesor_id = auth.uid()
     )
   );
-```
 
-### 6. Alumnos (Identidad Segura)
 
-Agregado: `user_id` para vincular con `auth.users` y evitar pérdida de historial.
-
-```sql
-CREATE TABLE alumnos (
+--- 6. Alumnos (Identidad Segura)
+CREATE TABLE IF NOT EXISTS alumnos (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL, -- Identidad real
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
@@ -131,14 +110,15 @@ CREATE TABLE alumnos (
 
 ALTER TABLE alumnos ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Profesores gestionan sus alumnos" ON alumnos;
 CREATE POLICY "Profesores gestionan sus alumnos" ON alumnos FOR ALL USING (auth.uid() = profesor_id);
-CREATE POLICY "Alumnos ven su propio perfil heredado" ON alumnos FOR SELECT USING (auth.uid() = user_id OR email = (SELECT email FROM auth.users WHERE id = auth.uid()));
-```
 
-### 7. Pagos y Tracking
+DROP POLICY IF EXISTS "Alumnos ven su propio perfil heredado" ON alumnos;
+CREATE POLICY "Alumnos ven su propio perfil heredado" ON alumnos FOR SELECT USING (auth.uid() = user_id OR email = (auth.jwt() ->> 'email'));
 
-```sql
-CREATE TABLE pagos (
+
+--- 7. Pagos y Tracking
+CREATE TABLE IF NOT EXISTS pagos (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
   monto numeric NOT NULL,
@@ -148,7 +128,7 @@ CREATE TABLE pagos (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE TABLE sesiones (
+CREATE TABLE IF NOT EXISTS sesiones (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
   fecha date NOT NULL,
@@ -157,7 +137,7 @@ CREATE TABLE sesiones (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE TABLE ejercicio_logs (
+CREATE TABLE IF NOT EXISTS ejercicio_logs (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   sesion_id uuid REFERENCES sesiones(id) ON DELETE CASCADE NOT NULL,
   ejercicio_id uuid REFERENCES ejercicios_plan(id) ON DELETE CASCADE NOT NULL,
@@ -172,24 +152,167 @@ ALTER TABLE pagos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sesiones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ejercicio_logs ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE alumnos
-ADD COLUMN IF NOT EXISTS telefono text,
-ADD COLUMN IF NOT EXISTS dia_pago int DEFAULT 15,
-ADD COLUMN IF NOT EXISTS monto numeric,
-ADD COLUMN IF NOT EXISTS notas text;
-
-
--- Políticas simplificadas: El profesor ve todo lo de sus alumnos. El alumno ve lo propio vía user_id o email.
-```
-
--- 1. Eliminamos la política problemática
-DROP POLICY IF EXISTS "Alumnos ven su propio perfil heredado" ON alumnos;
-
--- 2. La recreamos usando auth.jwt()
-CREATE POLICY "Alumnos ven su propio perfil heredado" ON alumnos
-FOR SELECT
-USING (
-auth.uid() = user_id
-OR
-email = (auth.jwt() ->> 'email')
+--- Políticas de Herencia Ligera para Pagos y Sesiones (Soft Delete Aware)
+DROP POLICY IF EXISTS "Acceso a pagos vía alumnos" ON pagos;
+CREATE POLICY "Acceso a pagos vía alumnos" ON pagos FOR ALL USING (
+  EXISTS (SELECT 1 FROM alumnos WHERE id = pagos.alumno_id AND profesor_id = auth.uid())
 );
+
+DROP POLICY IF EXISTS "Acceso a sesiones vía alumnos" ON sesiones;
+CREATE POLICY "Acceso a sesiones vía alumnos" ON sesiones FOR ALL USING (
+  EXISTS (SELECT 1 FROM alumnos WHERE id = sesiones.alumno_id AND profesor_id = auth.uid())
+);
+
+DROP POLICY IF EXISTS "Acceso a logs vía sesiones" ON ejercicio_logs;
+CREATE POLICY "Acceso a logs vía sesiones" ON ejercicio_logs FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM sesiones s
+    JOIN alumnos a ON s.alumno_id = a.id
+    WHERE s.id = ejercicio_logs.sesion_id AND a.profesor_id = auth.uid()
+  )
+);
+
+
+--- MIGRACIONES / ACTUALIZACIONES (Seguras para re-run)
+
+-- 1. Agregar nuevas columnas a tabla profesores
+ALTER TABLE profesores
+ADD COLUMN IF NOT EXISTS telefono text,
+ADD COLUMN IF NOT EXISTS bio text,
+ADD COLUMN IF NOT EXISTS gimnasio text,
+ADD COLUMN IF NOT EXISTS ubicacion text,
+ADD COLUMN IF NOT EXISTS foto_url text,
+ADD COLUMN IF NOT EXISTS notif_cuotas_vencer boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS notif_cuota_vencida boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS notif_alumno_completado boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS notif_nuevo_alumno boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS notif_email_semanal boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS notif_frecuencia text DEFAULT 'evento',
+ADD COLUMN IF NOT EXISTS perfil_publico boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS permitir_contacto boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS mostrar_foto boolean DEFAULT true;
+
+-- 2. Crear bucket de Storage para avatars (Si no existe)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. Políticas RLS para Storage 'avatars'
+
+-- A) Lectura Pública
+DROP POLICY IF EXISTS "Avatares son de lectura publica" ON storage.objects;
+CREATE POLICY "Avatares son de lectura publica" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'avatars');
+
+-- B) Subir avatar
+DROP POLICY IF EXISTS "Profesor sube su propio avatar" ON storage.objects;
+CREATE POLICY "Profesor sube su propio avatar"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'avatars' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- C) Actualizar avatar
+DROP POLICY IF EXISTS "Profesor actualiza su propio avatar" ON storage.objects;
+CREATE POLICY "Profesor actualiza su propio avatar"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'avatars' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+)
+WITH CHECK (
+  bucket_id = 'avatars' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- D) Eliminar avatar
+DROP POLICY IF EXISTS "Profesor elimina su propio avatar" ON storage.objects;
+CREATE POLICY "Profesor elimina su propio avatar"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'avatars' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+--- 8. ACTUALIZACIONES DE LA ITERACIÓN 1 (Soft Delete y Funciones)
+
+-- 1. SOPORTE PARA BORRADO LÓGICO (SOFT DELETE) EN ALUMNOS
+ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
+
+-- 2. ACTUALIZAR RLS PARA FILTRAR ELIMINADOS
+-- Al usar DROP IF EXISTS nos aseguramos de no duplicar la política al re-ejecutar
+DROP POLICY IF EXISTS "Profesores gestionan sus alumnos" ON alumnos;
+CREATE POLICY "Profesores gestionan sus alumnos" ON alumnos 
+FOR ALL USING (auth.uid() = profesor_id AND deleted_at IS NULL);
+
+-- 3. FUNCIÓN RPC: CREAR PLAN COMPLETO (TRANSACCIONAL)
+-- CREATE OR REPLACE asegura que la función se actualice limpia en cada ejecución
+CREATE OR REPLACE FUNCTION crear_plan_completo(
+  p_profesor_id uuid,
+  p_nombre text,
+  p_duracion_semanas int,
+  p_frecuencia_semanal int,
+  p_rutinas jsonb
+) RETURNS uuid AS $$
+DECLARE
+  v_plan_id uuid;
+  v_rutina_id uuid;
+  v_rutina jsonb;
+  v_ejercicio jsonb;
+BEGIN
+  -- Insertar Plan Maestro
+  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal)
+  VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal)
+  RETURNING id INTO v_plan_id;
+
+  -- Iterar sobre rutinas
+  FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas)
+  LOOP
+    INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
+    VALUES (v_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
+    RETURNING id INTO v_rutina_id;
+
+    -- Iterar sobre ejercicios de la rutina
+    IF v_rutina ? 'ejercicios' THEN
+      FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios')
+      LOOP
+        -- VALIDACIÓN IDOR: El ejercicio debe pertenecer al profesor
+        -- Esto es vital porque SECURITY DEFINER ignora el RLS de la tabla
+        IF NOT EXISTS (SELECT 1 FROM biblioteca_ejercicios WHERE id = (v_ejercicio->>'ejercicio_id')::uuid AND profesor_id = p_profesor_id) THEN
+          RAISE EXCEPTION 'IDOR Detectado: El ejercicio % no pertenece al profesor %', (v_ejercicio->>'ejercicio_id'), p_profesor_id;
+        END IF;
+
+        INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden)
+        VALUES (
+          v_rutina_id, 
+          (v_ejercicio->>'ejercicio_id')::uuid, 
+          (v_ejercicio->>'series')::int, 
+          v_ejercicio->>'reps_target', 
+          (v_ejercicio->>'descanso_seg')::int, 
+          (v_ejercicio->>'orden')::int
+        );
+      END LOOP;
+    END IF;
+  END LOOP;
+
+  RETURN v_plan_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+--- 9. ACTUALIZACIONES DE LA ITERACIÓN 2 (Perfil Público)
+
+-- 1. SOPORTE PARA CAMPOS DE LANDING PAGE Y REDES SOCIALES
+ALTER TABLE profesores
+ADD COLUMN IF NOT EXISTS slug text UNIQUE,
+ADD COLUMN IF NOT EXISTS portada_url text,
+ADD COLUMN IF NOT EXISTS instagram text,
+ADD COLUMN IF NOT EXISTS youtube text,
+ADD COLUMN IF NOT EXISTS tiktok text,
+ADD COLUMN IF NOT EXISTS x_twitter text,
+ADD COLUMN IF NOT EXISTS especialidades text[];

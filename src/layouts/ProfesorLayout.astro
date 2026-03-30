@@ -14,13 +14,35 @@ import {
 
 import { globalCopy } from '../data/es/global';
 import { dashboardCopy } from '../data/es/profesor/dashboard';
-import { LogoutButton } from '../components/atoms/auth/LogoutButton';
+import { createSupabaseServerClient } from '../lib/supabase-ssr';
+import { MobileNav } from '../components/organisms/profesor/MobileNav';
+import { NotificationDropdown } from '../components/organisms/profesor/NotificationDropdown';
+import { UserAccountMenu } from '../components/organisms/profesor/UserAccountMenu';
+import { UniversalSearch } from '../components/organisms/profesor/UniversalSearch';
 
 interface Props {
   title: string;
 }
 
 const { title } = Astro.props;
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+const supabase = createSupabaseServerClient(Astro);
+const { data: profesor } = await supabase
+  .from("profesores")
+  .select("nombre, foto_url, slug")
+  .eq("id", user.id)
+  .single();
+
+const safeProfesor = {
+  nombre: profesor?.nombre || "Entrenador",
+  foto_url: profesor?.foto_url || null,
+  slug: profesor?.slug || null,
+};
 
 // Mock navigation items
 const navItems = [
@@ -39,10 +61,10 @@ const currentPath = Astro.url.pathname;
     <!-- Desktop Sidebar -->
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-zinc-200 fixed h-full z-20">
       <div class="h-16 flex items-center px-6 border-b border-zinc-200">
-        <span class="font-black text-2xl tracking-tighter flex items-center">
+        <a href="/profesor" class="font-black text-2xl tracking-tighter flex items-center hover:opacity-80 transition-opacity">
           {globalCopy.brand.nameLine1}<span class="text-lime-500">{globalCopy.brand.nameHighlight}</span>
           <span class="ml-1.5 px-1.5 py-0.5 rounded bg-zinc-950 text-white text-[10px] uppercase tracking-widest font-extrabold">{globalCopy.brand.proBadge}</span>
-        </span>
+        </a>
       </div>
       
       <nav class="flex-1 p-4 space-y-1">
@@ -66,55 +88,37 @@ const currentPath = Astro.url.pathname;
         })}
       </nav>
 
-      <div class="p-4 border-t border-zinc-100">
-        <a href="/profesor/configuracion" class="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
-          <Settings className="w-5 h-5" aria-hidden="true" />
-          <span class="text-sm font-bold uppercase tracking-wide">{globalCopy.layout.profesorNav.configuracion}</span>
-        </a>
-        <LogoutButton client:load />
+      <div class="px-6 py-6 border-t border-zinc-100 italic text-[10px] text-zinc-400 uppercase tracking-widest font-bold">
+        {globalCopy.brand.nameLine1}{globalCopy.brand.nameHighlight} v1.0
       </div>
     </aside>
 
     <!-- Main Content -->
     <div class="flex-1 md:pl-64 flex flex-col min-h-screen">
       <!-- Top Header -->
-      <header class="h-16 bg-white/80 backdrop-blur-md border-b border-zinc-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
-        <div class="md:hidden">
-            <span class="font-black text-xl tracking-tighter">{globalCopy.brand.nameLine1}<span class="text-lime-500">{globalCopy.brand.nameHighlight}</span></span>
-        </div>
+      <header class="h-16 bg-white/80 backdrop-blur-md border-b border-zinc-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30 gap-2 md:gap-4">
         
-        <div class="flex-1 px-4 hidden md:flex items-center gap-6">
-            <h1 class="text-sm font-black uppercase tracking-widest text-zinc-400 shrink-0">{title}</h1>
-            {/* Global Search */}
-            <div class="relative w-full max-w-md hidden lg:block group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
-              <input 
-                type="text" 
-                placeholder={dashboardCopy.layout.globalSearch} 
-                class="w-full bg-zinc-100/50 hover:bg-zinc-100 border border-transparent focus:border-lime-500 focus:bg-white rounded-2xl pl-10 pr-4 py-2 text-sm outline-none transition-all shadow-sm" 
-              />
-              <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd class="hidden xl:inline-block bg-white text-zinc-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-zinc-200">⌘</kbd>
-                <kbd class="hidden xl:inline-block bg-white text-zinc-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-zinc-200">K</kbd>
-              </div>
+        <!-- Left Section (Logo/Title) - Hidden when search expanded on mobile -->
+        <div class="flex items-center gap-4 shrink-0 transition-all duration-300 has-[+div_.is-search-expanded]:w-0 has-[+div_.is-search-expanded]:opacity-0 overflow-hidden">
+            <!-- Mobile Left -->
+            <div class="flex items-center gap-2 md:hidden">
+                <MobileNav client:load currentPath={currentPath} />
+                <a href="/profesor" class="font-black text-xl tracking-tighter shrink-0">
+                  {globalCopy.brand.nameLine1}<span class="text-lime-500">{globalCopy.brand.nameHighlight}</span>
+                </a>
             </div>
         </div>
 
-        <div class="flex items-center gap-4">
-          <button class="p-2 text-zinc-400 hover:text-zinc-900 relative">
-            <Bell className="w-5 h-5" />
-            <span class="absolute top-2 right-2 w-2 h-2 bg-lime-500 rounded-full border-2 border-white"></span>
-          </button>
-          
-          <div class="flex items-center gap-3 pl-4 border-l border-zinc-200">
-            <div class="text-right hidden sm:block">
-              <p class="text-xs font-black uppercase tracking-wider text-zinc-900 leading-none">{globalCopy.layout.profesorHeader.role}</p>
-              <p class="text-[10px] font-bold text-zinc-400">{globalCopy.layout.profesorHeader.gymNamePlaceholder}</p>
-            </div>
-            <div class="w-10 h-10 rounded-2xl bg-zinc-950 flex items-center justify-center text-lime-400 font-black text-lg shadow-inner">
-              P
-            </div>
-          </div>
+        <!-- Middle Section (Search) -->
+        <div class="flex-1 flex justify-end md:justify-start">
+            <UniversalSearch client:load />
+        </div>
+
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3 shrink-0 transition-all duration-300 has-[:hover]:scale-105">
+          <NotificationDropdown client:load />
+          <div class="h-8 w-[1px] bg-zinc-200 mx-1"></div>
+          <UserAccountMenu client:load profesor={safeProfesor} />
         </div>
       </header>
       

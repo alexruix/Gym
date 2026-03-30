@@ -1,0 +1,135 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Instagram, Youtube, Twitter, MessageCircle, Share2, Award } from "lucide-react";
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/404");
+}
+
+const supabase = createSupabaseServerClient(Astro);
+
+// Fetch public professor data
+const { data: professor, error } = await supabase
+  .from("profesores")
+  .select(`
+    nombre,
+    bio,
+    foto_url,
+    instagram,
+    youtube,
+    tiktok,
+    x_twitter,
+    especialidades,
+    perfil_publico
+  `)
+  .eq("slug", slug)
+  .single();
+
+// 404 if not found or if profile is not public
+if (error || !professor || !professor.perfil_publico) {
+  return Astro.redirect("/404");
+}
+
+const socialLinks = [
+  { icon: Instagram, url: professor.instagram, color: "text-pink-500" },
+  { icon: Youtube, url: professor.youtube, color: "text-red-500" },
+  { icon: Twitter, url: professor.x_twitter, color: "text-blue-400" },
+  // TikTok icon usually needs a custom SVG or different lib, using Share2 for now or generic
+  { icon: MessageCircle, url: professor.tiktok, color: "text-zinc-900" }, 
+].filter(link => link.url);
+
+const title = `${professor.nombre} | MiGym`;
+---
+
+<Layout title={title}>
+  <main class="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center pt-16 pb-24 px-4">
+    <div class="max-w-2xl w-full space-y-10">
+      
+      <!-- Profile Header -->
+      <section class="flex flex-col items-center text-center space-y-6">
+        <div class="relative group">
+          <div class="absolute -inset-1 bg-gradient-to-r from-primary to-blue-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+          <div class="relative w-32 h-32 rounded-full border-4 border-white dark:border-zinc-900 overflow-hidden shadow-xl bg-zinc-200 dark:bg-zinc-800">
+            {professor.foto_url ? (
+              <img src={professor.foto_url} alt={professor.nombre} class="w-full h-full object-cover" />
+            ) : (
+              <div class="w-full h-full flex items-center justify-center text-zinc-400">
+                <span class="text-4xl font-bold">{professor.nombre?.[0]}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h1 class="text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 uppercase italic">
+            {professor.nombre}
+          </h1>
+          {professor.bio && (
+            <p class="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-lg mx-auto">
+              {professor.bio}
+            </p>
+          )}
+        </div>
+
+        {socialLinks.length > 0 && (
+          <div class="flex gap-4">
+            {socialLinks.map(link => (
+              <a 
+                href={link.url} 
+                target="_blank" 
+                rel="noreferrer" 
+                class={`p-3 rounded-full bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 hover:scale-110 transition-transform ${link.color}`}
+              >
+                <link.icon className="w-6 h-6" />
+              </a>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <!-- Especialidades -->
+      {professor.especialidades && professor.especialidades.length > 0 && (
+        <section class="space-y-4">
+          <h2 class="text-sm font-bold uppercase tracking-widest text-zinc-400 text-center flex items-center justify-center gap-2">
+            <Award className="w-4 h-4" /> Especialidades
+          </h2>
+          <div class="flex flex-wrap justify-center gap-2">
+            {professor.especialidades.map((esp: string) => (
+              <Badge variant="secondary" className="px-4 py-1.5 text-sm font-semibold rounded-full bg-zinc-200/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700">
+                {esp}
+              </Badge>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- CTAs Principales -->
+      <section class="flex flex-col gap-4 pt-4">
+        <Button size="lg" className="h-16 text-lg font-bold rounded-2xl shadow-lg shadow-primary/20 transition-all hover:translate-y-[-2px] active:scale-[0.98]">
+          ¿Querés entrenar conmigo?
+        </Button>
+        <div class="text-center">
+          <p class="text-xs text-zinc-500">
+            Powered by <span class="font-bold text-primary">MiGym</span>
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</Layout>
+
+<style>
+  /* Animación sutil de fondo o gradiente si se desea */
+  body {
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+      radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%);
+  }
+</style>

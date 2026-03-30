@@ -134,3 +134,58 @@ export const sessionLogSchema = z.object({
 });
 
 export type SessionLogData = z.infer<typeof sessionLogSchema>;
+
+// Account Settings validation (Private Info)
+export const updateAccountSchema = z.object({
+  email: z.string().email("Email inválido"),
+  telefono: z.string().min(8, "Teléfono inválido").regex(/^\+[1-9]\d{1,14}$/, "Debe incluir el código de país (ej: +54911...)."),
+});
+
+export type UpdateAccountData = z.infer<typeof updateAccountSchema>;
+
+// Public Profile validation (Landing Page Info)
+const urlSchema = z.string().url("URL inválida").optional().nullable().or(z.literal(""));
+
+export const updatePublicProfileSchema = z.object({
+  nombre: z.string().min(2, "Mínimo 2 caracteres").max(100, "Máximo 100 caracteres"),
+  slug: z.string().min(3, "Mínimo 3 caracteres").regex(/^[a-z0-9-]+$/, "Sólo minúsculas, números y guiones").optional().nullable().or(z.literal("")),
+  bio: z.string().max(160, "Máximo 160 caracteres").optional().nullable().or(z.literal("")),
+  instagram: urlSchema,
+  youtube: urlSchema,
+  tiktok: urlSchema,
+  x_twitter: urlSchema,
+  especialidades: z.array(z.string()).max(10, "Máximo 10 especialidades").default([]),
+  perfil_publico: z.boolean().default(false),
+});
+
+export type UpdatePublicProfileData = z.infer<typeof updatePublicProfileSchema>;
+
+export const updateNotificationsSchema = z.object({
+  notif_cuotas_vencer: z.boolean().default(true),
+  notif_cuota_vencida: z.boolean().default(true),
+  notif_alumno_completado: z.boolean().default(true),
+  notif_nuevo_alumno: z.boolean().default(true),
+  notif_email_semanal: z.boolean().default(false),
+  notif_frecuencia: z.enum(["evento", "diario", "semanal"]).default("evento"),
+});
+
+export type UpdateNotificationsData = z.infer<typeof updateNotificationsSchema>;
+
+export const updatePrivacySchema = z.object({
+  perfil_publico: z.boolean().default(false),
+  permitir_contacto: z.boolean().default(true),
+  mostrar_foto: z.boolean().default(true),
+});
+
+export type UpdatePrivacyData = z.infer<typeof updatePrivacySchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "La contraseña actual es requerida"),
+  newPassword: z.string().min(8, "Mínimo 8 caracteres").regex(/[a-zA-Z]/, "Debe incluir letras").regex(/[0-9]/, "Debe incluir números"),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
+export type ChangePasswordData = z.infer<typeof changePasswordSchema>;

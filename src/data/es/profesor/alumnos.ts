@@ -38,11 +38,11 @@ export const inviteStudentCopy = {
   },
   actions: {
     cancel: "Volver",
-    submit: "✓ Invitar alumno/a",
+    submit: "Invitar alumno/a",
     submitting: "Invitando...",
   },
   messages: {
-    helper: "⏱️ Toma 2 minutos",
+    helper: "Toma 2 minutos",
     successModal: {
       title: "¡{name} ya es parte de NODO! 🎉",
       description1: "Ya le enviamos su link de acceso por email.",
@@ -56,3 +56,26 @@ export const inviteStudentCopy = {
     planNotFound: "El plan seleccionado no es válido.",
   }
 } as const;
+
+export const alumnosListCopy = {
+  header: {
+    title: "Alumnos",
+    subtitle: "Gestioná a tus alumnos, sus planes y seguimientos.",
+  },
+  list: {
+    searchPlaceholder: "Buscar alumno por nombre o email...",
+    action: "Invitar Alumno",
+    noResults: "No se encontraron alumnos con esa búsqueda.",
+    status: {
+      active: "Activo",
+      inactive: "Inactivo",
+      pending: "Pendiente",
+    }
+  },
+  emptyState: {
+    title: "Aún no tenés alumnos",
+    description: "Empezá invitando a tu primer alumno para asignarles planes y rutinas.",
+    action: "Invitar Alumno"
+  }
+} as const;
+

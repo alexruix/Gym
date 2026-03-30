@@ -1,31 +1,38 @@
 ---
+import Breadcrumbs from "../atoms/Breadcrumbs.astro";
+
 interface Props {
   title: string;
   subtitle?: string;
   /** Oculta las acciones en dispositivos móviles */
   hideActionsOnMobile?: boolean;
+  breadcrumbs?: { label: string; href?: string }[];
 }
 
-const { title, subtitle, hideActionsOnMobile = false } = Astro.props;
+const { title, subtitle, hideActionsOnMobile = false, breadcrumbs } = Astro.props;
 ---
 
-<header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-  <div class="space-y-1">
-    <h1 class="text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50">
-      {title}
-    </h1>
-    {subtitle && (
-      <p class="text-zinc-500 dark:text-zinc-400 font-medium tracking-tight">
-        {subtitle}
-      </p>
-    )}
-  </div>
+<div class="flex flex-col gap-1 mb-8">
+  {breadcrumbs && <Breadcrumbs items={breadcrumbs} className="mb-2" />}
 
-  {Astro.slots.has("default") && (
-    <div 
-      class={`w-full md:w-auto gap-2 md:gap-3 items-center ${hideActionsOnMobile ? 'hidden md:flex' : 'flex flex-row'}`}
-    >
-      <slot />
+  <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="space-y-1">
+      <h1 class="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-950 dark:text-zinc-50">
+        {title}
+      </h1>
+      {subtitle && (
+        <p class="text-zinc-500 dark:text-zinc-400 font-medium tracking-tight max-w-2xl">
+          {subtitle}
+        </p>
+      )}
     </div>
-  )}
-</header>
+
+    {Astro.slots.has("default") && (
+      <div 
+        class={`w-full md:w-auto gap-2 md:gap-3 items-center ${hideActionsOnMobile ? 'hidden md:flex' : 'flex flex-row'}`}
+      >
+        <slot />
+      </div>
+    )}
+  </header>
+</div>
