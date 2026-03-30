@@ -70,6 +70,21 @@ export const alumnosListCopy = {
       active: "Activo",
       inactive: "Inactivo",
       pending: "Pendiente",
+    },
+    dropdownMenu: {
+      viewProfile: "Ver perfil",
+      editRoutine: "Editar rutina",
+      registerPayment: "Registrar pago",
+      viewProgress: "Ver progreso",
+      copyMagicLink: "Copiar link",
+      sendWhatsApp: "Enviar WhatsApp",
+      archive: "Archivar",
+      triggerAria: "Abrir menú de acciones",
+    },
+    columns: {
+      name: "Alumno",
+      plan: "Plan",
+      status: "Estado",
     }
   },
   emptyState: {
