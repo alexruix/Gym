@@ -116,6 +116,9 @@ CREATE POLICY "Profesores gestionan sus alumnos" ON alumnos FOR ALL USING (auth.
 DROP POLICY IF EXISTS "Alumnos ven su propio perfil heredado" ON alumnos;
 CREATE POLICY "Alumnos ven su propio perfil heredado" ON alumnos FOR SELECT USING (auth.uid() = user_id OR email = (auth.jwt() ->> 'email'));
 
+DROP POLICY IF EXISTS "Alumnos reclaman su perfil" ON alumnos;
+CREATE POLICY "Alumnos reclaman su perfil" ON alumnos FOR UPDATE USING (email = (auth.jwt() ->> 'email') AND user_id IS NULL) WITH CHECK (user_id = auth.uid());
+
 
 --- 7. Pagos y Tracking
 CREATE TABLE IF NOT EXISTS pagos (
@@ -134,6 +137,8 @@ CREATE TABLE IF NOT EXISTS sesiones (
   fecha date NOT NULL,
   completada boolean DEFAULT false,
   notas text,
+  notas_alumno text,
+  notas_profesor text,
   created_at timestamptz DEFAULT now()
 );
 
@@ -145,6 +150,8 @@ CREATE TABLE IF NOT EXISTS ejercicio_logs (
   reps_reales int,
   peso_kg numeric,
   rpe int,
+  nota_alumno text,
+  respuesta_profesor text,
   created_at timestamptz DEFAULT now()
 );
 
@@ -471,3 +478,27 @@ BEGIN
   RETURN json_build_object('success', true, 'mensaje', '✅ Pago registrado y mes renovado con éxito');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+--- 12. NOTIFICACIONES AL PROFESOR
+CREATE TABLE IF NOT EXISTS notificaciones (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
+  alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
+  tipo text NOT NULL, -- 'comentario_sesion', 'comentario_ejercicio'
+  mensaje text NOT NULL,
+  referencia_id uuid,
+  leida boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE notificaciones ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Profesores gestionan sus notificaciones" ON notificaciones;
+CREATE POLICY "Profesores gestionan sus notificaciones" ON notificaciones 
+  FOR ALL USING (auth.uid() = profesor_id);
+
+DROP POLICY IF EXISTS "Alumnos/Sistema envían notificaciones" ON notificaciones;
+CREATE POLICY "Alumnos/Sistema envían notificaciones" ON notificaciones 
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM alumnos WHERE id = notificaciones.alumno_id AND (auth.uid() = user_id OR email = (auth.jwt() ->> 'email')))
+  );

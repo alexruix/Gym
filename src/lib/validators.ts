@@ -149,9 +149,28 @@ export const sessionLogSchema = z.object({
       rpe: z.number().min(1).max(10).optional(),
     })
   ),
+  nota_alumno: z.string().max(300, "Máximo 300 caracteres").optional(),
 });
 
 export type SessionLogData = z.infer<typeof sessionLogSchema>;
+
+// Comment Exercise independently
+export const commentExerciseSchema = z.object({
+  alumno_id: z.string().uuid(),
+  ejercicio_id: z.string().uuid(),
+  sesion_id: z.string().uuid(),
+  nota_alumno: z.string().min(1, "Escribe un comentario").max(300, "Máximo 300 caracteres"),
+});
+
+export type CommentExerciseData = z.infer<typeof commentExerciseSchema>;
+
+// Complete Session validation
+export const completeSessionSchema = z.object({
+  sesion_id: z.string().uuid(),
+  notas_alumno: z.string().max(500, "Máximo 500 caracteres").optional(),
+});
+
+export type CompleteSessionData = z.infer<typeof completeSessionSchema>;
 
 // Account Settings validation (Private Info)
 export const updateAccountSchema = z.object({

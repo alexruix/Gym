@@ -1,9 +1,131 @@
 ---
-import AlumnoLayout from '../../../layouts/AlumnoLayout.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { createSupabaseServerClient } from '@/lib/supabase-ssr';
+import { PlanGenerator } from '@/lib/plan-generator';
+import { ActiveSession } from '@/components/organisms/ActiveSession';
+
+// Modo enfoque: Quitamos navegaciones globales para el alumno aquí.
+const supabase = createSupabaseServerClient(Astro);
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login');
+
+const { numero } = Astro.params;
+const sessionOffsetIndex = parseInt(numero || '1') - 1; 
+
+// 1. Obtener alumno, vinculando a la identidad User_ID
+const { data: alumno } = await supabase
+  .from('alumnos')
+  .select('id, nombre, fecha_inicio, plan_id, planes(id, nombre)')
+  .eq('user_id', user.id)
+  .single();
+
+if (!alumno || !alumno.plan_id) {
+  return Astro.redirect('/alumno/espera');
+}
+
+// 2. Ejecutar Lógica JIT
+const currentWeek = PlanGenerator.getCurrentWeek(alumno.fecha_inicio || new Date());
+
+// 3. Buscar la Rutina Diaria que corresponde a este index
+const { data: rutinasDiarias } = await supabase
+  .from('rutinas_diarias')
+  .select('*')
+  .eq('plan_id', alumno.plan_id)
+  .order('orden', { ascending: true });
+
+if (!rutinasDiarias || rutinasDiarias.length === 0) {
+  return Astro.redirect('/alumno/espera');
+}
+
+// Determinamos qué rutina le toca basado en el número de sesión
+// Ej: Sesión 1 -> index 0. Si el offset es mayor a la cantidad de rutinas, usamos módulo
+const rutinaActual = rutinasDiarias[sessionOffsetIndex % rutinasDiarias.length];
+const diasNombre = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+// Intentar mapar el nombre string al nombre que usa nuestro rotador
+const diaNormalizado = rutinaActual.nombre_dia ? rutinaActual.nombre_dia.toLowerCase().trim() : diasNombre[rutinaActual.dia_numero - 1] || 'lunes';
+
+// 4. Buscar los Ejercicios de esta Rutina, joineando la biblioteca real
+const { data: ejerciciosPlan } = await supabase
+  .from('ejercicios_plan')
+  .select(`
+    *,
+    biblioteca_ejercicios!inner (
+      nombre, descripcion, media_url
+    )
+  `)
+  .eq('rutina_id', rutinaActual.id)
+  .order('orden', { ascending: true });
+
+// 5. Buscar Rotaciones aplicadas a este plan
+const { data: planRotaciones } = await supabase
+  .from('plan_rotaciones')
+  .select('*')
+  .eq('plan_id', alumno.plan_id);
+
+// 6. JIT - Inyectar variaciones si aplican para este día y semana
+const sesionResuelta = PlanGenerator.resolveSessionExercises(
+  (ejerciciosPlan || []) as any[], 
+  (planRotaciones || []), 
+  currentWeek, 
+  diaNormalizado
+);
+
+let sessionId = 'virtual-session-' + Date.now(); // Fallback temporal
+
+// Buscar si ya tiene una sesión abierta HOY. Si no la tiene, la creamos al vuelo.
+const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+const { data: sesionActual } = await supabase
+  .from('sesiones')
+  .select('id, completada')
+  .eq('alumno_id', alumno.id)
+  .gte('created_at', startOfDay.toISOString())
+  .order('created_at', { ascending: false })
+  .limit(1)
+  .single();
+
+if (sesionActual) {
+  sessionId = sesionActual.id;
+} else {
+  // Crear la cabecera de la sesión del día para amarrar los logs.
+  const { data: nuevaSesion } = await supabase
+    .from('sesiones')
+    .insert({
+      alumno_id: alumno.id,
+      fecha: new Date().toISOString(),
+    })
+    .select('id')
+    .single();
+    
+  if (nuevaSesion) sessionId = nuevaSesion.id;
+}
 ---
 
-<AlumnoLayout title="Entrenando - MiGym">
-  <div class="min-h-screen p-4">
-    <h1 class="text-2xl font-bold">Sesión Tracker</h1>
-  </div>
-</AlumnoLayout>
+<html lang="es" class="dark">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+	<title>Entrenando - MiGym</title>
+</head>
+<body class="bg-black text-white antialiased selection:bg-lime-500/30 overflow-x-hidden min-h-screen font-sans">
+	<!-- Top Bar Modo Enfoque -->
+	<header class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5 py-4 px-6 flex justify-between items-center">
+		<a href="/alumno" class="pt-1 pb-1 px-3 rounded-full border border-white/20 text-xs font-bold text-zinc-400 hover:text-white transition-colors">
+			✕ Abandonar
+		</a>
+		<div class="flex flex-col items-center">
+			<span class="text-xs text-lime-400 font-bold uppercase tracking-widest">Semana {currentWeek}</span>
+			<h1 class="text-sm font-bold opacity-80 capitalize">{rutinaActual.nombre_dia || `Día ${rutinaActual.dia_numero}`}</h1>
+		</div>
+		<div class="w-[90px]"></div>
+	</header>
+
+	<main class="w-full h-full p-4 mt-6">
+		<ActiveSession 
+      client:load 
+      sesionBase={sesionResuelta} 
+      sessionId={sessionId}
+      alumnoId={alumno.id} 
+    />
+	</main>
+</body>
+</html>

@@ -48,12 +48,12 @@ export const GET: APIRoute = async (context) => {
             .update({ user_id: user.id })
             .eq('id', alumByEmail.id);
           
-          return redirect('/entrenamiento');
+          return redirect('/alumno');
         }
       }
 
       if (alumData) {
-        return redirect('/entrenamiento');
+        return redirect('/alumno');
       }
 
       // 3. Si no es ninguno, asumimos que es un Profesor que arranca Onboarding
