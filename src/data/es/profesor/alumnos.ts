@@ -17,6 +17,7 @@ export const inviteStudentCopy = {
     telefono: "Teléfono",
     monto: "Monto",
     notas: "Notas internas",
+    cobrarPrimerMes: "Cobrar primer mes",
   },
   placeholders: {
     nombre: "Ej: Juan García",
@@ -35,6 +36,7 @@ export const inviteStudentCopy = {
     telefono: "Para contactarlo por WhatsApp (sin el 0 ni el 15).",
     monto: "Solo como referencia. No se cobra automáticamente en MiGym.",
     notas: "Solo las ves vos.",
+    cobrarPrimerMes: "Marcar si el alumno ya pagó su primer mes o debe hacerlo ahora.",
   },
   actions: {
     cancel: "Volver",
@@ -44,7 +46,7 @@ export const inviteStudentCopy = {
   messages: {
     helper: "Toma 2 minutos",
     successModal: {
-      title: "¡{name} ya es parte de NODO! 🎉",
+      title: "¡{name} ya es parte de MiGym! 🎉",
       description1: "Ya le enviamos su link de acceso por email.",
       description2: "Su primer vencimiento es el {date}.",
       btnWhatsapp: "Copiar link para WhatsApp",

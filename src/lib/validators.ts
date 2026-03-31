@@ -121,6 +121,10 @@ export const inviteStudentSchema = z.object({
     .string()
     .max(500, "Máximo 500 caracteres")
     .optional(),
+  
+  cobrarPrimerMes: z
+    .boolean()
+    .default(false),
 });
 
 export type StudentFormData = z.infer<typeof studentSchema>;

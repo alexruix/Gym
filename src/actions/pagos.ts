@@ -6,7 +6,7 @@ export const pagosActions = {
   registrarCobro: defineAction({
     accept: "json",
     input: z.object({
-      pago_id: z.string().uuid(),
+      pago_id: z.string(), // Puede ser UUID o "virtual-..."
       alumno_id: z.string().uuid(),
       monto_cobrado: z.number().optional()
     }),
@@ -16,67 +16,51 @@ export const pagosActions = {
       
       if (!user) throw new Error("No autorizado");
 
-      // 1. Verificamos Seguridad (IDOR) y obtenemos el alumno
-      // Aseguramos que el alumno pertenezca al profesor actual
-      const { data: alumno, error: alumnoError } = await supabase
-        .from("alumnos")
-        .select("id, dia_pago, monto, nombre")
-        .eq("id", input.alumno_id)
-        .eq("profesor_id", user.id)
-        .single();
-        
-      if (alumnoError || !alumno) {
-        throw new Error("Alumno no encontrado o sin permisos.");
-      }
+      // Usamos el RPC atómico para garantizar consistencia total
+      const { data, error } = await supabase.rpc('registrar_pago_atomico', {
+        p_alumno_id: input.alumno_id,
+        p_pago_id: input.pago_id,
+        p_monto: input.monto_cobrado || 0,
+        p_profesor_id: user.id
+      });
 
-      // 2. Marcamos el pago actual como 'pagado'
-      const { error: updateError } = await supabase
-        .from("pagos")
-        .update({
-          estado: 'pagado',
-          fecha_pago: new Date().toISOString(),
-        })
-        .eq("id", input.pago_id)
-        .eq("alumno_id", input.alumno_id);
-
-      if (updateError) {
-        console.error("Error actualizando pago:", updateError);
-        throw new Error("Error al actualizar el estado del pago.");
-      }
-
-      // 3. RENOVACIÓN AUTOMÁTICA DEL PRÓXIMO MES
-      // Calculamos la próxima fecha de vencimiento usando el `dia_pago` del alumno
-      const nextDate = new Date();
-      nextDate.setMonth(nextDate.getMonth() + 1);
-      
-      // Ajustar al día de pago del alumno (por defecto sugerimos el 15 si no tiene)
-      const diaPago = alumno.dia_pago || 15;
-      const maxDaysInNextMonth = new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate();
-      
-      // Si el día de pago es 31 y el próximo mes es Abril, se ajusta al 30 de Abril
-      nextDate.setDate(Math.min(diaPago, maxDaysInNextMonth));
-      
-      // Formatear para Postgres DB: YYYY-MM-DD
-      const dbDateNext = nextDate.toISOString().split('T')[0];
-
-      // Creamos el registro del siguiente mes como 'pendiente'
-      const { error: insertError } = await supabase
-        .from("pagos")
-        .insert({
-          alumno_id: input.alumno_id,
-          monto: input.monto_cobrado || alumno.monto || 0,
-          fecha_vencimiento: dbDateNext,
-          estado: 'pendiente'
-        });
-
-      if (insertError) {
-        console.error("Error renovando pago:", insertError);
-        throw new Error("El cobro se registró, pero hubo un error generando la próxima cuota automática.");
+      if (error || !data?.success) {
+        console.error("Error en registrar_pago_atomico:", error || data?.mensaje);
+        throw new Error(data?.mensaje || "Error al procesar el cobro atómico.");
       }
 
       return {
         success: true,
-        mensaje: `✅ Pago registrado para ${alumno.nombre}. Mes renovado automáticamente.`,
+        mensaje: data.mensaje,
+      };
+    }
+  }),
+
+  registrarNotificacion: defineAction({
+    accept: "json",
+    input: z.object({
+      alumno_id: z.string().uuid(),
+    }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      
+      if (!user) throw new Error("No autorizado");
+
+      const { error } = await supabase
+        .from("alumnos")
+        .update({ ultimo_recordatorio_pago_at: new Date().toISOString() })
+        .eq("id", input.alumno_id)
+        .eq("profesor_id", user.id);
+
+      if (error) {
+        console.error("Error registrando notificación:", error);
+        throw new Error("No se pudo registrar el recordatorio.");
+      }
+
+      return {
+        success: true,
+        mensaje: "Recordatorio registrado correctamente.",
       };
     }
   })

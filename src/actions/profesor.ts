@@ -196,6 +196,23 @@ export const profesorActions = {
           throw new Error(`Error en base de datos: ${dbError?.message || "No se pudo crear el registro"}`);
         }
 
+        // 1.5. Crear pago inicial si es requerido
+        if (input.cobrarPrimerMes) {
+          const { error: paymentError } = await supabase
+            .from("pagos")
+            .insert({
+              alumno_id: student.id,
+              monto: input.monto || 0,
+              fecha_vencimiento: dbDate, // Vence el día de inicio
+              estado: 'pendiente'
+            });
+          
+          if (paymentError) {
+            console.error("[Action: inviteStudent] Initial Payment Error:", paymentError);
+            // No bloqueamos la invitación, pero avisamos en el mensaje
+          }
+        }
+
         // 2. Enviar Magic Link (Supabase Auth)
         const { error: authError } = await supabase.auth.signInWithOtp({
           email: input.email.toLowerCase().trim(),

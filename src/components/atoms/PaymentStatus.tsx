@@ -1,7 +1,7 @@
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type PaymentStatusType = "pagado" | "por_vencer" | "vencido";
+export type PaymentStatusType = "pagado" | "por_vencer" | "vencido" | "pendiente";
 
 interface PaymentStatusProps {
   status: PaymentStatusType;
@@ -23,6 +23,11 @@ const config = {
     icon: XCircle,
     label: "VENCIDO",
     className: "text-red-600 bg-red-50 border-red-200",
+  },
+  pendiente: {
+    icon: AlertTriangle,
+    label: "PENDIENTE",
+    className: "text-zinc-600 bg-zinc-50 border-zinc-200",
   },
 };
 

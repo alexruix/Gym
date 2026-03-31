@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Accordion,
   AccordionContent,
@@ -60,6 +61,7 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
       telefono: "",
       monto: undefined,
       notas: "",
+      cobrarPrimerMes: false,
     },
   });
 
@@ -235,6 +237,30 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="cobrarPrimerMes"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50/50 p-6 space-y-0 gap-4 mt-6">
+                  <div className="space-y-1">
+                    <FormLabel className="text-sm font-black uppercase tracking-widest text-zinc-950">
+                      {inviteStudentCopy.labels.cobrarPrimerMes}
+                    </FormLabel>
+                    <FormDescription className="text-[10px] font-medium text-zinc-500 max-w-[240px]">
+                      {inviteStudentCopy.hints.cobrarPrimerMes}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="data-[state=checked]:bg-lime-500"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
 
           {/* OPCIONAL */}
