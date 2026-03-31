@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 
+import { StandardField } from "@/components/molecules/StandardField";
+
 type FormValues = z.infer<typeof exerciseLibrarySchema>;
 
 interface ExerciseFormProps {
@@ -65,78 +67,77 @@ export function ExerciseForm({ initialValues, onSuccess, onCancel }: ExerciseFor
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="nombre"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="uppercase tracking-widest font-black text-[10px] text-zinc-500">
-                {copy.labels.nombre}
-              </FormLabel>
+          render={({ field, fieldState }) => (
+            <StandardField 
+              label={copy.labels.nombre} 
+              error={fieldState.error?.message}
+              required
+            >
               <FormControl>
                 <Input 
                   placeholder={copy.placeholders.nombre} 
                   {...field} 
-                  className="h-12 rounded-2xl border-zinc-200 dark:border-zinc-800 focus:ring-lime-400 font-bold"
+                  className="font-bold"
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
+            </StandardField>
           )}
         />
 
         <FormField
           control={form.control}
           name="descripcion"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="uppercase tracking-widest font-black text-[10px] text-zinc-500">
-                {copy.labels.descripcion}
-              </FormLabel>
+          render={({ field, fieldState }) => (
+            <StandardField 
+              label={copy.labels.descripcion} 
+              error={fieldState.error?.message}
+            >
               <FormControl>
                 <Textarea
-                  className="rounded-2xl border-zinc-200 dark:border-zinc-800 focus:ring-lime-400 min-h-[120px] resize-none font-medium"
+                  className="min-h-[140px] resize-none font-medium p-4 rounded-2xl"
                   placeholder={copy.placeholders.descripcion}
                   maxLength={1000}
                   {...field}
                   value={field.value || ""}
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
+            </StandardField>
           )}
         />
 
         <FormField
           control={form.control}
           name="media_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="uppercase tracking-widest font-black text-[10px] text-zinc-500">
-                {copy.labels.mediaUrl}
-              </FormLabel>
+          render={({ field, fieldState }) => (
+            <StandardField 
+              label={copy.labels.mediaUrl} 
+              error={fieldState.error?.message}
+              hint="Link a video o demo"
+            >
               <FormControl>
                 <Input 
                   type="url" 
                   placeholder={copy.placeholders.mediaUrl} 
                   {...field} 
-                  className="h-12 rounded-2xl border-zinc-200 dark:border-zinc-800 focus:ring-lime-400"
                   value={field.value || ""}
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
+            </StandardField>
           )}
         />
 
-        <div className="flex gap-3 pt-4 justify-end">
+        <div className="flex gap-3 pt-6 justify-end items-center">
           {onCancel && (
             <Button 
                 type="button" 
                 variant="outline" 
+                size="lg"
                 onClick={onCancel}
-                className="h-12 px-6 rounded-2xl border-zinc-200 dark:border-zinc-800 font-bold uppercase tracking-widest text-[10px]"
+                className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14"
             >
                 {copy.actions.cancel}
             </Button>
@@ -144,7 +145,9 @@ export function ExerciseForm({ initialValues, onSuccess, onCancel }: ExerciseFor
           <Button 
             type="submit" 
             disabled={isPending} 
-            className="h-12 px-8 rounded-2xl bg-lime-400 text-zinc-950 hover:bg-lime-500 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-lime-400/20"
+            variant="industrial"
+            size="xl"
+            className="px-10"
           >
             {isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

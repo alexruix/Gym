@@ -41,6 +41,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+import { StandardField } from "@/components/molecules/StandardField";
+
 type FormValues = z.infer<typeof inviteStudentSchema>;
 
 export function InviteStudentForm({ plans }: { plans: any[] }) {
@@ -102,11 +104,11 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
             console.error("Validation Errors:", errors);
             toast.error("Por favor, revisa los campos en rojo.");
           })} 
-          className="space-y-8 max-w-2xl mx-auto"
+          className="space-y-10 max-w-2xl mx-auto"
         >
           {/* INFORMACIÓN BÁSICA */}
           <div className="space-y-6">
-            <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 px-1">
               {inviteStudentCopy.sections.basicInfo}
             </h3>
             
@@ -114,38 +116,42 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
               <FormField
                 control={form.control}
                 name="nombre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="uppercase tracking-widest">{inviteStudentCopy.labels.nombre}</FormLabel>
+                render={({ field, fieldState }) => (
+                  <StandardField 
+                    label={inviteStudentCopy.labels.nombre} 
+                    error={fieldState.error?.message}
+                    hint={inviteStudentCopy.hints.nombre}
+                    required
+                  >
                     <FormControl>
-                      <Input placeholder={inviteStudentCopy.placeholders.nombre} {...field} />
+                      <Input placeholder={inviteStudentCopy.placeholders.nombre} {...field} className="font-bold" />
                     </FormControl>
-                    <FormDescription>{inviteStudentCopy.hints.nombre}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
+                  </StandardField>
                 )}
               />
 
               <FormField
                 control={form.control}
                 name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="uppercase tracking-widest">{inviteStudentCopy.labels.email}</FormLabel>
+                render={({ field, fieldState }) => (
+                  <StandardField 
+                    label={inviteStudentCopy.labels.email} 
+                    error={fieldState.error?.message}
+                    hint={inviteStudentCopy.hints.email}
+                    required
+                  >
                     <FormControl>
                       <Input type="email" placeholder={inviteStudentCopy.placeholders.email} {...field} />
                     </FormControl>
-                    <FormDescription>{inviteStudentCopy.hints.email}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
+                  </StandardField>
                 )}
               />
             </div>
           </div>
 
           {/* PLAN Y FECHAS */}
-          <div className="space-y-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
-            <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <div className="space-y-6 pt-10 border-t border-zinc-100 dark:border-zinc-900">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 px-1">
               {inviteStudentCopy.sections.planAndDates}
             </h3>
             
@@ -153,106 +159,117 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
               <FormField
                 control={form.control}
                 name="plan_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="uppercase tracking-widest">{inviteStudentCopy.labels.plan}</FormLabel>
+                render={({ field, fieldState }) => (
+                  <StandardField 
+                    label={inviteStudentCopy.labels.plan} 
+                    error={fieldState.error?.message}
+                    hint={inviteStudentCopy.hints.plan}
+                    required
+                  >
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-14 rounded-2xl bg-zinc-50/50 border-zinc-200 font-bold">
                           <SelectValue placeholder={inviteStudentCopy.placeholders.plan} />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="rounded-2xl border-zinc-200">
                         {plans.map((plan) => (
-                          <SelectItem key={plan.id} value={plan.id}>
+                          <SelectItem key={plan.id} value={plan.id} className="rounded-xl py-3 font-bold">
                             {plan.nombre} ({plan.frecuencia_semanal}d)
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>{inviteStudentCopy.hints.plan}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
+                  </StandardField>
                 )}
               />
 
               <FormField
                 control={form.control}
                 name="fecha_inicio"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="uppercase tracking-widest mb-1">{inviteStudentCopy.labels.fechaInicio}</FormLabel>
+                render={({ field, fieldState }) => (
+                  <StandardField 
+                    label={inviteStudentCopy.labels.fechaInicio} 
+                    error={fieldState.error?.message}
+                    hint={inviteStudentCopy.hints.fechaInicio}
+                    required
+                  >
                     <FormControl>
                       <Input 
                         type="date" 
                         {...field} 
                         value={field.value ? new Date((field.value as Date).getTime() - ((field.value as Date).getTimezoneOffset() * 60000)).toISOString().split('T')[0] : ''}
                         onChange={(e) => field.onChange(new Date(e.target.value))}
+                        className="font-bold"
                       />
                     </FormControl>
-                    <FormDescription>{inviteStudentCopy.hints.fechaInicio}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
+                  </StandardField>
                 )}
               />
 
               <FormField
                 control={form.control}
                 name="dia_pago"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="uppercase tracking-widest">{inviteStudentCopy.labels.diaPago}</FormLabel>
+                render={({ field, fieldState }) => (
+                  <StandardField 
+                    label={inviteStudentCopy.labels.diaPago} 
+                    error={fieldState.error?.message}
+                    hint={inviteStudentCopy.hints.diaPago}
+                    required
+                  >
                     <Select onValueChange={(val) => field.onChange(parseInt(val))} defaultValue={String(field.value)}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-14 rounded-2xl bg-zinc-50/50 border-zinc-200 font-bold">
                           <SelectValue placeholder="Día" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="max-h-[300px]">
+                      <SelectContent className="max-h-[300px] rounded-2xl border-zinc-200">
                         {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                          <SelectItem key={day} value={String(day)}>
+                          <SelectItem key={day} value={String(day)} className="rounded-xl">
                             {day}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>{inviteStudentCopy.hints.diaPago}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
+                  </StandardField>
                 )}
               />
             </div>
           </div>
 
           {/* OPCIONAL */}
-          <Accordion type="single" collapsible className="w-full pt-2">
-            <AccordionItem value="optional-info" className="border-zinc-200 dark:border-zinc-800">
-              <AccordionTrigger className="hover:no-underline hover:text-lime-600 dark:hover:text-lime-400 font-bold">
+          <Accordion type="single" collapsible className="w-full pt-4">
+            <AccordionItem value="optional-info" className="border-zinc-200 dark:border-zinc-900">
+              <AccordionTrigger className="hover:no-underline text-zinc-400 hover:text-zinc-950 font-black uppercase tracking-widest text-[10px] py-6">
                 {inviteStudentCopy.sections.optionalInfo}
               </AccordionTrigger>
-              <AccordionContent className="pt-4 space-y-6">
+              <AccordionContent className="pt-6 pb-10 space-y-8">
                 <div className="grid gap-6 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="telefono"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="uppercase tracking-widest">{inviteStudentCopy.labels.telefono}</FormLabel>
+                    render={({ field, fieldState }) => (
+                      <StandardField 
+                        label={inviteStudentCopy.labels.telefono} 
+                        error={fieldState.error?.message}
+                        hint={inviteStudentCopy.hints.telefono}
+                      >
                         <FormControl>
                           <Input type="tel" placeholder={inviteStudentCopy.placeholders.telefono} {...field} />
                         </FormControl>
-                        <FormDescription>{inviteStudentCopy.hints.telefono}</FormDescription>
-                        <FormMessage />
-                      </FormItem>
+                      </StandardField>
                     )}
                   />
 
                   <FormField
                     control={form.control}
                     name="monto"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="uppercase tracking-widest">{inviteStudentCopy.labels.monto}</FormLabel>
+                    render={({ field, fieldState }) => (
+                      <StandardField 
+                        label={inviteStudentCopy.labels.monto} 
+                        error={fieldState.error?.message}
+                        hint={inviteStudentCopy.hints.monto}
+                      >
                         <FormControl>
                           <Input 
                             type="number" 
@@ -262,9 +279,7 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
                           />
                         </FormControl>
-                        <FormDescription>{inviteStudentCopy.hints.monto}</FormDescription>
-                        <FormMessage />
-                      </FormItem>
+                      </StandardField>
                     )}
                   />
                 </div>
@@ -272,20 +287,21 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
                 <FormField
                   control={form.control}
                   name="notas"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="uppercase tracking-widest">{inviteStudentCopy.labels.notas}</FormLabel>
+                  render={({ field, fieldState }) => (
+                    <StandardField 
+                      label={inviteStudentCopy.labels.notas} 
+                      error={fieldState.error?.message}
+                      hint={inviteStudentCopy.hints.notas}
+                    >
                       <FormControl>
                         <textarea
-                          className="flex min-h-[80px] w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300"
+                          className="flex min-h-[120px] w-full rounded-2xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 focus-visible:border-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 transition-all font-medium"
                           placeholder={inviteStudentCopy.placeholders.notas}
                           maxLength={500}
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>{inviteStudentCopy.hints.notas}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
+                    </StandardField>
                   )}
                 />
               </AccordionContent>
@@ -293,15 +309,27 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
           </Accordion>
 
           {/* CTA */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-zinc-200 dark:border-zinc-800 items-center justify-between">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium order-2 sm:order-1">
+          <div className="flex flex-col sm:flex-row gap-4 pt-10 border-t border-zinc-100 dark:border-zinc-900 items-center justify-between">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 order-2 sm:order-1">
               {inviteStudentCopy.messages.helper}
             </p>
             <div className="flex gap-3 w-full sm:w-auto order-1 sm:order-2">
-              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => window.history.back()}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="xl"
+                className="w-full sm:w-auto px-10 h-14 rounded-2xl font-black uppercase tracking-widest text-[10px]" 
+                onClick={() => window.history.back()}
+              >
                 {inviteStudentCopy.actions.cancel}
               </Button>
-              <Button type="submit" disabled={isPending} className="w-full sm:w-auto bg-lime-400 text-zinc-950 hover:bg-lime-500 font-bold">
+              <Button 
+                type="submit" 
+                variant="industrial"
+                size="xl"
+                disabled={isPending} 
+                className="w-full sm:w-auto px-12"
+              >
                 {isPending ? inviteStudentCopy.actions.submitting : inviteStudentCopy.actions.submit}
               </Button>
             </div>
@@ -311,33 +339,34 @@ export function InviteStudentForm({ plans }: { plans: any[] }) {
 
       {/* SUCCESS MODAL */}
       <Dialog open={!!successData} onOpenChange={(open) => !open && window.location.assign(`/profesor/alumnos/${successData?.id}`)}>
-        <DialogContent className="sm:max-w-md text-center p-8 gap-6 border-zinc-200/50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl">
-          <div className="mx-auto bg-lime-100 dark:bg-lime-900/40 p-3 rounded-full w-16 h-16 flex items-center justify-center">
-            <CircleCheck className="w-8 h-8 text-lime-600 dark:text-lime-400" />
+        <DialogContent className="sm:max-w-md text-center p-10 gap-8 border-none bg-white rounded-3xl shadow-2xl">
+          <div className="mx-auto bg-lime-400 text-zinc-950 p-4 rounded-2xl w-20 h-20 flex items-center justify-center shadow-lg shadow-lime-400/20">
+            <CircleCheck className="w-10 h-10" />
           </div>
           
-          <DialogHeader className="space-y-3">
-            <DialogTitle className="text-2xl font-extrabold text-center mx-auto text-zinc-900 dark:text-zinc-100">
+          <div className="space-y-4">
+            <DialogTitle className="text-3xl font-black uppercase tracking-tight text-center text-zinc-950">
               {successData ? inviteStudentCopy.messages.successModal.title.replace('{name}', successData.name) : ''}
             </DialogTitle>
-            <DialogDescription className="text-base text-zinc-600 dark:text-zinc-400 text-center mx-auto leading-relaxed">
+            <DialogDescription className="text-sm font-medium text-zinc-500 text-center leading-relaxed max-w-[280px] mx-auto">
               {inviteStudentCopy.messages.successModal.description1}
-              <br className="my-2" />
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <br className="my-3" />
+              <span className="p-2 bg-zinc-100 rounded-lg text-zinc-950 font-black tracking-tight">
                 {successData ? inviteStudentCopy.messages.successModal.description2.replace('{date}', successData.date) : ''}
               </span>
             </DialogDescription>
-          </DialogHeader>
+          </div>
 
-          <DialogFooter className="flex-col sm:flex-col gap-3 mt-4">
-            <Button onClick={copyLink} className="w-full font-bold" variant="default">
+          <DialogFooter className="flex-col sm:flex-col gap-3 w-full px-2">
+            <Button onClick={copyLink} variant="industrial" size="xl" className="w-full">
               <Copy className="w-4 h-4 mr-2" />
               {inviteStudentCopy.messages.successModal.btnWhatsapp}
             </Button>
             <Button 
               onClick={() => window.location.assign(`/profesor/alumnos/${successData?.id}`)} 
               variant="outline" 
-              className="w-full"
+              size="lg"
+              className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] text-zinc-400"
             >
               {inviteStudentCopy.messages.successModal.btnProfile}
               <ArrowRight className="w-4 h-4 ml-2" />

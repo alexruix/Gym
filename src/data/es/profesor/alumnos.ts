@@ -61,21 +61,37 @@ export const alumnosListCopy = {
   header: {
     title: "Alumnos",
     subtitle: "Gestioná a tus alumnos, sus planes y seguimientos.",
-  },
-  list: {
-    searchPlaceholder: "Buscar alumno por nombre o email...",
-    action: "Invitar Alumno",
-    noResults: "No se encontraron alumnos con esa búsqueda.",
-    status: {
-      active: "Activo",
-      inactive: "Inactivo",
-      pending: "Pendiente",
+    actions: {
+      import: "Importar Excel",
+      new: "Nuevo Alumno",
     }
   },
-  emptyState: {
-    title: "Aún no tenés alumnos",
-    description: "Empezá invitando a tu primer alumno para asignarles planes y rutinas.",
-    action: "Invitar Alumno"
+  list: {
+    title: "Todos los Alumnos",
+    empty: "Aún no tenés alumnos cargados.",
+    emptySearch: "No encontramos alumnos que coincidan con tu búsqueda.",
+    action: "Ver todos",
+    columns: {
+      name: "Nombre",
+      plan: "Plan Actual",
+      status: "Estado",
+    },
+    filters: {
+      searchPlaceholder: "Buscar por nombre o plan...",
+      plan: {
+        all: "Todos los planes",
+      }
+    },
+    dropdownMenu: {
+      viewProfile: "Ver Perfil",
+      editRoutine: "Editar Rutina",
+      registerPayment: "Registrar Pago",
+      viewProgress: "Ver Progreso",
+      copyMagicLink: "Copiar Magic Link",
+      sendWhatsApp: "Enviar WhatsApp",
+      archive: "Archivar",
+      triggerAria: "Abrir opciones de: ",
+    }
   }
 } as const;
 

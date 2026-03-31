@@ -16,9 +16,9 @@ import {
   type ActivityLog,
 } from "@/components/organisms/profesor/dashboard/ActivityFeed";
 import {
-  RecentStudentsTable,
-  type RecentStudent,
-} from "@/components/organisms/profesor/dashboard/RecentStudentsTable";
+  StudentList,
+  type Student,
+} from "@/components/organisms/profesor/StudentList";
 import { QuickActionFab } from "@/components/organisms/profesor/dashboard/QuickActionFab";
 import { DashboardOnboarding } from "@/components/organisms/profesor/dashboard/DashboardOnboarding";
 
@@ -90,7 +90,7 @@ const mockPayments: AlertData[] = students
 const hasAlerts = noPlanStudents.length > 0 || mockPayments.length > 0;
 
 // 4. Mapeo para Tabla Reciente (Top 5)
-const recentStudents: RecentStudent[] = students.slice(0, 5).map((s) => ({
+const recentStudents: Student[] = students.slice(0, 5).map((s) => ({
   id: s.id,
   name: s.nombre,
   planName: Array.isArray(s.planes)
@@ -125,6 +125,7 @@ const c = dashboardCopy.header;
       title={c.title}
       subtitle="Bienvenido de nuevo, preparate para una gran semana."
       hideActionsOnMobile={true}
+      breadcrumbs={[{ label: "Inicio" }]}
     >
       <ActionLink href="/profesor/alumnos/new" variant="secondary">
         {c.actions.newStudent}
@@ -158,7 +159,7 @@ const c = dashboardCopy.header;
       adherenceRate={adherenceRate}
     />
 
-    <RecentStudentsTable client:load students={recentStudents} />
+    <StudentList client:load students={recentStudents} isDashboard={true} />
     
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {hasAlerts && (
