@@ -67,21 +67,21 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
 
   return (
     <div className="space-y-6">
-      {/* Search Bar - Gestalt: Proximity */}
-      <div className="flex items-center justify-between p-4 bg-white dark:bg-zinc-950/20 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm gap-4">
-        <div className="relative flex-1 max-w-lg group">
+      {/* Search Bar - Gestalt: Similarity with StudentList */}
+      <div className="flex flex-col md:flex-row items-center justify-between p-4 bg-white dark:bg-zinc-950/20 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm gap-4">
+        <div className="relative flex-1 max-w-lg w-full group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
           <Input 
             placeholder={exerciseLibraryCopy.list.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-12 h-12 bg-zinc-50 dark:bg-zinc-900 border-none rounded-xl font-medium focus:ring-2 focus:ring-lime-400/20"
+            className="pl-12 h-12 bg-zinc-50 dark:bg-zinc-900 border-none rounded-xl font-medium focus:ring-2 focus:ring-lime-400/20 w-full"
           />
         </div>
-        <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+        <div className="flex items-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl w-full md:w-auto justify-center">
            <ListFilter className="w-4 h-4 text-zinc-400" />
-           <span className="text-xs font-black uppercase tracking-widest text-zinc-500">
-             {filteredExercises.length} Resultados
+           <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+             {filteredExercises.length} {filteredExercises.length === 1 ? 'Resultado' : 'Resultados'}
            </span>
         </div>
       </div>

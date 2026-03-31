@@ -3,8 +3,8 @@ import { z } from "zod";
 // Plan validation (SSOT for creating/editing plans)
 export const planSchema = z.object({
   nombre: z.string().min(2, "Mínimo 2 caracteres").max(100, "Máximo 100 caracteres"),
-  duracion_semanas: z.number().int().min(1, "Mínimo 1 semana").max(52, "Máximo 52 semanas"),
-  frecuencia_semanal: z.number().int().min(1).max(7),
+  duracion_semanas: z.number().int().min(0).max(52),
+  frecuencia_semanal: z.number().int().min(0).max(7),
   descripcion: z.string().optional(),
   rutinas: z.array(
     z.object({
@@ -17,11 +17,25 @@ export const planSchema = z.object({
           reps_target: z.string().min(1),
           descanso_seg: z.number().int().min(0),
           orden: z.number().int().min(0).optional(),
+          exercise_type: z.enum(["base", "complementary", "accessory"]).optional().default("base"),
+          position: z.number().int().min(0).optional().default(0),
           notas: z.string().optional(),
         })
       )
     })
   ).min(1, "El plan debe tener al menos 1 rutina"),
+  rotaciones: z.array(
+    z.object({
+      position: z.number().int().min(0),
+      applies_to_days: z.array(z.string()),
+      cycles: z.array(
+        z.object({
+          duration_weeks: z.number().int().min(2).max(4),
+          exercises: z.array(z.string().uuid())
+        })
+      )
+    })
+  ).optional(),
 });
 
 export type PlanFormData = z.infer<typeof planSchema>;

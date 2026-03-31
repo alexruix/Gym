@@ -126,9 +126,8 @@ export function PlanDetail({ plan }: Props) {
         </div>
 
         {/* Métricas de la cabecera */}
-        <div className="border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-2 sm:grid-cols-4 divide-x divide-zinc-100 dark:divide-zinc-800">
+        <div className="border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 dark:divide-zinc-800">
           {[
-            { icon: Calendar, label: c.meta.duration, value: `${plan.duracion_semanas} ${c.meta.weeks}` },
             { icon: Layers, label: c.meta.frequency, value: `${plan.frecuencia_semanal} ${c.meta.daysPerWeek}` },
             { icon: Dumbbell, label: "Rutinas", value: `${plan.rutinas.length}` },
             { icon: Users, label: c.meta.studentsCount, value: `${activeStudents.length}` },

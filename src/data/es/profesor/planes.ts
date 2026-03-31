@@ -1,13 +1,13 @@
 export const planesCopy = {
   header: {
-    title: "Diseñar Nuevo Plan",
+    title: "Diseñar nuevo plan",
     subtitle: "Creá un plan de entrenamiento con rutinas separadas por días.",
   },
   list: {
     header: {
       title: "Tus planes",
       subtitle: "Gestioná tu biblioteca de rutinas y programas.",
-      newBtn: "Nuevo Plan"
+      newBtn: "Crear plan"
     },
     table: {
       title: "Todos los planes",
@@ -15,16 +15,15 @@ export const planesCopy = {
       empty: "Todavía no tenés planes creados.",
       emptySearch: "No encontramos planes con ese nombre.",
       columns: {
-        name: "Nombre del Plan",
-        duration: "Duración",
+        name: "Nombre del plan",
         frequency: "Frecuencia",
-        studentsCount: "Alumnos Activos",
+        studentsCount: "Alumnos activos",
       },
       dropdownMenu: {
         triggerAria: "Opciones del plan",
-        viewDetails: "Ver Detalle",
-        editPlan: "Editar Plan",
-        duplicatePlan: "Duplicar Plan",
+        viewDetails: "Ver detalle",
+        editPlan: "Editar plan",
+        duplicatePlan: "Duplicar plan",
         deletePlan: "Eliminar"
       }
     }
@@ -63,23 +62,21 @@ export const planesCopy = {
   },
   form: {
     basic: {
-      title: "1. Info del Plan",
-      nameOptions: ["Hipertrofia", "Fuerza", "Resistencia", "Pérdida de Peso", "Rehabilitación"],
+      title: "Info del Plan",
+      nameOptions: ["Hipertrofia", "Fuerza", "Resistencia", "Pérdida de peso", "Rehabilitación"],
       labels: {
-        nombre: "Nombre o Enfoque del Plan",
-        duracion: "Duración (Semanas)",
-        frecuencia: "Frecuencia (Días por Semana)",
+        nombre: "Nombre o enfoque del plan",
         descripcion: "Nota o descripción general (opcional)",
       },
       placeholders: {
-        nombre: "Ej: Hipertrofia 4 días",
+        nombre: "Ej: Rutina de fuerza",
         descripcion: "Enfoque en tren superior 2x a la semana...",
       }
     },
     routines: {
-      title: "2. Rutinas diarias",
+      title: "Rutinas diarias",
       selectDayTitle: "Día",
-      dayNamePlaceholder: "Ej: Pecho y Tríceps",
+      dayNamePlaceholder: "Ej: Pecho y tríceps",
       emptyDay: "No hay ejercicios en esta rutina aún.",
       addExerciseBtn: "Agregar ejercicio",
       exerciseCard: {
@@ -88,14 +85,32 @@ export const planesCopy = {
         rest: "Descanso (seg)",
         notes: "Notas técnicas",
         remove: "Quitar",
+        typeLabels: {
+          base: "Base",
+          complementary: "Complemento",
+          accessory: "Accesorio",
+          tooltip: "Los accesorios pueden rotar semanalmente"
+        },
+        rotation: {
+          btn: "Alternar con...",
+          active: "Rotación activa",
+          duration: "Rotar cada",
+          weeks: "semanas",
+          selectExercise: "Elegir alternativo",
+        }
       }
     },
     exerciseModal: {
       title: "Agregar ejercicios",
+      titleCreate: "Crear nuevo ejercicio",
       searchPlaceholder: "Buscar en tu biblioteca...",
-      empty: "No encontraste lo que buscabas? Creá el ejercicio primero en tu Biblioteca.",
+      empty: "No encontraste lo que buscabas?",
+      emptyAction: "Crealo acá mismo.",
       addBtn: "Agregar",
       closeBtn: "Cerrar",
+      filterBtn: "Filtrar",
+      createBtn: "Nuevo Ejercicio",
+      backBtn: "Volver al buscador",
     },
     submit: {
       btn: "Guardar plan completo",

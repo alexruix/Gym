@@ -257,48 +257,65 @@ CREATE OR REPLACE FUNCTION crear_plan_completo(
   p_nombre text,
   p_duracion_semanas int,
   p_frecuencia_semanal int,
-  p_rutinas jsonb
+  p_rutinas jsonb,
+  p_rotaciones jsonb DEFAULT '[]'::jsonb
 ) RETURNS uuid AS $$
 DECLARE
   v_plan_id uuid;
   v_rutina_id uuid;
   v_rutina jsonb;
   v_ejercicio jsonb;
+  v_rotacion jsonb;
 BEGIN
-  -- Insertar Plan Maestro
+  -- 1. Insertar Plan Maestro
   INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal)
   VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal)
   RETURNING id INTO v_plan_id;
 
-  -- Iterar sobre rutinas
+  -- 2. Iterar sobre rutinas
   FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas)
   LOOP
     INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
     VALUES (v_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
     RETURNING id INTO v_rutina_id;
 
-    -- Iterar sobre ejercicios de la rutina
+    -- 3. Iterar sobre ejercicios de la rutina
     IF v_rutina ? 'ejercicios' THEN
       FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios')
       LOOP
         -- VALIDACIÓN IDOR: El ejercicio debe pertenecer al profesor
-        -- Esto es vital porque SECURITY DEFINER ignora el RLS de la tabla
         IF NOT EXISTS (SELECT 1 FROM biblioteca_ejercicios WHERE id = (v_ejercicio->>'ejercicio_id')::uuid AND profesor_id = p_profesor_id) THEN
           RAISE EXCEPTION 'IDOR Detectado: El ejercicio % no pertenece al profesor %', (v_ejercicio->>'ejercicio_id'), p_profesor_id;
         END IF;
 
-        INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden)
+        INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
         VALUES (
           v_rutina_id, 
           (v_ejercicio->>'ejercicio_id')::uuid, 
           (v_ejercicio->>'series')::int, 
           v_ejercicio->>'reps_target', 
           (v_ejercicio->>'descanso_seg')::int, 
-          (v_ejercicio->>'orden')::int
+          (v_ejercicio->>'orden')::int,
+          COALESCE((v_ejercicio->>'exercise_type')::exercise_type, 'base'::exercise_type),
+          COALESCE((v_ejercicio->>'position')::int, 0)
         );
       END LOOP;
     END IF;
   END LOOP;
+
+  -- 4. Iterar sobre rotaciones
+  IF p_rotaciones IS NOT NULL THEN
+    FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones)
+    LOOP
+      INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
+      VALUES (
+        v_plan_id,
+        (v_rotacion->>'position')::int,
+        ARRAY(SELECT jsonb_array_elements_text(v_rotacion->'applies_to_days')),
+        v_rotacion->'cycles'
+      );
+    END LOOP;
+  END IF;
 
   RETURN v_plan_id;
 END;
@@ -316,3 +333,72 @@ ADD COLUMN IF NOT EXISTS youtube text,
 ADD COLUMN IF NOT EXISTS tiktok text,
 ADD COLUMN IF NOT EXISTS x_twitter text,
 ADD COLUMN IF NOT EXISTS especialidades text[];
+
+--- 10. RUTINAS DINÁMICAS (SPRINT 1)
+
+-- A) Tipos ENUM Idempotentes
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'exercise_type') THEN
+        CREATE TYPE exercise_type AS ENUM ('base', 'complementary', 'accessory');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'variation_type') THEN
+        CREATE TYPE variation_type AS ENUM ('move_day', 'rest_day', 'redistribute', 'combine_days');
+    END IF;
+END $$;
+
+-- B) Modificación de ejercicios_plan
+ALTER TABLE ejercicios_plan 
+ADD COLUMN IF NOT EXISTS exercise_type exercise_type DEFAULT 'base',
+ADD COLUMN IF NOT EXISTS position int DEFAULT 0;
+
+-- C) Tabla Plan Rotaciones
+CREATE TABLE IF NOT EXISTS plan_rotaciones (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  plan_id uuid REFERENCES planes(id) ON DELETE CASCADE NOT NULL,
+  position int NOT NULL,
+  applies_to_days text[] NOT NULL, -- Ej: ['lunes', 'miercoles']
+  cycles jsonb NOT NULL, -- Estructura de ciclos descrita en rutinasvariables.md
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE plan_rotaciones ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Profesores gestionan rotaciones" ON plan_rotaciones;
+CREATE POLICY "Profesores gestionan rotaciones" ON plan_rotaciones
+  FOR ALL USING (EXISTS (SELECT 1 FROM planes WHERE id = plan_rotaciones.plan_id AND profesor_id = auth.uid()));
+
+-- D) Tabla Plan Variaciones (Globales)
+CREATE TABLE IF NOT EXISTS plan_variaciones (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  plan_id uuid REFERENCES planes(id) ON DELETE CASCADE NOT NULL,
+  numero_semana int NOT NULL,
+  tipo variation_type NOT NULL,
+  ajustes jsonb NOT NULL,
+  razon text,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE plan_variaciones ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Profesores gestionan variaciones" ON plan_variaciones;
+CREATE POLICY "Profesores gestionan variaciones" ON plan_variaciones
+  FOR ALL USING (EXISTS (SELECT 1 FROM planes WHERE id = plan_variaciones.plan_id AND profesor_id = auth.uid()));
+
+-- E) Tabla Personalizaciones de Alumno (Personal)
+CREATE TABLE IF NOT EXISTS student_plan_customizations (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
+  plan_id uuid REFERENCES planes(id) ON DELETE CASCADE NOT NULL,
+  numero_semana int NOT NULL,
+  tipo variation_type NOT NULL,
+  ajustes jsonb NOT NULL,
+  razon text,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE student_plan_customizations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Profesores gestionan personalizaciones" ON student_plan_customizations;
+CREATE POLICY "Profesores gestionan personalizaciones" ON student_plan_customizations
+  FOR ALL USING (EXISTS (SELECT 1 FROM alumnos WHERE id = student_plan_customizations.alumno_id AND profesor_id = auth.uid()));
+
+DROP POLICY IF EXISTS "Alumnos ven sus personalizaciones" ON student_plan_customizations;
+CREATE POLICY "Alumnos ven sus personalizaciones" ON student_plan_customizations
+  FOR SELECT USING (EXISTS (SELECT 1 FROM alumnos WHERE id = student_plan_customizations.alumno_id AND (auth.uid() = user_id OR email = (auth.jwt() ->> 'email'))));

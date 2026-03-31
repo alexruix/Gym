@@ -2,7 +2,8 @@
 import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
 import PageHeader from '@/components/molecules/PageHeader.astro';
 import ActionLink from '@/components/atoms/ActionLink.astro';
-import { RecentStudentsTable, type RecentStudent } from '@/components/organisms/profesor/dashboard/RecentStudentsTable';
+import { StudentList, type Student } from '@/components/organisms/profesor/StudentList';
+import { alumnosListCopy } from '@/data/es/profesor/alumnos';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 
 const supabase = createSupabaseServerClient(Astro);
@@ -30,33 +31,34 @@ if (error) {
 }
 
 // Map to the component's expected interface
-const mappedStudents: RecentStudent[] = (alumnos || []).map(a => ({
+const mappedStudents: Student[] = (alumnos || []).map(a => ({
   id: a.id,
   name: a.nombre,
-  // Supabase returns an object or null for single relations, or an array if it's many.
-  // alumnos to planes is a Many-to-One, so it returns { nombre: string } | null
   planName: Array.isArray(a.planes) ? a.planes[0]?.nombre || null : (a.planes as any)?.nombre || null,
   status: a.estado as any
 }));
 
+const c = alumnosListCopy;
 ---
 
-<ProfesorLayout title="Alumnos - MiGym">
+<ProfesorLayout title={`${c.header.title} - MiGym`}>
   <div class="px-4 py-6 md:py-10 max-w-7xl mx-auto space-y-8">
     <PageHeader 
-      title="Alumnos" 
-      subtitle="Gestiona tu lista de tus alumnos, ve su estado y accede a sus perfiles."
+      title={c.header.title} 
+      subtitle={c.header.subtitle}
+      breadcrumbs={[
+        { label: "Inicio", href: "/profesor" },
+        { label: "Alumnos" }
+      ]}
     >
       <ActionLink href="/profesor/alumnos/import" variant="secondary" class="flex-1 md:flex-none">
-        📥 Importar Excel
+        {c.header.actions.import}
       </ActionLink>
-      <ActionLink href="/profesor/alumnos/new" variant="primary" uppercase class="flex-1 md:flex-none">
-        ➕ Nuevo
+      <ActionLink href="/profesor/alumnos/new" variant="glow" uppercase class="flex-1 md:flex-none">
+        {c.header.actions.new}
       </ActionLink>
     </PageHeader>
 
-    <div class="bg-white dark:bg-zinc-950/50 rounded-b-3xl rounded-t-xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex-1">
-      <RecentStudentsTable client:load students={mappedStudents} title="Todos los Alumnos" hideAction />
-    </div>
+    <StudentList client:load students={mappedStudents} />
   </div>
 </ProfesorLayout>
