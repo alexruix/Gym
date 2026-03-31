@@ -1,9 +1,35 @@
 ---
 import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
+import { getAlumnosConPagoActivo } from '@/lib/data-pagos';
+import { TablaPagos } from '@/components/organisms/TablaPagos';
+import { createSupabaseServerClient } from '@/lib/supabase-ssr';
+
+const supabase = createSupabaseServerClient(Astro);
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+let alumnosPagos = [];
+try {
+  alumnosPagos = await getAlumnosConPagoActivo(supabase, user.id);
+} catch (e) {
+  console.error("Error fetching alumnos for pagos:", e);
+}
 ---
 
-<ProfesorLayout title="Pagos - MiGym">
-  <div class="p-6 max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold mb-6">Tablero de Pagos</h1>
-  </div>
+<ProfesorLayout title="Control de Pagos - MiGym">
+  <main class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <header class="flex flex-col gap-2">
+      <h1 class="text-4xl md:text-5xl font-black tracking-tight text-zinc-900">Control de Pagos</h1>
+      <p class="text-lg text-zinc-500 font-medium max-w-2xl">
+        Gestión centralizada de los vencimientos de tus alumnos. Renueva mensualidades automáticamente y notifica morosos en 1 clic.
+      </p>
+    </header>
+
+    <section>
+      <TablaPagos client:load initialAlumnos={alumnosPagos} />
+    </section>
+  </main>
 </ProfesorLayout>
