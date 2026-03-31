@@ -6,7 +6,7 @@ import { planSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { toast } from "sonner";
-import { Plus, Trash2, Search, Dumbbell, Clock, Info, ArrowLeft, Filter, Loader2 } from "lucide-react";
+import { Plus, Trash2, Search, Dumbbell, Clock, Info, ArrowLeft, Filter, Loader2, Save, X } from "lucide-react";
 import { ExerciseForm } from "@/components/molecules/profesor/ejercicios/ExerciseForm";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { StandardField } from "@/components/molecules/StandardField";
+import { QuickOptionsGroup } from "@/components/molecules/QuickOptionsGroup";
 
 type FormValues = z.infer<typeof planSchema>;
 
@@ -39,7 +40,14 @@ interface Exercise {
   media_url: string | null;
 }
 
-export function PlanForm({ library }: { library: Exercise[] }) {
+interface PlanFormProps {
+  library: Exercise[];
+  initialValues?: any;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFormProps) {
   const [isPending, setIsPending] = useState(false);
   const [activeRoutineIndex, setActiveRoutineIndex] = useState<number | null>(null);
   const [search, setSearch] = useState("");
@@ -52,16 +60,17 @@ export function PlanForm({ library }: { library: Exercise[] }) {
   const form = useForm<any>({
     resolver: zodResolver(planSchema),
     defaultValues: {
-      nombre: "",
-      descripcion: "",
-      duracion_semanas: 0,
-      frecuencia_semanal: 0,
-      rutinas: Array.from({ length: 7 }, (_, i) => ({
+      id: initialValues?.id,
+      nombre: initialValues?.nombre || "",
+      descripcion: initialValues?.descripcion || "",
+      duracion_semanas: initialValues?.duracion_semanas || 0,
+      is_template: initialValues?.is_template ?? true,
+      rutinas: initialValues?.rutinas || Array.from({ length: 7 }, (_, i) => ({
         dia_numero: i + 1,
         nombre_dia: `${planesCopy.form.routines.selectDayTitle} ${i + 1}`,
         ejercicios: [],
       })),
-      rotaciones: [],
+      rotaciones: initialValues?.rotaciones || [],
     },
   });
 
@@ -96,16 +105,23 @@ export function PlanForm({ library }: { library: Exercise[] }) {
       const activeRoutines = data.rutinas.filter(r => r.ejercicios.length > 0);
       const payload = { ...data, rutinas: activeRoutines };
 
-      const { data: result, error } = await actions.profesor.createPlan(payload);
+      const { data: result, error } = initialValues?.id
+        ? await actions.profesor.updatePlan({ id: initialValues.id, ...payload })
+        : await actions.profesor.createPlan(payload);
+
       if (error) {
         toast.error(error.message || planesCopy.form.messages.error);
         return;
       }
       if (result?.success) {
         toast.success(result.mensaje);
-        setTimeout(() => {
-          window.location.assign("/profesor");
-        }, 1500);
+        if (onSuccess) {
+            onSuccess();
+        } else {
+            setTimeout(() => {
+                window.location.assign("/profesor/planes");
+            }, 1000);
+        }
       }
     } catch (err: any) {
       toast.error(err.message || planesCopy.form.messages.error);
@@ -170,34 +186,65 @@ export function PlanForm({ library }: { library: Exercise[] }) {
     const ex = form.getValues(`rutinas.${routineIdx}.ejercicios.${exerciseIdx}`);
     const currentRotations = form.getValues("rotaciones") || [];
     
-    // Buscar si ya existe una rotación para esta posición
-    const existingIdx = currentRotations.findIndex(r => r.position === ex.position);
+    const existingIdx = currentRotations.findIndex((r: any) => r.position === ex.position);
     
-    const newRotation = {
-      position: ex.position,
-      applies_to_days: [form.getValues(`rutinas.${routineIdx}.nombre_dia`) || `Día ${routineIdx + 1}`],
-      cycles: [
-        { duration_weeks: duration as 2|3|4, exercises: [ex.ejercicio_id] },
-        { duration_weeks: duration as 2|3|4, exercises: [altExerciseId] }
-      ]
-    };
-
     if (existingIdx >= 0) {
       const updated = [...currentRotations];
-      updated[existingIdx] = newRotation;
+      const exercises = updated[existingIdx].cycles[0].exercises;
+      
+      if (exercises.includes(altExerciseId)) {
+        toast.error("Este ejercicio ya está en la rotación");
+        return;
+      }
+      
+      if (exercises.length >= 4) {
+        toast.error("Máximo 4 ejercicios por rotación");
+        return;
+      }
+
+      exercises.push(altExerciseId);
       form.setValue("rotaciones", updated);
     } else {
+      const newRotation = {
+        position: ex.position,
+        applies_to_days: [form.getValues(`rutinas.${routineIdx}.nombre_dia`) || `Día ${routineIdx + 1}`],
+        cycles: [
+          { duration_weeks: duration, exercises: [ex.ejercicio_id, altExerciseId] }
+        ]
+      };
       form.setValue("rotaciones", [...currentRotations, newRotation]);
     }
     
     setRotationEditing(null);
     setRotationSearch("");
-    toast.success("Rotación configurada");
+    toast.success("Ejercicio añadido a la rotación");
+  };
+
+  const removeRotationExercise = (position: number, altExerciseId: string) => {
+    const rotations = form.getValues("rotaciones") || [];
+    const idx = rotations.findIndex((r: any) => r.position === position);
+    if (idx < 0) return;
+
+    const updated = [...rotations];
+    updated[idx].cycles[0].exercises = updated[idx].cycles[0].exercises.filter((id: string) => id !== altExerciseId);
+    
+    // Si solo queda 1 ejercicio (el base), eliminamos la rotación
+    if (updated[idx].cycles[0].exercises.length <= 1) {
+      updated.splice(idx, 1);
+    }
+    
+    form.setValue("rotaciones", updated);
+    toast.success("Ejercicio de rotación eliminado");
   };
 
   const hasRotation = (position: number) => {
     const rotations = form.watch("rotaciones") || [];
-    return rotations.some(r => r.position === position);
+    return rotations.some((r: any) => r.position === position);
+  };
+
+  const getRotationForPosition = (position: number) => {
+    const rotations = form.watch("rotaciones") || [];
+    return rotations.find((r: any) => r.position === position);
   };
 
   return (
@@ -235,18 +282,12 @@ export function PlanForm({ library }: { library: Exercise[] }) {
                           {...field} 
                           className="text-xl font-black bg-zinc-50/50" 
                       />
-                      <div className="flex flex-wrap gap-2 px-1">
-                        {planesCopy.form.basic.nameOptions.map((name) => (
-                          <button
-                            key={name}
-                            type="button"
-                            onClick={() => form.setValue("nombre", name, { shouldValidate: true })}
-                            className="px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:border-lime-500 hover:text-lime-500 dark:hover:text-lime-400 transition-all active:scale-95"
-                          >
-                            {name}
-                          </button>
-                        ))}
-                      </div>
+                      <QuickOptionsGroup
+                        options={planesCopy.form.basic.nameOptions}
+                        selectedOptions={[field.value]}
+                        onToggle={(name) => form.setValue("nombre", name, { shouldValidate: true })}
+                        className="px-1"
+                      />
                     </div>
                   </FormControl>
                 </StandardField>
@@ -378,27 +419,67 @@ export function PlanForm({ library }: { library: Exercise[] }) {
                                   </div>
                                   
                                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                                      <div className="col-span-2 sm:col-span-3 flex items-center justify-between gap-4 bg-zinc-50 dark:bg-zinc-900/80 p-3 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                                          <div className="flex items-center gap-3">
-                                              <div className={cn(
-                                                  "w-2 h-2 rounded-full",
-                                                  hasRotation(ex.position) ? "bg-lime-400 animate-pulse shadow-[0_0_8px_rgba(163,230,53,0.8)]" : "bg-zinc-200"
-                                              )} />
-                                              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                                                  {hasRotation(ex.position) ? planesCopy.form.routines.exerciseCard.rotation.active : "Sin rotación"}
-                                              </span>
-                                          </div>
-                                          
-                                          {ex.exercise_type === "accessory" && (
+                                      <div className="col-span-2 sm:col-span-3 space-y-3">
+                                          <div className={cn(
+                                              "flex items-center justify-between gap-4 p-3 rounded-2xl border transition-all",
+                                              hasRotation(ex.position) 
+                                                ? "bg-lime-500/5 border-lime-500/20 shadow-inner" 
+                                                : "bg-zinc-50 dark:bg-zinc-900/80 border-dashed border-zinc-200 dark:border-zinc-800"
+                                          )}>
+                                              <div className="flex items-center gap-3">
+                                                  <div className={cn(
+                                                      "w-2.5 h-2.5 rounded-full",
+                                                      hasRotation(ex.position) ? "bg-lime-400 animate-pulse shadow-[0_0_8px_rgba(163,230,53,0.8)]" : "bg-zinc-200 dark:bg-zinc-800"
+                                                  )} />
+                                                  <span className={cn(
+                                                      "text-[10px] font-black uppercase tracking-widest",
+                                                      hasRotation(ex.position) ? "text-lime-600 dark:text-lime-400" : "text-zinc-400"
+                                                  )}>
+                                                      {planesCopy.form.routines.exerciseCard.rotation.label}
+                                                  </span>
+                                              </div>
+                                              
                                               <Button 
                                                   type="button" 
                                                   variant="ghost" 
                                                   size="sm"
                                                   onClick={() => setRotationEditing({ routineIdx, exerciseIdx })}
-                                                  className="h-8 rounded-lg text-[9px] font-black uppercase tracking-tighter text-lime-500 hover:text-lime-400 hover:bg-lime-500/5 transition-all"
+                                                  className={cn(
+                                                      "h-8 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all",
+                                                      hasRotation(ex.position) 
+                                                        ? "text-lime-600 dark:text-lime-400 hover:bg-lime-500/10" 
+                                                        : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                                                  )}
                                               >
+                                                  <Plus className="w-3 h-3 mr-1.5" />
                                                   {planesCopy.form.routines.exerciseCard.rotation.btn}
                                               </Button>
+                                          </div>
+
+                                          {/* LISTA DE EJERCICIOS EN ROTACIÓN */}
+                                          {hasRotation(ex.position) && (
+                                              <div className="flex flex-wrap gap-2 px-1">
+                                                  {getRotationForPosition(ex.position)?.cycles[0].exercises.map((altId: string, idx: number) => {
+                                                      if (altId === ex.ejercicio_id) return null; // No mostrar el base aquí
+                                                      return (
+                                                          <div 
+                                                              key={altId}
+                                                              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded-xl group/alt animate-in zoom-in-95 duration-200"
+                                                          >
+                                                              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-300">
+                                                                  {getExerciseName(altId)}
+                                                              </span>
+                                                              <button 
+                                                                  type="button"
+                                                                  onClick={() => removeRotationExercise(ex.position, altId)}
+                                                                  className="text-zinc-400 hover:text-red-500 transition-colors"
+                                                              >
+                                                                  <X className="w-3 h-3" />
+                                                              </button>
+                                                          </div>
+                                                      );
+                                                  })}
+                                              </div>
                                           )}
                                       </div>
 
@@ -453,15 +534,33 @@ export function PlanForm({ library }: { library: Exercise[] }) {
         </section>
 
         {/* SUBMIT */}
-        <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900">
+        <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-end gap-3">
+          {onCancel && (
+            <Button 
+                type="button" 
+                variant="outline" 
+                size="lg"
+                onClick={onCancel}
+                className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-8"
+            >
+                <X className="w-4 h-4 mr-2" /> Cancelar
+            </Button>
+          )}
           <Button 
             type="submit" 
             disabled={isPending} 
             variant="industrial"
             size="xl"
-            className="w-full shadow-2xl shadow-lime-400/10"
+            className="px-12 shadow-2xl shadow-lime-400/10"
           >
-            {isPending ? planesCopy.form.submit.loading : planesCopy.form.submit.btn}
+            {isPending ? planesCopy.form.submit.loading : (
+                <>
+                    <Save className="w-5 h-5 mr-3" />
+                    <span className="text-sm">
+                        {initialValues?.id ? "Guardar cambios" : planesCopy.form.submit.btn}
+                    </span>
+                </>
+            )}
           </Button>
         </div>
       </form>

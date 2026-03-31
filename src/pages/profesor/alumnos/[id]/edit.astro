@@ -1,0 +1,60 @@
+---
+import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
+import { StudentEditForm } from '@/components/organisms/profesor/alumnos/StudentEditForm.tsx';
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import CreationHeader from "@/components/molecules/profesor/CreationHeader.astro";
+import FormContainer from "@/components/molecules/profesor/FormContainer.astro";
+
+const { id } = Astro.params;
+const supabase = createSupabaseServerClient(Astro);
+
+// 1. Auth & Safety check
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/login");
+
+// 2. Fetch Alumno (SSR)
+const { data: alumno, error } = await supabase
+  .from("alumnos")
+  .select("*")
+  .eq("id", id)
+  .eq("profesor_id", user.id)
+  .single();
+
+if (error || !alumno) {
+  return Astro.redirect("/profesor/alumnos?error=not-found");
+}
+
+const athleteData = {
+    id: alumno.id,
+    nombre: alumno.nombre,
+    email: alumno.email,
+    telefono: alumno.telefono,
+    fecha_inicio: alumno.fecha_inicio,
+    dia_pago: alumno.dia_pago,
+    notas: alumno.notas
+};
+
+const title = `Editar ${alumno.nombre} | MiGym`;
+---
+
+<ProfesorLayout title={title}>
+  <div class="px-4 py-8 md:py-12 max-w-7xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    
+    <CreationHeader 
+      title="Editar Alumno"
+      subtitle={`Actualizá los datos de contacto y notas médicas de ${alumno.nombre}.`}
+      backHref={`/profesor/alumnos/${id}`}
+      backLabel="Volver al perfil"
+    />
+
+    <FormContainer size="md">
+        <StudentEditForm 
+            client:load 
+            alumno={athleteData} 
+            onSuccess={() => Astro.redirect(`/profesor/alumnos/${id}`)}
+            onCancel={() => Astro.redirect(`/profesor/alumnos/${id}`)}
+        />
+    </FormContainer>
+
+  </div>
+</ProfesorLayout>

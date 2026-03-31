@@ -1,0 +1,52 @@
+---
+import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
+import { ExerciseForm } from "@/components/molecules/profesor/ejercicios/ExerciseForm";
+import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import CreationHeader from "@/components/molecules/profesor/CreationHeader.astro";
+import FormContainer from "@/components/molecules/profesor/FormContainer.astro";
+
+const { id } = Astro.params;
+const supabase = createSupabaseServerClient(Astro);
+const { data: userData } = await supabase.auth.getUser();
+const userId = userData.user?.id;
+
+if (!userId) {
+  return Astro.redirect("/login");
+}
+
+// Fetch exercise data to pre-fill the form
+const { data: exercise, error } = await supabase
+  .from("biblioteca_ejercicios")
+  .select("*")
+  .eq("id", id)
+  .eq("profesor_id", userId)
+  .single();
+
+if (error || !exercise) {
+  console.error("Ejercicio no encontrado:", error);
+  return Astro.redirect("/profesor/ejercicios");
+}
+
+const title = `Editar ${exercise.nombre} | MiGym`;
+---
+
+<ProfesorLayout title={title}>
+  <div class="px-4 py-8 md:py-12 max-w-7xl mx-auto space-y-12">
+    <CreationHeader 
+      title="Editar ejercicio"
+      subtitle="Modificá los detalles del ejercicio, sus etiquetas y contenido multimedia."
+      backHref="/profesor/ejercicios"
+      backLabel="Volver a ejercicios"
+    />
+
+    <FormContainer size="sm">
+      <ExerciseForm 
+        client:load 
+        initialValues={exercise} 
+        onSuccess={() => Astro.redirect("/profesor/ejercicios")} 
+        onCancel={() => Astro.redirect("/profesor/ejercicios")}
+      />
+    </FormContainer>
+  </div>
+</ProfesorLayout>

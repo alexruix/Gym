@@ -1,8 +1,8 @@
 ---
 import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
 import { AthleteHeader } from '@/components/organisms/profesor/perfil/AthleteHeader';
-import { StudentProfileSidebar } from '@/components/organisms/profesor/perfil/StudentProfileSidebar.tsx';
-import { StudentRoutineWorkspace } from '@/components/organisms/profesor/perfil/StudentRoutineWorkspace.tsx';
+import { HealthAlert } from '@/components/molecules/profesor/perfil/HealthAlert.tsx';
+import { StudentProfileManager } from '@/components/organisms/profesor/perfil/StudentProfileManager.tsx';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 
 const { id } = Astro.params;
@@ -20,6 +20,8 @@ const { data: alumno, error } = await supabase
     planes (
       id,
       nombre,
+      is_template,
+      duracion_semanas,
       rutinas_diarias (
         id,
         dia_numero,
@@ -31,6 +33,8 @@ const { data: alumno, error } = await supabase
           series,
           reps_target,
           descanso_seg,
+          exercise_type,
+          position,
           biblioteca_ejercicios (
             id,
             nombre,
@@ -57,45 +61,44 @@ const studentData = {
   telefono: alumno.telefono || undefined
 };
 
-// En Supabase al pedir un objeto relacionado (.single no se usa en el join unless we know it's 1:1, but here planes is 1 for the alumno technically, though it returns an array/object depending on setup)
 const assignedPlan = Array.isArray(alumno.planes) ? alumno.planes[0] : alumno.planes;
 const planName = assignedPlan?.nombre;
+
+const sidebarProps = {
+  alumno: {
+    id: alumno.id,
+    email: alumno.email,
+    telefono: alumno.telefono,
+    fecha_inicio: alumno.fecha_inicio,
+    dia_pago: alumno.dia_pago,
+    notas: alumno.notas,
+  }
+};
 
 ---
 
 <ProfesorLayout title={`${alumno.nombre} - Ficha del Alumno | MiGym`}>
   <div class="px-5 py-6 md:py-12 md:px-10 max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
     
-    {/* 1. ANCLA (CABECERA VITAL) */}
+    {/* 1. CABECERA */}
     <section class="animate-in slide-in-from-top-4 duration-500">
       <AthleteHeader client:load alumno={studentData} planName={planName} />
     </section>
 
-    {/* 2. SOPORTE Y DETALLE (GRID DE 3 COLUMNAS) */}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      
-      {/* COLUMNA IZQUIERDA: CONTACTO & NOTAS (30%) */}
-      <aside class="order-2 lg:order-1 lg:col-span-4 xl:col-span-3 animate-in slide-in-from-left-4 duration-500 delay-150">
-        <StudentProfileSidebar 
-          client:load 
-          notasCriticas={alumno.notas} 
-          alumno={{
-            email: alumno.email,
-            telefono: alumno.telefono,
-            fecha_inicio: alumno.fecha_inicio,
-            dia_pago: alumno.dia_pago,
-          }}
-        />
-      </aside>
+    {/* 2. NOTAS CRÍTICAS (HEALTH STICKY) */}
+    {alumno.notas && (
+      <HealthAlert client:load notes={alumno.notas} className="max-w-4xl" />
+    )}
 
-      {/* COLUMNA CENTRAL: RUTINA ASIGNADA (70%) */}
-      <main class="order-1 lg:order-2 lg:col-span-8 xl:col-span-9 animate-in slide-in-from-right-4 duration-500 delay-300">
-        <StudentRoutineWorkspace 
-          client:load 
-          planData={assignedPlan}
+    {/* 3. WORKSPACE UNIFICADO (CENTRALIZADO) */}
+    <div class="max-w-5xl mx-auto animate-in slide-in-from-bottom-4 duration-700 delay-150">
+      <main>
+        <StudentProfileManager 
+          client:load
+          assignedPlan={assignedPlan}
+          sidebarProps={sidebarProps}
         />
       </main>
-
     </div>
 
   </div>

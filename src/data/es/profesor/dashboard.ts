@@ -64,10 +64,9 @@ export const dashboardCopy = {
       }
     },
     dropdownMenu: {
-      viewProfile: "Ver Perfil",
+      editProfile: "Editar Perfil",
       editRoutine: "Editar Rutina",
       registerPayment: "Registrar Pago",
-      viewProgress: "Ver Progreso",
       copyMagicLink: "Copiar Magic Link",
       sendWhatsApp: "Enviar WhatsApp",
       archive: "Archivar",

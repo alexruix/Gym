@@ -1,0 +1,107 @@
+---
+import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
+import { PlanForm } from '@/components/organisms/profesor/planes/PlanForm.tsx';
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import CreationHeader from "@/components/molecules/profesor/CreationHeader.astro";
+import FormContainer from "@/components/molecules/profesor/FormContainer.astro";
+import { planesCopy } from "@/data/es/profesor/planes";
+
+const { id } = Astro.params;
+const supabase = createSupabaseServerClient(Astro);
+
+// 1. Auth check
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/login");
+
+// 2. Fetch plan completo con rutinas, ejercicios y rotaciones
+const { data: plan, error } = await supabase
+  .from("planes")
+  .select(`
+    id,
+    nombre,
+    duracion_semanas,
+    frecuencia_semanal,
+    rutinas_diarias (
+      id,
+      dia_numero,
+      nombre_dia,
+      orden,
+      ejercicios_plan (
+        ejercicio_id,
+        series,
+        reps_target,
+        descanso_seg,
+        orden,
+        exercise_type,
+        position
+      )
+    ),
+    plan_rotaciones (
+      position,
+      applies_to_days,
+      cycles
+    )
+  `)
+  .eq("id", id)
+  .eq("profesor_id", user.id)
+  .single();
+
+if (error || !plan) {
+  return Astro.redirect("/profesor/planes?error=not-found");
+}
+
+// 3. Fetch exercise library for the form
+const { data: exercises } = await supabase
+  .from("biblioteca_ejercicios")
+  .select("id, nombre, media_url")
+  .eq("profesor_id", user.id)
+  .order("nombre", { ascending: true });
+
+// 4. Map DB data to Form Schema and Ensure 7 days
+const rutinasMap = new Map(plan.rutinas_diarias.map((r: any) => [r.dia_numero, r]));
+
+const initialValues = {
+    id: plan.id,
+    nombre: plan.nombre,
+    duracion_semanas: plan.duracion_semanas,
+    frecuencia_semanal: plan.frecuencia_semanal,
+    rutinas: Array.from({ length: 7 }, (_, i) => {
+        const diaNum = i + 1;
+        const existing = rutinasMap.get(diaNum);
+        return {
+            dia_numero: diaNum,
+            nombre_dia: existing?.nombre_dia || `${planesCopy.form.routines.selectDayTitle} ${diaNum}`,
+            ejercicios: existing?.ejercicios_plan ? existing.ejercicios_plan.sort((a: any, b: any) => a.orden - b.orden) : []
+        };
+    }),
+    rotaciones: plan.plan_rotaciones || []
+};
+
+// Ensure we have 7 days in the form even if some are empty (to match defaultValues logic if needed)
+// Actually, PlanForm handles empty days if we provide fewer, but the Tabs might look better if we provide all 7.
+// For now, let's stick to the active ones + padding if necessary.
+// PlanForm creates 7 days by default if rutinas is missing. If we provide it, it uses it.
+
+const title = `Editar ${plan.nombre} | MiGym`;
+---
+
+<ProfesorLayout title={title}>
+  <div class="px-4 py-8 md:py-12 max-w-7xl mx-auto space-y-12">
+    <CreationHeader 
+      title="Editar plan"
+      subtitle={`Modificá la estructura, rutinas y rotaciones de ${plan.nombre}.`}
+      backHref={`/profesor/planes/${id}`}
+      backLabel="Volver al detalle"
+    />
+
+    <FormContainer size="lg">
+      <PlanForm 
+        client:load 
+        library={exercises || []} 
+        initialValues={initialValues}
+        onSuccess={() => Astro.redirect(`/profesor/planes/${id}`)}
+        onCancel={() => Astro.redirect(`/profesor/planes/${id}`)}
+      />
+    </FormContainer>
+  </div>
+</ProfesorLayout>

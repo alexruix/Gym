@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS planes (
   nombre text NOT NULL,
   duracion_semanas int DEFAULT 4,
   frecuencia_semanal int DEFAULT 3, -- Días por semana
+  monto numeric DEFAULT 0, -- Precio por defecto del plan
   created_at timestamptz DEFAULT now()
 );
 
@@ -257,6 +258,7 @@ CREATE OR REPLACE FUNCTION crear_plan_completo(
   p_nombre text,
   p_duracion_semanas int,
   p_frecuencia_semanal int,
+  p_monto numeric,
   p_rutinas jsonb,
   p_rotaciones jsonb DEFAULT '[]'::jsonb
 ) RETURNS uuid AS $$
@@ -268,8 +270,8 @@ DECLARE
   v_rotacion jsonb;
 BEGIN
   -- 1. Insertar Plan Maestro
-  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal)
-  VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal)
+  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, monto)
+  VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal, p_monto)
   RETURNING id INTO v_plan_id;
 
   -- 2. Iterar sobre rutinas
@@ -469,5 +471,161 @@ BEGIN
   END IF;
 
   RETURN json_build_object('success', true, 'mensaje', '✅ Pago registrado y mes renovado con éxito');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+--- 12. ETIQUETAS (TAGS) EN BIBLIOTECA DE EJERCICIOS
+
+-- A) Columna tags como array de texto
+ALTER TABLE biblioteca_ejercicios 
+ADD COLUMN IF NOT EXISTS tags text[] DEFAULT '{}';
+
+-- B) Índice para mejorar búsqueda por tags
+CREATE INDEX IF NOT EXISTS idx_biblioteca_ejercicios_tags ON biblioteca_ejercicios USING GIN (tags);
+
+COMMENT ON COLUMN biblioteca_ejercicios.tags IS 'Etiquetas de clasificación del ejercicio (ej: grupo muscular, dificultad).';
+
+
+--- 13. ACTUALIZACIÓN DE PLANES (TRANSACCIONAL)
+
+-- RPC para actualizar un plan completo (nombre, rutinas, ejercicios, rotaciones) en una sola transacción.
+CREATE OR REPLACE FUNCTION actualizar_plan_completo(
+  p_plan_id uuid,
+  p_profesor_id uuid,
+  p_nombre text,
+  p_duracion_semanas int,
+  p_frecuencia_semanal int,
+  p_rutinas jsonb,
+  p_rotaciones jsonb DEFAULT '[]'::jsonb
+) RETURNS boolean AS $$
+DECLARE
+  v_rutina_id uuid;
+  v_rutina jsonb;
+  v_ejercicio jsonb;
+  v_rotacion jsonb;
+BEGIN
+  -- 1. Verificar propiedad y existencia
+  IF NOT EXISTS (SELECT 1 FROM planes WHERE id = p_plan_id AND profesor_id = p_profesor_id) THEN
+    RAISE EXCEPTION 'Plan no encontrado o no pertenece al profesor';
+  END IF;
+
+  -- 2. Actualizar Plan Maestro
+  UPDATE planes 
+  SET 
+    nombre = p_nombre,
+    duracion_semanas = p_duracion_semanas,
+    frecuencia_semanal = p_frecuencia_semanal,
+    updated_at = now()
+  WHERE id = p_plan_id;
+
+  -- 3. Limpiar rutinas y rotaciones existentes (CASCADE borrará ejercicios_plan)
+  DELETE FROM rutinas_diarias WHERE plan_id = p_plan_id;
+  DELETE FROM plan_rotaciones WHERE plan_id = p_plan_id;
+
+  -- 4. Re-insertar Rutinas y Ejercicios
+  FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas)
+  LOOP
+    INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
+    VALUES (p_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
+    RETURNING id INTO v_rutina_id;
+
+    IF v_rutina ? 'ejercicios' THEN
+      FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios')
+      LOOP
+        -- VALIDACIÓN IDOR: El ejercicio debe pertenecer al profesor
+        IF NOT EXISTS (SELECT 1 FROM biblioteca_ejercicios WHERE id = (v_ejercicio->>'ejercicio_id')::uuid AND profesor_id = p_profesor_id) THEN
+          RAISE EXCEPTION 'IDOR Detectado: El ejercicio % no pertenece al profesor %', (v_ejercicio->>'ejercicio_id'), p_profesor_id;
+        END IF;
+
+        INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
+        VALUES (
+          v_rutina_id, 
+          (v_ejercicio->>'ejercicio_id')::uuid, 
+          (v_ejercicio->>'series')::int, 
+          v_ejercicio->>'reps_target', 
+          (v_ejercicio->>'descanso_seg')::int, 
+          (v_ejercicio->>'orden')::int,
+          COALESCE((v_ejercicio->>'exercise_type')::exercise_type, 'base'::exercise_type),
+          COALESCE((v_ejercicio->>'position')::int, 0)
+        );
+      END LOOP;
+    END IF;
+  END LOOP;
+
+  -- 5. Re-insertar Rotaciones
+  IF p_rotaciones IS NOT NULL AND jsonb_array_length(p_rotaciones) > 0 THEN
+    FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones)
+    LOOP
+      INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
+      VALUES (
+        p_plan_id,
+        (v_rotacion->>'position')::int,
+        ARRAY(SELECT jsonb_array_elements_text(v_rotacion->'applies_to_days')),
+        v_rotacion->'cycles'
+      );
+    END LOOP;
+  END IF;
+
+  RETURN true;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+--- 14. FORKING SILENCIOSO (PLANES DE INSTANCIA)
+
+-- A) Agregar flag is_template a planes
+ALTER TABLE planes ADD COLUMN IF NOT EXISTS is_template boolean DEFAULT true;
+
+-- B) RPC: fork_plan
+-- Crea una copia profunda de un plan y lo asigna a un alumno específico.
+CREATE OR REPLACE FUNCTION fork_plan(
+  p_plan_id uuid,
+  p_alumno_id uuid,
+  p_nuevo_nombre text
+) RETURNS uuid AS $$
+DECLARE
+  v_new_plan_id uuid;
+  v_profesor_id uuid;
+  v_new_rutina_id uuid;
+  v_rutina_rec record;
+  v_ejercicio_rec record;
+  v_rotacion_rec record;
+BEGIN
+  -- 1. Obtener profesor_id y validar existencia
+  SELECT profesor_id INTO v_profesor_id FROM planes WHERE id = p_plan_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Plan origen no encontrado';
+  END IF;
+
+  -- 2. Insertar nuevo plan (is_template = false)
+  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, monto, is_template)
+  SELECT profesor_id, p_nuevo_nombre, duracion_semanas, frecuencia_semanal, monto, false
+  FROM planes WHERE id = p_plan_id
+  RETURNING id INTO v_new_plan_id;
+
+  -- 3. Copiar rutinas_diarias
+  FOR v_rutina_rec IN SELECT * FROM rutinas_diarias WHERE plan_id = p_plan_id LOOP
+    INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
+    VALUES (v_new_plan_id, v_rutina_rec.dia_numero, v_rutina_rec.nombre_dia, v_rutina_rec.orden)
+    RETURNING id INTO v_new_rutina_id;
+
+    -- 4. Copiar ejercicios de esta rutina
+    FOR v_ejercicio_rec IN SELECT * FROM ejercicios_plan WHERE rutina_id = v_rutina_rec.id LOOP
+      INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
+      VALUES (v_new_rutina_id, v_ejercicio_rec.ejercicio_id, v_ejercicio_rec.series, v_ejercicio_rec.reps_target, v_ejercicio_rec.descanso_seg, v_ejercicio_rec.orden, v_ejercicio_rec.exercise_type, v_ejercicio_rec.position);
+    END LOOP;
+  END LOOP;
+
+  -- 5. Copiar rotaciones
+  FOR v_rotacion_rec IN SELECT * FROM plan_rotaciones WHERE plan_id = p_plan_id LOOP
+    INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
+    VALUES (v_new_plan_id, v_rotacion_rec.position, v_rotacion_rec.applies_to_days, v_rotacion_rec.cycles);
+  END LOOP;
+
+  -- 6. Asignar el nuevo plan al alumno
+  UPDATE alumnos SET plan_id = v_new_plan_id WHERE id = p_alumno_id AND profesor_id = v_profesor_id;
+
+  RETURN v_new_plan_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

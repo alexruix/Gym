@@ -1,18 +1,20 @@
 import React from "react";
-import { AlertTriangle, User, Mail, Phone, Calendar, CreditCard } from "lucide-react";
+import { AlertTriangle, User, Mail, Phone, Calendar, CreditCard, Activity, Pencil } from "lucide-react";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 
 interface Props {
   notasCriticas?: string | null;
   alumno: {
+    id: string;
     email: string | null;
     telefono: string | null;
     fecha_inicio: string;
     dia_pago: number;
+    notas?: string | null;
   };
 }
 
-export function StudentProfileSidebar({ notasCriticas, alumno }: Props) {
+export function StudentProfileSidebar({ alumno }: Props) {
   const { sidebar } = athleteProfileCopy;
 
   const formatDate = (dateString: string) => {
@@ -28,28 +30,10 @@ export function StudentProfileSidebar({ notasCriticas, alumno }: Props) {
   };
 
   return (
-    <div className="flex flex-col gap-6 sticky top-24 h-fit pb-12">
-      
-      {/* 1. NOTAS CRÍTICAS (STICKY NOTE) */}
-      <div className="relative overflow-hidden bg-amber-400 dark:bg-amber-500 group rounded-3xl p-6 shadow-sm border border-amber-300 dark:border-amber-600 transition-all hover:-translate-y-1">
-        <div className="flex items-start gap-4">
-          <div className="bg-zinc-950 p-2.5 rounded-xl shadow-lg shrink-0">
-            <AlertTriangle className="w-5 h-5 text-amber-400" aria-hidden="true" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-950/50">
-              {sidebar.criticalNotes.label}
-            </p>
-            <p className="text-sm font-bold text-zinc-950 leading-tight">
-              {notasCriticas || sidebar.criticalNotes.empty}
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-6 pb-12">
       {/* 2. INFORMACIÓN DEL ALUMNO */}
-      <div className="bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
+      <div className="space-y-8">
+        <div className="flex items-center gap-3">
            <div className="p-2 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-100 dark:border-zinc-800">
              <User className="w-4 h-4 text-zinc-400" aria-hidden="true" />
            </div>
@@ -58,15 +42,15 @@ export function StudentProfileSidebar({ notasCriticas, alumno }: Props) {
            </p>
         </div>
         
-        <div className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
            {/* Email */}
            <div className="flex items-center gap-4">
-             <div className="w-8 shrink-0 flex justify-center">
+             <div className="shrink-0 flex justify-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl">
                <Mail className="w-4 h-4 text-zinc-400" aria-hidden="true" />
              </div>
              <div>
                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">{sidebar.info.email}</p>
-               <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100 truncate max-w-[180px]">
+               <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100 truncate max-w-[250px]">
                  {alumno.email || sidebar.info.emptyEmail}
                </p>
              </div>
@@ -74,7 +58,7 @@ export function StudentProfileSidebar({ notasCriticas, alumno }: Props) {
 
            {/* Teléfono y Botón de WhatsApp */}
            <div className="flex items-center gap-4">
-             <div className="w-8 shrink-0 flex justify-center">
+             <div className="shrink-0 flex justify-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl">
                <Phone className="w-4 h-4 text-zinc-400" aria-hidden="true" />
              </div>
              <div className="flex-1">
@@ -84,7 +68,7 @@ export function StudentProfileSidebar({ notasCriticas, alumno }: Props) {
                    href={`https://wa.me/549${alumno.telefono.replace(/\D/g, "")}`} 
                    target="_blank" 
                    rel="noopener noreferrer"
-                   className="text-sm font-bold text-lime-600 hover:text-lime-700 dark:text-lime-400 dark:hover:text-lime-300 underline underline-offset-2 transition-colors inline-block truncate max-w-[180px]"
+                   className="text-sm font-black text-lime-600 hover:text-lime-700 dark:text-lime-400 dark:hover:text-lime-300 underline underline-offset-2 transition-colors inline-block truncate"
                    title={sidebar.info.contactWhatsApp}
                  >
                    {alumno.telefono}
@@ -99,7 +83,7 @@ export function StudentProfileSidebar({ notasCriticas, alumno }: Props) {
 
            {/* Fecha de Inicio */}
            <div className="flex items-center gap-4">
-             <div className="w-8 shrink-0 flex justify-center">
+             <div className="shrink-0 flex justify-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl">
                <Calendar className="w-4 h-4 text-zinc-400" aria-hidden="true" />
              </div>
              <div>
@@ -112,18 +96,45 @@ export function StudentProfileSidebar({ notasCriticas, alumno }: Props) {
 
            {/* Día de Pago */}
            <div className="flex items-center gap-4">
-             <div className="w-8 shrink-0 flex justify-center">
+             <div className="shrink-0 flex justify-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl">
                <CreditCard className="w-4 h-4 text-zinc-400" aria-hidden="true" />
              </div>
              <div>
                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">{sidebar.info.payDay}</p>
                <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100">
-                 Día {alumno.dia_pago} de cada mes
+                 Día {alumno.dia_pago || 15} de cada mes
                </p>
              </div>
            </div>
         </div>
 
+        {/* Notas Médicas (Health) */}
+        <div className="pt-8 border-t border-zinc-100 dark:border-zinc-800 space-y-4">
+           <div className="flex items-center gap-3">
+             <Activity className="w-4 h-4 text-lime-500" />
+             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Notas Médicas y Salud</p>
+           </div>
+           {alumno.notas ? (
+             <div className="p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed italic">
+                 "{alumno.notas}"
+               </p>
+             </div>
+           ) : (
+             <p className="text-xs text-zinc-400 italic px-1">Sin observaciones médicas registradas.</p>
+           )}
+        </div>
+
+        {/* Action Button */}
+        <div className="pt-4">
+          <a 
+            href={`/profesor/alumnos/${alumno.id}/edit`}
+            className="flex items-center justify-center gap-2 w-full py-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all active:scale-[0.98]"
+          >
+            <Pencil className="w-4 h-4" />
+            Editar Información
+          </a>
+        </div>
       </div>
     </div>
   );

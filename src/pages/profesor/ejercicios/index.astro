@@ -17,7 +17,7 @@ if (!userId) {
 // Fetch existing exercises from DB
 const { data: exercises, error } = await supabase
   .from("biblioteca_ejercicios")
-  .select("id, nombre, descripcion, media_url, created_at")
+  .select("id, nombre, descripcion, media_url, tags, created_at")
   .eq("profesor_id", userId)
   .order("created_at", { ascending: false });
 
@@ -39,7 +39,7 @@ if (error) {
       <ActionLink href="/profesor/ejercicios/import" variant="secondary" class="flex-1 md:flex-none">
         Importar Excel
       </ActionLink>
-      <ActionLink href="/profesor/ejercicios/new" variant="glow" uppercase class="flex-1 md:flex-none">
+      <ActionLink href="/profesor/ejercicios/new" variant="primary" uppercase class="flex-1 md:flex-none">
         {exerciseLibraryCopy.list.action}
       </ActionLink>
     </PageHeader>

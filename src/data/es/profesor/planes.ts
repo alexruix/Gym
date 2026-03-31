@@ -92,11 +92,12 @@ export const planesCopy = {
           tooltip: "Los accesorios pueden rotar semanalmente"
         },
         rotation: {
-          btn: "Alternar con...",
+          label: "Rotativo",
+          btn: "Alternar ejercicios...",
           active: "Rotación activa",
           duration: "Rotar cada",
           weeks: "semanas",
-          selectExercise: "Elegir alternativo",
+          selectExercise: "Elegir alternativos (máx. 3)",
         }
       }
     },

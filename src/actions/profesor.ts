@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { defineAction } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
-import { planSchema, studentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema } from "@/lib/validators";
+import { planSchema, studentSchema, updateStudentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema } from "@/lib/validators";
 
 export const profesorActions = {
   createExercise: defineAction({
@@ -12,6 +12,8 @@ export const profesorActions = {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
 
+      const normalizedTags = Array.from(new Set((input.tags || []).map(t => t.toLowerCase().trim()))).slice(0, 6);
+
       const { data: exercise, error } = await supabase
         .from("biblioteca_ejercicios")
         .insert({
@@ -19,6 +21,7 @@ export const profesorActions = {
           nombre: input.nombre,
           descripcion: input.descripcion || null,
           media_url: input.media_url || null,
+          tags: normalizedTags,
         })
         .select()
         .single();
@@ -40,12 +43,15 @@ export const profesorActions = {
       const user = context.locals.user;
       if (!user || !input.id) throw new Error("No autorizado");
 
+      const normalizedTags = Array.from(new Set((input.tags || []).map(t => t.toLowerCase().trim()))).slice(0, 6);
+
       const { data: exercise, error } = await supabase
         .from("biblioteca_ejercicios")
         .update({
           nombre: input.nombre,
           descripcion: input.descripcion || null,
           media_url: input.media_url || null,
+          tags: normalizedTags,
         })
         .eq("id", input.id)
         .eq("profesor_id", user.id) // Seguridad: solo el dueño puede editar
@@ -99,7 +105,8 @@ export const profesorActions = {
         p_nombre: input.nombre,
         p_duracion_semanas: input.duracion_semanas,
         p_frecuencia_semanal: input.frecuencia_semanal,
-        p_rutinas: input.rutinas // Pasamos el JSON completo
+        p_monto: 0,
+        p_rutinas: input.rutinas 
       });
 
       if (error) {
@@ -111,6 +118,97 @@ export const profesorActions = {
         success: true,
         plan_id: planId,
         mensaje: "✅ El plan se guardó correctamente con transaccionalidad garantizada.",
+      };
+    },
+  }),
+  updatePlan: defineAction({
+    accept: "json",
+    input: planSchema.extend({ id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { data: success, error } = await supabase.rpc('actualizar_plan_completo', {
+        p_plan_id: input.id,
+        p_profesor_id: user.id,
+        p_nombre: input.nombre,
+        p_duracion_semanas: input.duracion_semanas,
+        p_frecuencia_semanal: input.frecuencia_semanal,
+        p_rutinas: input.rutinas,
+        p_rotaciones: input.rotaciones || []
+      });
+
+      if (error) {
+        console.error("[Action: updatePlan] RPC Error:", error);
+        throw new Error(`Error al actualizar el plan: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        mensaje: "✅ El plan se actualizó correctamente.",
+      };
+    },
+  }),
+
+  forkPlan: defineAction({
+    accept: "json",
+    input: z.object({
+      planId: z.string().uuid(),
+      alumnoId: z.string().uuid(),
+      nombre: z.string().min(2),
+    }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // El RPC fork_plan se encarga de:
+      // 1. Copiar planes (is_template = false)
+      // 2. Copiar rutinas_diarias
+      // 3. Copiar ejercicios_plan
+      // 4. Copiar plan_rotaciones
+      // 5. Vincular alumno a nuevo plan
+      const { data: newPlanId, error } = await supabase.rpc('fork_plan', {
+        p_plan_id: input.planId,
+        p_alumno_id: input.alumnoId,
+        p_nuevo_nombre: input.nombre,
+      });
+
+      if (error) {
+        console.error("[Action: forkPlan] RPC Error:", error);
+        throw new Error(`Error al bifurcar el plan: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        plan_id: newPlanId,
+        mensaje: "✅ Plan personalizado creado y asignado al alumno.",
+      };
+    },
+  }),
+  promotePlan: defineAction({
+    accept: "json",
+    input: z.object({ id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { error } = await supabase
+        .from("planes")
+        .update({ is_template: true })
+        .eq("id", input.id)
+        .eq("profesor_id", user.id);
+
+      if (error) {
+        console.error("[Action: promotePlan] Error:", error);
+        throw new Error(`Error al promocionar plan: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        mensaje: "✅ El plan ahora es una Plantilla Maestra y aparecerá en tu biblioteca general.",
       };
     },
   }),
@@ -245,6 +343,43 @@ export const profesorActions = {
         console.error("[Action: inviteStudent] Unhandled Exception:", e);
         throw new Error(e.message || "Error interno del servidor");
       }
+    },
+  }),
+
+  updateStudent: defineAction({
+    accept: "json",
+    input: updateStudentSchema,
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const updateData: any = {};
+      if (input.nombre) updateData.nombre = input.nombre;
+      if (input.email) updateData.email = input.email.toLowerCase().trim();
+      if (input.telefono !== undefined) updateData.telefono = input.telefono;
+      if (input.fecha_inicio) updateData.fecha_inicio = input.fecha_inicio.toISOString().split('T')[0];
+      if (input.dia_pago) updateData.dia_pago = input.dia_pago;
+      if (input.notas !== undefined) updateData.notas = input.notas;
+
+      const { data: student, error } = await supabase
+        .from("alumnos")
+        .update(updateData)
+        .eq("id", input.id)
+        .eq("profesor_id", user.id)
+        .select()
+        .single();
+
+      if (error || !student) {
+        console.error("[Action: updateStudent] Error:", error);
+        throw new Error(`Error al actualizar alumno: ${error?.message || "No se encontró el registro"}`);
+      }
+
+      return {
+        success: true,
+        student_id: student.id,
+        mensaje: `✅ Datos de "${student.nombre}" actualizados`,
+      };
     },
   }),
 
@@ -440,6 +575,7 @@ export const profesorActions = {
       nombre: z.string().min(1),
       descripcion: z.string().optional().nullable(),
       media_url: z.string().optional().nullable(),
+      tags: z.array(z.string()).optional().default([]),
     })),
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
@@ -453,6 +589,7 @@ export const profesorActions = {
         nombre: item.nombre,
         descripcion: item.descripcion || null,
         media_url: item.media_url || null,
+        tags: Array.from(new Set((item.tags || []).map(t => t.toLowerCase().trim()))).slice(0, 6),
       }));
 
       const { data, error } = await supabase

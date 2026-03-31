@@ -31,6 +31,11 @@ export const athleteProfileCopy = {
     }
   },
   workspace: {
+    tabs: {
+      routine: "Rutina",
+      info: "Información",
+      history: "Historial"
+    },
     routine: {
       title: "Rutina Asignada",
       emptyState: {
@@ -44,7 +49,14 @@ export const athleteProfileCopy = {
       sets: "Series",
       reps: "Reps",
       seconds: "seg",
-      emptyDay: "Sin ejercicios asignados a este día."
+      emptyDay: "Sin ejercicios asignados a este día.",
+      actions: {
+        deleteExercise: "Quitar",
+        deleteDay: "Eliminar día",
+        forkingTitle: "Personalizando rutina...",
+        forkingDesc: "Creando una instancia única para este alumno.",
+        promote: "Subir a Maestro",
+      }
     }
   }
 } as const;

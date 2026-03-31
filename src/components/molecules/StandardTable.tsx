@@ -1,8 +1,8 @@
 import React from "react";
-import { Search, ListFilter, type LucideIcon } from "lucide-react";
+import { Search, type LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { SearchHeader } from "./SearchHeader";
 
 export interface TableColumn<T> {
   header: string;
@@ -51,29 +51,15 @@ export function StandardTable<T extends { id: string | number }>({
 
   return (
     <div className={cn("space-y-6", className)}>
-      {/* Search & Filters Area */}
-      <div className="flex flex-col md:flex-row items-center justify-between p-4 bg-white dark:bg-zinc-950/20 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm gap-4">
-        <div className="relative flex-1 max-w-lg w-full group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
-          <Input 
-            placeholder={searchPlaceholder} 
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-12 h-12 bg-zinc-50 dark:bg-zinc-900 border-none rounded-xl font-medium focus:ring-2 focus:ring-lime-400/20 w-full"
-          />
-        </div>
-        
-        <div className="flex flex-row items-center gap-2 w-full md:w-auto">
-          {filters}
-          
-          <div className="hidden lg:flex items-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl">
-             <ListFilter className="w-4 h-4 text-zinc-400" />
-             <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
-               {data.length} {data.length === 1 ? entityName.slice(0, -1) : entityName}
-             </span>
-          </div>
-        </div>
-      </div>
+      <SearchHeader 
+        value={searchTerm}
+        onChange={onSearchChange}
+        count={data.length}
+        label={data.length === 1 ? entityName.slice(0, -1) : entityName}
+        placeholder={searchPlaceholder}
+        actions={filters}
+        className="p-4 bg-white dark:bg-zinc-950/20 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm"
+      />
 
       {/* Table Container */}
       <Card className="overflow-hidden border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/20 dark:shadow-none bg-white dark:bg-zinc-950 rounded-3xl">
