@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from "lucide-react";
+import { IndustrialTabs } from "@/components/molecules/IndustrialTabs";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
@@ -25,7 +26,7 @@ import { StudentCompactCard } from "@/components/molecules/profesor/planes/Stude
 import { ViewToggle } from "@/components/molecules/ViewToggle";
 import { StudentAssignmentDialog } from "@/components/molecules/profesor/planes/StudentAssignmentDialog";
 import { StandardTable, type TableColumn } from "@/components/organisms/StandardTable";
-import { ExerciseSearchPicker } from "@/components/molecules/profesor/planes/ExerciseSearchPicker";
+import { ExerciseSearchDialog } from "@/components/molecules/profesor/planes/ExerciseSearchDialog";
 import { BackButton } from "@/components/atoms/profesor/BackButton";
 import { cn } from "@/lib/utils";
 
@@ -69,11 +70,12 @@ interface PlanData {
 
 interface Props {
   plan: PlanData;
+  library: any[];
 }
 
 type SyncStatus = "synced" | "syncing" | "error" | "retrying";
 
-export function PlanDetail({ plan: initialPlan }: Props) {
+export function PlanDetail({ plan: initialPlan, library }: Props) {
   const c = planesCopy.detail;
   const [activeTab, setActiveTab] = useState<"routines" | "students">("routines");
   const [studentView, setStudentView] = useState<"grid" | "table">("grid");
@@ -87,6 +89,8 @@ export function PlanDetail({ plan: initialPlan }: Props) {
   );
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [activeRoutineTarget, setActiveRoutineTarget] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isInteracting.current) return;
@@ -147,10 +151,13 @@ export function PlanDetail({ plan: initialPlan }: Props) {
     
     setLocalPlan(prev => ({
         ...prev,
-        rutinas: prev.rutinas.map(r => r.id === rutinaId ? {
-            ...r,
-            ejercicios_plan: r.ejercicios_plan.filter(e => e.id !== exerciseId)
-        } : r)
+        rutinas: prev.rutinas.map(r => {
+            if (r.id !== rutinaId) return r;
+            return {
+                ...r,
+                ejercicios_plan: r.ejercicios_plan.filter(e => e.id !== exerciseId)
+            };
+        })
     }));
 
     toast.info("Ejercicio removido", {
@@ -166,26 +173,32 @@ export function PlanDetail({ plan: initialPlan }: Props) {
     });
   };
 
-  const addExercise = (rutinaId: string, exercise: any) => {
+  const addExercise = (exerciseId: string) => {
+    if (!activeRoutineTarget) return;
     isInteracting.current = true;
-    const newEx: EjercicioPlan = {
-        id: crypto.randomUUID(),
-        orden: 999,
-        biblioteca_ejercicios: {
-            id: exercise.id,
-            nombre: exercise.nombre,
-            media_url: exercise.media_url
-        }
-    };
-
+    
     setLocalPlan(prev => ({
         ...prev,
-        rutinas: prev.rutinas.map(r => r.id === rutinaId ? {
-            ...r,
-            ejercicios_plan: [...r.ejercicios_plan, newEx]
-        } : r)
+        rutinas: prev.rutinas.map(r => {
+            if (r.id !== activeRoutineTarget) return r;
+            const baseExercise = library.find(ex => ex.id === exerciseId);
+            const newExercise: EjercicioPlan = {
+                id: crypto.randomUUID(),
+                orden: r.ejercicios_plan.length,
+                biblioteca_ejercicios: baseExercise ? {
+                    id: baseExercise.id,
+                    nombre: baseExercise.nombre,
+                    media_url: baseExercise.media_url
+                } : null
+            };
+            return {
+                ...r,
+                ejercicios_plan: [...r.ejercicios_plan, newExercise]
+            };
+        })
     }));
-    toast.success(`${exercise.nombre} añadido`);
+    setIsSearchOpen(false);
+    toast.success("Ejercicio añadido al plan maestro");
   };
 
   const handleDuplicate = async () => {
@@ -355,49 +368,35 @@ export function PlanDetail({ plan: initialPlan }: Props) {
       </section>
 
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 dark:border-zinc-800 pb-1">
-            <div className="flex items-center gap-1">
-                {(["routines", "students"] as const).map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={cn(
-                            "relative px-6 py-4 text-[10px] font-black uppercase tracking-[0.15em] transition-all",
-                            activeTab === tab ? "text-zinc-950 dark:text-white" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-                        )}
-                    >
-                        <div className="flex items-center gap-2 relative z-10">
-                            {tab === "routines" ? <Dumbbell className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                            {tab === "routines" ? c.tabs.routines : c.tabs.students}
-                        </div>
-                        {activeTab === tab && (
-                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-lime-400 rounded-full animate-in fade-in slide-in-from-bottom-2 duration-300" />
-                        )}
-                    </button>
-                ))}
-            </div>
-
-            {activeTab === "students" && activeStudents.length > 0 && (
-                <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
-                        <input 
-                            type="text"
-                            placeholder="Buscar alumno..."
-                            value={studentSearch}
-                            onChange={(e) => setStudentSearch(e.target.value)}
-                            className="bg-zinc-100 dark:bg-zinc-900 border-none rounded-xl pl-9 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-950 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lime-400/20 w-48 transition-all"
-                        />
-                    </div>
-                    <ViewToggle view={studentView} onChange={setStudentView} />
+        <IndustrialTabs
+          tabs={[
+            { value: "routines", label: c.tabs.routines, icon: Dumbbell },
+            { value: "students", label: c.tabs.students, icon: Users }
+          ]}
+          value={activeTab}
+          onValueChange={(val) => setActiveTab(val as any)}
+          rightContent={
+            activeTab === "students" && activeStudents.length > 0 ? (
+              <>
+                <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
+                    <input 
+                        type="text"
+                        placeholder="Buscar alumno..."
+                        value={studentSearch}
+                        onChange={(e) => setStudentSearch(e.target.value)}
+                        className="bg-zinc-100 dark:bg-zinc-900 border-none rounded-xl pl-9 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-950 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lime-400/20 w-48 transition-all"
+                    />
                 </div>
-            )}
-        </div>
-
-        {activeTab === "routines" && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {localPlan.rutinas.sort((a,b) => a.dia_numero - b.dia_numero).map((rutina) => {
-                const isOpen = openRutinas.has(rutina.id);
+                <ViewToggle view={studentView} onChange={setStudentView} />
+              </>
+            ) : null
+          }
+        >
+          {activeTab === "routines" && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6">
+              {localPlan.rutinas.sort((a,b) => a.dia_numero - b.dia_numero).map((rutina) => {
+                  const isOpen = openRutinas.has(rutina.id);
                 const existingExIds = rutina.ejercicios_plan.map(e => e.biblioteca_ejercicios?.id || "");
                 
                 return (
@@ -436,20 +435,25 @@ export function PlanDetail({ plan: initialPlan }: Props) {
                         {rutina.ejercicios_plan.length > 0 && rutina.ejercicios_plan.map((ej: any, idx: number) => (
                             <RoutineExerciseRow 
                                 key={ej.id} 
-                                exercise={{
-                                  ...ej,
-                                  peso_target: ej.peso_target || ""
-                                }} 
+                                exercise={ej} 
                                 index={idx} 
+                                hideMetrics={true}
                                 onDelete={() => removeExercise(rutina.id, ej.id)}
                             />
                         ))}
                         
                         <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
-                            <ExerciseSearchPicker 
-                                existingIds={existingExIds}
-                                onSelect={(ex) => addExercise(rutina.id, ex)} 
-                            />
+                            <Button 
+                                variant="ghost"
+                                className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-400/5 text-zinc-400 hover:text-lime-500 transition-all gap-3 font-black uppercase text-[10px] tracking-widest"
+                                onClick={() => {
+                                    setActiveRoutineTarget(rutina.id);
+                                    setIsSearchOpen(true);
+                                }}
+                            >
+                                <Plus className="w-4 h-4" />
+                                Añadir ejercicio
+                            </Button>
                         </div>
                     </div>
                     )}
@@ -513,6 +517,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             )}
           </div>
         )}
+      </IndustrialTabs>
       </div>
 
       {syncStatus === "error" && (
@@ -540,6 +545,14 @@ export function PlanDetail({ plan: initialPlan }: Props) {
         onOpenChange={setIsAssignDialogOpen} 
         currentPlanId={localPlan.id} 
         onSuccess={handleAssignmentSuccess} 
+      />
+
+      <ExerciseSearchDialog
+        open={isSearchOpen}
+        onOpenChange={setIsSearchOpen}
+        onSelect={addExercise}
+        library={library}
+        onExerciseCreated={() => window.location.reload()}
       />
     </div>
   );
