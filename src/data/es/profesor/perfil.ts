@@ -51,7 +51,7 @@ export const athleteProfileCopy = {
       emptyState: {
         title: "Aún no tiene un plan asignado.",
         description: "Podés asignarle una rutina yendo a tus Planes.",
-        btnLabel: "Ver Tus Planes"
+        btnLabel: "Ver planes"
       },
       dayLabel: "Día",
       restLabel: "Descanso",

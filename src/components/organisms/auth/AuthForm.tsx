@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { supabase } from '../../../lib/supabase';
 import { authCopy } from '../../../data/es/auth';
 import { Button } from '../../ui/button';
@@ -51,7 +51,7 @@ export function AuthForm() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     
-    // Capturar email para pre-llenado e identificar invitación
+    // Capturar email para pre-llenado e identificar invitaciÃ³n
     const emailParam = params.get('email');
     if (emailParam) {
       setEmail(emailParam);
@@ -117,7 +117,7 @@ export function AuthForm() {
         {isInvited && (
           <div className="mt-4 p-3 bg-fuchsia-50 border border-fuchsia-100 rounded-xl animate-in fade-in slide-in-from-top-2 duration-500">
             <p className="text-[10px] font-black uppercase tracking-widest text-fuchsia-600">
-              ⚡ Acceso como Alumno Invitado
+              âš¡ Acceso como Alumno Invitado
             </p>
           </div>
         )}
@@ -135,7 +135,7 @@ export function AuthForm() {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              // Ya no borramos el error aquí para que el usuario pueda leerlo mientras corrige
+              // Ya no borramos el error aquÃ­ para que el usuario pueda leerlo mientras corrige
             }}
             className="h-14 rounded-2xl bg-zinc-50 border-zinc-200 focus-visible:ring-lime-400 text-base"
             disabled={state === 'loading'}

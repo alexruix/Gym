@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+﻿import { cn } from "@/lib/utils";
 import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useEffect } from "react";
 
@@ -64,7 +64,7 @@ export function PlanNavigator({
             </div>
         </div>
 
-        {/* Selector de Días de la Semana Seleccionada */}
+        {/* Selector de DÃ­as de la Semana Seleccionada */}
         <div className="grid grid-cols-7 gap-2 lg:gap-4">
             {DIAS_CORTOS.map((label, dIdx) => {
                 const diaNumAbsoluto = (currentWeek - 1) * 7 + (dIdx + 1);

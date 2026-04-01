@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { 
     LayoutGrid, 
     List, 
@@ -25,7 +25,7 @@ interface DashboardConsoleProps<T extends BaseEntity> {
     allTags?: string[];
     onCreateClick?: () => void;
     createLabel?: string;
-    /** Opcional: Proporcionar lógica de ordenamiento personalizada */
+    /** Opcional: Proporcionar lÃ³gica de ordenamiento personalizada */
     onSort?: (items: T[], order: string) => T[];
     sortOptions?: SortOption[];
     emptyIcon?: React.ReactNode;
@@ -55,7 +55,7 @@ export function DashboardConsole<T extends BaseEntity>({
 }: DashboardConsoleProps<T>) {
     const [isSticky, setIsSticky] = useState(false);
 
-    // Integración del Cerebro Core 🧠
+    // IntegraciÃ³n del Cerebro Core ðŸ§ 
     const {
         viewMode,
         toggleView,
@@ -85,7 +85,7 @@ export function DashboardConsole<T extends BaseEntity>({
 
     return (
         <div className="relative">
-            {/* 🛠️ NAVIGATION & SEARCH CONSOLE (STICKY) 🛠️ */}
+            {/* ðŸ› ï¸ NAVIGATION & SEARCH CONSOLE (STICKY) ðŸ› ï¸ */}
             <div className={cn(
                 "w-full transition-all duration-500 py-4 px-2 mb-8 z-40",
                 isSticky 
@@ -169,7 +169,7 @@ export function DashboardConsole<T extends BaseEntity>({
                             </button>
                         </div>
 
-                        {/* BOTÓN CREACIÓN PRINCIPAL */}
+                        {/* BOTÃ“N CREACIÃ“N PRINCIPAL */}
                         {onCreateClick && (
                             <Button 
                                 onClick={onCreateClick}
@@ -215,7 +215,7 @@ export function DashboardConsole<T extends BaseEntity>({
                 )}
             </div>
 
-            {/* 🎯 MAIN CONTENT AREA 🎯 */}
+            {/* ðŸŽ¯ MAIN CONTENT AREA ðŸŽ¯ */}
             <div className="min-h-[400px]">
                 {filteredItems.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in duration-700">
@@ -227,7 +227,7 @@ export function DashboardConsole<T extends BaseEntity>({
                                 {emptyTitle || `Sin ${itemLabel} encontrados`}
                             </h3>
                             <p className="text-sm text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed px-6">
-                                {emptyDescription || "No encontramos lo que buscás con los filtros activos. Probá ajustando el término de búsqueda o removiendo etiquetas."}
+                                {emptyDescription || "No encontramos lo que buscÃ¡s con los filtros activos. ProbÃ¡ ajustando el tÃ©rmino de bÃºsqueda o removiendo etiquetas."}
                             </p>
                         </div>
                         {(search || activeTags.length > 0) && (

@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { 
   Bell, 
   Clock, 
@@ -98,7 +98,7 @@ export function NotificationsSection({ profesor }: NotificationsSectionProps) {
       {/* Header aligned with PublicProfileSection */}
       <div className="space-y-1">
         <h3 className="text-lg font-bold">{configurationCopy.notifications.section}</h3>
-        <p className="text-sm text-muted-foreground">Controlá cómo y cuándo te avisamos sobre la actividad de tu gimnasio.</p>
+        <p className="text-sm text-muted-foreground">ControlÃ¡ cÃ³mo y cuÃ¡ndo te avisamos sobre la actividad de tu gimnasio.</p>
       </div>
 
       {/* Grid aligned with PublicProfileSection structure */}
@@ -140,7 +140,7 @@ export function NotificationsSection({ profesor }: NotificationsSectionProps) {
              <Bell className="h-5 w-5" />
              {configurationCopy.notifications.frequency}
            </h4>
-           <p className="text-sm opacity-90">Configurá la frecuencia de tus resúmenes por correo electrónico.</p>
+           <p className="text-sm opacity-90">ConfigurÃ¡ la frecuencia de tus resÃºmenes por correo electrÃ³nico.</p>
         </div>
 
         <div className="w-full sm:w-64 shrink-0">

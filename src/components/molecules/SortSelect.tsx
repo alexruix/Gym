@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { ArrowUpDown, ChevronDown, Check, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -24,8 +24,8 @@ interface SortSelectProps {
 }
 
 /**
- * SortSelect: Átomo premium para ordenamiento dinámico.
- * Diseñado con estética "Industrial Instrument" para tableros de alto rendimiento.
+ * SortSelect: Ãtomo premium para ordenamiento dinÃ¡mico.
+ * DiseÃ±ado con estÃ©tica "Industrial Instrument" para tableros de alto rendimiento.
  */
 export function SortSelect({ 
   value, 

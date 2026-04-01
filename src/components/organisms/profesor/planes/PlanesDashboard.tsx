@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { FileText } from "lucide-react";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { PlanCard } from "@/components/molecules/profesor/planes/PlanCard";
@@ -46,9 +46,9 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
 
   const sortOptions = [
     { label: "Nombre A-Z", value: "name-asc" },
-    { label: "Más recientes", value: "date-desc" },
+    { label: "MÃ¡s recientes", value: "date-desc" },
     { label: "Por alumnos", value: "students-desc" },
-    { label: "Por duración", value: "duration-desc" },
+    { label: "Por duraciÃ³n", value: "duration-desc" },
   ];
 
   const handleSort = (items: PlanRowData[], order: string) =>
@@ -101,7 +101,7 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
         onConfirm={deleteFlow.handleConfirm}
         isDeleting={deleteFlow.isPending}
         title="Eliminar plan"
-        description={<>¿Seguro que querés eliminar <b>"{deleteFlow.itemToDelete?.name}"</b>?</>}
+        description={<>Â¿Seguro que querÃ©s eliminar <b>"{deleteFlow.itemToDelete?.name}"</b>?</>}
       />
     </>
   );

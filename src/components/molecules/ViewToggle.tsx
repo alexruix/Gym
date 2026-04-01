@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { LayoutGrid, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,7 @@ export function ViewToggle({ view, onChange, className }: ViewToggleProps) {
             ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-700" 
             : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
         )}
-        aria-label="Vista cuadrícula"
+        aria-label="Vista cuadrÃ­cula"
         type="button"
       >
         <LayoutGrid className="w-4 h-4" />

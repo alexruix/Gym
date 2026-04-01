@@ -5,7 +5,7 @@ export const planesCopy = {
   },
   list: {
     header: {
-      title: "Tus planes",
+      title: "Planes",
       subtitle: "Diseña plantillas reutilizables de varios días para asignar a tus alumnos.",
       newBtn: "Crear plan"
     },
@@ -29,7 +29,7 @@ export const planesCopy = {
     }
   },
   detail: {
-    breadcrumb: "Tus planes",
+    breadcrumb: "Planes",
     meta: {
       duration: "Duración",
       frequency: "Frecuencia",

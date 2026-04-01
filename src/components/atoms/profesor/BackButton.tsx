@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { MoveLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,8 +9,8 @@ interface BackButtonProps {
 }
 
 /**
- * BackButton: Átomo que recrea el diseño de CreationHeader para componentes React.
- * Diseño Industrial Minimalist con espaciado técnico.
+ * BackButton: Ãtomo que recrea el diseÃ±o de CreationHeader para componentes React.
+ * DiseÃ±o Industrial Minimalist con espaciado tÃ©cnico.
  */
 export function BackButton({ href, label = "Volver", className }: BackButtonProps) {
   return (

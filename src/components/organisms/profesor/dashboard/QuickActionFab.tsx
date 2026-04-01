@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Plus, UserPlus, FilePlus, DollarSign, X } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
 
@@ -37,7 +37,7 @@ export function QuickActionFab() {
 
         <button
           onClick={() => {
-            // Implementación futura: modal de pago
+            // ImplementaciÃ³n futura: modal de pago
             setIsOpen(false);
           }}
           className="flex items-center gap-3 bg-white pr-4 pl-3 py-3 rounded-full shadow-lg border border-zinc-100 text-zinc-700 font-bold active:scale-95 transition-transform"
@@ -49,7 +49,7 @@ export function QuickActionFab() {
         </button>
       </div>
 
-      {/* Botón Principal FAB */}
+      {/* BotÃ³n Principal FAB */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 active:scale-95 ${
@@ -57,13 +57,13 @@ export function QuickActionFab() {
             ? "bg-zinc-900 text-white rotate-45 shadow-zinc-900/20" 
             : "bg-lime-400 text-zinc-950 shadow-lime-500/30 glow-accent"
         }`}
-        aria-label={isOpen ? "Cerrar menú de acciones" : "Abrir menú de acciones rápidas"}
+        aria-label={isOpen ? "Cerrar menÃº de acciones" : "Abrir menÃº de acciones rÃ¡pidas"}
         aria-expanded={isOpen}
       >
         <Plus className="w-6 h-6" aria-hidden="true" />
       </button>
 
-      {/* Backdrop overlay para oscurecer el fondo cuando está abierto */}
+      {/* Backdrop overlay para oscurecer el fondo cuando estÃ¡ abierto */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-zinc-950/20 backdrop-blur-sm z-[-1] animate-in fade-in duration-300"

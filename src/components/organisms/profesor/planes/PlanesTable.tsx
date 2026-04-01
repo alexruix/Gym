@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo } from "react";
 import { 
   FileText, 
   MoreHorizontal, 
@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { StandardTable, type TableColumn } from "@/components/molecules/StandardTable";
+import { StandardTable, type TableColumn } from "@/components/organisms/StandardTable";
 
 export interface PlanRowData {
   id: string;

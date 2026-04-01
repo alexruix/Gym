@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { 
   Search, 
   Users, 
@@ -129,7 +129,7 @@ export function UniversalSearch() {
             isExpanded ? "w-full md:max-w-md" : "w-10 md:w-full md:max-w-md"
         )}
     >
-      {/* Input de Búsqueda Industrial */}
+      {/* Input de BÃºsqueda Industrial */}
       <div className="relative h-11 flex items-center">
         
         {!isExpanded && (
@@ -177,7 +177,7 @@ export function UniversalSearch() {
                   </button>
               ) : (
                 <>
-                  <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">⌘</kbd>
+                  <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">âŒ˜</kbd>
                   <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">K</kbd>
                 </>
               )}
@@ -248,7 +248,7 @@ export function UniversalSearch() {
                 <div className="px-6 py-8 text-center">
                     <CommandIcon className="w-8 h-8 text-zinc-200 dark:text-zinc-800 mx-auto mb-3" />
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        Escribí para buscar...
+                        EscribÃ­ para buscar...
                     </p>
                 </div>
             )}
@@ -258,11 +258,11 @@ export function UniversalSearch() {
           <div className="px-6 py-3 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800">
              <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-400">
-                    <kbd className="h-4 px-1 rounded bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500">↵</kbd>
+                    <kbd className="h-4 px-1 rounded bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500">â†µ</kbd>
                     Abrir
                 </span>
                 <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-400">
-                    <kbd className="h-4 px-1 rounded bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500">↑↓</kbd>
+                    <kbd className="h-4 px-1 rounded bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500">â†‘â†“</kbd>
                     Mover
                 </span>
              </div>

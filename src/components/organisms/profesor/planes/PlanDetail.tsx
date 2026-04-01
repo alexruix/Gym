@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+﻿import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Calendar,
   Layers,
@@ -19,15 +19,15 @@ import {
 } from "lucide-react";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { Button } from "@/components/ui/button";
-import { StatusBadge, type StatusType } from "@/components/atoms/StatusBadge";
+import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { PlanMetric } from "@/components/atoms/profesor/planes/PlanMetric";
 import { RoutineExerciseRow } from "@/components/molecules/profesor/planes/RoutineExerciseRow";
 import { StudentCompactCard } from "@/components/molecules/profesor/planes/StudentCompactCard";
-import { ViewToggle } from "@/components/atoms/ViewToggle";
+import { ViewToggle } from "@/components/molecules/ViewToggle";
 import { StudentAssignmentDialog } from "@/components/molecules/profesor/planes/StudentAssignmentDialog";
-import { StandardTable, type TableColumn } from "@/components/molecules/StandardTable";
+import { StandardTable, type TableColumn } from "@/components/organisms/StandardTable";
 import { ExerciseSearchPicker } from "@/components/molecules/profesor/planes/ExerciseSearchPicker";
 import { BackButton } from "@/components/atoms/profesor/BackButton";
 import { cn } from "@/lib/utils";
@@ -80,7 +80,7 @@ interface Props {
 type SyncStatus = "synced" | "syncing" | "error" | "retrying";
 
 /**
- * PlanDetail: Organismo orquestador que centraliza el detalle y edición de un plan.
+ * PlanDetail: Organismo orquestador que centraliza el detalle y ediciÃ³n de un plan.
  * Implementa un SyncEngine resiliente para autoguardado y borrado optimista con Undo.
  */
 export function PlanDetail({ plan: initialPlan }: Props) {
@@ -89,14 +89,14 @@ export function PlanDetail({ plan: initialPlan }: Props) {
   const [studentView, setStudentView] = useState<"grid" | "table">("grid");
   const [studentSearch, setStudentSearch] = useState("");
   
-  // 🧠 ESTADO LOCAL REACTIVO 🧠
+  // ðŸ§  ESTADO LOCAL REACTIVO ðŸ§ 
   const [localPlan, setLocalPlan] = useState<PlanData>(initialPlan);
   const [history, setHistory] = useState<PlanData[]>([]); // Para Undo
   
-  // ⚡ SYNC ENGINE STATE ⚡
+  // âš¡ SYNC ENGINE STATE âš¡
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("synced");
   const [retryCount, setRetryCount] = useState(0);
-  const isInteracting = useRef(false); // Evitar sync en hidratación
+  const isInteracting = useRef(false); // Evitar sync en hidrataciÃ³n
   
   // Estado para los acordeones de rutinas
   const [openRutinas, setOpenRutinas] = useState<Set<string>>(
@@ -106,7 +106,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
-  // 🔄 SYNC ENGINE EFFECT 🔄
+  // ðŸ”„ SYNC ENGINE EFFECT ðŸ”„
   useEffect(() => {
     if (!isInteracting.current) return;
 
@@ -147,7 +147,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             setTimeout(() => setRetryCount(prev => prev + 1), 2000);
         } else {
             setSyncStatus("error");
-            toast.error("Error de conexión al guardar cambios.");
+            toast.error("Error de conexiÃ³n al guardar cambios.");
         }
       }
     };
@@ -164,7 +164,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
     });
   };
 
-  // 🛠️ HANDLERS: EDICIÓN IN-PLACE 🛠️
+  // ðŸ› ï¸ HANDLERS: EDICIÃ“N IN-PLACE ðŸ› ï¸
   const updateExercise = (rutinaId: string, exerciseId: string, field: string, value: any) => {
     isInteracting.current = true;
     setLocalPlan(prev => ({
@@ -190,7 +190,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
     }));
 
     toast.info("Ejercicio removido", {
-        description: "Se eliminó el ejercicio de la rutina.",
+        description: "Se eliminÃ³ el ejercicio de la rutina.",
         action: {
             label: "Deshacer",
             onClick: () => {
@@ -224,7 +224,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             ejercicios_plan: [...r.ejercicios_plan, newEx]
         } : r)
     }));
-    toast.success(`${exercise.nombre} añadido`);
+    toast.success(`${exercise.nombre} aÃ±adido`);
   };
 
   const handleDuplicate = async () => {
@@ -243,7 +243,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
       }
     } catch (err) {
       toast.dismiss();
-      toast.error("Ocurrió un error inesperado");
+      toast.error("OcurriÃ³ un error inesperado");
     } finally {
       setIsDuplicating(false);
     }
@@ -290,7 +290,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
     },
     {
       header: "Correo",
-      render: (s) => <span className="text-zinc-500 font-medium">{s.email || "—"}</span>
+      render: (s) => <span className="text-zinc-500 font-medium">{s.email || "â€”"}</span>
     },
     {
       header: "Estado",
@@ -301,16 +301,16 @@ export function PlanDetail({ plan: initialPlan }: Props) {
   return (
     <div className={cn("space-y-8 animate-in fade-in duration-700", syncStatus === "error" && "opacity-80 pointer-events-none")}>
       
-      {/* 🔙 BACK LINK 🔙 */}
+      {/* ðŸ”™ BACK LINK ðŸ”™ */}
       <div className="flex items-center">
           <BackButton href="/profesor/planes" />
       </div>
 
-      {/* 🛠️ SECTION: HEADER INDUSTRIAL 🛠️ */}
+      {/* ðŸ› ï¸ SECTION: HEADER INDUSTRIAL ðŸ› ï¸ */}
       <section className="bg-white dark:bg-zinc-950/20 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800/60 shadow-2xl shadow-zinc-950/5 overflow-hidden relative">
         <div className="h-2 w-full bg-gradient-to-r from-lime-400 via-lime-500 to-emerald-600" />
 
-        {/* ⚡ SYNC INDICATOR ⚡ */}
+        {/* âš¡ SYNC INDICATOR âš¡ */}
         <div className="absolute top-4 right-8 z-20">
             {syncStatus === "syncing" && (
                 <div className="flex items-center gap-2 bg-zinc-950/10 dark:bg-zinc-50/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
@@ -333,7 +333,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             {syncStatus === "error" && (
                 <div className="flex items-center gap-2 bg-red-400/10 px-3 py-1.5 rounded-full border border-red-400/20">
                     <AlertCircle className="w-3 h-3 text-red-500" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-red-600">Error de conexión</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-red-600">Error de conexiÃ³n</span>
                 </div>
             )}
         </div>
@@ -405,7 +405,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
         </div>
       </section>
 
-      {/* 🧭 SECTION: TABS NAVIGATION 🧭 */}
+      {/* ðŸ§­ SECTION: TABS NAVIGATION ðŸ§­ */}
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 dark:border-zinc-800 pb-1">
             <div className="flex items-center gap-1">
@@ -446,7 +446,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             )}
         </div>
 
-        {/* ─── TAB CONTENT: RUTINAS ─── */}
+        {/* â”€â”€â”€ TAB CONTENT: RUTINAS â”€â”€â”€ */}
         {activeTab === "routines" && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {localPlan.rutinas.sort((a,b) => a.dia_numero - b.dia_numero).map((rutina) => {
@@ -472,7 +472,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
                             </h4>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
                                 <Layers className="w-3 h-3" />
-                                {rutina.ejercicios_plan.length} ejercicios técnicos
+                                {rutina.ejercicios_plan.length} ejercicios tÃ©cnicos
                             </p>
                         </div>
                     </div>
@@ -496,7 +496,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
                             />
                         ))}
                         
-                        {/* ➕ ACCIÓN: AGREGAR EJERCICIO ➕ */}
+                        {/* âž• ACCIÃ“N: AGREGAR EJERCICIO âž• */}
                         <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
                             <ExerciseSearchPicker 
                                 existingIds={existingExIds}
@@ -511,7 +511,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
           </div>
         )}
 
-        {/* ─── TAB CONTENT: ALUMNOS ─── */}
+        {/* â”€â”€â”€ TAB CONTENT: ALUMNOS â”€â”€â”€ */}
         {activeTab === "students" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {activeStudents.length === 0 ? (
@@ -521,7 +521,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
                  </div>
                  <div className="space-y-1">
                      <h3 className="font-black text-xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin alumnos activos</h3>
-                     <p className="text-sm text-zinc-400 font-medium px-6">{studentSearch ? "No se encontraron coincidencias para tu búsqueda." : c.students.empty}</p>
+                     <p className="text-sm text-zinc-400 font-medium px-6">{studentSearch ? "No se encontraron coincidencias para tu bÃºsqueda." : c.students.empty}</p>
                  </div>
                   <Button 
                     onClick={() => setIsAssignDialogOpen(true)}
@@ -568,14 +568,14 @@ export function PlanDetail({ plan: initialPlan }: Props) {
         )}
       </div>
 
-      {/* ⚠️ DIALOGO DE ERROR CRITICO ⚠️ */}
+      {/* âš ï¸ DIALOGO DE ERROR CRITICO âš ï¸ */}
       {syncStatus === "error" && (
         <div className="fixed inset-x-0 bottom-8 flex justify-center px-4 z-50">
             <div className="bg-red-500 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-4 border-2 border-red-400 animate-in slide-in-from-bottom-8">
                 <AlertCircle className="w-6 h-6 animate-pulse" />
                 <div className="text-left">
-                    <p className="font-black uppercase tracking-tight text-sm">Error de sincronización persistente</p>
-                    <p className="text-[10px] font-medium opacity-90">Los cambios que hagas ahora no se guardarán. Por favor, reintentá manualmente.</p>
+                    <p className="font-black uppercase tracking-tight text-sm">Error de sincronizaciÃ³n persistente</p>
+                    <p className="text-[10px] font-medium opacity-90">Los cambios que hagas ahora no se guardarÃ¡n. Por favor, reintentÃ¡ manualmente.</p>
                 </div>
                 <Button 
                     variant="outline" 

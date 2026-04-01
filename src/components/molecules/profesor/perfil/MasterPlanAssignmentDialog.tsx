@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { EntitySelectorDialog } from "@/components/molecules/profesor/core/EntitySelectorDialog";
@@ -19,7 +19,7 @@ interface Props {
 
 /**
  * MasterPlanAssignmentDialog: Wrapper (Capa de compatibilidad) sobre el EntitySelectorDialog Core.
- * Facilita la transición hacia el componente universal manteniendo la API de props original.
+ * Facilita la transiciÃ³n hacia el componente universal manteniendo la API de props original.
  */
 export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuccess }: Props) {
     const [planes, setPlanes] = useState<Plan[]>([]);
@@ -39,13 +39,13 @@ export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuc
             setPlanes(data.planes.map((p: any) => ({
                 id: p.id,
                 name: p.nombre,
-                tags: ["Maestra"] // Tag automático para plantillas
+                tags: ["Maestra"] // Tag automÃ¡tico para plantillas
             })));
         } catch (err: any) {
             toast.error("No se pudieron cargar los planes");
         } finally {
             setIsLoading(true);
-            // Simular un pequeño delay para estética industrial
+            // Simular un pequeÃ±o delay para estÃ©tica industrial
             setTimeout(() => setIsLoading(false), 300);
         }
     }
@@ -78,13 +78,13 @@ export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuc
             open={open}
             onOpenChange={onOpenChange}
             title="Asignar Rutina Maestra"
-            description="Elegí una plantilla de tu biblioteca para este alumno."
+            description="ElegÃ­ una plantilla de tu biblioteca para este alumno."
             items={planes}
             isLoading={isLoading}
             isSaving={isSaving}
             onConfirm={handleConfirm}
             confirmLabel="Asignar Plan"
-            warningMessage="Al asignar este plan, se reemplazará la rutina actual del alumno (si tiene una)."
+            warningMessage="Al asignar este plan, se reemplazarÃ¡ la rutina actual del alumno (si tiene una)."
             allTags={["Maestra"]}
             renderItem={(item, isSelected) => (
                 <div className="flex items-center gap-4">

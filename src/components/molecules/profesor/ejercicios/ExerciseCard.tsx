@@ -1,4 +1,4 @@
-import { Dumbbell, PlaySquare, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+﻿import { Dumbbell, PlaySquare, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {

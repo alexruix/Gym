@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
@@ -36,11 +36,11 @@ export function SecuritySection({ lastPasswordUpdate }: { lastPasswordUpdate?: s
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `hace ${diffInHours} hora${diffInHours !== 1 ? 's' : ''}`;
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 30) return `hace ${diffInDays} día${diffInDays !== 1 ? 's' : ''}`;
+    if (diffInDays < 30) return `hace ${diffInDays} dÃ­a${diffInDays !== 1 ? 's' : ''}`;
     const diffInMonths = Math.floor(diffInDays / 30);
     if (diffInMonths < 12) return `hace ${diffInMonths} mes${diffInMonths !== 1 ? 'es' : ''}`;
     const diffInYears = Math.floor(diffInDays / 365);
-    return `hace ${diffInYears} año${diffInYears !== 1 ? 's' : ''}`;
+    return `hace ${diffInYears} aÃ±o${diffInYears !== 1 ? 's' : ''}`;
   }
   const { execute, isPending } = useAsyncAction();
   const copy = configurationCopy.security;

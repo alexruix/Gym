@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface InlineEditProps {
@@ -9,8 +9,8 @@ interface InlineEditProps {
 }
 
 /**
- * InlineEdit: Átomo técnico para edición in-place.
- * Minimalista, sin bordes hasta el foco, para integrarse en diseños densos.
+ * InlineEdit: Ãtomo tÃ©cnico para ediciÃ³n in-place.
+ * Minimalista, sin bordes hasta el foco, para integrarse en diseÃ±os densos.
  */
 export function InlineEdit({ value, type = "text", onChange, className }: InlineEditProps) {
   const [isEditing, setIsEditing] = useState(false);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
@@ -62,7 +62,7 @@ export function ProfileSection({ profesor }: { profesor: PerfilProps }) {
           <Input id="email" {...register("email")} readOnly className="bg-muted text-muted-foreground" />
         </div>
 
-        {/* Teléfono */}
+        {/* TelÃ©fono */}
         <div className="space-y-2">
           <Label htmlFor="telefono">{copy.labels.telefono}</Label>
           <Input id="telefono" {...register("telefono")} />

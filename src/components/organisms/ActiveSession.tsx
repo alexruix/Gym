@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { actions } from 'astro:actions';
 import { MessageSquare, CheckCircle, Timer } from 'lucide-react';
 
@@ -21,7 +21,7 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
       }, 1000);
     } else if (activeTimerObj?.secondsLeft === 0) {
       clearInterval(interval);
-      // Podríamos reproducir un sonido de "Fin del descanso" aquí
+      // PodrÃ­amos reproducir un sonido de "Fin del descanso" aquÃ­
     }
     return () => clearInterval(interval);
   }, [activeTimerObj]);
@@ -33,14 +33,14 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
   const markExerciseDone = async (ejId) => {
     setCompletedExercises({ ...completedExercises, [ejId]: true });
     
-    // Auto-avanzar al siguiente ejercicio si no es el último
+    // Auto-avanzar al siguiente ejercicio si no es el Ãºltimo
     if (activeExerciseIndex < sesionBase.length - 1) {
       setTimeout(() => {
         setActiveExerciseIndex(activeExerciseIndex + 1);
-      }, 500); // Pequeña demora para la animación visual
+      }, 500); // PequeÃ±a demora para la animaciÃ³n visual
     } else {
         setTimeout(() => {
-          setActiveExerciseIndex(activeExerciseIndex + 1); // Desencadena fin de sesión
+          setActiveExerciseIndex(activeExerciseIndex + 1); // Desencadena fin de sesiÃ³n
         }, 500);
     }
 
@@ -79,7 +79,7 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
       window.location.href = "/alumno"; // Regresar al dashboard
     } catch (e) {
       console.error(e);
-      alert("Error cerrando sesión");
+      alert("Error cerrando sesiÃ³n");
       setIsFinishing(false);
     }
   };
@@ -124,17 +124,17 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
                   {ej.biblioteca_ejercicios?.nombre || 'Ejercicio'}
                 </h3>
                 <p className={`text-sm mt-1 font-medium ${isDone ? 'text-zinc-600' : 'text-lime-400'}`}>
-                  {ej.series} Series × {ej.reps_target}
+                  {ej.series} Series Ã— {ej.reps_target}
                 </p>
                 
                 {ej.is_variation && !isDone && (
                   <span className="inline-block mt-3 px-2 py-1 bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400 text-xs font-black tracking-widest rounded uppercase">
-                    Rotación Semanal
+                    RotaciÃ³n Semanal
                   </span>
                 )}
               </div>
 
-              {/* Botón rápido de Comentar */}
+              {/* BotÃ³n rÃ¡pido de Comentar */}
               <button 
                 onClick={(e) => { e.stopPropagation(); setIsCommenting(isCommenting === ej.ejercicio_id ? null : ej.ejercicio_id); }}
                 className={`p-3 self-start rounded-full transition-colors ${comments[ej.ejercicio_id] ? 'bg-fuchsia-500 text-white' : 'bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white'}`}
@@ -144,7 +144,7 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
               </button>
             </div>
 
-            {/* Expansión del Ejercicio Activo */}
+            {/* ExpansiÃ³n del Ejercicio Activo */}
             {isActive && !isDone && (
               <div className="px-5 pb-5 pl-20 animate-in slide-in-from-top-4 duration-300">
                 {/* Zona de Feedback Inline */}
@@ -154,7 +154,7 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
                     <textarea 
                       className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm text-lime-50 placeholder:text-zinc-600 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none resize-none"
                       rows={2}
-                      placeholder="Ej: Bajé a 10kg por dolor en hombro"
+                      placeholder="Ej: BajÃ© a 10kg por dolor en hombro"
                       value={comments[ej.ejercicio_id] || ''}
                       onChange={(e) => setComments({...comments, [ej.ejercicio_id]: e.target.value})}
                     />
@@ -185,12 +185,12 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
                     onClick={() => markExerciseDone(ej.ejercicio_id)}
                     className="flex-1 bg-lime-500 hover:bg-lime-400 text-black font-black uppercase tracking-widest text-lg rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgba(163,230,53,0.39)] hover:shadow-[0_6px_20px_rgba(163,230,53,0.23)] transition-all active:scale-95"
                   >
-                    ✔ Marcar Listo
+                    âœ” Marcar Listo
                   </button>
                 </div>
                 
                 {activeTimerObj?.id === ej.ejercicio_id && activeTimerObj?.secondsLeft === 0 && (
-                  <p className="text-fuchsia-400 font-bold text-xs mt-3 uppercase tracking-widest text-center animate-pulse">¡Fin del descanso! Listo para la próxima.</p>
+                  <p className="text-fuchsia-400 font-bold text-xs mt-3 uppercase tracking-widest text-center animate-pulse">Â¡Fin del descanso! Listo para la prÃ³xima.</p>
                 )}
               </div>
             )}
@@ -202,13 +202,13 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
         </div>
       )}
 
-      {/* Botón Finalizar Sesión */}
+      {/* BotÃ³n Finalizar SesiÃ³n */}
       {(activeExerciseIndex >= sesionBase.length && sesionBase.length > 0) && (
         <div className="p-8 rounded-[2rem] border-2 border-lime-500 bg-lime-500/10 text-center animate-in zoom-in slide-in-from-bottom-8 duration-500 backdrop-blur-xl">
           <div className="w-20 h-20 bg-lime-500 rounded-full flex items-center justify-center mx-auto mb-6 text-black">
             <CheckCircle className="w-10 h-10" />
           </div>
-          <h2 className="text-3xl font-black text-white tracking-tighter mb-2">¡LO LOGRASTE!</h2>
+          <h2 className="text-3xl font-black text-white tracking-tighter mb-2">Â¡LO LOGRASTE!</h2>
           <p className="text-lime-200/60 font-medium mb-8">Todos los ejercicios completados.</p>
           
           <div className="text-left mb-8">
@@ -216,7 +216,7 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
             <textarea 
               className="w-full bg-black/50 border border-lime-500/30 rounded-2xl p-5 text-white placeholder:text-zinc-600 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none resize-none"
               rows={3}
-              placeholder="¿Qué tal estuvo la energía hoy?"
+              placeholder="Â¿QuÃ© tal estuvo la energÃ­a hoy?"
               value={globalNota}
               onChange={e => setGlobalNota(e.target.value)}
             ></textarea>
@@ -227,7 +227,7 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
             onClick={handleCompleteSession}
             className="w-full bg-lime-500 text-black text-xl font-black uppercase tracking-widest py-5 rounded-2xl hover:bg-lime-400 active:scale-95 transition-all shadow-[0_0_40px_rgba(163,230,53,0.4)] disabled:opacity-50"
           >
-            {isFinishing ? 'CERRANDO...' : 'CERRAR SESIÓN'}
+            {isFinishing ? 'CERRANDO...' : 'CERRAR SESIÃ“N'}
           </button>
         </div>
       )}

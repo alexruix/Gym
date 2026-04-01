@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { AlertTriangle, DollarSign, Frown, MessageCircle, FilePlus } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
 import {
@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { DashboardCard } from "@/components/atoms/DashboardCard";
+import { DashboardCard } from "@/components/molecules/DashboardCard";
 import { IconWrapper } from "@/components/atoms/IconWrapper";
 
 export interface AlertData {
@@ -56,7 +56,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
                   <div key={alert.id} className="flex items-center justify-between p-3 bg-red-50/50 rounded-2xl border border-red-100 hover:-translate-y-1 transition-transform duration-200">
                     <div>
                       <p className="font-bold text-zinc-950">{alert.studentName}</p>
-                      <p className="text-xs text-red-600 font-medium">{alert.daysLate} días vencido</p>
+                      <p className="text-xs text-red-600 font-medium">{alert.daysLate} dÃ­as vencido</p>
                     </div>
                     {alert.phone && (
                       <Button size="sm" variant="outline" className="rounded-xl border-red-200 text-red-700 hover:bg-red-100 active:scale-95 transition-transform" asChild>
@@ -88,11 +88,11 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
                   <div key={alert.id} className="flex items-center justify-between p-3 bg-orange-50/50 rounded-2xl border border-orange-100 hover:-translate-y-1 transition-transform duration-200">
                     <div>
                       <p className="font-bold text-zinc-950">{alert.studentName}</p>
-                      <p className="text-xs text-orange-600 font-medium">Inactivo hace {alert.daysInactive} días</p>
+                      <p className="text-xs text-orange-600 font-medium">Inactivo hace {alert.daysInactive} dÃ­as</p>
                     </div>
                     {alert.phone && (
                       <Button size="sm" variant="outline" className="rounded-xl border-orange-200 text-orange-700 hover:bg-orange-100 active:scale-95 transition-transform" asChild>
-                        <a href={`https://wa.me/${alert.phone}?text=Hola%20${alert.studentName},%20hace%20${alert.daysInactive}%20días%20que%20no%20entrenás.%20¿Pasó%20algo?`} target="_blank" rel="noreferrer">
+                        <a href={`https://wa.me/${alert.phone}?text=Hola%20${alert.studentName},%20hace%20${alert.daysInactive}%20dÃ­as%20que%20no%20entrenÃ¡s.%20Â¿PasÃ³%20algo?`} target="_blank" rel="noreferrer">
                           <MessageCircle className="w-4 h-4 mr-2" aria-hidden="true" />
                           <span className="hidden sm:inline">{c.types.risk.action}</span>
                           <span className="sm:hidden">Motivar</span>

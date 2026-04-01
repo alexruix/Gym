@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -11,8 +11,8 @@ interface PlanMetricProps {
 }
 
 /**
- * PlanMetric: Átomo para mostrar estadísticas clave en el detalle del plan.
- * Sigue la estética "Industrial Minimalist" con tipografía pesada y acentos sutiles.
+ * PlanMetric: Ãtomo para mostrar estadÃ­sticas clave en el detalle del plan.
+ * Sigue la estÃ©tica "Industrial Minimalist" con tipografÃ­a pesada y acentos sutiles.
  */
 export function PlanMetric({ icon: Icon, label, value, className, accent }: PlanMetricProps) {
   return (

@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from "react";
+﻿import { useState, type KeyboardEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
@@ -113,7 +113,7 @@ export function PublicProfileSection({ profesor }: { profesor: PublicPerfilProps
               onCheckedChange={(checked) => setValue("perfil_publico", checked, { shouldDirty: true })} 
             />
             <Label htmlFor="perfil_publico" className="font-bold cursor-pointer">
-              {isPublic ? "Perfil Público Activo" : "Perfil Privado"}
+              {isPublic ? "Perfil PÃºblico Activo" : "Perfil Privado"}
             </Label>
           </div>
         </div>
@@ -185,7 +185,7 @@ export function PublicProfileSection({ profesor }: { profesor: PublicPerfilProps
               onChange={(e) => setNewEspecialidad(e.target.value)}
               onKeyDown={handleAddEspecialidad}
               className="flex-1 bg-transparent min-w-[120px] focus:outline-none text-sm placeholder:text-muted-foreground outline-none"
-              placeholder={especialidades.length < 10 ? copy.hints.especialidades : "Límite alcanzado"}
+              placeholder={especialidades.length < 10 ? copy.hints.especialidades : "LÃ­mite alcanzado"}
               disabled={especialidades.length >= 10}
             />
           </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import { 
     Dialog, 
     DialogContent, 
@@ -69,9 +69,9 @@ export function RotationDialog({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-950 rounded-3xl border-none shadow-2xl">
-          <DialogTitle className="sr-only">Configurar Rotación</DialogTitle>
+          <DialogTitle className="sr-only">Configurar RotaciÃ³n</DialogTitle>
           <DialogDescription className="sr-only">
-            Selecciona un ejercicio alternativo para rotar en esta posición del plan.
+            Selecciona un ejercicio alternativo para rotar en esta posiciÃ³n del plan.
           </DialogDescription>
           
           <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">

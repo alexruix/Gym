@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Dumbbell, Clock, Info, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InlineEdit } from "@/components/atoms/profesor/planes/InlineEdit";
@@ -23,8 +23,8 @@ interface RoutineExerciseRowProps {
 }
 
 /**
- * RoutineExerciseRow: Molécula técnica que representa un ejercicio dentro de una rutina.
- * Ahora soporta edición "In-Place" y eliminación optimista.
+ * RoutineExerciseRow: MolÃ©cula tÃ©cnica que representa un ejercicio dentro de una rutina.
+ * Ahora soporta ediciÃ³n "In-Place" y eliminaciÃ³n optimista.
  */
 export function RoutineExerciseRow({ exercise, index, className, onUpdate, onDelete }: RoutineExerciseRowProps) {
   const ej = exercise.biblioteca_ejercicios;
@@ -60,7 +60,7 @@ export function RoutineExerciseRow({ exercise, index, className, onUpdate, onDel
         </h4>
         <div className="flex items-center gap-2 mt-1">
             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
-                Técnica estándar
+                TÃ©cnica estÃ¡ndar
             </span>
             <Info className="w-3 h-3 text-zinc-300 group-hover/ej:text-lime-500 transition-colors" />
         </div>
@@ -120,7 +120,7 @@ export function RoutineExerciseRow({ exercise, index, className, onUpdate, onDel
       <div className="md:hidden flex items-center gap-1 shrink-0">
         <div className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-200/50 dark:border-zinc-700/50">
             <span className="text-[11px] font-black text-zinc-950 dark:text-zinc-50">
-                {exercise.series}×{exercise.reps_target.toLowerCase()}
+                {exercise.series}Ã—{exercise.reps_target.toLowerCase()}
             </span>
         </div>
       </div>

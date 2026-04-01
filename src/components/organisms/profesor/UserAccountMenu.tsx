@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { 
   User, 
   ExternalLink, 
@@ -69,7 +69,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
     } catch (error) {
       console.error("Error logging out:", error);
       setIsLoggingOut(false);
-      toast.error("No se pudo cerrar sesión");
+      toast.error("No se pudo cerrar sesiÃ³n");
     }
   };
 
@@ -119,7 +119,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
               onClick={() => window.open(`/p/${profesor.slug}`, "_blank")}
             >
               <ExternalLink className="w-4 h-4 text-zinc-500" />
-              <span className="text-sm font-bold">Ver perfil público</span>
+              <span className="text-sm font-bold">Ver perfil pÃºblico</span>
             </DropdownMenuItem>
           )}
         </div>
@@ -133,7 +133,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
           >
             <div className="flex items-center gap-3">
               <Copy className="w-4 h-4 text-zinc-500" />
-              <span className="text-sm font-bold">Copiá tu enlace</span>
+              <span className="text-sm font-bold">CopiÃ¡ tu enlace</span>
             </div>
             {isCopied && <Check className="w-4 h-4 text-lime-500" />}
           </DropdownMenuItem>
@@ -159,7 +159,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
           ) : (
             <LogOut className="w-4 h-4" />
           )}
-          <span className="text-sm font-bold uppercase tracking-wide">Cerrar Sesión</span>
+          <span className="text-sm font-bold uppercase tracking-wide">Cerrar SesiÃ³n</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

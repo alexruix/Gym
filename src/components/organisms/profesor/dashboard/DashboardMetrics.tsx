@@ -1,4 +1,4 @@
-import { Users, FilePlus, Activity } from "lucide-react";
+﻿import { Users, FilePlus, Activity } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
 import { Card } from "@/components/ui/card";
 

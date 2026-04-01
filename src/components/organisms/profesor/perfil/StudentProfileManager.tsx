@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { ProfileWorkspaceTabs } from "./ProfileWorkspaceTabs";
 import { StudentRoutineWorkspace } from "./StudentRoutineWorkspace";
 import { StudentInfoTab } from "./StudentInfoTab";
@@ -18,7 +18,7 @@ interface StudentProfileManagerProps {
 
 /**
  * StudentProfileManager: Orquestador del Workspace del Alumno.
- * Gestiona la transición entre la Rutina Técnica y la Ficha de Información.
+ * Gestiona la transiciÃ³n entre la Rutina TÃ©cnica y la Ficha de InformaciÃ³n.
  */
 export function StudentProfileManager({ assignedPlan, student }: StudentProfileManagerProps) {
   const [activeTab, setActiveTab] = useState<"routine" | "info" | "history">("routine");

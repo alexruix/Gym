@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card";
+﻿import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
@@ -118,11 +118,11 @@ export function ExerciseCard({
                         </Button>
                     </div>
 
-                    {/* LISTA DE EJERCICIOS EN ROTACIÓN */}
+                    {/* LISTA DE EJERCICIOS EN ROTACIÃ“N */}
                     {hasRotation(ex.position) && (
                         <div className="flex flex-wrap gap-2 px-1">
                             {getRotationForPosition(ex.position)?.cycles[0].exercises.map((altId: string) => {
-                                if (altId === ex.ejercicio_id) return null; // No mostrar el base aquí
+                                if (altId === ex.ejercicio_id) return null; // No mostrar el base aquÃ­
                                 return (
                                     <div 
                                         key={altId}

@@ -1,4 +1,4 @@
----
+﻿---
 import ProfesorLayout from "../../layouts/ProfesorLayout.astro";
 import PageHeader from "@/components/molecules/PageHeader.astro";
 import ActionLink from "@/components/atoms/ActionLink.astro";
@@ -29,7 +29,7 @@ const user = userAuth?.user;
 
 if (!user) return Astro.redirect("/login");
 
-// 1. Fetch de Alumnos (Todos para métricas principales)
+// 1. Fetch de Alumnos (Todos para mÃ©tricas principales)
 const { data: allStudents, error: studentsError } = await supabase
   .from("alumnos")
   .select(
@@ -51,7 +51,7 @@ if (studentsError) {
 
 const students = allStudents || [];
 
-// 2. Cálculo de Métricas
+// 2. CÃ¡lculo de MÃ©tricas
 const activeStudentsCount = students.filter(
   (s) => s.estado === "activo",
 ).length;
@@ -73,7 +73,7 @@ if (planesError) {
 const hasPlans = (planesCount || 0) > 0;
 const hasStudents = totalStudents > 0;
 
-// 3. Preparación de Alertas
+// 3. PreparaciÃ³n de Alertas
 const noPlanStudents: AlertData[] = students
   .filter((s) => s.planes === null)
   .map((s) => ({ id: s.id, studentName: s.nombre }));
@@ -106,7 +106,7 @@ const mockActivities: ActivityLog[] = [
   {
     id: "a1",
     type: "session_completed",
-    studentName: "Micaela Díaz",
+    studentName: "Micaela DÃ­az",
     timeAgo: "Hace 2 horas",
   },
   {

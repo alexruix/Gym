@@ -32,11 +32,11 @@ interface Props<T extends BaseEntity> {
     items: T[];
     isLoading?: boolean;
     isSaving?: boolean;
-    /** Soporta selección múltiple si se provee multiple=true */
+    /** Soporta selecciÃ³n mÃºltiple si se provee multiple=true */
     multiple?: boolean;
     /** IDs inicialmente seleccionados */
     initialSelectedIds?: string[];
-    /** Texto del botón de confirmación */
+    /** Texto del botÃ³n de confirmaciÃ³n */
     confirmLabel?: string;
     onConfirm: (selectedIds: string[]) => void;
     /** Slot para renderizado personalizado de cada fila */
@@ -45,7 +45,7 @@ interface Props<T extends BaseEntity> {
     warningMessage?: string;
     /** Todas las etiquetas disponibles para el autocompletado de #tags */
     allTags?: string[];
-    /** Opción para añadir entidad inline */
+    /** OpciÃ³n para aÃ±adir entidad inline */
     onCreateNew?: () => void;
     createNewLabel?: string;
     children?: React.ReactNode;
@@ -53,7 +53,7 @@ interface Props<T extends BaseEntity> {
 
 /**
  * EntitySelectorDialog: El selector universal de MiGym (V2.2 Core).
- * Unifica la inteligencia de búsqueda, el filtrado por hashtags y la selección en un solo motor.
+ * Unifica la inteligencia de bÃºsqueda, el filtrado por hashtags y la selecciÃ³n en un solo motor.
  */
 export function EntitySelectorDialog<T extends BaseEntity>({ 
     open, 
@@ -65,13 +65,14 @@ export function EntitySelectorDialog<T extends BaseEntity>({
     isSaving = false,
     multiple = false,
     initialSelectedIds = [],
-    confirmLabel = "Confirmar Selección",
+    confirmLabel = "Confirmar SelecciÃ³n",
     onConfirm,
     renderItem,
     warningMessage,
     allTags = [],
     onCreateNew,
-    createNewLabel = "Crear Nuevo"
+    createNewLabel = "Crear Nuevo",
+    children
 }: Props<T>) {
     const [search, setSearch] = useState("");
     const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -88,7 +89,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
         }
     }, [open, initialSelectedIds]);
 
-    // Lógica de Filtrado (Coincidencia con DashboardConsole)
+    // LÃ³gica de Filtrado (Coincidencia con DashboardConsole)
     const filteredItems = useMemo(() => {
         return items.filter(item => {
             const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
@@ -141,7 +142,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     </DialogDescription>
                 </DialogHeader>
 
-                {/* 🔍 Buscador Universal */}
+                {/* ðŸ” Buscador Universal */}
                 <div className="p-4 border-b border-zinc-100 dark:border-zinc-900 relative group">
                     <Search className={cn(
                         "absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
@@ -149,7 +150,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     )} />
                     <Input 
                         ref={searchInputRef}
-                        placeholder="Buscá o filtrá por #etiqueta..." 
+                        placeholder="BuscÃ¡ o filtrÃ¡ por #etiqueta..." 
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-12 h-12 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-sm font-bold placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-lime-400/20"
@@ -188,7 +189,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     </div>
                 )}
 
-                {/* 📜 Listado de Items o Content Slot */}
+                {/* ðŸ“œ Listado de Items o Content Slot */}
                 <div className="max-h-[450px] overflow-y-auto no-scrollbar">
                     {children ? (
                         children
@@ -200,7 +201,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     ) : filteredItems.length === 0 ? (
                         <div className="py-20 flex flex-col items-center gap-4 text-center px-12">
                             <Ghost className="w-12 h-12 text-zinc-100 dark:text-zinc-900" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">No encontramos lo que buscás.</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">No encontramos lo que buscÃ¡s.</p>
                             {onCreateNew && (
                                 <button 
                                     onClick={onCreateNew}
@@ -263,7 +264,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     )}
                 </div>
 
-                {/* 🛠️ Footer Industrial (Solo si no hay children manejando el form) */}
+                {/* ðŸ› ï¸ Footer Industrial (Solo si no hay children manejando el form) */}
                 {!children && (
                     <DialogFooter className="p-6 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/10">
                         <div className="flex flex-col w-full gap-4">

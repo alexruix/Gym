@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { LogOut, Loader2 } from 'lucide-react';
 import { globalCopy } from '@/data/es/global';
 import { supabase } from '@/lib/supabase';

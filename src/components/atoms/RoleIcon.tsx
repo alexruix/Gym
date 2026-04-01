@@ -1,4 +1,4 @@
-import { User, GraduationCap } from "lucide-react";
+﻿import { User, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RoleIconProps {

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { Dumbbell, Info, History, Sparkles } from "lucide-react";
@@ -13,8 +13,8 @@ interface ProfileWorkspaceTabsProps {
 }
 
 /**
- * ProfileWorkspaceTabs: UI de navegación para el perfil del alumno.
- * Sigue la estética "Industrial Minimalist" con un diseño denso, profesional y de alta visibilidad.
+ * ProfileWorkspaceTabs: UI de navegaciÃ³n para el perfil del alumno.
+ * Sigue la estÃ©tica "Industrial Minimalist" con un diseÃ±o denso, profesional y de alta visibilidad.
  */
 export function ProfileWorkspaceTabs({ 
   routineContent, 
@@ -72,7 +72,7 @@ export function ProfileWorkspaceTabs({
                    </div>
                    <div className="space-y-1">
                        <h4 className="font-black text-xl uppercase tracking-tighter italic text-zinc-950 dark:text-zinc-100">Sin historial operativo</h4>
-                       <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto">Cuando el alumno complete sus rutinas, verás su progreso técnico aquí.</p>
+                       <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto">Cuando el alumno complete sus rutinas, verÃ¡s su progreso tÃ©cnico aquÃ­.</p>
                    </div>
                </div>
             )}

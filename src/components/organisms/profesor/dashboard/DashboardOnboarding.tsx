@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { CheckCircle2, Circle, X, BookOpen, UserPlus, ClipboardList } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
-import { DashboardCard } from "@/components/atoms/DashboardCard";
+import { DashboardCard } from "@/components/molecules/DashboardCard";
 import { IconWrapper } from "@/components/atoms/IconWrapper";
 
 interface Props {
@@ -19,13 +19,13 @@ export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
 
   return (
     <DashboardCard variant="neon">
-      {/* Elemento de diseño de fondo */}
+      {/* Elemento de diseÃ±o de fondo */}
       <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-64 h-64 bg-lime-500/20 rounded-full blur-3xl pointer-events-none" />
 
       <button 
         onClick={() => setIsVisible(false)}
         className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/10 z-20"
-        aria-label="Ocultar guía de inicio"
+        aria-label="Ocultar guÃ­a de inicio"
       >
         <X className="w-4 h-4" />
       </button>
@@ -46,7 +46,7 @@ export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
         </div>
 
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-          {/* Paso 1: Auth (Completado por lógica) */}
+          {/* Paso 1: Auth (Completado por lÃ³gica) */}
           <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col h-full opacity-60">
             <div className="flex justify-between items-start mb-3">
               <IconWrapper icon={CheckCircle2} color="primary" size="md" shape="rounded" />

@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+﻿import React, { useMemo } from "react";
 import { actions } from "astro:actions";
 import { MessageCircle, Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, RefreshCw, Copy, ChevronRight } from "lucide-react";
-import { StatusBadge, type StatusType } from "@/components/atoms/StatusBadge";
+import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -29,8 +29,8 @@ interface Props {
 }
 
 /**
- * AthleteHeader: Consola de telemetría para el perfil del alumno.
- * Prioriza datos accionables para el coaching (Última sesión) y KPIs administrativos (Pago).
+ * AthleteHeader: Consola de telemetrÃ­a para el perfil del alumno.
+ * Prioriza datos accionables para el coaching (Ãšltima sesiÃ³n) y KPIs administrativos (Pago).
  */
 export function AthleteHeader({ alumno, planName }: Props) {
   const { header, sidebar } = athleteProfileCopy;
@@ -48,7 +48,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
   }, [alumno.ultima_sesion, header.metrics]);
 
   const startDateText = useMemo(() => {
-    if (!alumno.fecha_inicio) return "—";
+    if (!alumno.fecha_inicio) return "â€”";
     return new Date(alumno.fecha_inicio).toLocaleDateString("es-AR", {
         day: "2-digit",
         month: "short",
@@ -60,13 +60,13 @@ export function AthleteHeader({ alumno, planName }: Props) {
     toast.loading("GENERANDO ACCESO...");
     try {
       const { data, error } = await actions.profesor.getStudentGuestLink({ id: alumno.id });
-      if (error || !data?.link) throw new Error("Error de conexión");
+      if (error || !data?.link) throw new Error("Error de conexiÃ³n");
       await copyToClipboard(data.link);
       toast.dismiss();
-      toast.success("¡LINK DE ACCESO COPIADO!");
+      toast.success("Â¡LINK DE ACCESO COPIADO!");
     } catch (err: any) {
       toast.dismiss();
-      toast.error(`FALLÓ: ${err.message}`);
+      toast.error(`FALLÃ“: ${err.message}`);
     }
   };
 
@@ -157,7 +157,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
           <PlanMetric 
             icon={PaymentIcon} 
             label={header.metrics.payDay} 
-            value={`Día ${alumno.dia_pago || 15}`} 
+            value={`DÃ­a ${alumno.dia_pago || 15}`} 
             className="sm:border-r border-zinc-100 dark:border-zinc-900" 
           />
           <PlanMetric 

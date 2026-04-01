@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { 
   Menu,
   LayoutDashboard, 
@@ -44,7 +44,7 @@ export function MobileNav({ currentPath }: MobileNavProps) {
       <SheetTrigger asChild>
         <button 
           className="p-2 md:hidden text-zinc-500 hover:text-zinc-900 transition-colors"
-          aria-label="Abrir menú"
+          aria-label="Abrir menÃº"
         >
           <Menu className="w-6 h-6" />
         </button>

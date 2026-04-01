@@ -1,4 +1,4 @@
-import * as React from "react"
+﻿import * as React from "react"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { FormItem } from "@/components/ui/form"
@@ -14,8 +14,8 @@ interface StandardFieldProps {
 }
 
 /**
- * StandardField: Molécula que unifica Label, Input y Errores.
- * Siguiendo la estética "Industrial Minimalist" (Aircraft Dashboard).
+ * StandardField: MolÃ©cula que unifica Label, Input y Errores.
+ * Siguiendo la estÃ©tica "Industrial Minimalist" (Aircraft Dashboard).
  */
 export function StandardField({ 
   label, 

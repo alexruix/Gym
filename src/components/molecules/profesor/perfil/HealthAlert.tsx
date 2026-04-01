@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";

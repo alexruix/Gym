@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -56,7 +56,7 @@ export function ExerciseMediaModal({ isOpen, onClose, title, mediaUrl }: Exercis
         
         <div className="p-4 bg-zinc-900/30 text-center">
            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-             Técnica y Ejecución • MiGym AI Engine
+             TÃ©cnica y EjecuciÃ³n â€¢ MiGym AI Engine
            </p>
         </div>
       </DialogContent>

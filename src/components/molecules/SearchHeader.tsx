@@ -1,7 +1,7 @@
-import { Search } from "lucide-react";
+﻿import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { SortSelect, type SortOption } from "@/components/atoms/SortSelect";
+import { SortSelect, type SortOption } from "@/components/molecules/SortSelect";
 
 interface SearchHeaderProps {
   value: string;

@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { Bell, Settings } from "lucide-react";
 import {
   DropdownMenu,
@@ -32,8 +32,8 @@ export function NotificationDropdown() {
           <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center mb-4">
             <Bell className="w-6 h-6 text-zinc-300 dark:text-zinc-700" />
           </div>
-          <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">¡Todo en orden!</h4>
-          <p className="text-xs text-zinc-500 mt-1 leading-relaxed"> No tenés nuevas alertas. Te avisaremos cuando tus alumnos completen sesiones o venzan cuotas.</p>
+          <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Â¡Todo en orden!</h4>
+          <p className="text-xs text-zinc-500 mt-1 leading-relaxed"> No tenÃ©s nuevas alertas. Te avisaremos cuando tus alumnos completen sesiones o venzan cuotas.</p>
         </div>
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />

@@ -1,7 +1,7 @@
-import React from "react";
+﻿import React from "react";
 import { CheckCircle2, TrendingUp, UserPlus, Clock } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
-import { DashboardCard } from "@/components/atoms/DashboardCard";
+import { DashboardCard } from "@/components/molecules/DashboardCard";
 import { IconWrapper } from "@/components/atoms/IconWrapper";
 
 export interface ActivityLog {

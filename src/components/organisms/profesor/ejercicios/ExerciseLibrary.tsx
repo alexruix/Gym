@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
@@ -32,7 +32,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
 
   const sortOptions = [
     { label: "Nombre A-Z", value: "nombre-asc" },
-    { label: "Más Recientes", value: "fecha-desc" },
+    { label: "MÃ¡s Recientes", value: "fecha-desc" },
   ];
 
   const toggleParent = (parentId: string) => {
@@ -58,7 +58,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     successMsg: "Ejercicio eliminado",
   });
 
-  // Lógica de ordenamiento inyectada al DashboardConsole
+  // LÃ³gica de ordenamiento inyectada al DashboardConsole
   const handleSort = (items: Exercise[], order: string) =>
     [...items].sort((a, b) => {
       if (order === "nombre-asc") return a.nombre.localeCompare(b.nombre);
@@ -82,7 +82,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     // Strategy: Show a parent if IT matches OR if ANY of its children match
     const matchingIds = new Set(filteredList.map(ex => ex.id));
     
-    // Identificamos qué padres deben mostrarse
+    // Identificamos quÃ© padres deben mostrarse
     const parentsToShow = new Set<string>();
     exercises.forEach(ex => {
         if (!ex.parent_id && matchingIds.has(ex.id)) {
@@ -166,7 +166,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         }}
         renderTable={(filtered) => (
             <div className="text-center py-20 text-zinc-400 font-medium italic bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border-2 border-dashed border-zinc-100 dark:border-zinc-800">
-                La vista de tabla para ejercicios llegará pronto. <br/> Por ahora, usá la vista de grilla para gestionar tus variantes.
+                La vista de tabla para ejercicios llegarÃ¡ pronto. <br/> Por ahora, usÃ¡ la vista de grilla para gestionar tus variantes.
             </div>
         )}
       />
@@ -179,7 +179,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         title="Eliminar ejercicio"
         description={
             <>
-                ¿Estás seguro de que querés eliminar <span className="font-bold text-zinc-900 dark:text-zinc-100">"{deleteFlow.itemToDelete?.nombre}"</span>? Esta acción no se puede deshacer.
+                Â¿EstÃ¡s seguro de que querÃ©s eliminar <span className="font-bold text-zinc-900 dark:text-zinc-100">"{deleteFlow.itemToDelete?.nombre}"</span>? Esta acciÃ³n no se puede deshacer.
             </>
         }
       />

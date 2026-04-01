@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { 
@@ -63,7 +63,7 @@ interface Props {
 
 /**
  * StudentRoutineWorkspace: Workspace de entrenamiento del alumno.
- * Refactorizado para coincidir con la estética técnica de PlanDetail.
+ * Refactorizado para coincidir con la estÃ©tica tÃ©cnica de PlanDetail.
  */
 export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
   const { workspace } = athleteProfileCopy;
@@ -77,7 +77,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
 
   const handleDeleteExercise = (ejercicioPlanId: string) => {
     if (!planData || isPending) return;
-    if (!confirm("¿Seguro que querés quitar este ejercicio?")) return;
+    if (!confirm("Â¿Seguro que querÃ©s quitar este ejercicio?")) return;
 
     run(async () => {
       let targetPlanId = planData.id;
@@ -94,7 +94,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
 
       const updatedRutinas = planData.rutinas_diarias.map(r => ({
         dia_numero: r.dia_numero,
-        nombre_dia: r.nombre_dia || `Día ${r.dia_numero}`,
+        nombre_dia: r.nombre_dia || `DÃ­a ${r.dia_numero}`,
         ejercicios: r.ejercicios_plan
           .filter(e => e.id !== ejercicioPlanId)
           .map((e, idx) => ({
@@ -122,7 +122,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
 
   const handleDeleteDay = (rutinaId: string) => {
     if (!planData || isPending) return;
-    if (!confirm("¿Eliminar este día completo?")) return;
+    if (!confirm("Â¿Eliminar este dÃ­a completo?")) return;
 
     run(async () => {
       let targetPlanId = planData.id;
@@ -140,7 +140,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
         .filter(r => r.id !== rutinaId)
         .map((r, rIdx) => ({
           dia_numero: rIdx + 1,
-          nombre_dia: r.nombre_dia || `Día ${rIdx + 1}`,
+          nombre_dia: r.nombre_dia || `DÃ­a ${rIdx + 1}`,
           ejercicios: r.ejercicios_plan.map((e, idx) => ({
             ejercicio_id: e.biblioteca_ejercicios?.id || "",
             series: e.series,
@@ -160,7 +160,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
         rutinas: updatedRutinas
       });
       if (upError) throw new Error(upError.message);
-    }, { loadingMsg: "Actualizando...", successMsg: "Día eliminado", reloadOnSuccess: true });
+    }, { loadingMsg: "Actualizando...", successMsg: "DÃ­a eliminado", reloadOnSuccess: true });
   };
 
   const handlePromotePlan = () => {
@@ -182,7 +182,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
             </div>
             <div className="space-y-2 relative z-10 max-w-sm">
                 <h3 className="font-black text-2xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin plan asignado</h3>
-                <p className="text-sm text-zinc-400 font-medium px-6">Este atleta aún no tiene rutinas activas. Podés asignarle una pre-definda o crear una desde cero.</p>
+                <p className="text-sm text-zinc-400 font-medium px-6">Este atleta aÃºn no tiene rutinas activas. PodÃ©s asignarle una pre-definda o crear una desde cero.</p>
             </div>
             
             <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
@@ -300,11 +300,11 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
                   </span>
                   <div className="text-left">
                     <h4 className="font-black text-lg text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 transition-colors">
-                      {rutina.nombre_dia || `Día ${rutina.dia_numero}`}
+                      {rutina.nombre_dia || `DÃ­a ${rutina.dia_numero}`}
                     </h4>
                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
                         <Clock className="w-3 h-3" />
-                        {ejs.length} Actividades técnicas
+                        {ejs.length} Actividades tÃ©cnicas
                     </p>
                   </div>
                 </div>

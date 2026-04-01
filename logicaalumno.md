@@ -1,79 +1,94 @@
-# Lógica de Login y Vinculación de Alumnos (Magic Link)
+# 🛰️ Lógica de Acceso: El Link Permanente (Modo Barrio)
 
-Este documento detalla el flujo técnico para que un alumno pueda acceder a **Migym** y vincular su identidad de Supabase Auth con el registro creado previamente por su profesor de forma automática y segura.
+Este documento detalla cómo los alumnos acceden a **MiGym**. A diferencia de una app tradicional con registro y contraseña, MiGym usa un modelo de **Acceso Híbrido** diseñado para la velocidad y comodidad de un gimnasio de barrio.
 
-## 1. Requisitos Previos en Supabase
+---
 
-Para que el login funcione, se debe configurar lo siguiente en el Dashboard de Supabase:
-1.  **Habilitar Magic Link:** En `Authentication > providers > Email`, activar el interruptor de "Magic Link".
-2.  **Configurar Site URL:** En `Authentication > URL Configuration`, poner el dominio de la app
-3.  **Redirect URLs:** Asegurarse de que `/api/auth/callback` esté en la lista de URLs permitidas.
-4.  **Confirmación de Email:** Si se usa Magic Link, Supabase enviará un correo. Para desarrollo local se recomienda usar una cuenta de prueba o configurar un servicio SMTP (como Resend/SendGrid).
+## 1. Filosofía: El "Modo Barrio" 🇦🇷
 
-## 2. El Estado Inicial en la Base de Datos
+En un gimnasio real, el profesor te anota y ya estás adentro. MiGym replica esto eliminando la fricción de "crearse una cuenta". 
 
-Cuando un profesor registra a un alumno (acción `inviteStudent`), se crea una fila en la tabla `alumnos` con:
-- `email`: El correo del alumno (ej: `alumno@email.com`).
-- `user_id`: **NULL** (Campo libre para reclamar).
-- `profesor_id`: El ID del profesor que lo creó.
+- **Sin contraseñas**: No hay nada que olvidar.
+- **Acceso Directo**: Un link único que "simplemente funciona".
+- **Persistencia**: Una vez que entrás, tu teléfono te recuerda por 1 año.
 
-## 3. Flujo Crítico: Vinculación en el Servidor (Binding)
+---
 
-A diferencia de otros enfoques, **Migym** realiza la vinculación en el servidor durante el intercambio de código. Esto garantiza que el alumno vea sus datos inmediatamente al entrar, sin esperas ni "flashes" de contenido vacío.
+## 2. Los Dos Caminos de Acceso
 
-### Paso A: Invitación (Redirect Controlado)
-La acción de invitar al alumno (`src/actions/profesor.ts`) envía el Magic Link apuntando específicamente a nuestro endpoint de API:
+Aunque el sistema es uno solo, existen dos formas técnicas de entrar:
+
+### A. Link de Acceso Permanente (Recomendado)
+Es un puente directo que vincula el dispositivo del alumno con su perfil mediante un token único (`access_token`).
+- **Ruta**: `/r/[token]`
+- **Expira**: Nunca (el token es estático hasta que el profesor lo regenere).
+- **Cookie**: Genera una cookie `gym_access` válida por 1 año.
+
+### B. Acceso Formal (Magic Link)
+Es el flujo estándar de Supabase Auth. Útil si el alumno cambia de dispositivo o prefiere loguearse con su email.
+- **Ruta**: `/login` -> `/auth/verify`
+- **Fricción**: Requiere abrir el email y hacer clic en un link temporal.
+
+---
+
+## 3. Flujo Técnico del Link Permanente
+
+Cuando el profesor genera el link para un alumno, ocurre lo siguiente:
+
+1.  **Generación de Token**: Cada registro en la tabla `alumnos` tiene un `access_token` (UUIDv4).
+2.  **El Puente (`/r/[token]`)**:
+    - El archivo `src/pages/r/[token].astro` recibe el token.
+    - Valida el token contra la DB usando `supabaseAdmin` (bypass de RLS ya que el alumno aún es anónimo).
+    - Si es válido, setea la cookie `httpOnly` llamada `gym_access`.
+    - Redirige directamente al panel del alumno (`/alumno`).
+3.  **Middleware de Sesión**:
+    - `src/middleware.ts` detecta la cookie `gym_access`.
+    - Resuelve la identidad del alumno y le asigna el rol `invitado`.
+    - Crea el objeto `context.locals.user` con el ID del alumno.
+
+---
+
+## 4. Resolución de Identidad en el Middleware
+
+El sistema es agnóstico a *cómo* entraste. El middleware unifica la sesión:
+
 ```typescript
-emailRedirectTo: `${context.url.origin}/api/auth/callback?next=/alumno`
-```
-
-### Paso B: Intercambio y Vinculación (Callback API)
-En `src/pages/api/auth/callback.ts`, el servidor procesa el login:
-1.  **Intercambio de Código**: Cambia el código de Supabase por una sesión real (`exchangeCodeForSession`).
-2.  **Búsqueda por Email**: Si el usuario no tiene `user_id` vinculado todavía, busca en la tabla `alumnos` una fila con ese `email` e `is('user_id', null)`.
-3.  **Vínculo Atómico**: Si lo encuentra, ejecuta el `UPDATE` para asignar el `auth.uid()` a esa fila.
-
-```typescript
-// Lógica simplificada en src/pages/api/auth/callback.ts
-const { data: alumByEmail } = await supabase
-  .from('alumnos')
-  .select('id')
-  .eq('email', user.email)
-  .is('user_id', null)
-  .maybeSingle();
-
-if (alumByEmail) {
-  await supabase
-    .from('alumnos')
-    .update({ user_id: user.id })
-    .eq('id', alumByEmail.id);
-  
-  return redirect('/alumno');
+// Lógica simplificada de prioridad
+if (sesion_supabase_auth) {
+  // Alumno "Formal" con cuenta vinculada
+  user = { id: auth.uid, role: "alumno" }
+} else if (cookie_gym_access) {
+  // Alumno "Modo Barrio" (Invitado)
+  user = { id: id_alumno_db, role: "invitado" }
 }
 ```
 
-## 4. Seguridad vía RLS
+Esto permite que todas las páginas en `/alumno/*` consulten `locals.user` sin preocuparse por el método de login.
 
-Para que el servidor (actuando con la sesión del usuario recién logueado) pueda realizar el `UPDATE`, la política en `supabase.md` (Sección 16) debe permitirlo:
+---
 
-```sql
-CREATE POLICY "Alumnos reclaman su perfil" ON alumnos 
-  FOR UPDATE USING (
-    email = (auth.jwt() ->> 'email') AND 
-    user_id IS NULL
-  ) 
-  WITH CHECK (
-    user_id = auth.uid()
-  );
-```
-> [!IMPORTANT]
-> Esta política garantiza que **solo** el dueño legítimo del email puede reclamar el perfil, y **solo una vez** (mientras `user_id` sea NULL).
+## 5. Vinculación Atómica (Binding)
 
-## 5. Beneficios de esta Lógica
-- **Experiencia de Usuario (DX/UX)**: El alumno entra directamente a su panel con su plan asignado.
-- **Robustez**: No dependemos de que el navegador del cliente ejecute un script o de que el usuario no cierre la pestaña antes de tiempo.
-- **Seguridad Atómica**: El servidor valida la identidad antes de mostrar cualquier dato sensible.
+Si un alumno decide usar el Magic Link, el sistema intenta vincular su cuenta de Supabase Auth con su registro de alumno pre-existente en `/api/auth/callback.ts`:
 
-## 6. Casos de Borde
-- **Email no registrado**: Si el alumno se loguea con un email que ningún profesor asignó, el `callback` no encontrará el registro y lo enviará a `/onboarding` o le mostrará un estado vacío, protegiendo la privacidad de los demás alumnos.
-- **Re-login**: En logins posteriores, el `callback` detectará que el `user_id` ya está vinculado y simplemente redirigirá a `/alumno`.
+- Si el email coincide y el `user_id` en la tabla `alumnos` es NULL, se hace el **Bind**.
+- Esto permite "formalizar" una cuenta de invitado si el usuario así lo desea.
+
+---
+
+## 6. Seguridad y Revocación
+
+Como los links permanentes son poderosos, el profesor tiene el control total:
+
+- **Regeneración**: Desde el panel del profesor, se puede "Regenerar link". Esto cambia el `access_token` en la DB, invalidando instantáneamente todos los accesos anteriores (incluyendo dispositivos logueados con la cookie vieja).
+- **Borrado Lógico**: Si el alumno es archivado (`deleted_at`), el link deja de funcionar inmediatamente.
+
+---
+
+## 7. Checklist para Profesores
+
+Para invitar a un alumno:
+1.  Crear el alumno en `/profesor/alumnos/new`.
+2.  Desde la ficha del alumno, copiar el **"Link de Acceso Permanente"**.
+3.  Enviárselo por WhatsApp (formato recomendado: `r/[token]`).
+4.  Recordarle que **no necesita registrarse**, solo abrir el link una vez.

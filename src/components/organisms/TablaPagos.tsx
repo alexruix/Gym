@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { actions } from 'astro:actions';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,8 @@ import {
 import { toast } from 'sonner';
 import { pagosCopy } from '@/data/es/profesor/pagos';
 import { PagoMetricCard } from '@/components/molecules/profesor/PagoMetricCard';
-import { StandardTable, type TableColumn } from '@/components/molecules/StandardTable';
-import { PaymentStatus } from '@/components/atoms/PaymentStatus';
+import { StandardTable, type TableColumn } from '@/components/organisms/StandardTable';
+import { StatusBadge } from '@/components/molecules/StatusBadge';
 import { DashboardConsole } from '@/components/molecules/profesor/DashboardConsole';
 import { cn } from '@/lib/utils';
 import {
@@ -64,7 +64,7 @@ const isRecentlyNotified = (dateString: string | null) => {
 
 /**
  * TablaPagos V2.2: Refactorizado para usar DashboardConsole como shell.
- * Mantiene toda la lógica de negocio de Pagos (métricas, cobrar, WhatsApp, Sheet).
+ * Mantiene toda la lÃƒÂ³gica de negocio de Pagos (mÃƒÂ©tricas, cobrar, WhatsApp, Sheet).
  */
 export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => {
   // Adaptamos a BaseEntity: injecting 'name' y 'tags' por estado de pago
@@ -83,12 +83,12 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
   const [selectedAlumno, setSelectedAlumno] = useState<Alumno | null>(null);
 
-  // Métricas KPI: se calculan sobre TODOS los alumnos (no el filtrado)
+  // MÃƒÂ©tricas KPI: se calculan sobre TODOS los alumnos (no el filtrado)
   const ingresosPagados = alumnos.reduce((acc, a) => acc + (a.pago_activo?.estado === 'pagado' ? (a.pago_activo.monto || a.monto || 0) : 0), 0);
   const ingresosPendientes = alumnos.reduce((acc, a) => acc + (a.pago_activo?.estado !== 'pagado' ? (a.pago_activo?.monto || a.monto || 0) : 0), 0);
   const totalMorosos = alumnos.filter(a => a.is_moroso).length;
 
-  // Lógica de Ordenamiento (inyectada al DashboardConsole)
+  // LÃƒÂ³gica de Ordenamiento (inyectada al DashboardConsole)
   const handleSort = (items: Alumno[], order: string) => {
     return [...items].sort((a, b) => {
       switch (order) {
@@ -170,7 +170,7 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
               {alumno.telefono && <p className="text-[10px] text-zinc-400 font-medium">{alumno.telefono}</p>}
             </div>
           </div>
-          <PaymentStatus status={estado as any} />
+          <StatusBadge status={estado as any} />
         </div>
 
         <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-900 pt-3">
@@ -256,7 +256,7 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
       header: pagosCopy.table.headers.status,
       render: (alumno) => {
         const estado = alumno.is_moroso ? 'vencido' : (alumno.pago_activo?.estado || 'pendiente');
-        return <PaymentStatus status={estado as any} className="w-fit" />;
+        return <StatusBadge status={estado as any} className="w-fit" />;
       }
     },
     {
@@ -302,20 +302,20 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
   return (
     <div className="space-y-10">
 
-      {/* 📊 KPI Metrics — siempre visibles, sobre el console */}
+      {/* Ã°Å¸â€œÅ  KPI Metrics Ã¢â‚¬â€ siempre visibles, sobre el console */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <PagoMetricCard label={pagosCopy.metrics.collected.label} value={ingresosPagados} />
         <PagoMetricCard label={pagosCopy.metrics.pending.label} value={ingresosPendientes} />
         <PagoMetricCard label={pagosCopy.metrics.delinquent.label} value={totalMorosos} variant="destructive" />
       </div>
 
-      {/* 🚨 Alertas de Morosos — Banner de acción rápida */}
+      {/* Ã°Å¸Å¡Â¨ Alertas de Morosos Ã¢â‚¬â€ Banner de acciÃƒÂ³n rÃƒÂ¡pida */}
       {totalMorosos > 0 && (
         <section className="animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-5 h-5 text-red-500" />
             <h2 className="text-sm font-black tracking-[.2em] text-zinc-900 dark:text-zinc-100 uppercase">
-              Acción requerida hoy
+              AcciÃƒÂ³n requerida hoy
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -327,7 +327,7 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
                     <span className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-1">Moroso</span>
                     <span className="font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-red-600 transition-colors">{moroso.nombre}</span>
                     <span className="text-[10px] text-zinc-500 font-medium">
-                      Vencido hace {moroso.pago_activo?.fecha_vencimiento ? Math.floor((new Date().getTime() - new Date(moroso.pago_activo.fecha_vencimiento).getTime()) / (1000 * 3600 * 24)) : "?"} días
+                      Vencido hace {moroso.pago_activo?.fecha_vencimiento ? Math.floor((new Date().getTime() - new Date(moroso.pago_activo.fecha_vencimiento).getTime()) / (1000 * 3600 * 24)) : "?"} dÃƒÂ­as
                     </span>
                   </div>
                   <Button
@@ -346,7 +346,7 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
         </section>
       )}
 
-      {/* 🖥️ Dashboard Console: Search + View Toggle + Sort + Tags + Grid/Tabla */}
+      {/* Ã°Å¸â€“Â¥Ã¯Â¸Â Dashboard Console: Search + View Toggle + Sort + Tags + Grid/Tabla */}
       <DashboardConsole
         items={alumnos}
         itemLabel="Alumnos"
@@ -356,13 +356,13 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
         sortOptions={[
           { label: "Nombre A-Z", value: "nombre-asc" },
           { label: "Mayor monto", value: "monto-desc" },
-          { label: "Próximo vencimiento", value: "vencimiento-asc" },
+          { label: "PrÃƒÂ³ximo vencimiento", value: "vencimiento-asc" },
           { label: "Morosos primero", value: "morosos" },
         ]}
         onSort={handleSort}
         emptyIcon={<UserIcon className="w-12 h-12" />}
         emptyTitle="Sin alumnos que coincidan"
-        emptyDescription="Probá ajustando el término de búsqueda o removiendo etiquetas de estado."
+        emptyDescription="ProbÃƒÂ¡ ajustando el tÃƒÂ©rmino de bÃƒÂºsqueda o removiendo etiquetas de estado."
         renderGrid={(items) => (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {items.map(alumno => renderAlumnoCard(alumno))}
@@ -386,7 +386,7 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
         )}
       />
 
-      {/* 📋 Sheet Drawer: Detalle del Alumno */}
+      {/* Ã°Å¸â€œâ€¹ Sheet Drawer: Detalle del Alumno */}
       <Sheet open={!!selectedAlumno} onOpenChange={() => setSelectedAlumno(null)}>
         <SheetContent className="w-full sm:max-w-md p-0 overflow-y-auto bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
           {selectedAlumno && (
@@ -400,7 +400,7 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
                     <SheetTitle className="text-2xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 uppercase">{selectedAlumno.nombre}</SheetTitle>
                     <SheetDescription className="font-bold text-zinc-500 uppercase tracking-widest text-[10px] flex items-center gap-2">
                       <Calendar className="w-3 h-3" />
-                      Día de pago: {selectedAlumno.dia_pago || 15} del mes
+                      DÃƒÂ­a de pago: {selectedAlumno.dia_pago || 15} del mes
                     </SheetDescription>
                   </div>
                 </div>
@@ -416,18 +416,18 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Monto de cuota</p>
                         <p className="text-3xl font-black text-zinc-950 dark:text-zinc-50">${selectedAlumno.monto?.toLocaleString('es-AR') || 0}</p>
                       </div>
-                      <PaymentStatus status={(selectedAlumno.is_moroso ? 'vencido' : (selectedAlumno.pago_activo?.estado || 'pendiente')) as any} />
+                      <StatusBadge status={(selectedAlumno.is_moroso ? 'vencido' : (selectedAlumno.pago_activo?.estado || 'pendiente')) as any} />
                     </div>
                     <Separator className="my-6 bg-zinc-100 dark:bg-zinc-900" />
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Vencimiento</p>
                         <p className="font-bold text-zinc-700 dark:text-zinc-300 text-sm">
-                          {selectedAlumno.pago_activo?.fecha_vencimiento ? new Date(selectedAlumno.pago_activo.fecha_vencimiento).toLocaleDateString("es-AR", { day: 'numeric', month: 'long' }) : "—"}
+                          {selectedAlumno.pago_activo?.fecha_vencimiento ? new Date(selectedAlumno.pago_activo.fecha_vencimiento).toLocaleDateString("es-AR", { day: 'numeric', month: 'long' }) : "Ã¢â‚¬â€"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Último pago</p>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">ÃƒÅ¡ltimo pago</p>
                         <p className="font-bold text-zinc-700 dark:text-zinc-300 text-sm">
                           {selectedAlumno.pago_activo?.fecha_pago ? new Date(selectedAlumno.pago_activo.fecha_pago).toLocaleDateString("es-AR", { day: 'numeric', month: 'long' }) : "Pendiente"}
                         </p>
@@ -436,7 +436,7 @@ export const TablaPagos = ({ initialAlumnos }: { initialAlumnos: Alumno[] }) => 
                   </Card>
                 </div>
 
-                {/* Acciones Rápidas */}
+                {/* Acciones RÃƒÂ¡pidas */}
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     className="h-14 font-black uppercase tracking-widest text-[10px] gap-2 rounded-2xl shadow-xl shadow-zinc-950/10 active:scale-95 transition-all bg-zinc-950 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"

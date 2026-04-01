@@ -1,38 +1,40 @@
 # 📋 Sitemap MiGym v2.0
 ## Software de Gestión para Gimnasios de Barrio
 
-**Contexto:** MiGym es una plataforma para profesores y personal trainers de gimnasios de barrio. El profesor crea planes desde templates Excel (2, 3, 4 días), los personaliza, asigna alumnos, y gestiona pagos + progreso. **Sin cobros en app, sin membresías, sin control de acceso.**
+**Contexto:** MiGym es una plataforma para profesores y personal trainers de gimnasios de barrio. El profesor crea planes desde templates o personalizados, asigna alumnos, y gestiona pagos + progreso. **Sin cobros en app, sin membresías complex, sin control de acceso físico.**
 
 ---
 
-## 1. Nivel Público (Landing & Auth)
+## 1. Nivel Público (Landing, Auth & Perfiles)
 
-Puerta de entrada simple. Objetivo: Explicar que MiGym simplifica la gestión del gimnasio.
+Puerta de entrada y perfiles públicos de marketing para los profesores.
 
 ### Rutas
 
 | Ruta | Página | Propósito |
 |------|--------|----------|
-| `/` | **Landing** | Propuesta de valor: "Gestiona tus alumnos, planes y pagos en un lugar" |
-| `/login` | **Magic Link** | Email → magic link. Acceso sin contraseña |
-| `/login/magic-link-sent` | **Confirmación** | "Revisá tu email" (feedback visual) |
-| `/onboarding` | **Onboarding** (Profesor) | Flujo guiado: rol, nombre, crear 1er plan (opcional) |
+| `/` | **Landing** | Propuesta de valor: "Gestioná tus alumnos, planes y pagos en un lugar" |
+| `/login` | **Magic Link** | Ingreso al sistema mediante email (sin contraseña) |
+| `/auth/verify` | **Verificación** | Procesa el magic link de Supabase |
+| `/p/[slug]` | **Perfil Público** | "Link en bio" del profesor con sus especialidades y redes |
+| `/r/[token]` | **Acceso Alumno** | Puente de acceso permanente para alumnos vía token único |
+| `/onboarding` | **Onboarding** | Flujo inicial para nuevos profesores (setup de perfil) |
 
 ---
 
 ## 2. Panel del Profesor (PRIMARY USER)
 
-Enfoque: Gestión operacional del gimnasio. Profesor está ocupado → todo en pocos clics.
+Enfoque: Gestión operacional rápida. "Industrial Minimalist" para eficiencia técnica.
 
 ### 2.1 Dashboard (Home del Profesor)
 
 **Ruta:** `/profesor`
 
 **Widgets clave:**
-1. **Tarjetas de resumen:** Alumnos activos, planes, vencimientos hoy, morosos
-2. **Alertas:** Acordeón con vencimientos próximos y morosos
-3. **Feed:** Últimas actividades (sesiones completadas, alumnos nuevos, planes creados)
-4. **CTAs rápidas:** Botones flotantes o sticky: "Nuevo alumno", "Crear plan"
+1. **Métricas rápidas:** Alumnos activos, planes vigentes, recaudación estimada
+2. **Alertas:** Vencimientos de planes en los próximos 7 días
+3. **Actividad reciente:** Últimos alumnos registrados o planes asignados
+4. **Accesos directos:** "Nuevo alumno", "Crear plan", "Cargar ejercicio"
 
 ---
 
@@ -40,9 +42,10 @@ Enfoque: Gestión operacional del gimnasio. Profesor está ocupado → todo en p
 
 **Ruta base:** `/profesor/planes`
 
-- `/profesor/planes` (Listado)
-- `/profesor/planes/new` (Crear en 4 pasos)
-- `/profesor/planes/[id]` (Ver/Editar)
+- `/profesor/planes` (Listado y filtros)
+- `/profesor/planes/new` (Creador de rutinas dinámico)
+- `/profesor/planes/[id]` (Vista detallada del plan)
+- `/profesor/planes/[id]/edit` (Editor de estructura y ejercicios)
 
 ---
 
@@ -50,103 +53,119 @@ Enfoque: Gestión operacional del gimnasio. Profesor está ocupado → todo en p
 
 **Ruta base:** `/profesor/alumnos`
 
-- `/profesor/alumnos` (Listado)
-- `/profesor/alumnos/new` (Invitar)
-- `/profesor/alumnos/import` (Excel)
-- `/profesor/alumnos/[id]` (Ficha con tabs: Info, Pagos, Progreso)
+- `/profesor/alumnos` (Directorio de atletas)
+- `/profesor/alumnos/new` (Registro individual)
+- `/profesor/alumnos/import` (Carga masiva desde Excel)
+- `/profesor/alumnos/[id]` (Ficha clínica: Plan actual, Pagos, Evolución)
 
 ---
 
-### 2.4 Gestión de Pagos
+### 2.4 Biblioteca de Ejercicios
 
-**Ruta:** `/profesor/pagos` (Tablero general y exportación Excel)
+**Ruta base:** `/profesor/ejercicios`
+
+- `/profesor/ejercicios` (Base de datos de movimientos)
+- `/profesor/ejercicios/new` (Carga de ejercicio individual)
+- `/profesor/ejercicios/import` (Carga masiva - biblioteca estándar)
+- `/profesor/ejercicios/[id]` (Edición de técnica y videos)
 
 ---
 
-### 2.5 Biblioteca de Ejercicios
+### 2.5 Pagos & Finanzas
 
-**Ruta:** `/profesor/ejercicios` (Listado de movimientos personalizados)
+**Ruta:** `/profesor/pagos` (Registro manual de cobros y control de morosidad)
 
 ---
 
-### 2.6 Configuración & Ajustes
+### 2.6 Configuración
 
-**Ruta:** `/profesor/configuracion` (Perfil, Notificaciones, Datos)
+**Ruta:** `/profesor/configuracion` (Perfil, seguridad, redes sociales y links públicos)
 
 ---
 
 ## 3. Panel del Alumno (SECONDARY USER)
 
-Enfoque: Siguiendo el plan, registrando sesiones. **Móvil-first.**
+Enfoque: Ejecución del entrenamiento. **Mobile-first & High-contrast.**
 
 ### 3.1 Dashboard (Home Alumno)
 
-**Ruta:** `/alumno` (CTA Empezar, Racha, Progreso)
+**Ruta:** `/alumno` (Acceso rápido a la rutina de hoy y racha)
 
 ---
 
-### 3.2 Mi Plan
+### 3.2 Entrenamiento
 
-**Ruta:** `/alumno/mi-plan` (Estructura de rutinas por semana)
-
----
-
-### 3.3 Tracker de Sesión
-
-**Ruta:** `/alumno/sesion/[numero]` (Carga de reps reales por ejercicio)
+- `/alumno/mi-plan` (Estructura completa de la semana)
+- `/alumno/sesion/[numero]` (Tracker de repeticiones y cargas en tiempo real)
+- `/alumno/espera` (Pantalla de transición/carga personalizada)
 
 ---
 
-### 3.4 Mi Progreso
+### 3.3 Mi Evolución
 
-**Ruta:** `/alumno/progreso` (Gráficos de evolución)
-
----
-
-### 3.5 Perfil Alumno
-
-**Ruta:** `/alumno/perfil` (Membresía y contacto profesor)
+**Ruta:** `/alumno/progreso` (Gráficos de volumen y marcas personales)
 
 ---
 
-## 4. Estructura de Rutas (Astro Ready)
+### 3.4 Cuenta
+
+**Ruta:** `/alumno/perfil` (Datos personales y contacto con el profesor)
+
+---
+
+## 4. Estructura de Rutas (Astro Filesystem)
 
 ```
 src/pages/
-├── index.astro                    # Landing público
-├── login.astro                    # Magic link
+├── index.astro                    # Landing
+├── login.astro                    # Página de ingreso
+│
+├── auth/
+│   └── verify.astro               # Verificador de sesión
+│
 ├── onboarding/
-│   └── [step].astro              # Steps 1-N (rol, nombre, etc)
+│   ├── index.astro                # Inicio onboarding
+│   └── [step].astro               # Pasos dinámicos
+│
+├── p/
+│   └── [slug].astro               # Perfil público profesor
+│
+├── r/
+│   └── [token].astro              # Login bypass alumno
 │
 ├── profesor/
-│   ├── index.astro               # Dashboard
-│   ├── planes/
-│   │   ├── index.astro           # Listado
-│   │   ├── new.astro             # Crear (4 pasos)
-│   │   └── [id]/
-│   │       └── index.astro       # Ver/Editar
+│   ├── index.astro               # Dashboard principal
+│   ├── configuracion.astro       # Ajustes de cuenta
 │   ├── alumnos/
 │   │   ├── index.astro           # Listado
-│   │   ├── new.astro             # Invitar
-│   │   ├── import.astro          # Importar Excel
-│   │   └── [id]/
-│   │       └── index.astro       # Ficha + tabs
+│   │   ├── new.astro             # Form manual
+│   │   ├── import.astro          # Bulk import
+│   │   └── [id]/index.astro      # Detalle alumno
 │   ├── ejercicios/
-│   │   ├── index.astro           # Listado
-│   │   ├── new.astro             # Crear
+│   │   ├── index.astro           # Biblioteca
+│   │   ├── new.astro             # Nuevo ejercicio
+│   │   ├── import.astro          # Bulk library
+│   │   └── [id]/index.astro      # Editar ejercicio
+│   ├── planes/
+│   │   ├── index.astro           # Listado planes
+│   │   ├── new.astro             # Creador
 │   │   └── [id]/
-│   │       └── index.astro       # Editar
-│   ├── pagos/
-│   │   └── index.astro           # Tablero pagos
-│   └── configuracion.astro       # Ajustes
+│   │       ├── index.astro       # Ver plan
+│   │       └── edit.astro        # Editor rutinas
+│   └── pagos/
+│       └── index.astro           # Gestión de cobros
 │
 ├── alumno/
-│   ├── index.astro               # Dashboard (home)
-│   ├── mi-plan.astro             # Ver plan
-│   ├── sesion/
-│   │   └── [numero].astro        # Tracker
-│   ├── progreso.astro            # Gráficos
-│   └── perfil.astro              # Perfil
+│   ├── index.astro               # Dashboard
+│   ├── mi-plan.astro             # Rutina activa
+│   ├── progreso.astro            # Stats
+│   ├── perfil.astro              # Datos
+│   ├── espera.astro              # Loading state
+│   └── sesion/
+│       └── [numero].astro        # Tracker activo
+│
+└── api/
+    └── auth/callback.ts          # Endpoint OAuth/MagicLink
 ```
 
-**Total rutas MVP: 17**
+**Total rutas actuales: 29**

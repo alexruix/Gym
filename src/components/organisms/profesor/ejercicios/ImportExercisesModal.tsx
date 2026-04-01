@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import * as XLSX from "xlsx";
 import { 
   Upload, 
@@ -176,7 +176,7 @@ export function ImportExercisesModal({ isOpen, onOpenChange, onSuccess }: Import
                             <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
                                 <tr>
                                     <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">Nombre</th>
-                                    <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">Descripción</th>
+                                    <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">DescripciÃ³n</th>
                                     <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">Media</th>
                                 </tr>
                             </thead>
@@ -197,7 +197,7 @@ export function ImportExercisesModal({ isOpen, onOpenChange, onSuccess }: Import
                                 {data.length > 5 && (
                                     <tr>
                                         <td colSpan={3} className="px-4 py-3 text-center text-[10px] font-black uppercase text-zinc-400 bg-zinc-50/50">
-                                            +{data.length - 5} ejercicios más...
+                                            +{data.length - 5} ejercicios mÃ¡s...
                                         </td>
                                     </tr>
                                 )}

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+﻿import { useState, useMemo, useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
@@ -42,7 +42,7 @@ interface PlanFormProps {
   onCancel?: () => void;
 }
 
-const DIAS_SEMANA_LARGOS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const DIAS_SEMANA_LARGOS = ["Lunes", "Martes", "MiÃ©rcoles", "Jueves", "Viernes", "SÃ¡bado", "Domingo"];
 
 export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFormProps) {
   const [isPending, setIsPending] = useState(false);
@@ -177,7 +177,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
     
     form.setValue("rutinas", newRutinas);
     
-    toast(`${targetDayNums.length} ${targetDayNums.length === 1 ? 'día duplicado' : 'días duplicados'} correctamente`, {
+    toast(`${targetDayNums.length} ${targetDayNums.length === 1 ? 'dÃ­a duplicado' : 'dÃ­as duplicados'} correctamente`, {
         action: {
             label: "Deshacer",
             onClick: () => {
@@ -198,7 +198,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-screen bg-white dark:bg-zinc-950">
         
-        {/* TOP NAVIGATOR: SEMANAS + DÍAS (Sticky) */}
+        {/* TOP NAVIGATOR: SEMANAS + DÃAS (Sticky) */}
         <PlanNavigator 
             currentWeek={currentWeek} 
             numWeeks={numWeeks} 
@@ -241,7 +241,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                   name="duracion_semanas"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 px-1">Duración total</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 px-1">DuraciÃ³n total</FormLabel>
                       <div className="bg-zinc-50 dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center gap-3">
                         <select className="flex-1 bg-transparent border-none font-black text-sm uppercase px-4 h-10 outline-none" value={field.value} onChange={(e) => field.onChange(parseInt(e.target.value))}>
                             {[1, 2, 4, 8, 12, 24, 52].map(s => <option key={s} value={s}>{s} Semanas</option>)}
@@ -253,14 +253,14 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
               </div>
             </header>
 
-            {/* 2. Zona de Edición del Día */}
+            {/* 2. Zona de EdiciÃ³n del DÃ­a */}
             <section className="space-y-8">
                <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center justify-between">
                   <div className="space-y-2 flex-1">
                      <div className="flex items-center gap-3">
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-lime-500">{currentDayName} (Semana {currentWeek})</span>
                         <div className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Día {activeDiaAbsoluto}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">DÃ­a {activeDiaAbsoluto}</span>
                      </div>
                      <FormField
                         control={form.control}
@@ -268,7 +268,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                         render={({ field }) => (
                           <FormItem className="space-y-0">
                             <FormControl>
-                              <Input placeholder="Nombre del día (ej: Empuje / Pecho)" {...field} className="text-3xl font-black bg-transparent border-none p-0 focus-visible:ring-0 shadow-none h-auto" />
+                              <Input placeholder="Nombre del dÃ­a (ej: Empuje / Pecho)" {...field} className="text-3xl font-black bg-transparent border-none p-0 focus-visible:ring-0 shadow-none h-auto" />
                             </FormControl>
                           </FormItem>
                         )}
@@ -277,10 +277,10 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                   
                   <div className="flex gap-3 shrink-0">
                      <Button type="button" variant="outline" size="xl" onClick={() => setIsBulkOpen(true)} className="px-6 h-16 rounded-[24px] border-zinc-100 dark:border-zinc-800">
-                        <Copy className="w-5 h-5 mr-3" /> <span className="text-[10px] font-black uppercase">Copiar Día</span>
+                        <Copy className="w-5 h-5 mr-3" /> <span className="text-[10px] font-black uppercase">Copiar DÃ­a</span>
                      </Button>
                      <Button type="button" variant="industrial" size="xl" onClick={() => setIsSearchOpen(true)} className="px-10 h-16 rounded-[24px] shadow-2xl shadow-lime-500/10">
-                        <Plus className="w-5 h-5 mr-3" /> <span className="text-[10px] font-black uppercase">Añadir</span>
+                        <Plus className="w-5 h-5 mr-3" /> <span className="text-[10px] font-black uppercase">AÃ±adir</span>
                      </Button>
                   </div>
                </div>
@@ -289,7 +289,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                   {currentExercises.length === 0 ? (
                     <div className="py-32 flex flex-col items-center text-center border-4 border-dashed border-zinc-100 dark:border-zinc-900 rounded-[40px] bg-zinc-50/20">
                       <Dumbbell className="w-12 h-12 text-zinc-200 dark:text-zinc-800 mb-6" />
-                      <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 max-w-[200px]">Este día aún no tiene ejercicios.</p>
+                      <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 max-w-[200px]">Este dÃ­a aÃºn no tiene ejercicios.</p>
                       <Button variant="ghost" onClick={() => setIsSearchOpen(true)} className="mt-6 text-lime-500 font-black uppercase text-[10px] tracking-widest">Cargar rutina ahora</Button>
                     </div>
                   ) : (
@@ -312,17 +312,17 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
             </section>
           </div>
 
-          {/* 3. FOOTER GLOBAL: NAVEGACIÓN + GUARDAR */}
+          {/* 3. FOOTER GLOBAL: NAVEGACIÃ“N + GUARDAR */}
           <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl px-6 z-50 pointer-events-none">
              <div className="bg-zinc-950/90 backdrop-blur-2xl p-4 rounded-[32px] border border-white/10 shadow-2xl flex items-center justify-between pointer-events-auto">
                 
-                {/* Navegación de Días */}
+                {/* NavegaciÃ³n de DÃ­as */}
                 <div className="flex items-center gap-3 pr-6 border-r border-white/10">
                    <Button variant="ghost" size="icon" disabled={activeDiaAbsoluto === 1} onClick={() => setActiveDiaAbsoluto(prev => prev - 1)} className="text-white hover:bg-white/10 rounded-2xl h-12 w-12">
                      <ArrowLeft className="w-5 h-5" />
                    </Button>
                    <div className="flex flex-col items-center min-w-[80px]">
-                      <span className="text-[10px] font-black text-white leading-none">Día {activeDiaAbsoluto}</span>
+                      <span className="text-[10px] font-black text-white leading-none">DÃ­a {activeDiaAbsoluto}</span>
                       <span className="text-[8px] font-black text-zinc-500 uppercase mt-1">de {numWeeks * 7}</span>
                    </div>
                    <Button variant="ghost" size="icon" disabled={activeDiaAbsoluto === numWeeks * 7} onClick={() => setActiveDiaAbsoluto(prev => prev + 1)} className="text-white hover:bg-white/10 rounded-2xl h-12 w-12">
@@ -330,7 +330,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                    </Button>
                 </div>
 
-                {/* Feedback de Validación y Guardado */}
+                {/* Feedback de ValidaciÃ³n y Guardado */}
                 <div className="flex items-center gap-6 ml-auto">
                    <div className="hidden md:flex flex-col items-end">
                       {stats.isValid ? (

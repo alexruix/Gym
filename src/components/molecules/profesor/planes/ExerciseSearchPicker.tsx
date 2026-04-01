@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+﻿import React, { useState, useEffect, useMemo } from "react";
 import { Search, Plus, Check, Loader2, Dumbbell, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +25,8 @@ interface ExerciseSearchPickerProps {
 }
 
 /**
- * ExerciseSearchPicker: Diálogo de búsqueda para la biblioteca de ejercicios.
- * Filtra automáticamente los que ya están en el plan con un badge informativo.
+ * ExerciseSearchPicker: DiÃ¡logo de bÃºsqueda para la biblioteca de ejercicios.
+ * Filtra automÃ¡ticamente los que ya estÃ¡n en el plan con un badge informativo.
  */
 export function ExerciseSearchPicker({ existingIds, onSelect, trigger }: ExerciseSearchPickerProps) {
   const [open, setOpen] = useState(false);
@@ -120,14 +120,14 @@ export function ExerciseSearchPicker({ existingIds, onSelect, trigger }: Exercis
                     <Dumbbell className="w-7 h-7 text-zinc-300" />
                </div>
                <p className="text-sm font-black text-zinc-400 uppercase tracking-widest">
-                 {query ? "No hay resultados para esta búsqueda" : "Tu biblioteca está vacía"}
+                 {query ? "No hay resultados para esta bÃºsqueda" : "Tu biblioteca estÃ¡ vacÃ­a"}
                </p>
                {existingInResultsCount > 0 && !showAll && (
                  <button 
                    onClick={() => setShowAll(true)}
                    className="text-[10px] font-black text-lime-600 uppercase tracking-widest hover:underline"
                  >
-                   Ver {existingInResultsCount} que ya están en el plan
+                   Ver {existingInResultsCount} que ya estÃ¡n en el plan
                  </button>
                )}
             </div>
