@@ -46,7 +46,6 @@ CREATE TABLE IF NOT EXISTS planes (
   nombre text NOT NULL,
   duracion_semanas int DEFAULT 4,
   frecuencia_semanal int DEFAULT 3, -- Días por semana
-  monto numeric DEFAULT 0, -- Precio por defecto del plan
   created_at timestamptz DEFAULT now()
 );
 
@@ -117,9 +116,6 @@ CREATE POLICY "Profesores gestionan sus alumnos" ON alumnos FOR ALL USING (auth.
 DROP POLICY IF EXISTS "Alumnos ven su propio perfil heredado" ON alumnos;
 CREATE POLICY "Alumnos ven su propio perfil heredado" ON alumnos FOR SELECT USING (auth.uid() = user_id OR email = (auth.jwt() ->> 'email'));
 
-DROP POLICY IF EXISTS "Alumnos reclaman su perfil" ON alumnos;
-CREATE POLICY "Alumnos reclaman su perfil" ON alumnos FOR UPDATE USING (email = (auth.jwt() ->> 'email') AND user_id IS NULL) WITH CHECK (user_id = auth.uid());
-
 
 --- 7. Pagos y Tracking
 CREATE TABLE IF NOT EXISTS pagos (
@@ -138,8 +134,6 @@ CREATE TABLE IF NOT EXISTS sesiones (
   fecha date NOT NULL,
   completada boolean DEFAULT false,
   notas text,
-  notas_alumno text,
-  notas_profesor text,
   created_at timestamptz DEFAULT now()
 );
 
@@ -151,8 +145,6 @@ CREATE TABLE IF NOT EXISTS ejercicio_logs (
   reps_reales int,
   peso_kg numeric,
   rpe int,
-  nota_alumno text,
-  respuesta_profesor text,
   created_at timestamptz DEFAULT now()
 );
 
@@ -265,7 +257,6 @@ CREATE OR REPLACE FUNCTION crear_plan_completo(
   p_nombre text,
   p_duracion_semanas int,
   p_frecuencia_semanal int,
-  p_monto numeric,
   p_rutinas jsonb,
   p_rotaciones jsonb DEFAULT '[]'::jsonb
 ) RETURNS uuid AS $$
@@ -277,8 +268,8 @@ DECLARE
   v_rotacion jsonb;
 BEGIN
   -- 1. Insertar Plan Maestro
-  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, monto)
-  VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal, p_monto)
+  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal)
+  VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal)
   RETURNING id INTO v_plan_id;
 
   -- 2. Iterar sobre rutinas
@@ -412,7 +403,7 @@ DROP POLICY IF EXISTS "Alumnos ven sus personalizaciones" ON student_plan_custom
 CREATE POLICY "Alumnos ven sus personalizaciones" ON student_plan_customizations
   FOR SELECT USING (EXISTS (SELECT 1 FROM alumnos WHERE id = student_plan_customizations.alumno_id AND (auth.uid() = user_id OR email = (auth.jwt() ->> 'email'))));
 
-
+  
 --- 11. SEGUIMIENTO DE RECORDATORIOS Y PAGOS ATÓMICOS (PAGOS V2)
 
 -- A) Columna para evitar spam de WhatsApp
@@ -482,6 +473,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
+
 --- 12. ETIQUETAS (TAGS) EN BIBLIOTECA DE EJERCICIOS
 
 -- A) Columna tags como array de texto
@@ -492,6 +484,7 @@ ADD COLUMN IF NOT EXISTS tags text[] DEFAULT '{}';
 CREATE INDEX IF NOT EXISTS idx_biblioteca_ejercicios_tags ON biblioteca_ejercicios USING GIN (tags);
 
 COMMENT ON COLUMN biblioteca_ejercicios.tags IS 'Etiquetas de clasificación del ejercicio (ej: grupo muscular, dificultad).';
+
 
 
 --- 13. ACTUALIZACIÓN DE PLANES (TRANSACCIONAL)
@@ -637,26 +630,68 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
---- 12. NOTIFICACIONES AL PROFESOR
+
+--- 15. COMENTARIOS Y NOTIFICACIONES (FASE 3)
+
+-- 1. Agregar columnas para comentarios a sesiones (Nivel d�a)
+ALTER TABLE sesiones
+ADD COLUMN IF NOT EXISTS notas_alumno text,
+ADD COLUMN IF NOT EXISTS notas_profesor text;
+
+COMMENT ON COLUMN sesiones.notas_alumno IS 'Feedback general del alumno al terminar la sesi�n (d�a completo).';
+COMMENT ON COLUMN sesiones.notas_profesor IS 'Respuesta general o anotaci�n del profesor sobre este d�a espec�fico.';
+
+-- 2. Agregar columnas para comentarios a ejercicio_logs (Nivel de ejercicio puntual)
+ALTER TABLE ejercicio_logs
+ADD COLUMN IF NOT EXISTS nota_alumno text,
+ADD COLUMN IF NOT EXISTS respuesta_profesor text;
+
+COMMENT ON COLUMN ejercicio_logs.nota_alumno IS 'Comentario del alumno sobre un ejercicio espec�fico (ej: "Me doli� el hombro").';
+COMMENT ON COLUMN ejercicio_logs.respuesta_profesor IS 'Respuesta del profesor a esa nota (independiente de la semana siguiente).';
+
+-- 3. Crear tabla de Notificaciones para el Profesor
 CREATE TABLE IF NOT EXISTS notificaciones (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
   alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
-  tipo text NOT NULL, -- 'comentario_sesion', 'comentario_ejercicio'
+  tipo text NOT NULL, -- Valores esperados: 'comentario_sesion', 'comentario_ejercicio', 'sesion_completada', 'pago_vencido'
   mensaje text NOT NULL,
-  referencia_id uuid,
+  referencia_id uuid, -- ID de la sesi�n o ejercicio_log que dispar� la notificaci�n
   leida boolean DEFAULT false,
   created_at timestamptz DEFAULT now()
 );
 
+-- Habilitar RLS en notificaciones
 ALTER TABLE notificaciones ENABLE ROW LEVEL SECURITY;
 
+-- Pol�tica: Profesores solo ven y editan sus propias notificaciones
 DROP POLICY IF EXISTS "Profesores gestionan sus notificaciones" ON notificaciones;
 CREATE POLICY "Profesores gestionan sus notificaciones" ON notificaciones 
   FOR ALL USING (auth.uid() = profesor_id);
 
-DROP POLICY IF EXISTS "Alumnos/Sistema envían notificaciones" ON notificaciones;
-CREATE POLICY "Alumnos/Sistema envían notificaciones" ON notificaciones 
+-- Pol�tica: Alumnos pueden insertar notificaciones (v�a un Trigger o API cuando comentan)
+DROP POLICY IF EXISTS "Alumnos/Sistema env�an notificaciones" ON notificaciones;
+CREATE POLICY "Alumnos/Sistema env�an notificaciones" ON notificaciones 
   FOR INSERT WITH CHECK (
     EXISTS (SELECT 1 FROM alumnos WHERE id = notificaciones.alumno_id AND (auth.uid() = user_id OR email = (auth.jwt() ->> 'email')))
+  );
+
+
+--- 16. FIX ONBOARDING ALUMNOS (RLS UPDATE)
+
+-- Permitir a un alumno vincular su cuenta Auth real (user_id)
+-- si y solo si:
+-- 1. El email que usa para loguearse coincide con el insertado por el profesor.
+-- 2. La columna user_id en la base sigue vac�a (previniendo robos).
+-- 3. S�lo est� intentando actualizar el 'user_id' para que coincida con su identidad Real.
+
+DROP POLICY IF EXISTS "Alumnos reclaman su perfil" ON alumnos;
+
+CREATE POLICY "Alumnos reclaman su perfil" ON alumnos 
+  FOR UPDATE USING (
+    email = (auth.jwt() ->> 'email') AND 
+    user_id IS NULL
+  ) 
+  WITH CHECK (
+    user_id = auth.uid()
   );
