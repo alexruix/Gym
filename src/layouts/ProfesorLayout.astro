@@ -39,8 +39,8 @@ const { data: profesor } = await supabase
   .single();
 
 if (!profesor) {
-  // Defensa secundaria: El middleware ya deberÃ­a haber filtrado esto,
-  // pero si el registro de profesor desapareciÃ³ o hubo un error, rebotamos.
+  // Defensa secundaria: El middleware ya debería haber filtrado esto,
+  // pero si el registro de profesor desapareció o hubo un error, rebotamos.
   return Astro.redirect("/onboarding");
 }
 

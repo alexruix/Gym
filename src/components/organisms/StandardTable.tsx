@@ -21,7 +21,7 @@ interface StandardTableProps<T> {
   onRowClick?: (item: T) => void;
   emptyMessage?: string;
   emptySearchMessage?: string;
-  /** Icono para el estado vacÃ­o */
+  /** Icono para el estado vacío */
   EmptyIcon?: LucideIcon;
   /** Nombre de la entidad (ej: "Alumnos") para el contador */
   entityName?: string;
@@ -30,8 +30,8 @@ interface StandardTableProps<T> {
 }
 
 /**
- * StandardTable: MolÃ©cula base para todas las tablas del dashboard con estÃ©tica "Industrial Minimalist".
- * Unifica el comportamiento de bÃºsqueda, filtros y visualizaciÃ³n de datos.
+ * StandardTable: Molécula base para todas las tablas del dashboard con estética "Industrial Minimalist".
+ * Unifica el comportamiento de búsqueda, filtros y visualización de datos.
  */
 export function StandardTable<T extends { id: string | number }>({
   data,
@@ -42,7 +42,7 @@ export function StandardTable<T extends { id: string | number }>({
   filters,
   onRowClick,
   emptyMessage = "No se encontraron resultados",
-  emptySearchMessage = "No hay coincidencias para tu bÃºsqueda",
+  emptySearchMessage = "No hay coincidencias para tu búsqueda",
   EmptyIcon,
   entityName = "Resultados",
   hideSearch,

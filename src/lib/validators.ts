@@ -2,41 +2,27 @@ import { z } from "zod";
 
 // Plan validation (SSOT for creating/editing plans)
 export const planSchema = z.object({
-  nombre: z.string().min(2, "Mínimo 2 caracteres").max(100, "Máximo 100 caracteres"),
+  nombre: z.string().min(3, "Mínimo 3 caracteres").max(100, "Máximo 100 caracteres"),
   duracion_semanas: z.number().int().min(0).max(52),
   frecuencia_semanal: z.number().int().min(0).max(7),
   descripcion: z.string().optional(),
   is_template: z.boolean().default(true),
   rutinas: z.array(
     z.object({
-      dia_numero: z.number().int().min(1).max(7),
+      dia_numero: z.number().int().min(1).max(365),
       nombre_dia: z.string().optional(),
       ejercicios: z.array(
         z.object({
           ejercicio_id: z.string().uuid(),
-          series: z.number().int().min(1),
-          reps_target: z.string().min(1),
-          descanso_seg: z.number().int().min(0),
           orden: z.number().int().min(0).optional(),
           exercise_type: z.enum(["base", "complementary", "accessory"]).optional().default("base"),
           position: z.number().int().min(0).optional().default(0),
           notas: z.string().optional(),
+          peso_target: z.string().optional().default(""),
         })
       )
     })
   ).min(1, "El plan debe tener al menos 1 rutina"),
-  rotaciones: z.array(
-    z.object({
-      position: z.number().int().min(0),
-      applies_to_days: z.array(z.string()),
-      cycles: z.array(
-        z.object({
-          duration_weeks: z.number().int().min(2).max(4),
-          exercises: z.array(z.string().uuid())
-        })
-      )
-    })
-  ).optional(),
 });
 
 export type PlanFormData = z.infer<typeof planSchema>;
@@ -234,3 +220,12 @@ export const changePasswordSchema = z.object({
 });
 
 export type ChangePasswordData = z.infer<typeof changePasswordSchema>;
+
+export const importPlansSchema = z.array(z.object({
+  nombre: z.string().min(2).max(100),
+  descripcion: z.string().max(500).optional().nullable(),
+  duracion_semanas: z.number().int().min(1).max(52).default(4),
+  frecuencia_semanal: z.number().int().min(1).max(7).default(3),
+}));
+
+export type ImportPlansData = z.infer<typeof importPlansSchema>;

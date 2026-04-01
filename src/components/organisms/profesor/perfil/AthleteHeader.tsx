@@ -29,8 +29,8 @@ interface Props {
 }
 
 /**
- * AthleteHeader: Consola de telemetrÃ­a para el perfil del alumno.
- * Prioriza datos accionables para el coaching (Ãšltima sesiÃ³n) y KPIs administrativos (Pago).
+ * AthleteHeader: Consola de telemetría para el perfil del alumno.
+ * Prioriza datos accionables para el coaching (Ãšltima sesión) y KPIs administrativos (Pago).
  */
 export function AthleteHeader({ alumno, planName }: Props) {
   const { header, sidebar } = athleteProfileCopy;
@@ -60,13 +60,13 @@ export function AthleteHeader({ alumno, planName }: Props) {
     toast.loading("GENERANDO ACCESO...");
     try {
       const { data, error } = await actions.profesor.getStudentGuestLink({ id: alumno.id });
-      if (error || !data?.link) throw new Error("Error de conexiÃ³n");
+      if (error || !data?.link) throw new Error("Error de conexión");
       await copyToClipboard(data.link);
       toast.dismiss();
-      toast.success("Â¡LINK DE ACCESO COPIADO!");
+      toast.success("¡LINK DE ACCESO COPIADO!");
     } catch (err: any) {
       toast.dismiss();
-      toast.error(`FALLÃ“: ${err.message}`);
+      toast.error(`FALLÓ: ${err.message}`);
     }
   };
 
@@ -157,7 +157,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
           <PlanMetric 
             icon={PaymentIcon} 
             label={header.metrics.payDay} 
-            value={`DÃ­a ${alumno.dia_pago || 15}`} 
+            value={`Día ${alumno.dia_pago || 15}`} 
             className="sm:border-r border-zinc-100 dark:border-zinc-900" 
           />
           <PlanMetric 

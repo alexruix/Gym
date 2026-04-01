@@ -1,7 +1,6 @@
-﻿import React from "react";
-import { Dumbbell, Clock, Info, Trash2 } from "lucide-react";
+import React from "react";
+import { Dumbbell, Info, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { InlineEdit } from "@/components/atoms/profesor/planes/InlineEdit";
 
 interface ExerciseInfo {
   nombre: string;
@@ -11,22 +10,18 @@ interface ExerciseInfo {
 interface RoutineExerciseRowProps {
   exercise: {
     id: string;
-    series: number;
-    reps_target: string;
-    descanso_seg: number;
     biblioteca_ejercicios: ExerciseInfo | null;
   };
   index: number;
   className?: string;
-  onUpdate?: (field: string, value: string | number) => void;
   onDelete?: () => void;
 }
 
 /**
- * RoutineExerciseRow: MolÃ©cula tÃ©cnica que representa un ejercicio dentro de una rutina.
- * Ahora soporta ediciÃ³n "In-Place" y eliminaciÃ³n optimista.
+ * RoutineExerciseRow: Molécula técnica que representa un ejercicio dentro de una rutina (Plantilla).
+ * Simplificada: Solo muestra el nombre y permite eliminar.
  */
-export function RoutineExerciseRow({ exercise, index, className, onUpdate, onDelete }: RoutineExerciseRowProps) {
+export function RoutineExerciseRow({ exercise, index, className, onDelete }: RoutineExerciseRowProps) {
   const ej = exercise.biblioteca_ejercicios;
 
   return (
@@ -60,50 +55,9 @@ export function RoutineExerciseRow({ exercise, index, className, onUpdate, onDel
         </h4>
         <div className="flex items-center gap-2 mt-1">
             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
-                TÃ©cnica estÃ¡ndar
+                Técnica estándar
             </span>
             <Info className="w-3 h-3 text-zinc-300 group-hover/ej:text-lime-500 transition-colors" />
-        </div>
-      </div>
-
-      {/* Technical Data Grid (Desktop) */}
-      <div className="hidden md:flex items-center gap-6 shrink-0 h-full">
-        <div className="flex flex-col items-center justify-center min-w-[50px]">
-          <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Series</span>
-          <InlineEdit 
-            type="number" 
-            value={exercise.series} 
-            onChange={(val) => onUpdate?.("series", val)}
-            className="text-xl font-black text-zinc-950 dark:text-zinc-50 leading-none"
-          />
-        </div>
-        
-        <div className="w-px h-10 bg-zinc-100 dark:bg-zinc-800" />
-        
-        <div className="flex flex-col items-center justify-center min-w-[50px]">
-          <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Reps</span>
-          <InlineEdit 
-            value={exercise.reps_target} 
-            onChange={(val) => onUpdate?.("reps_target", val)}
-            className="text-xl font-black text-zinc-950 dark:text-zinc-50 leading-none lowercase"
-          />
-        </div>
-        
-        <div className="w-px h-10 bg-zinc-100 dark:bg-zinc-800" />
-        
-        <div className="flex flex-col items-center justify-center min-w-[65px] bg-zinc-50 dark:bg-zinc-900/50 p-2 rounded-xl border border-transparent group-hover/ej:border-zinc-200 dark:group-hover/ej:border-zinc-800 transition-all">
-          <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1 flex items-center gap-1">
-            <Clock className="w-2.5 h-2.5" /> Descanso
-          </span>
-          <div className="flex items-baseline gap-0.5">
-            <InlineEdit 
-                type="number" 
-                value={exercise.descanso_seg} 
-                onChange={(val) => onUpdate?.("descanso_seg", val)}
-                className="text-xl font-black text-zinc-950 dark:text-zinc-50 leading-none"
-            />
-            <span className="text-[10px] font-black text-zinc-400">s</span>
-          </div>
         </div>
       </div>
 
@@ -115,15 +69,6 @@ export function RoutineExerciseRow({ exercise, index, className, onUpdate, onDel
       >
         <Trash2 className="w-4 h-4" />
       </button>
-
-      {/* Mobile Metrics (Compact) */}
-      <div className="md:hidden flex items-center gap-1 shrink-0">
-        <div className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-200/50 dark:border-zinc-700/50">
-            <span className="text-[11px] font-black text-zinc-950 dark:text-zinc-50">
-                {exercise.series}Ã—{exercise.reps_target.toLowerCase()}
-            </span>
-        </div>
-      </div>
     </div>
   );
 }

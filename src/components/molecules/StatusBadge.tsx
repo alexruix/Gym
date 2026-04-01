@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 /**
- * StatusBadge (V3.0): MolÃƒÂ©cula unificada para etiquetas de estado.
- * Fusiona la lÃƒÂ³gica de negocio de estados generales y estados de pago.
+ * StatusBadge (V3.0): Molécula unificada para etiquetas de estado.
+ * Fusiona la lógica de negocio de estados generales y estados de pago.
  */
 
 export type StatusType = 
@@ -28,7 +28,7 @@ const statusMap: Record<StatusType, StatusConfig> = {
   activo: { label: "Activo", variant: "success" },
   pausado: { label: "Pausado", variant: "warning" },
   inactivo: { label: "Inactivo", variant: "secondary" },
-  // Estados de Pago (con Iconos segÃƒÂºn preferencia del usuario)
+  // Estados de Pago (con Iconos según preferencia del usuario)
   pagado: { label: "Pagado", variant: "success", icon: CheckCircle2, isPayment: true },
   por_vencer: { label: "Por vencer", variant: "warning", icon: Clock, isPayment: true },
   vencido: { label: "Vencido", variant: "destructive", icon: XCircle, isPayment: true },

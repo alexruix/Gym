@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { 
     Dialog, 
     DialogContent, 
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Zap, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { planesCopy } from "@/data/es/profesor/planes";
+import { personalizationCopy } from "@/data/es/profesor/alumnos";
 
 interface Exercise {
   id: string;
@@ -66,23 +66,25 @@ export function RotationDialog({
 
   if (!exercise) return null;
 
+  const copy = personalizationCopy.routines.exerciseCard.rotation;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-950 rounded-3xl border-none shadow-2xl">
-          <DialogTitle className="sr-only">Configurar RotaciÃ³n</DialogTitle>
+          <DialogTitle className="sr-only">Configurar Rotación</DialogTitle>
           <DialogDescription className="sr-only">
-            Selecciona un ejercicio alternativo para rotar en esta posiciÃ³n del plan.
+            Selecciona un ejercicio alternativo para rotar en esta posición del plan.
           </DialogDescription>
           
           <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
             <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 uppercase tracking-tight mb-6">
-                {planesCopy.form.routines.exerciseCard.rotation.selectExercise}
+                {copy.selectExercise}
             </h2>
             
             <div className="relative mb-6">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
                 <Input 
-                    placeholder={planesCopy.form.exerciseModal.searchPlaceholder}
+                    placeholder={personalizationCopy.exerciseModal.searchPlaceholder}
                     value={rotationSearch}
                     onChange={(e) => setRotationSearch(e.target.value)}
                     className="pl-12 h-14 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold"
@@ -103,7 +105,7 @@ export function RotationDialog({
 
             <div className="flex items-center justify-between gap-4 p-4 bg-lime-500/5 border border-lime-500/20 rounded-2xl">
                 <span className="text-[10px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400">
-                    {planesCopy.form.routines.exerciseCard.rotation.duration}
+                    {copy.duration}
                 </span>
                 <div className="flex gap-2">
                     {[2, 3, 4].map((weeks) => (
@@ -118,7 +120,7 @@ export function RotationDialog({
                                     : "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-lime-500"
                             )}
                         >
-                            {weeks} {planesCopy.form.routines.exerciseCard.rotation.weeks}
+                            {weeks} {copy.weeks}
                         </button>
                     ))}
                 </div>

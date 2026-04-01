@@ -4,15 +4,13 @@ import {
   Upload, 
   FileSpreadsheet, 
   CheckCircle2, 
-  AlertCircle, 
   Loader2,
   X,
   Plus
 } from "lucide-react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
+import { planesCopy } from "@/data/es/profesor/planes";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +20,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-interface ImportExercisesModalProps {
+interface ImportPlansModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: (count: number) => void;
@@ -33,24 +31,25 @@ interface RawData {
   nombre?: string;
   Descripcion?: string;
   descripcion?: string;
-  Media?: string;
-  media?: string;
-  Video?: string;
-  video?: string;
+  Semanas?: string | number;
+  semanas?: string | number;
+  Frecuencia?: string | number;
+  frecuencia?: string | number;
 }
 
-interface ParsedExercise {
+interface ParsedPlan {
   nombre: string;
   descripcion?: string | null;
-  media_url?: string | null;
+  duracion_semanas?: number;
+  frecuencia_semanal?: number;
 }
 
-export function ImportExercisesModal({ isOpen, onOpenChange, onSuccess }: ImportExercisesModalProps) {
+export function ImportPlansModal({ isOpen, onOpenChange, onSuccess }: ImportPlansModalProps) {
   const [file, setFile] = React.useState<File | null>(null);
-  const [data, setData] = React.useState<ParsedExercise[]>([]);
+  const [data, setData] = React.useState<ParsedPlan[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [processing, setProcessing] = React.useState(false);
-  const copy = exerciseLibraryCopy.import;
+  const copy = planesCopy.list.import;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -76,9 +75,10 @@ export function ImportExercisesModal({ isOpen, onOpenChange, onSuccess }: Import
           return {
             nombre: String(nombre).trim(),
             descripcion: String(row.Descripcion || row.descripcion || "").trim() || null,
-            media_url: String(row.Media || row.media || row.Video || row.video || "").trim() || null,
+            duracion_semanas: Number(row.Semanas || row.semanas) || 4,
+            frecuencia_semanal: Number(row.Frecuencia || row.frecuencia) || 3,
           };
-        }).filter(Boolean) as ParsedExercise[];
+        }).filter(Boolean) as ParsedPlan[];
 
         setData(parsed);
       } catch (err) {
@@ -99,7 +99,7 @@ export function ImportExercisesModal({ isOpen, onOpenChange, onSuccess }: Import
 
     setLoading(true);
     try {
-      const { data: res, error } = await actions.profesor.importExercises(data);
+      const { data: res, error } = await actions.profesor.importPlans(data);
       if (error) throw error;
 
       if (res.success) {
@@ -161,7 +161,7 @@ export function ImportExercisesModal({ isOpen, onOpenChange, onSuccess }: Import
                         <div className="min-w-0">
                             <p className="text-xs sm:text-sm font-bold truncate max-w-[150px] sm:max-w-[200px]">{file.name}</p>
                             <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                                {data.length} ejercicios detectados
+                                {data.length} planes detectados
                             </p>
                         </div>
                     </div>
@@ -178,29 +178,23 @@ export function ImportExercisesModal({ isOpen, onOpenChange, onSuccess }: Import
                             <table className="w-full text-sm min-w-[500px] sm:min-w-0">
                                 <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
                                     <tr>
-                                        <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">Nombre</th>
-                                        <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">Descripción</th>
-                                        <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">Media</th>
+                                        <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">{copy.columns.name}</th>
+                                        <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">{copy.columns.weeks}</th>
+                                        <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-[9px] text-zinc-500">{copy.columns.frequency}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-900">
                                     {data.slice(0, 5).map((row, i) => (
                                         <tr key={i} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
                                             <td className="px-4 py-3 font-bold text-zinc-900 dark:text-zinc-100 whitespace-nowrap">{row.nombre}</td>
-                                            <td className="px-4 py-3 text-zinc-500 truncate max-w-[150px] whitespace-nowrap">{row.descripcion || "-"}</td>
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                {row.media_url ? (
-                                                    <div className="w-6 h-6 bg-lime-100 dark:bg-lime-900/30 rounded flex items-center justify-center">
-                                                        <CheckCircle2 className="w-3 h-3 text-lime-600" />
-                                                    </div>
-                                                ) : "-"}
-                                            </td>
+                                            <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{row.duracion_semanas} semanas</td>
+                                            <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{row.frecuencia_semanal} días/sem</td>
                                         </tr>
                                     ))}
                                     {data.length > 5 && (
                                         <tr>
                                             <td colSpan={3} className="px-4 py-3 text-center text-[10px] font-black uppercase text-zinc-400 bg-zinc-50/50 whitespace-nowrap">
-                                                +{data.length - 5} ejercicios más...
+                                                +{data.length - 5} planes más...
                                             </td>
                                         </tr>
                                     )}

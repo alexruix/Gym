@@ -29,13 +29,13 @@ interface Props {
 
 /**
  * StudentList: Dashboard de alumnos refactorizado (V2.2 Core).
- * Utiliza el patrÃ³n de Consola Universal y el menÃº de acciones inteligente.
+ * Utiliza el patrón de Consola Universal y el menú de acciones inteligente.
  */
 export function StudentList({ students }: Props) {
   const c = alumnosListCopy.list;
   const cMenu = alumnosListCopy.list.dropdownMenu;
 
-  // AdaptaciÃ³n a BaseEntity para el DashboardConsole
+  // Adaptación a BaseEntity para el DashboardConsole
   const studentsWithTags = React.useMemo(() => {
     return students.map(s => ({
         ...s,
@@ -46,7 +46,7 @@ export function StudentList({ students }: Props) {
   // Hooks Core
   const uniquePlans = useUniqueTags(students, (s) => s.planName ? [s.planName] : []);
 
-  // LÃ³gica de Ordenamiento Centralizada
+  // Lógica de Ordenamiento Centralizada
   const handleSort = (items: typeof studentsWithTags, order: string) => {
     return [...items].sort((a, b) => {
         if (order === "name-asc") return a.name.localeCompare(b.name);
@@ -96,10 +96,10 @@ export function StudentList({ students }: Props) {
                         toast.loading("Generando acceso...");
                         try {
                           const { data, error } = await actions.profesor.getStudentGuestLink({ id: s.id });
-                          if (error || !data?.link) throw new Error("Error de conexiÃ³n");
+                          if (error || !data?.link) throw new Error("Error de conexión");
                           await copyToClipboard(data.link);
                           toast.dismiss();
-                          toast.success("Â¡Link de invitado copiado!");
+                          toast.success("¡Link de invitado copiado!");
                         } catch (err: any) {
                           toast.dismiss();
                           toast.error(err.message || "Error al generar link");
@@ -112,11 +112,11 @@ export function StudentList({ students }: Props) {
                     className: "text-emerald-600",
                     onClick: () => {
                         if (!s.telefono) {
-                            toast.error("Sin telÃ©fono registrado");
+                            toast.error("Sin teléfono registrado");
                             return;
                         }
                         const cleanPhone = s.telefono.replace(/\D/g, "");
-                        const msg = encodeURIComponent(`Â¡Hola ${s.name.split(" ")[0]}! Te escribo de MiGym.`);
+                        const msg = encodeURIComponent(`¡Hola ${s.name.split(" ")[0]}! Te escribo de MiGym.`);
                         window.open(`https://wa.me/${cleanPhone}?text=${msg}`, "_blank");
                     }
                 },
@@ -125,7 +125,7 @@ export function StudentList({ students }: Props) {
                     icon: <Archive className="w-4 h-4" />,
                     variant: "destructive",
                     onClick: async () => {
-                        if (confirm(`Â¿Archivar a ${s.name}?`)) {
+                        if (confirm(`¿Archivar a ${s.name}?`)) {
                             const { error } = await actions.profesor.deleteStudent({ id: s.id });
                             if (error) toast.error("Error al archivar");
                             else { toast.success("Alumno archivado"); window.location.reload(); }

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Calendar,
   Layers,
@@ -7,15 +7,12 @@ import {
   Copy,
   Dumbbell,
   ChevronDown,
-  ChevronRight,
   TrendingUp,
   Search,
   Plus,
   RefreshCcw,
   CheckCircle2,
-  AlertCircle,
-  Clock,
-  ArrowUpRight
+  AlertCircle
 } from "lucide-react";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { Button } from "@/components/ui/button";
@@ -36,9 +33,6 @@ import { cn } from "@/lib/utils";
 interface EjercicioPlan {
   id: string;
   orden: number;
-  series: number;
-  reps_target: string;
-  descanso_seg: number;
   biblioteca_ejercicios: {
     id: string;
     nombre: string;
@@ -79,41 +73,27 @@ interface Props {
 
 type SyncStatus = "synced" | "syncing" | "error" | "retrying";
 
-/**
- * PlanDetail: Organismo orquestador que centraliza el detalle y ediciÃ³n de un plan.
- * Implementa un SyncEngine resiliente para autoguardado y borrado optimista con Undo.
- */
 export function PlanDetail({ plan: initialPlan }: Props) {
   const c = planesCopy.detail;
   const [activeTab, setActiveTab] = useState<"routines" | "students">("routines");
   const [studentView, setStudentView] = useState<"grid" | "table">("grid");
   const [studentSearch, setStudentSearch] = useState("");
-  
-  // ðŸ§  ESTADO LOCAL REACTIVO ðŸ§ 
   const [localPlan, setLocalPlan] = useState<PlanData>(initialPlan);
-  const [history, setHistory] = useState<PlanData[]>([]); // Para Undo
-  
-  // âš¡ SYNC ENGINE STATE âš¡
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("synced");
   const [retryCount, setRetryCount] = useState(0);
-  const isInteracting = useRef(false); // Evitar sync en hidrataciÃ³n
-  
-  // Estado para los acordeones de rutinas
+  const isInteracting = useRef(false);
   const [openRutinas, setOpenRutinas] = useState<Set<string>>(
     new Set(initialPlan.rutinas.slice(0, 1).map((r) => r.id))
   );
-
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
-  // ðŸ”„ SYNC ENGINE EFFECT ðŸ”„
   useEffect(() => {
     if (!isInteracting.current) return;
 
     const syncWithServer = async () => {
       setSyncStatus("syncing");
       
-      // Mapear al esquema que espera el servidor (planSchema)
       const payload = {
         id: localPlan.id,
         nombre: localPlan.nombre,
@@ -124,15 +104,12 @@ export function PlanDetail({ plan: initialPlan }: Props) {
           nombre_dia: r.nombre_dia || "",
           ejercicios: r.ejercicios_plan.map((e, idx) => ({
             ejercicio_id: e.biblioteca_ejercicios?.id || "",
-            series: e.series,
-            reps_target: e.reps_target,
-            descanso_seg: e.descanso_seg,
             orden: idx,
             exercise_type: "base" as const,
             position: idx
           }))
         }))
-      };
+      } as any;
 
       try {
         const { error } = await actions.profesor.updatePlan(payload);
@@ -147,7 +124,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             setTimeout(() => setRetryCount(prev => prev + 1), 2000);
         } else {
             setSyncStatus("error");
-            toast.error("Error de conexiÃ³n al guardar cambios.");
+            toast.error("Error de conexión al guardar cambios.");
         }
       }
     };
@@ -164,23 +141,10 @@ export function PlanDetail({ plan: initialPlan }: Props) {
     });
   };
 
-  // ðŸ› ï¸ HANDLERS: EDICIÃ“N IN-PLACE ðŸ› ï¸
-  const updateExercise = (rutinaId: string, exerciseId: string, field: string, value: any) => {
-    isInteracting.current = true;
-    setLocalPlan(prev => ({
-        ...prev,
-        rutinas: prev.rutinas.map(r => r.id === rutinaId ? {
-            ...r,
-            ejercicios_plan: r.ejercicios_plan.map(e => e.id === exerciseId ? { ...e, [field]: value } : e)
-        } : r)
-    }));
-  };
-
   const removeExercise = (rutinaId: string, exerciseId: string) => {
     isInteracting.current = true;
     const oldPlan = { ...localPlan };
     
-    // Optimistic Update
     setLocalPlan(prev => ({
         ...prev,
         rutinas: prev.rutinas.map(r => r.id === rutinaId ? {
@@ -190,7 +154,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
     }));
 
     toast.info("Ejercicio removido", {
-        description: "Se eliminÃ³ el ejercicio de la rutina.",
+        description: "Se eliminó el ejercicio de la rutina.",
         action: {
             label: "Deshacer",
             onClick: () => {
@@ -205,11 +169,8 @@ export function PlanDetail({ plan: initialPlan }: Props) {
   const addExercise = (rutinaId: string, exercise: any) => {
     isInteracting.current = true;
     const newEx: EjercicioPlan = {
-        id: crypto.randomUUID(), // ID temporal para el cliente
+        id: crypto.randomUUID(),
         orden: 999,
-        series: 3,
-        reps_target: "12",
-        descanso_seg: 60,
         biblioteca_ejercicios: {
             id: exercise.id,
             nombre: exercise.nombre,
@@ -224,7 +185,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             ejercicios_plan: [...r.ejercicios_plan, newEx]
         } : r)
     }));
-    toast.success(`${exercise.nombre} aÃ±adido`);
+    toast.success(`${exercise.nombre} añadido`);
   };
 
   const handleDuplicate = async () => {
@@ -243,23 +204,14 @@ export function PlanDetail({ plan: initialPlan }: Props) {
       }
     } catch (err) {
       toast.dismiss();
-      toast.error("OcurriÃ³ un error inesperado");
+      toast.error("Ocurrió un error inesperado");
     } finally {
       setIsDuplicating(false);
     }
   };
 
   const handleAssignmentSuccess = async () => {
-    // Re-fetch plan data to get updated student list with all fields
-    try {
-        const { data, error } = await actions.profesor.globalSearch({ query: localPlan.nombre }); // Simple way to trigger re-fetch if we had a getPlan action
-        // Actually, let's just use window.location.reload() for now as it's the safest way to ensure 
-        // all Supabase relations are correctly re-fetched and sorted by Astro.
-        // Or better: fetch just the students of this plan.
-        window.location.reload(); 
-    } catch (e) {
-        window.location.reload();
-    }
+    window.location.reload(); 
   };
 
   const createdDate = useMemo(() => {
@@ -301,16 +253,13 @@ export function PlanDetail({ plan: initialPlan }: Props) {
   return (
     <div className={cn("space-y-8 animate-in fade-in duration-700", syncStatus === "error" && "opacity-80 pointer-events-none")}>
       
-      {/* ðŸ”™ BACK LINK ðŸ”™ */}
       <div className="flex items-center">
           <BackButton href="/profesor/planes" />
       </div>
 
-      {/* ðŸ› ï¸ SECTION: HEADER INDUSTRIAL ðŸ› ï¸ */}
       <section className="bg-white dark:bg-zinc-950/20 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800/60 shadow-2xl shadow-zinc-950/5 overflow-hidden relative">
         <div className="h-2 w-full bg-gradient-to-r from-lime-400 via-lime-500 to-emerald-600" />
 
-        {/* âš¡ SYNC INDICATOR âš¡ */}
         <div className="absolute top-4 right-8 z-20">
             {syncStatus === "syncing" && (
                 <div className="flex items-center gap-2 bg-zinc-950/10 dark:bg-zinc-50/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
@@ -333,7 +282,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             {syncStatus === "error" && (
                 <div className="flex items-center gap-2 bg-red-400/10 px-3 py-1.5 rounded-full border border-red-400/20">
                     <AlertCircle className="w-3 h-3 text-red-500" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-red-600">Error de conexiÃ³n</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-red-600">Error de conexión</span>
                 </div>
             )}
         </div>
@@ -368,7 +317,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
                     className="h-12 px-6 gap-2 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-95 flex-1 md:flex-none shadow-sm"
                 >
                     <Edit3 className="w-4 h-4" />
-                    Completo
+                    Simplificar
                 </Button>
                 <Button
                     disabled={isDuplicating}
@@ -405,7 +354,6 @@ export function PlanDetail({ plan: initialPlan }: Props) {
         </div>
       </section>
 
-      {/* ðŸ§­ SECTION: TABS NAVIGATION ðŸ§­ */}
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 dark:border-zinc-800 pb-1">
             <div className="flex items-center gap-1">
@@ -446,7 +394,6 @@ export function PlanDetail({ plan: initialPlan }: Props) {
             )}
         </div>
 
-        {/* â”€â”€â”€ TAB CONTENT: RUTINAS â”€â”€â”€ */}
         {activeTab === "routines" && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {localPlan.rutinas.sort((a,b) => a.dia_numero - b.dia_numero).map((rutina) => {
@@ -472,7 +419,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
                             </h4>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
                                 <Layers className="w-3 h-3" />
-                                {rutina.ejercicios_plan.length} ejercicios tÃ©cnicos
+                                {rutina.ejercicios_plan.length} ejercicios técnicos
                             </p>
                         </div>
                     </div>
@@ -491,12 +438,10 @@ export function PlanDetail({ plan: initialPlan }: Props) {
                                 key={ej.id} 
                                 exercise={ej} 
                                 index={idx} 
-                                onUpdate={(field, val) => updateExercise(rutina.id, ej.id, field, val)}
                                 onDelete={() => removeExercise(rutina.id, ej.id)}
                             />
                         ))}
                         
-                        {/* âž• ACCIÃ“N: AGREGAR EJERCICIO âž• */}
                         <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
                             <ExerciseSearchPicker 
                                 existingIds={existingExIds}
@@ -511,7 +456,6 @@ export function PlanDetail({ plan: initialPlan }: Props) {
           </div>
         )}
 
-        {/* â”€â”€â”€ TAB CONTENT: ALUMNOS â”€â”€â”€ */}
         {activeTab === "students" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {activeStudents.length === 0 ? (
@@ -521,7 +465,7 @@ export function PlanDetail({ plan: initialPlan }: Props) {
                  </div>
                  <div className="space-y-1">
                      <h3 className="font-black text-xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin alumnos activos</h3>
-                     <p className="text-sm text-zinc-400 font-medium px-6">{studentSearch ? "No se encontraron coincidencias para tu bÃºsqueda." : c.students.empty}</p>
+                     <p className="text-sm text-zinc-400 font-medium px-6">{studentSearch ? "No se encontraron coincidencias para tu búsqueda." : c.students.empty}</p>
                  </div>
                   <Button 
                     onClick={() => setIsAssignDialogOpen(true)}
@@ -568,14 +512,13 @@ export function PlanDetail({ plan: initialPlan }: Props) {
         )}
       </div>
 
-      {/* âš ï¸ DIALOGO DE ERROR CRITICO âš ï¸ */}
       {syncStatus === "error" && (
         <div className="fixed inset-x-0 bottom-8 flex justify-center px-4 z-50">
             <div className="bg-red-500 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-4 border-2 border-red-400 animate-in slide-in-from-bottom-8">
                 <AlertCircle className="w-6 h-6 animate-pulse" />
                 <div className="text-left">
-                    <p className="font-black uppercase tracking-tight text-sm">Error de sincronizaciÃ³n persistente</p>
-                    <p className="text-[10px] font-medium opacity-90">Los cambios que hagas ahora no se guardarÃ¡n. Por favor, reintentÃ¡ manualmente.</p>
+                    <p className="font-black uppercase tracking-tight text-sm">Error de sincronización persistente</p>
+                    <p className="text-[10px] font-medium opacity-90">Los cambios que hagas ahora no se guardarán. Por favor, reintentá manualmente.</p>
                 </div>
                 <Button 
                     variant="outline" 

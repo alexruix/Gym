@@ -62,7 +62,7 @@ export function ProfileSection({ profesor }: { profesor: PerfilProps }) {
           <Input id="email" {...register("email")} readOnly className="bg-muted text-muted-foreground" />
         </div>
 
-        {/* TelÃ©fono */}
+        {/* Teléfono */}
         <div className="space-y-2">
           <Label htmlFor="telefono">{copy.labels.telefono}</Label>
           <Input id="telefono" {...register("telefono")} />

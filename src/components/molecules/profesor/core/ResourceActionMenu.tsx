@@ -44,12 +44,12 @@ interface Props {
 }
 
 /**
- * ResourceActionMenu: Dropdown inteligente de acciones rÃ¡pidas (V2.2 Core).
- * Inyecta automÃ¡ticamente acciones basadas en el tipo de entidad para mantener consistencia.
+ * ResourceActionMenu: Dropdown inteligente de acciones rápidas (V2.2 Core).
+ * Inyecta automáticamente acciones basadas en el tipo de entidad para mantener consistencia.
  */
 export function ResourceActionMenu({ type, id, name, actions: customActions = [], exclude = [], className }: Props) {
     
-    // Acciones AutomÃ¡ticas por Consistencia de DiseÃ±o
+    // Acciones Automáticas por Consistencia de Diseño
     const defaultActions: Action[] = [];
 
     if (type === "alumno") {

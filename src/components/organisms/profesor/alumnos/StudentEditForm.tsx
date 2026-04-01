@@ -102,7 +102,7 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
                     required
                 >
                     <FormControl>
-                    <Input placeholder="Ej: Juan PÃ©rez" {...field} className="font-bold" />
+                    <Input placeholder="Ej: Juan Pérez" {...field} className="font-bold" />
                     </FormControl>
                 </StandardField>
                 )}
@@ -129,7 +129,7 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
                 name="telefono"
                 render={({ field, fieldState }) => (
                     <StandardField 
-                        label="TelÃ©fono" 
+                        label="Teléfono" 
                         error={fieldState.error?.message}
                         hint="Fundamental para WhatsApp"
                     >
@@ -182,7 +182,7 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
                 name="dia_pago"
                 render={({ field, fieldState }) => (
                 <StandardField 
-                    label="DÃ­a de Pago" 
+                    label="Día de Pago" 
                     error={fieldState.error?.message}
                     hint="Se ajusta cada mes"
                     required
@@ -191,13 +191,13 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
                         <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value ? String(field.value) : undefined}>
                             <FormControl>
                                 <SelectTrigger className="rounded-xl border-zinc-200 font-bold">
-                                <SelectValue placeholder="ElegÃ­ dÃ­a" />
+                                <SelectValue placeholder="Elegí día" />
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent className="max-h-[300px] rounded-2xl border-zinc-200 shadow-2xl z-[100]">
                                 {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                                 <SelectItem key={day} value={String(day)} className="rounded-xl font-bold">
-                                    DÃ­a {day}
+                                    Día {day}
                                 </SelectItem>
                                 ))}
                             </SelectContent>
@@ -219,7 +219,7 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
             name="notas"
             render={({ field, fieldState }) => (
                 <StandardField 
-                label="Notas MÃ©dicas" 
+                label="Notas Médicas" 
                 error={fieldState.error?.message}
                 >
                 <FormControl>
@@ -240,7 +240,7 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
                 variant="outline" 
                 size="sm"
                 onClick={() => {
-                    if (confirm(`Â¿EstÃ¡s seguro de archivar a ${alumno.nombre}? El alumno dejarÃ¡ de aparecer en las listas activas.`)) {
+                    if (confirm(`¿Estás seguro de archivar a ${alumno.nombre}? El alumno dejará de aparecer en las listas activas.`)) {
                         execute(async () => {
                             const { error } = await actions.profesor.deleteStudent({ id: alumno.id });
                             if (error) throw error;

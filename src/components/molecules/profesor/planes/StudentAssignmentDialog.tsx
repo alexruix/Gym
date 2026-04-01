@@ -31,7 +31,7 @@ interface Props {
 
 /**
  * StudentAssignmentDialog: Wrapper (Capa de compatibilidad) sobre el EntitySelectorDialog Core.
- * Mantiene la funcionalidad de creaciÃ³n inline mientras delega la selecciÃ³n al motor universal.
+ * Mantiene la funcionalidad de creación inline mientras delega la selección al motor universal.
  */
 export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onSuccess }: Props) {
     const [students, setStudents] = useState<Student[]>([]);
@@ -58,7 +58,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
             const { data, error } = await actions.profesor.getProfessorStudentsWithPlans();
             if (error) throw error;
             
-            // AdaptaciÃ³n a BaseEntity
+            // Adaptación a BaseEntity
             setStudents((data.alumnos || []).map((s: any) => ({
                 ...s,
                 name: s.nombre,
@@ -76,8 +76,8 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
     }, [students, currentPlanId]);
 
     const stats = useMemo(() => {
-        // En un wrapper, el estado de "overwrites" se calcula dinÃ¡micamente si el diÃ¡logo core nos devolviera la selecciÃ³n en tiempo real, 
-        // pero aquÃ­ lo usaremos para el warningMessage del componente core basÃ¡ndonos en los items.
+        // En un wrapper, el estado de "overwrites" se calcula dinámicamente si el diálogo core nos devolviera la selección en tiempo real, 
+        // pero aquí lo usaremos para el warningMessage del componente core basándonos en los items.
         return { 
             allTags: Array.from(new Set(students.flatMap(s => s.tags || [])))
         };
@@ -139,8 +139,8 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
             <EntitySelectorDialog 
                 open={open}
                 onOpenChange={onOpenChange}
-                title="InvitaciÃ³n RÃ¡pida"
-                description="CargÃ¡ los datos bÃ¡sicos para asignar este plan ahora."
+                title="Invitación Rápida"
+                description="Cargá los datos básicos para asignar este plan ahora."
                 items={[]}
                 onConfirm={() => {}}
                 renderItem={() => null}
@@ -155,14 +155,14 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                             <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Nombre Completo</label>
                             <Input 
                                 autoFocus
-                                placeholder="Ej: Nacho GimÃ©nez" 
+                                placeholder="Ej: Nacho Giménez" 
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
                                 className="h-14 bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl text-sm font-black"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Correo ElectrÃ³nico</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Correo Electrónico</label>
                             <Input 
                                 type="email"
                                 placeholder="ejemplo@email.com" 
@@ -174,7 +174,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                     </div>
                     <div className="p-6 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/10 flex items-center gap-3">
                         <Button type="button" variant="ghost" onClick={() => setShowCreateForm(false)} className="flex-1 h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest">
-                            <ChevronLeft className="w-4 h-4 mr-2" /> AtrÃ¡s
+                            <ChevronLeft className="w-4 h-4 mr-2" /> Atrás
                         </Button>
                         <Button type="submit" disabled={isSaving || !newName || !newEmail} className="flex-[2] h-12 rounded-2xl bg-lime-400 text-zinc-950 font-black text-[10px] uppercase tracking-widest">
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Crear y Asignar"}
@@ -190,18 +190,18 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
             open={open}
             onOpenChange={onOpenChange}
             title="Asignar Alumnos"
-            description="GestionÃ¡ quiÃ©n entrena con este plan."
+            description="Gestioná quién entrena con este plan."
             items={students}
             multiple={true}
             initialSelectedIds={selectedIds}
             isLoading={isLoading}
             isSaving={isSaving}
             onConfirm={handleConfirmAssignment}
-            confirmLabel="Confirmar AsignaciÃ³n"
+            confirmLabel="Confirmar Asignación"
             allTags={stats.allTags}
             onCreateNew={() => setShowCreateForm(true)}
             createNewLabel="Nuevo alumno"
-            warningMessage="âš ï¸ Algunos alumnos ya tienen un plan activo. Al confirmar, su rutina serÃ¡ reemplazada por esta."
+            warningMessage="âš ï¸ Algunos alumnos ya tienen un plan activo. Al confirmar, su rutina será reemplazada por esta."
             renderItem={(s, isSelected) => (
                 <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col">

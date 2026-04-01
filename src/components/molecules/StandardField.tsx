@@ -14,8 +14,8 @@ interface StandardFieldProps {
 }
 
 /**
- * StandardField: MolÃ©cula que unifica Label, Input y Errores.
- * Siguiendo la estÃ©tica "Industrial Minimalist" (Aircraft Dashboard).
+ * StandardField: Molécula que unifica Label, Input y Errores.
+ * Siguiendo la estética "Industrial Minimalist" (Aircraft Dashboard).
  */
 export function StandardField({ 
   label, 

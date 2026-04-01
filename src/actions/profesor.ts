@@ -157,8 +157,7 @@ export const profesorActions = {
         p_nombre: input.nombre,
         p_duracion_semanas: input.duracion_semanas,
         p_frecuencia_semanal: input.frecuencia_semanal,
-        p_rutinas: input.rutinas,
-        p_rotaciones: input.rotaciones || []
+        p_rutinas: input.rutinas
       });
 
       if (error) {
@@ -712,6 +711,44 @@ export const profesorActions = {
         success: true,
         count: data?.length || 0,
         mensaje: `✅ ${data?.length} ejercicios importados exitosamente`,
+      };
+    },
+  }),
+  importPlans: defineAction({
+    accept: "json",
+    input: z.array(z.object({
+      nombre: z.string().min(1),
+      descripcion: z.string().optional().nullable(),
+      duracion_semanas: z.number().int().optional(),
+      frecuencia_semanal: z.number().int().optional(),
+    })),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      if (input.length === 0) return { success: true, count: 0 };
+
+      const itemsToInsert = input.map(item => ({
+        profesor_id: user.id,
+        nombre: item.nombre,
+        descripcion: item.descripcion || null,
+        duracion_semanas: item.duracion_semanas || 4,
+        frecuencia_semanal: item.frecuencia_semanal || 3,
+        is_template: true, // Siempre se importan como plantillas base
+      }));
+
+      const { data, error } = await supabase
+        .from("planes")
+        .insert(itemsToInsert)
+        .select();
+
+      if (error) throw new Error(`Error al importar: ${error.message}`);
+
+      return {
+        success: true,
+        count: data?.length || 0,
+        mensaje: `✅ ${data?.length} planes importados exitosamente`,
       };
     },
   }),

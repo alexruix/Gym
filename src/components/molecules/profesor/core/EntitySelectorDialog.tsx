@@ -32,11 +32,11 @@ interface Props<T extends BaseEntity> {
     items: T[];
     isLoading?: boolean;
     isSaving?: boolean;
-    /** Soporta selecciÃ³n mÃºltiple si se provee multiple=true */
+    /** Soporta selección múltiple si se provee multiple=true */
     multiple?: boolean;
     /** IDs inicialmente seleccionados */
     initialSelectedIds?: string[];
-    /** Texto del botÃ³n de confirmaciÃ³n */
+    /** Texto del botón de confirmación */
     confirmLabel?: string;
     onConfirm: (selectedIds: string[]) => void;
     /** Slot para renderizado personalizado de cada fila */
@@ -45,7 +45,7 @@ interface Props<T extends BaseEntity> {
     warningMessage?: string;
     /** Todas las etiquetas disponibles para el autocompletado de #tags */
     allTags?: string[];
-    /** OpciÃ³n para aÃ±adir entidad inline */
+    /** Opción para añadir entidad inline */
     onCreateNew?: () => void;
     createNewLabel?: string;
     children?: React.ReactNode;
@@ -53,7 +53,7 @@ interface Props<T extends BaseEntity> {
 
 /**
  * EntitySelectorDialog: El selector universal de MiGym (V2.2 Core).
- * Unifica la inteligencia de bÃºsqueda, el filtrado por hashtags y la selecciÃ³n en un solo motor.
+ * Unifica la inteligencia de búsqueda, el filtrado por hashtags y la selección en un solo motor.
  */
 export function EntitySelectorDialog<T extends BaseEntity>({ 
     open, 
@@ -65,7 +65,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
     isSaving = false,
     multiple = false,
     initialSelectedIds = [],
-    confirmLabel = "Confirmar SelecciÃ³n",
+    confirmLabel = "Confirmar Selección",
     onConfirm,
     renderItem,
     warningMessage,
@@ -89,7 +89,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
         }
     }, [open, initialSelectedIds]);
 
-    // LÃ³gica de Filtrado (Coincidencia con DashboardConsole)
+    // Lógica de Filtrado (Coincidencia con DashboardConsole)
     const filteredItems = useMemo(() => {
         return items.filter(item => {
             const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
@@ -150,7 +150,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     )} />
                     <Input 
                         ref={searchInputRef}
-                        placeholder="BuscÃ¡ o filtrÃ¡ por #etiqueta..." 
+                        placeholder="Buscá o filtrá por #etiqueta..." 
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-12 h-12 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-sm font-bold placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-lime-400/20"
@@ -201,7 +201,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     ) : filteredItems.length === 0 ? (
                         <div className="py-20 flex flex-col items-center gap-4 text-center px-12">
                             <Ghost className="w-12 h-12 text-zinc-100 dark:text-zinc-900" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">No encontramos lo que buscÃ¡s.</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">No encontramos lo que buscás.</p>
                             {onCreateNew && (
                                 <button 
                                     onClick={onCreateNew}

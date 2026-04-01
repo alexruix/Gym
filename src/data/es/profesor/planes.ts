@@ -16,7 +16,7 @@ export const planesCopy = {
       emptySearch: "No encontramos planes con ese nombre.",
       columns: {
         name: "Nombre del plan",
-        frequency: "Frecuencia",
+        frequency: "Días / Semana",
         studentsCount: "Alumnos activos",
       },
       dropdownMenu: {
@@ -25,6 +25,24 @@ export const planesCopy = {
         editPlan: "Editar plan",
         duplicatePlan: "Duplicar plan",
         deletePlan: "Eliminar"
+      }
+    },
+    import: {
+      title: "Importar planes desde Excel",
+      description: "Cargá masivamente tus plantillas de planes a la biblioteca.",
+      dropzone: "Subí tu archivo .xlsx o .csv",
+      hint: "Solo se importarán los nombres y metadatos básicos.",
+      preview: "Vista previa de planes detectados",
+      cancel: "Cancelar",
+      confirm: "Importar ahora",
+      empty: "No se detectaron planes válidos en el archivo.",
+      success: "¡{count} planes importados con éxito!",
+      error: "Error al leer el archivo o procesar la importación.",
+      columns: {
+        name: "Nombre",
+        description: "Descripción",
+        weeks: "Semanas",
+        frequency: "Frecuencia"
       }
     }
   },
@@ -45,10 +63,6 @@ export const planesCopy = {
     routines: {
       dayLabel: "Día",
       emptyDay: "Sin ejercicios asignados a este día.",
-      sets: "Series",
-      reps: "Reps",
-      rest: "Descanso",
-      seconds: "seg",
     },
     students: {
       empty: "Ningún alumno está usando este plan.",
@@ -80,25 +94,7 @@ export const planesCopy = {
       emptyDay: "No hay ejercicios en esta rutina aún.",
       addExerciseBtn: "Agregar ejercicio",
       exerciseCard: {
-        series: "Series",
-        reps: "Reps Target (Ej. 10-12)",
-        rest: "Descanso (seg)",
-        notes: "Notas técnicas",
         remove: "Quitar",
-        typeLabels: {
-          base: "Base",
-          complementary: "Complemento",
-          accessory: "Accesorio",
-          tooltip: "Los accesorios pueden rotar semanalmente"
-        },
-        rotation: {
-          label: "Rotativo",
-          btn: "Alternar ejercicios...",
-          active: "Rotación activa",
-          duration: "Rotar cada",
-          weeks: "semanas",
-          selectExercise: "Elegir alternativos (máx. 3)",
-        }
       }
     },
     exerciseModal: {

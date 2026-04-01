@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { FileText } from "lucide-react";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { PlanCard } from "@/components/molecules/profesor/planes/PlanCard";
@@ -9,6 +9,7 @@ import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { useDeleteWithConfirm } from "@/hooks/useDeleteWithConfirm";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { SplitActionButton } from "@/components/molecules/profesor/core/SplitActionButton";
 
 interface Props {
   planes: PlanRowData[];
@@ -46,9 +47,9 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
 
   const sortOptions = [
     { label: "Nombre A-Z", value: "name-asc" },
-    { label: "MÃ¡s recientes", value: "date-desc" },
+    { label: "Más recientes", value: "date-desc" },
     { label: "Por alumnos", value: "students-desc" },
-    { label: "Por duraciÃ³n", value: "duration-desc" },
+    { label: "Por duración", value: "duration-desc" },
   ];
 
   const handleSort = (items: PlanRowData[], order: string) =>
@@ -71,7 +72,15 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
         searchPlaceholder={planesCopy.list.table.searchPlaceholder}
         sortOptions={sortOptions}
         onSort={handleSort}
-        onCreateClick={() => window.location.href = "/profesor/planes/new"}
+        renderCreateAction={() => (
+          <SplitActionButton 
+              createLabel="Crear"
+              importLabel="Subir desde Excel"
+              createHref="/profesor/planes/new"
+              importHref="/profesor/planes/import"
+              className="flex-1 md:flex-none h-12 md:h-14"
+          />
+        )}
         emptyIcon={<FileText className="w-12 h-12" />}
         emptyTitle="No se encontraron planes"
         renderGrid={(items) => (
@@ -101,7 +110,7 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
         onConfirm={deleteFlow.handleConfirm}
         isDeleting={deleteFlow.isPending}
         title="Eliminar plan"
-        description={<>Â¿Seguro que querÃ©s eliminar <b>"{deleteFlow.itemToDelete?.name}"</b>?</>}
+        description={<>¿Seguro que querés eliminar <b>"{deleteFlow.itemToDelete?.name}"</b>?</>}
       />
     </>
   );

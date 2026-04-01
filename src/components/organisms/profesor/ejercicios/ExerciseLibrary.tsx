@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDeleteWithConfirm } from "@/hooks/useDeleteWithConfirm";
 import { useUniqueTags } from "@/hooks/useUniqueTags";
+import { SplitActionButton } from "@/components/molecules/profesor/core/SplitActionButton";
+import { exerciseLibraryCopy as copy } from "@/data/es/profesor/ejercicios";
 
 interface Exercise {
   id: string;
@@ -32,7 +34,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
 
   const sortOptions = [
     { label: "Nombre A-Z", value: "nombre-asc" },
-    { label: "MÃ¡s Recientes", value: "fecha-desc" },
+    { label: "Más Recientes", value: "fecha-desc" },
   ];
 
   const toggleParent = (parentId: string) => {
@@ -58,7 +60,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     successMsg: "Ejercicio eliminado",
   });
 
-  // LÃ³gica de ordenamiento inyectada al DashboardConsole
+  // Lógica de ordenamiento inyectada al DashboardConsole
   const handleSort = (items: Exercise[], order: string) =>
     [...items].sort((a, b) => {
       if (order === "nombre-asc") return a.nombre.localeCompare(b.nombre);
@@ -82,7 +84,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     // Strategy: Show a parent if IT matches OR if ANY of its children match
     const matchingIds = new Set(filteredList.map(ex => ex.id));
     
-    // Identificamos quÃ© padres deben mostrarse
+    // Identificamos qué padres deben mostrarse
     const parentsToShow = new Set<string>();
     exercises.forEach(ex => {
         if (!ex.parent_id && matchingIds.has(ex.id)) {
@@ -119,7 +121,15 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         allTags={uniqueTags}
         sortOptions={sortOptions}
         onSort={handleSort}
-        onCreateClick={() => window.location.href = "/profesor/ejercicios/new"}
+        renderCreateAction={() => (
+          <SplitActionButton 
+              createLabel={copy.list.action}
+              importLabel="Subir desde Excel"
+              createHref="/profesor/ejercicios/new"
+              importHref="/profesor/ejercicios/import"
+              className="flex-1 md:flex-none h-12 md:h-14"
+          />
+        )}
         emptyIcon={<Dumbbell className="w-12 h-12" />}
         renderGrid={(filtered) => {
             const { displayParents, variantsMap } = getGroupedExercises(filtered as Exercise[], "nombre-asc");
@@ -166,7 +176,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         }}
         renderTable={(filtered) => (
             <div className="text-center py-20 text-zinc-400 font-medium italic bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border-2 border-dashed border-zinc-100 dark:border-zinc-800">
-                La vista de tabla para ejercicios llegarÃ¡ pronto. <br/> Por ahora, usÃ¡ la vista de grilla para gestionar tus variantes.
+                La vista de tabla para ejercicios llegará pronto. <br/> Por ahora, usá la vista de grilla para gestionar tus variantes.
             </div>
         )}
       />
@@ -179,7 +189,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         title="Eliminar ejercicio"
         description={
             <>
-                Â¿EstÃ¡s seguro de que querÃ©s eliminar <span className="font-bold text-zinc-900 dark:text-zinc-100">"{deleteFlow.itemToDelete?.nombre}"</span>? Esta acciÃ³n no se puede deshacer.
+                ¿Estás seguro de que querés eliminar <span className="font-bold text-zinc-900 dark:text-zinc-100">"{deleteFlow.itemToDelete?.nombre}"</span>? Esta acción no se puede deshacer.
             </>
         }
       />

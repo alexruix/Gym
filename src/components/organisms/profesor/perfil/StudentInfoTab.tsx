@@ -17,7 +17,7 @@ interface StudentInfoTabProps {
 }
 
 /**
- * StudentInfoTab: Ficha tÃ©cnica del alumno.
+ * StudentInfoTab: Ficha técnica del alumno.
  * Centraliza datos de contacto y administrativos en un layout de rejilla industrial.
  */
 export function StudentInfoTab({ student }: StudentInfoTabProps) {
@@ -38,11 +38,11 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* SecciÃ³n 1: Datos de Contacto */}
+      {/* Sección 1: Datos de Contacto */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
            <BadgeInfo className="w-5 h-5 text-lime-500" />
-           <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">InformaciÃ³n de Contacto</h3>
+           <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">Información de Contacto</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -52,7 +52,7 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
                 <Mail className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">DirecciÃ³n de Email</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Dirección de Email</p>
                 <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100 truncate">{student.email || "No registrado"}</p>
               </div>
            </div>
@@ -63,14 +63,14 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
                 <Phone className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest leading-none text-emerald-600">TelÃ©fono (WhatsApp)</p>
+                <p className="text-[10px] font-black uppercase tracking-widest leading-none text-emerald-600">Teléfono (WhatsApp)</p>
                 <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100">{student.telefono || "No registrado"}</p>
               </div>
            </div>
         </div>
       </section>
 
-      {/* SecciÃ³n 2: ConfiguraciÃ³n Administrativa */}
+      {/* Sección 2: Configuración Administrativa */}
       <section className="space-y-6 pt-6 border-t border-zinc-100 dark:border-zinc-900">
         <div className="flex items-center gap-3">
            <Activity className="w-5 h-5 text-lime-500" />
@@ -89,20 +89,20 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
                 </div>
             </div>
 
-            {/* DÃ­a de Pago */}
+            {/* Día de Pago */}
             <div className="flex items-center gap-4 p-4">
                 <CreditCard className="w-5 h-5 text-zinc-300" />
                 <div>
-                   <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Ciclo de FacturaciÃ³n</p>
+                   <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Ciclo de Facturación</p>
                    <p className="text-base font-black text-zinc-950 dark:text-zinc-50 uppercase tracking-tight italic">
-                     DÃ­a {student.dia_pago || 15} de cada mes
+                     Día {student.dia_pago || 15} de cada mes
                    </p>
                 </div>
             </div>
         </div>
       </section>
 
-      {/* BotÃ³n AcciÃ³n (Sticky Bottom en Mobile) */}
+      {/* Botón Acción (Sticky Bottom en Mobile) */}
       <div className="pt-8 text-right px-4">
           <Button 
             onClick={() => window.location.href = `/profesor/alumnos/${student.id}/edit`}

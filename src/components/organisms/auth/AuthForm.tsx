@@ -51,7 +51,7 @@ export function AuthForm() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     
-    // Capturar email para pre-llenado e identificar invitaciÃ³n
+    // Capturar email para pre-llenado e identificar invitación
     const emailParam = params.get('email');
     if (emailParam) {
       setEmail(emailParam);
@@ -135,7 +135,7 @@ export function AuthForm() {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              // Ya no borramos el error aquÃ­ para que el usuario pueda leerlo mientras corrige
+              // Ya no borramos el error aquí para que el usuario pueda leerlo mientras corrige
             }}
             className="h-14 rounded-2xl bg-zinc-50 border-zinc-200 focus-visible:ring-lime-400 text-base"
             disabled={state === 'loading'}

@@ -53,7 +53,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
   const { execute, isPending } = useAsyncAction();
   const [successData, setSuccessData] = useState<{ id: string; email: string; name: string; date: string; phone?: string } | null>(null);
 
-  // Evitar desajustes de hidrataciÃ³n inicializando fechas solo en el cliente
+  // Evitar desajustes de hidratación inicializando fechas solo en el cliente
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -77,7 +77,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
   const selectedPlanId = form.watch("plan_id");
   const selectedDate = form.watch("fecha_inicio");
 
-  // Ajustar el dÃ­a de pago inicial una vez montado para asegurar sincronÃ­a
+  // Ajustar el día de pago inicial una vez montado para asegurar sincronía
   useEffect(() => {
     if (isMounted && !form.getValues("dia_pago")) {
         form.setValue("dia_pago", new Date().getDate());
@@ -88,7 +88,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
     console.log("InviteStudentForm - Planes recibidos:", plans);
   }, [plans]);
 
-  // 2. SincronizaciÃ³n Inteligente de Fechas (DÃ­a de Pago = DÃ­a de Inicio)
+  // 2. Sincronización Inteligente de Fechas (Día de Pago = Día de Inicio)
   useEffect(() => {
     if (isMounted && selectedDate instanceof Date && !isNaN(selectedDate.getTime())) {
         form.setValue("dia_pago", selectedDate.getDate(), { shouldValidate: true });
@@ -109,7 +109,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
         });
       }
     }, {
-      loadingMsg: "Enviando invitaciÃ³n...",
+      loadingMsg: "Enviando invitación...",
     });
   };
 
@@ -122,7 +122,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
         toast.error("No se pudo generar el link", { id: toastId });
         return;
       }
-      const msg = `Â¡Hola ${successData.name}! Ya sos parte de MiGym. PodÃ©s acceder a tu plan desde este link permanente: ${data.link}`;
+      const msg = `¡Hola ${successData.name}! Ya sos parte de MiGym. Podés acceder a tu plan desde este link permanente: ${data.link}`;
       const url = `https://wa.me/${successData.phone?.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`;
       window.open(url, "_blank");
       toast.success("Link generado y WhatsApp abierto", { id: toastId });
@@ -148,7 +148,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
     }
   };
 
-  // Si no estÃ¡ montado, mostramos un estado de carga o nada para evitar problemas de eventos
+  // Si no está montado, mostramos un estado de carga o nada para evitar problemas de eventos
   if (!isMounted) {
     return (
         <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
@@ -343,13 +343,13 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
                                     <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value ? String(field.value) : undefined}>
                                         <FormControl>
                                             <SelectTrigger className="h-14 rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 font-bold">
-                                            <SelectValue placeholder="ElegÃ­ dÃ­a" />
+                                            <SelectValue placeholder="Elegí día" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent className="max-h-[300px] rounded-2xl border-zinc-200 shadow-2xl z-[100]">
                                             {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                                             <SelectItem key={day} value={String(day)} className="rounded-xl font-bold">
-                                                DÃ­a {day}
+                                                Día {day}
                                             </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -421,7 +421,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
             </div>
           </div>
 
-          {/* SECCIÃ“N ADICIONAL */}
+          {/* SECCIÓN ADICIONAL */}
           <div className="space-y-4 pt-4">
               <div className="flex items-center gap-2 px-1 text-zinc-400">
                 <Info className="w-3.5 h-3.5" />
@@ -439,7 +439,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
                     >
                     <FormControl>
                         <Input 
-                            placeholder="Aclaraciones internas o mÃ©dicas..." 
+                            placeholder="Aclaraciones internas o médicas..." 
                             {...field} 
                             className="h-14 rounded-2xl bg-zinc-50/30 border-zinc-100 dark:bg-zinc-900/10 focus:bg-white dark:focus:bg-zinc-950 transition-all" 
                         />
@@ -452,7 +452,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
           <div className="flex flex-col sm:flex-row gap-4 pt-10 border-t border-zinc-100 dark:border-zinc-900 items-center justify-between">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 order-2 sm:order-1 text-center sm:text-left flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
-              Se generarÃ¡ un link permanente para compartir.
+              Se generará un link permanente para compartir.
             </p>
             <div className="flex gap-3 w-full sm:w-auto order-1 sm:order-2">
               <Button 
@@ -489,11 +489,11 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
               {successData ? inviteStudentCopy.messages.successModal.title.replace('{name}', successData.name) : ''}
             </DialogTitle>
             <div className="text-sm font-medium text-zinc-400 text-center leading-relaxed max-w-[280px] mx-auto pt-2">
-              InvitaciÃ³n enviada con Ã©xito.
+              Invitación enviada con éxito.
               <div className="mt-8 relative group">
                 <div className="absolute -inset-1 bg-lime-500/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
                 <span className="relative block px-4 py-4 bg-zinc-100 dark:bg-zinc-900 rounded-2xl text-zinc-950 dark:text-lime-400 font-black tracking-widest text-lg border border-zinc-200 dark:border-zinc-800">
-                    PRÃ“XIMO PAGO: {successData ? successData.date.toUpperCase() : ''}
+                    PRÓXIMO PAGO: {successData ? successData.date.toUpperCase() : ''}
                 </span>
               </div>
             </div>

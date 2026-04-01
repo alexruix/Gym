@@ -129,7 +129,7 @@ export function UniversalSearch() {
             isExpanded ? "w-full md:max-w-md" : "w-10 md:w-full md:max-w-md"
         )}
     >
-      {/* Input de BÃºsqueda Industrial */}
+      {/* Input de Búsqueda Industrial */}
       <div className="relative h-11 flex items-center">
         
         {!isExpanded && (
@@ -248,7 +248,7 @@ export function UniversalSearch() {
                 <div className="px-6 py-8 text-center">
                     <CommandIcon className="w-8 h-8 text-zinc-200 dark:text-zinc-800 mx-auto mb-3" />
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        EscribÃ­ para buscar...
+                        Escribí para buscar...
                     </p>
                 </div>
             )}

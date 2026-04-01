@@ -16,8 +16,8 @@ export function PlanList({ planes, isProfessorView = true }: PlanListProps) {
 
   const sortOptions = [
     { label: "Nombre A-Z", value: "nombre-asc" },
-    { label: "MÃ¡s Recientes", value: "fecha-desc" },
-    { label: "MÃ¡s Activos", value: "alumnos-desc" },
+    { label: "Más Recientes", value: "fecha-desc" },
+    { label: "Más Activos", value: "alumnos-desc" },
   ];
 
   const filteredPlanes = useMemo(() => {
@@ -45,13 +45,13 @@ export function PlanList({ planes, isProfessorView = true }: PlanListProps) {
 
   const handleDuplicate = (id: string) => {
     console.log("Duplicando plan:", id);
-    // TODO: Implementar acciÃ³n de duplicado real vÃ­a Astro Action
+    // TODO: Implementar acción de duplicado real vía Astro Action
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Â¿EstÃ¡s seguro de que querÃ©s eliminar este plan?")) {
+    if (confirm("¿Estás seguro de que querés eliminar este plan?")) {
       console.log("Eliminando plan:", id);
-      // TODO: Implementar eliminaciÃ³n real
+      // TODO: Implementar eliminación real
     }
   };
 

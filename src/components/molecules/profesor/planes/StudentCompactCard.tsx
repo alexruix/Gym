@@ -21,7 +21,7 @@ interface StudentCompactCardProps {
 }
 
 /**
- * StudentCompactCard: MolÃ©cula premium para representar alumnos con prioridad en 
+ * StudentCompactCard: Molécula premium para representar alumnos con prioridad en 
  * Nombre, Plan, Salud y Acciones Operativas.
  */
 export function StudentCompactCard({ student, onClick, className }: StudentCompactCardProps) {
@@ -35,7 +35,7 @@ export function StudentCompactCard({ student, onClick, className }: StudentCompa
         
         await copyToClipboard(data.link);
         toast.dismiss();
-        toast.success("Â¡Link de acceso copiado!");
+        toast.success("¡Link de acceso copiado!");
     } catch (err: any) {
         toast.dismiss();
         toast.error(err.message || "No se pudo copiar el link");
@@ -45,7 +45,7 @@ export function StudentCompactCard({ student, onClick, className }: StudentCompa
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!student.telefono) {
-        toast.error("El alumno no tiene telÃ©fono registrado");
+        toast.error("El alumno no tiene teléfono registrado");
         return;
     }
     const cleanPhone = student.telefono.replace(/\D/g, "");

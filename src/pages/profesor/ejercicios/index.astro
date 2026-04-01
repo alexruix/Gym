@@ -1,7 +1,6 @@
-﻿---
+---
 import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import PageHeader from "@/components/molecules/PageHeader.astro";
-import ActionLink from "@/components/atoms/ActionLink.astro";
 import { ExerciseLibrary } from "@/components/organisms/profesor/ejercicios/ExerciseLibrary";
 import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
@@ -24,6 +23,13 @@ const { data: exercises, error } = await supabase
 if (error) {
   console.error("Error cargando ejercicios:", error);
 }
+
+// Mapeo a formato de componente (BaseEntity compatibility)
+const mappedExercises = (exercises || []).map(ex => ({
+  ...ex,
+  name: ex.nombre,
+  createdAt: ex.created_at
+}));
 ---
 
 <ProfesorLayout title={`${exerciseLibraryCopy.header.title} | MiGym`}>
@@ -35,17 +41,10 @@ if (error) {
         { label: "Inicio", href: "/profesor" },
         { label: "Ejercicios" }
       ]}
-    >
-      <ActionLink href="/profesor/ejercicios/import" variant="secondary" class="flex-1 md:flex-none">
-        Importar Excel
-      </ActionLink>
-      <ActionLink href="/profesor/ejercicios/new" variant="primary" uppercase class="flex-1 md:flex-none">
-        {exerciseLibraryCopy.list.action}
-      </ActionLink>
-    </PageHeader>
+    />
 
     <div class="bg-transparent rounded-2xl">
-      <ExerciseLibrary client:load initialExercises={exercises || []} />
+      <ExerciseLibrary client:load initialExercises={mappedExercises} />
     </div>
   </div>
 </ProfesorLayout>

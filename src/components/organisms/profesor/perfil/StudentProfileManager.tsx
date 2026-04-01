@@ -18,7 +18,7 @@ interface StudentProfileManagerProps {
 
 /**
  * StudentProfileManager: Orquestador del Workspace del Alumno.
- * Gestiona la transiciÃ³n entre la Rutina TÃ©cnica y la Ficha de InformaciÃ³n.
+ * Gestiona la transición entre la Rutina Técnica y la Ficha de Información.
  */
 export function StudentProfileManager({ assignedPlan, student }: StudentProfileManagerProps) {
   const [activeTab, setActiveTab] = useState<"routine" | "info" | "history">("routine");

@@ -9,8 +9,8 @@ interface InlineEditProps {
 }
 
 /**
- * InlineEdit: Ãtomo tÃ©cnico para ediciÃ³n in-place.
- * Minimalista, sin bordes hasta el foco, para integrarse en diseÃ±os densos.
+ * InlineEdit: Ãtomo técnico para edición in-place.
+ * Minimalista, sin bordes hasta el foco, para integrarse en diseños densos.
  */
 export function InlineEdit({ value, type = "text", onChange, className }: InlineEditProps) {
   const [isEditing, setIsEditing] = useState(false);

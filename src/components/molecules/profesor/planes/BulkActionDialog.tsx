@@ -33,9 +33,9 @@ export function BulkActionDialog({
   
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const sourceDayOfWeekIdx = (sourceDayNum - 1) % 7;
-  const dayName = ["Lunes", "Martes", "MiÃ©rcoles", "Jueves", "Viernes", "SÃ¡bado", "Domingo"][sourceDayOfWeekIdx];
+  const dayName = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"][sourceDayOfWeekIdx];
 
-  // Detectar cuÃ¡ntos dÃ­as seleccionados ya tienen contenido
+  // Detectar cuántos días seleccionados ya tienen contenido
   const overwriteCount = useMemo(() => {
     return selectedDays.filter(dNum => (rutinas[dNum - 1]?.ejercicios?.length || 0) > 0).length;
   }, [selectedDays, rutinas]);
@@ -51,7 +51,7 @@ export function BulkActionDialog({
     const newDays = Array.from({ length: totalWeeks }, (_, wIdx) => (wIdx * 7) + (colIdx + 1))
                         .filter(d => d !== sourceDayNum);
     
-    // Si todos los de la columna ya estÃ¡n seleccionados, deseleccionamos todos
+    // Si todos los de la columna ya están seleccionados, deseleccionamos todos
     const allSelected = newDays.every(d => selectedDays.includes(d));
     if (allSelected) {
         setSelectedDays(prev => prev.filter(d => !newDays.includes(d)));
@@ -88,7 +88,7 @@ export function BulkActionDialog({
               <div className="space-y-0.5">
                  <DialogTitle className="text-2xl font-black uppercase tracking-tight leading-none">Copia de Alto Rendimiento</DialogTitle>
                  <DialogDescription className="text-lime-400/60 text-[10px] font-black uppercase tracking-[0.2em]">
-                    Duplicando {dayName} (DÃ­a {sourceDayNum})
+                    Duplicando {dayName} (Día {sourceDayNum})
                  </DialogDescription>
               </div>
            </div>
@@ -104,11 +104,11 @@ export function BulkActionDialog({
                     variant="ghost" onClick={clearAll}
                     className="h-8 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/5 rounded-lg px-2"
                  >
-                    <Trash2 className="w-3 h-3 mr-2" /> Limpiar SelecciÃ³n
+                    <Trash2 className="w-3 h-3 mr-2" /> Limpiar Selección
                  </Button>
               </div>
 
-              {/* Grid Header para SelecciÃ³n de Columna */}
+              {/* Grid Header para Selección de Columna */}
               <div className="grid grid-cols-[60px_1fr] gap-3 mb-1">
                  <div />
                  <div className="grid grid-cols-7 gap-2">
@@ -180,7 +180,7 @@ export function BulkActionDialog({
              <div className="bg-red-500/10 p-4 rounded-2xl flex gap-4 items-center animate-in slide-in-from-bottom-2 duration-300">
                 <AlertTriangle className="w-6 h-6 text-red-500 shrink-0" />
                 <p className="text-[10px] font-black uppercase tracking-widest text-red-600 leading-tight">
-                   Â¡AtenciÃ³n! EstÃ¡s por sobrescribir la rutina en {overwriteCount} {overwriteCount === 1 ? "dÃ­a que ya tiene" : "dÃ­as que ya tienen"} contenido.
+                   ¡Atención! Estás por sobrescribir la rutina en {overwriteCount} {overwriteCount === 1 ? "día que ya tiene" : "días que ya tienen"} contenido.
                 </p>
              </div>
            )}

@@ -96,3 +96,20 @@ export const alumnosListCopy = {
   }
 } as const;
 
+export const personalizationCopy = {
+  routines: {
+    exerciseCard: {
+      rotation: {
+        label: "Rotativo",
+        btn: "Alternar ejercicios...",
+        active: "Rotación activa",
+        duration: "Rotar cada",
+        weeks: "semanas",
+        selectExercise: "Elegir alternativos (máx. 3)",
+      }
+    }
+  },
+  exerciseModal: {
+    searchPlaceholder: "Buscar en tu biblioteca...",
+  }
+} as const;

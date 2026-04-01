@@ -87,7 +87,7 @@ export function ExerciseSearchDialog({
         <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-950 rounded-3xl border-none shadow-2xl">
           <DialogTitle className="sr-only">Buscador de Ejercicios</DialogTitle>
           <DialogDescription className="sr-only">
-            Busca y selecciona ejercicios de tu biblioteca para aÃ±adirlos a la rutina.
+            Busca y selecciona ejercicios de tu biblioteca para añadirlos a la rutina.
           </DialogDescription>
           
           <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
@@ -169,7 +169,7 @@ export function ExerciseSearchDialog({
                                         <div className="flex flex-col">
                                             <span className="font-black text-zinc-950 dark:text-zinc-50 group-hover:text-white dark:group-hover:text-zinc-950 transition-colors">{parent.nombre}</span>
                                             {parent.is_template_base && (
-                                                <span className="text-[8px] font-black uppercase text-lime-600 dark:text-lime-400 group-hover:text-white/70">PatrÃ³n Base</span>
+                                                <span className="text-[8px] font-black uppercase text-lime-600 dark:text-lime-400 group-hover:text-white/70">Patrón Base</span>
                                             )}
                                         </div>
                                     </div>

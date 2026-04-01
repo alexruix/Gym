@@ -1,4 +1,4 @@
-﻿---
+---
 import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
 import PageHeader from '@/components/molecules/PageHeader.astro';
 import ActionLink from '@/components/atoms/ActionLink.astro';
@@ -51,11 +51,7 @@ const c = planesCopy.list.header;
     <PageHeader 
       title={c.title} 
       subtitle={c.subtitle}
-    >
-      <ActionLink href="/profesor/planes/new" variant="primary" uppercase class="flex-1 md:flex-none">
-        {c.newBtn}
-      </ActionLink>
-    </PageHeader>
+    />
 
     <div class="animate-in slide-in-from-bottom-4 duration-500 delay-150">
       <PlanesDashboard client:load planes={mappedPlanes} />

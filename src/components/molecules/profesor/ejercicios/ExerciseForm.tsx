@@ -62,7 +62,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
   const onSubmit: SubmitHandler<ExerciseLibraryFormData> = async (values) => {
     setIsPending(true);
     try {
-      // Inyectar is_template_base automÃ¡ticamente: si no tiene padre, es base.
+      // Inyectar is_template_base automáticamente: si no tiene padre, es base.
       const finalValues = {
         ...values,
         is_template_base: !values.parent_id
@@ -198,7 +198,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
               render={({ field }) => (
                 <StandardField
                   label="Variantes"
-                  hint="AÃ±adÃ­ variaciones rÃ¡pidas (ej: Sumo, Copa, etc.)"
+                  hint="Añadí variaciones rápidas (ej: Sumo, Copa, etc.)"
                 >
                   <div className="space-y-4">
                     <div className="flex gap-2">
@@ -296,7 +296,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
             <StandardField
               label={copy.labels.tags}
               error={fieldState.error?.message}
-              hint={`MÃ¡x 6 etiquetas. Enter para aÃ±adir.`}
+              hint={`Máx 6 etiquetas. Enter para añadir.`}
             >
               <div className="space-y-4">
                 <div className="flex gap-2">

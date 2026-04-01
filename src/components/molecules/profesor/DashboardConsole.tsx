@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
     LayoutGrid, 
     List, 
@@ -25,7 +25,9 @@ interface DashboardConsoleProps<T extends BaseEntity> {
     allTags?: string[];
     onCreateClick?: () => void;
     createLabel?: string;
-    /** Opcional: Proporcionar lÃ³gica de ordenamiento personalizada */
+    /** Opcional: Proporcionar un componente personalizado para la acción de creación (ej. SplitButton) */
+    renderCreateAction?: () => React.ReactNode;
+    /** Opcional: Proporcionar lógica de ordenamiento personalizada */
     onSort?: (items: T[], order: string) => T[];
     sortOptions?: SortOption[];
     emptyIcon?: React.ReactNode;
@@ -49,13 +51,14 @@ export function DashboardConsole<T extends BaseEntity>({
     createLabel = "Nuevo",
     onSort,
     sortOptions = [],
+    renderCreateAction,
     emptyIcon,
     emptyTitle,
     emptyDescription
 }: DashboardConsoleProps<T>) {
     const [isSticky, setIsSticky] = useState(false);
 
-    // IntegraciÃ³n del Cerebro Core ðŸ§ 
+    // Integración del Cerebro Core ðŸ§ 
     const {
         viewMode,
         toggleView,
@@ -169,16 +172,20 @@ export function DashboardConsole<T extends BaseEntity>({
                             </button>
                         </div>
 
-                        {/* BOTÃ“N CREACIÃ“N PRINCIPAL */}
-                        {onCreateClick && (
-                            <Button 
-                                onClick={onCreateClick}
-                                className="h-12 md:h-14 px-6 md:px-8 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10 active:scale-95 transition-all flex-1 md:flex-none"
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                <span className="hidden sm:inline">{createLabel}</span>
-                                <span className="sm:hidden">Nuevo</span>
-                            </Button>
+                        {/* BOTÓN CREACIÓN PRINCIPAL */}
+                        {renderCreateAction ? (
+                            renderCreateAction()
+                        ) : (
+                            onCreateClick && (
+                                <Button 
+                                    onClick={onCreateClick}
+                                    className="h-12 md:h-14 px-6 md:px-8 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10 active:scale-95 transition-all flex-1 md:flex-none"
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    <span className="hidden sm:inline">{createLabel}</span>
+                                    <span className="sm:hidden">Nuevo</span>
+                                </Button>
+                            )
                         )}
                     </div>
                 </div>
@@ -227,7 +234,7 @@ export function DashboardConsole<T extends BaseEntity>({
                                 {emptyTitle || `Sin ${itemLabel} encontrados`}
                             </h3>
                             <p className="text-sm text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed px-6">
-                                {emptyDescription || "No encontramos lo que buscÃ¡s con los filtros activos. ProbÃ¡ ajustando el tÃ©rmino de bÃºsqueda o removiendo etiquetas."}
+                                {emptyDescription || "No encontramos lo que buscás con los filtros activos. Probá ajustando el término de búsqueda o removiendo etiquetas."}
                             </p>
                         </div>
                         {(search || activeTags.length > 0) && (

@@ -44,7 +44,7 @@ export function MobileNav({ currentPath }: MobileNavProps) {
       <SheetTrigger asChild>
         <button 
           className="p-2 md:hidden text-zinc-500 hover:text-zinc-900 transition-colors"
-          aria-label="Abrir menÃº"
+          aria-label="Abrir menú"
         >
           <Menu className="w-6 h-6" />
         </button>

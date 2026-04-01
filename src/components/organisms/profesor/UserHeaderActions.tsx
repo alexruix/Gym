@@ -31,8 +31,8 @@ export function UserHeaderActions() {
             <div className="w-12 h-12 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Bell className="w-6 h-6 text-zinc-300" />
             </div>
-            <p className="text-sm font-bold text-zinc-900">EstÃ¡s al dÃ­a</p>
-            <p className="text-xs text-zinc-500 px-6 leading-relaxed">No tenÃ©s notificaciones nuevas por ahora.</p>
+            <p className="text-sm font-bold text-zinc-900">Estás al día</p>
+            <p className="text-xs text-zinc-500 px-6 leading-relaxed">No tenés notificaciones nuevas por ahora.</p>
           </div>
           <DropdownMenuSeparator className="bg-zinc-100" />
           <DropdownMenuItem 
