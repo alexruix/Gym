@@ -1,17 +1,18 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { createSupabaseServerClient } from '@/lib/supabase-ssr';
-import { LogOut, Dumbbell, Zap } from 'lucide-react';
+import { getAuthenticatedClient } from '@/lib/supabase-ssr';
 import { PlanGenerator } from '@/lib/plan-generator';
+import { Zap, LogOut, Dumbbell } from 'lucide-react';
 
-const supabase = createSupabaseServerClient(Astro);
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
+
+const supabase = getAuthenticatedClient(Astro);
 
 const { data: alumno } = await supabase
   .from('alumnos')
   .select('id, nombre, fecha_inicio, plan_id, planes(id, nombre)')
-  .eq('user_id', user.id)
+  .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
 
 if (!alumno || !alumno.plan_id) {
@@ -20,8 +21,6 @@ if (!alumno || !alumno.plan_id) {
 }
 
 // Lógica de "Próxima sesión"
-// (En una app completa se miraría qué días ya entrenó esta semana. 
-// Para este MVP vamos a asumir "Sesión #1" como el próximo índice por defecto).
 const upcomingSessionDay = 1; 
 
 // Fetch para el Spoiler de Hoy
@@ -77,33 +76,43 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
         <p class="text-zinc-400 font-medium text-sm mt-1 uppercase tracking-widest">PLAN ACTUAL: {alumno?.planes?.nombre || 'General'}</p>
       </div>
       
-      <form action="/api/auth/signout" method="POST">
-        <button type="submit" class="p-4 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-full transition-all text-zinc-400 hover:text-white hover:scale-105 active:scale-95 shadow-xl">
-          <LogOut class="w-5 h-5" />
+      <div class="flex items-center gap-2">
+        <button 
+          id="copyLinkBtn"
+          data-email={user.email}
+          class="p-4 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-full transition-all text-zinc-400 hover:text-lime-400 hover:scale-105 active:scale-95 shadow-xl group/copy"
+          title="Copiar mi link de acceso"
+        >
+          <Zap className="w-5 h-5 group-hover/copy:animate-pulse" />
         </button>
-      </form>
+        
+        <form action="/api/auth/signout" method="POST">
+          <button type="submit" class="p-4 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-full transition-all text-zinc-400 hover:text-white hover:scale-105 active:scale-95 shadow-xl">
+            <LogOut className="w-5 h-5" />
+          </button>
+        </form>
+      </div>
     </header>
 
     <main class="w-full max-w-lg mx-auto mt-20 flex flex-col items-center relative z-10">
       
-      {/* Animated Start Button */}
+      <!-- Animated Start Button -->
       <a href={`/alumno/sesion/${upcomingSessionDay}`} class="group relative inline-flex items-center justify-center p-[3px] mb-14 overflow-hidden text-lg font-black rounded-[2.5rem] outline-none">
         <span class="absolute w-full h-full bg-gradient-to-br from-lime-400 via-lime-500 to-fuchsia-600 group-hover:from-lime-400 group-hover:via-lime-600 group-hover:to-fuchsia-500 animate-[spin_4s_linear_infinite] blur-md opacity-100 transition-all duration-300"></span>
         <span class="relative px-12 py-10 transition-all ease-in duration-75 bg-black rounded-[2.3rem] shadow-[inset_0_2px_20px_rgba(255,255,255,0.1)] hover:bg-zinc-950">
           <span class="relative z-10 flex flex-col items-center gap-3">
-            <Zap class="w-12 h-12 text-lime-400 drop-shadow-[0_0_15px_rgba(163,230,53,0.8)]" />
+            <Zap className="w-12 h-12 text-lime-400 drop-shadow-[0_0_15px_rgba(163,230,53,0.8)]" />
             <span class="uppercase tracking-[0.2em] text-lime-400 font-black text-2xl drop-shadow-[0_0_10px_rgba(163,230,53,0.3)]">Entrenar Hoy</span>
           </span>
         </span>
       </a>
 
-      {/* Preview Inteligente Real */}
+      <!-- Preview Inteligente -->
       <div class="w-full bg-zinc-900/60 border border-zinc-800/80 rounded-[2rem] p-7 backdrop-blur-2xl shadow-2xl relative z-10 overflow-hidden">
-        {/* Glow corner inside card */}
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-lime-500/20 blur-[50px] pointer-events-none"></div>
 
         <h2 class="text-xs font-black text-zinc-500 uppercase tracking-widest mb-6 px-1 flex items-center gap-2">
-          <Dumbbell class="w-4 h-4 text-lime-500" /> Preparación Mental (Spoiler)
+          <Dumbbell className="w-4 h-4 text-lime-500" /> Preparación Mental (Spoiler)
         </h2>
         
         <div class="space-y-4">
@@ -139,3 +148,19 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
     </main>
   </div>
 </Layout>
+
+<script>
+  const copyBtn = document.getElementById('copyLinkBtn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const email = copyBtn.getAttribute('data-email');
+      try {
+        const url = `${window.location.origin}/login?email=${encodeURIComponent(email || '')}`;
+        await navigator.clipboard.writeText(url);
+        alert('✅ Link de acceso copiado. Guardalo para entrar desde otros dispositivos.');
+      } catch (err) {
+        console.error('Error al copiar:', err);
+      }
+    });
+  }
+</script>

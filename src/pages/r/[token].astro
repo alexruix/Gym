@@ -1,0 +1,66 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { Loader2 } from "lucide-react";
+import { supabaseAdmin } from "../../lib/supabase-admin";
+
+/**
+ * 🛰️ PUENTE DE ACCESO PERMANENTE (Modo Barrio)
+ * Esta ruta valida el token único del alumno y establece una cookie de larga duración.
+ */
+
+const { token } = Astro.params;
+
+if (!token) {
+  return Astro.redirect("/login?error=invalid_token");
+}
+
+// 1. Validar el token en la base de datos usando ADMIN (Bypass RLS)
+// Importante: El guest aún no tiene sesión, por lo que el cliente anon 
+// fallaría por políticas de RLS.
+const { data: student, error } = await supabaseAdmin
+  .from("alumnos")
+  .select("id, nombre")
+  .eq("access_token", token)
+  .single();
+
+if (error || !student) {
+  console.error("Error validando token de invitado:", error);
+  return Astro.redirect("/login?error=link_expired");
+}
+
+// 2. Establecer la cookie de acceso (gym_access)
+// Seteamos la cookie con una duración de 1 año
+Astro.cookies.set("gym_access", token, {
+  path: "/",
+  maxAge: 60 * 60 * 24 * 365, // 1 año
+  httpOnly: true,
+  secure: import.meta.env.PROD, // Solo true en producción (HTTPS)
+  sameSite: "lax",
+});
+
+// 3. Redirigir al dashboard del alumno
+return Astro.redirect("/alumno");
+---
+
+<Layout title={`Entrando como ${student.nombre} - MiGym`}>
+  <head>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <div class="fixed inset-0 bg-white dark:bg-zinc-950 z-[9999] flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900/20 dark:to-zinc-950">
+    <div class="relative">
+      <div class="w-24 h-24 rounded-full border-4 border-zinc-100 dark:border-zinc-900 absolute inset-0 animate-pulse" />
+      <Loader2 className="w-24 h-24 text-lime-500 animate-spin relative z-10" />
+    </div>
+
+    <div class="mt-8 space-y-4 max-w-sm">
+      <h1 class="text-2xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-[0.8]">
+        Acceso <br /> Permanente
+      </h1>
+      <p class="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+        Hola {student.nombre}, preparando tu rutina...
+      </p>
+    </div>
+
+    <div class="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none" />
+  </div>
+</Layout>

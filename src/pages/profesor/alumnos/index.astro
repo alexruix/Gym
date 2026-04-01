@@ -26,6 +26,7 @@ const { data: alumnos, error } = await supabase
     planes ( nombre )
   `)
   .eq("profesor_id", user.id)
+  .is("deleted_at", null)
   .order("created_at", { ascending: false });
 
 if (error) {

@@ -5,7 +5,7 @@ import { actions } from "astro:actions";
 import { updateStudentSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { toast } from "sonner";
-import { Calendar, Phone, Loader2, Save, X } from "lucide-react";
+import { Calendar, Phone, Loader2, Save, X, Archive } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -240,34 +240,63 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
             )}
         />
 
-        <div className="flex gap-3 pt-6 justify-end items-center">
-            {onCancel && (
-                <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="lg"
-                    onClick={onCancel}
-                    className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-8"
-                >
-                    <X className="w-4 h-4 mr-2" /> Cancelar
-                </Button>
-            )}
+        <div className="flex flex-wrap gap-3 pt-10 justify-between items-center border-t border-zinc-100 dark:border-zinc-800">
             <Button 
-                type="submit" 
-                variant="industrial"
-                size="xl"
-                disabled={isPending} 
-                className="px-12"
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={async () => {
+                    if (confirm(`¿Estás seguro de archivar a ${alumno.nombre}? El alumno dejará de aparecer en las listas activas.`)) {
+                        setIsPending(true);
+                        try {
+                            const { error } = await actions.profesor.deleteStudent({ id: alumno.id });
+                            if (error) {
+                                toast.error("Error al archivar alumno");
+                            } else {
+                                toast.success("Alumno archivado");
+                                window.location.href = "/profesor/alumnos";
+                            }
+                        } catch (err) {
+                            toast.error("Error inesperado");
+                        } finally {
+                            setIsPending(false);
+                        }
+                    }
+                }}
+                className="rounded-xl font-bold uppercase tracking-widest text-[9px] h-11 px-4 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
             >
-                {isPending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Save className="w-5 h-5 mr-3" />
-                    <span className="text-sm">Guardar Cambios</span>
-                  </>
-                )}
+                <Archive className="w-4 h-4 mr-2" /> Archivar Alumno
             </Button>
+
+            <div className="flex gap-3 items-center">
+                {onCancel && (
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="lg"
+                        onClick={onCancel}
+                        className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-8"
+                    >
+                        <X className="w-4 h-4 mr-2" /> Cancelar
+                    </Button>
+                )}
+                <Button 
+                    type="submit" 
+                    variant="industrial"
+                    size="xl"
+                    disabled={isPending} 
+                    className="px-12"
+                >
+                    {isPending ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Save className="w-5 h-5 mr-3" />
+                        <span className="text-sm">Guardar Cambios</span>
+                      </>
+                    )}
+                </Button>
+            </div>
         </div>
       </form>
     </Form>

@@ -1,5 +1,10 @@
 ---
 import AlumnoLayout from '../../layouts/AlumnoLayout.astro';
+
+const user = Astro.locals.user;
+if (user?.role === "invitado") {
+  return Astro.redirect("/login?error=auth_required_for_profile");
+}
 ---
 
 <AlumnoLayout title="Mi Perfil - MiGym">

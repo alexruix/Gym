@@ -38,10 +38,16 @@ const { data: profesor } = await supabase
   .eq("id", user.id)
   .single();
 
+if (!profesor) {
+  // Defensa secundaria: El middleware ya debería haber filtrado esto,
+  // pero si el registro de profesor desapareció o hubo un error, rebotamos.
+  return Astro.redirect("/onboarding");
+}
+
 const safeProfesor = {
-  nombre: profesor?.nombre || "Entrenador",
-  foto_url: profesor?.foto_url || null,
-  slug: profesor?.slug || null,
+  nombre: profesor.nombre || "Entrenador",
+  foto_url: profesor.foto_url || null,
+  slug: profesor.slug || null,
 };
 
 // Mock navigation items

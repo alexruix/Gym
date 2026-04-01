@@ -28,6 +28,8 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { StandardField } from "@/components/molecules/StandardField";
 import { QuickOptionsGroup } from "@/components/molecules/QuickOptionsGroup";
@@ -576,6 +578,10 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
         }}
       >
         <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-950 rounded-3xl border-none shadow-2xl">
+          <DialogTitle className="sr-only">Configurar Rotación</DialogTitle>
+          <DialogDescription className="sr-only">
+            Selecciona un ejercicio alternativo para rotar en esta posición del plan.
+          </DialogDescription>
           <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
             <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 uppercase tracking-tight mb-6">
                 {planesCopy.form.routines.exerciseCard.rotation.selectExercise}
@@ -651,6 +657,10 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
         }}
       >
         <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-950 rounded-3xl border-none shadow-2xl">
+          <DialogTitle className="sr-only">Buscador de Ejercicios</DialogTitle>
+          <DialogDescription className="sr-only">
+            Busca y selecciona ejercicios de tu biblioteca para añadirlos a la rutina.
+          </DialogDescription>
           <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
             <div className="flex items-center justify-between gap-4 mb-6">
                 <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 uppercase tracking-tight">

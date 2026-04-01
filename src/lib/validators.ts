@@ -93,7 +93,7 @@ export const inviteStudentSchema = z.object({
     .uuid("Plan inválido"),
   
   fecha_inicio: z
-    .date()
+    .coerce.date()
     .refine((date) => {
       // Comparar la fecha considerando la zona horaria local para evitar problemas de UTC
       const today = new Date();
@@ -143,7 +143,7 @@ export type PaymentFormData = z.infer<typeof paymentSchema>;
 
 // Session tracker validation
 export const sessionLogSchema = z.object({
-  alumno_id: z.string().uuid(),
+  sesion_id: z.string().uuid(),
   ejercicio_id: z.string().uuid(),
   series_completadas: z.array(
     z.object({

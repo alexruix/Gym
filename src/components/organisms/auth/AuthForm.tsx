@@ -10,6 +10,7 @@ type AuthState = 'idle' | 'loading' | 'success' | 'error';
 export function AuthForm() {
   const [email, setEmail] = React.useState('');
   const [state, setState] = React.useState<AuthState>('idle');
+  const [isInvited, setIsInvited] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
   const copy = authCopy.login;
 
@@ -46,9 +47,18 @@ export function AuthForm() {
     }
   };
 
-  // Efecto para capturar errores de la URL (viniendo de callback.ts)
+  // Efecto para capturar email o errores de la URL
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    
+    // Capturar email para pre-llenado e identificar invitación
+    const emailParam = params.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
+      setIsInvited(true);
+    }
+
+    // Capturar errores (viniendo de callback.ts)
     const errorParam = params.get('error');
     if (errorParam) {
       setState('error');
@@ -104,6 +114,13 @@ export function AuthForm() {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-black tracking-tighter text-zinc-950 mb-2">{copy.title}</h2>
         <p className="text-zinc-500 font-medium">{copy.subtitle}</p>
+        {isInvited && (
+          <div className="mt-4 p-3 bg-fuchsia-50 border border-fuchsia-100 rounded-xl animate-in fade-in slide-in-from-top-2 duration-500">
+            <p className="text-[10px] font-black uppercase tracking-widest text-fuchsia-600">
+              ⚡ Acceso como Alumno Invitado
+            </p>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleMagicLink} className="space-y-5">

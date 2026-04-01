@@ -1,9 +1,18 @@
 import React from "react";
+import { actions } from "astro:actions";
 import { MessageCircle, Link, CreditCard, ExternalLink } from "lucide-react";
 import { StatusBadge } from "@/components/atoms/profesor/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { RefreshCw, Copy } from "lucide-react";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
+import { copyToClipboard } from "@/lib/utils";
 
 interface Props {
   alumno: {
@@ -19,11 +28,44 @@ interface Props {
 export function AthleteHeader({ alumno, planName }: Props) {
   const { header } = athleteProfileCopy;
 
-  const copyMagicLink = () => {
-    // Implementación futura del link real
-    const link = `${window.location.origin}/login?magic=sample`;
-    navigator.clipboard.writeText(link);
-    toast.success(header.actions.linkCopied);
+  const copyGuestLink = async () => {
+    const promise = (async () => {
+      const { data, error } = await actions.profesor.getStudentGuestLink({ id: alumno.id });
+      if (error) throw new Error("Error de conexión");
+      if (!data?.link) throw new Error("Link no generado");
+      
+      const copied = await copyToClipboard(data.link);
+      if (!copied) throw new Error("Error al copiar");
+
+      await new Promise(resolve => setTimeout(resolve, 600));
+      return { name: alumno.nombre };
+    })();
+
+    toast.promise(promise, {
+      loading: `GENERANDO ACCESO PERMANENTE...`,
+      success: "¡LINK DE INVITADO LISTO!",
+      error: (err) => `FALLÓ LA GENERACIÓN: ${err.message}`,
+    });
+  };
+
+  const regenerateGuestLink = async () => {
+    if (!confirm("¿Estás seguro? El link anterior dejará de funcionar permanentemente.")) return;
+    
+    const promise = (async () => {
+      const { data, error } = await actions.profesor.regenerateStudentGuestLink({ id: alumno.id });
+      if (error) throw new Error("Error en servidor");
+      if (!data?.link) throw new Error("Link no regenerado");
+      
+      await copyToClipboard(data.link);
+      await new Promise(resolve => setTimeout(resolve, 800));
+      return { name: alumno.nombre };
+    })();
+
+    toast.promise(promise, {
+      loading: `REGENERANDO LLAVES MAESTRAS...`,
+      success: "ACCESO REESTABLECIDO CORRECTAMENTE",
+      error: (err) => `FALLÓ LA REGENERACIÓN: ${err.message}`,
+    });
   };
 
   const openWhatsApp = () => {
@@ -80,14 +122,27 @@ export function AthleteHeader({ alumno, planName }: Props) {
             {header.actions.whatsapp}
           </Button>
           
-          <Button 
-            variant="outline"
-            onClick={copyMagicLink}
-            className="flex-1 md:flex-none h-14 bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-2xl font-black gap-2 px-6 transition-all active:scale-95 shadow-sm uppercase tracking-widest text-[10px]"
-          >
-            <Link className="w-5 h-5 text-zinc-400" aria-hidden="true" />
-            {header.actions.copyLink}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline"
+                className="flex-1 md:flex-none h-14 bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-2xl font-black gap-2 px-6 transition-all active:scale-95 shadow-sm uppercase tracking-widest text-[10px]"
+              >
+                <Link className="w-5 h-5 text-zinc-400" aria-hidden="true" />
+                {header.actions.copyLink}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 shadow-2xl">
+              <DropdownMenuItem onClick={copyGuestLink} className="rounded-xl py-3 font-bold text-[10px] uppercase tracking-widest gap-3 cursor-pointer">
+                <Copy className="w-4 h-4 text-zinc-400" />
+                Copiar Link Actual
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={regenerateGuestLink} className="rounded-xl py-3 font-bold text-[10px] uppercase tracking-widest gap-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer">
+                <RefreshCw className="w-4 h-4" />
+                Regenerar Acceso
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button 
             className="flex-1 md:flex-none h-14 bg-lime-400 text-zinc-950 hover:bg-lime-500 rounded-2xl font-black text-[10px] uppercase tracking-widest gap-2 px-8 transition-all active:scale-95 shadow-lg shadow-lime-500/20"

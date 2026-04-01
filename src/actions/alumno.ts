@@ -1,5 +1,5 @@
 import { defineAction } from "astro:actions";
-import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { getAuthenticatedClient } from "@/lib/supabase-ssr";
 import { sessionLogSchema, commentExerciseSchema, completeSessionSchema } from "@/lib/validators";
 
 export const alumnoActions = {
@@ -7,15 +7,15 @@ export const alumnoActions = {
     accept: "json",
     input: sessionLogSchema,
     handler: async (input, context) => {
-      const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
+      const supabase = getAuthenticatedClient(context);
 
       // 2. Map series for DB insert
       const logs = input.series_completadas.map((s, idx) => ({
         alumno_id: user.id, 
         ejercicio_id: input.ejercicio_id,
-        sesion_id: input.alumno_id, 
+        sesion_id: input.sesion_id, 
         reps_reales: s.reps,
         peso_kg: s.peso_kg,
         rpe: s.rpe || null,
@@ -35,7 +35,7 @@ export const alumnoActions = {
         const { data: alumno } = await supabase
           .from("alumnos")
           .select("profesor_id")
-          .eq("id", user.id)
+          .or(`id.eq.${user.id},user_id.eq.${user.id}`)
           .single();
 
         if (alumno) {
@@ -61,9 +61,9 @@ export const alumnoActions = {
     accept: "json",
     input: commentExerciseSchema,
     handler: async (input, context) => {
-      const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
+      const supabase = getAuthenticatedClient(context);
 
       // Buscar el último log de ese ejercicio para esta sesión para actualizarle la nota
       // (Suponiendo que ya trackeó las series)
@@ -85,7 +85,6 @@ export const alumnoActions = {
         if (error) throw new Error(`Error al guardar comentario: ${error.message}`);
       } else {
         // Si no hay series trackeadas aún, podríamos dejar un log vacío solo con el comment
-        // pero lo ideal es que espere a completar la serie. Por ahora lo insertamos vacío.
         const { error } = await supabase
           .from("ejercicio_logs")
           .insert({
@@ -102,7 +101,7 @@ export const alumnoActions = {
       const { data: alumno } = await supabase
         .from("alumnos")
         .select("profesor_id")
-        .eq("id", user.id)
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
         .single();
 
       if (alumno) {
@@ -124,9 +123,9 @@ export const alumnoActions = {
     accept: "json",
     input: completeSessionSchema,
     handler: async (input, context) => {
-      const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
+      const supabase = getAuthenticatedClient(context);
 
       const { error } = await supabase
         .from("sesiones")
@@ -142,7 +141,7 @@ export const alumnoActions = {
       const { data: alumno } = await supabase
         .from("alumnos")
         .select("profesor_id, nombre")
-        .eq("id", user.id)
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
         .single();
 
       if (alumno) {

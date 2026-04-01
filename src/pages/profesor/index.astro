@@ -37,11 +37,12 @@ const { data: allStudents, error: studentsError } = await supabase
     id,
     nombre,
     estado,
-    created_at,
+    email,
     planes ( id, nombre )
   `,
   )
   .eq("profesor_id", user.id)
+  .is("deleted_at", null)
   .order("created_at", { ascending: false });
 
 if (studentsError) {
@@ -93,6 +94,7 @@ const hasAlerts = noPlanStudents.length > 0 || mockPayments.length > 0;
 const recentStudents: Student[] = students.slice(0, 5).map((s) => ({
   id: s.id,
   name: s.nombre,
+  email: s.email,
   planName: Array.isArray(s.planes)
     ? s.planes[0]?.nombre || null
     : (s.planes as any)?.nombre || null,
@@ -130,7 +132,7 @@ const c = dashboardCopy.header;
       <ActionLink href="/profesor/alumnos/new" variant="secondary">
         {c.actions.newStudent}
       </ActionLink>
-      <ActionLink href="/profesor/planes/new" variant="glow" uppercase>
+      <ActionLink href="/profesor/planes/new" variant="primary" uppercase>
         <svg
           xmlns="http://www.w3.org/2000/round"
           width="16"

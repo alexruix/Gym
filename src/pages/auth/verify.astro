@@ -1,0 +1,75 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { Loader2 } from "lucide-react";
+---
+
+<Layout title="Verificando Acceso - MiGym">
+  <div class="fixed inset-0 bg-white dark:bg-zinc-950 z-[9999] flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900/20 dark:to-zinc-950">
+    <div class="relative">
+      {/* Círculo de Carga Industrial */}
+      <div class="w-24 h-24 rounded-full border-4 border-zinc-100 dark:border-zinc-900 absolute inset-0 animate-pulse" />
+      <Loader2 className="w-24 h-24 text-lime-500 animate-spin relative z-10" />
+    </div>
+
+    <div class="mt-8 space-y-4 max-w-sm">
+      <h1 class="text-2xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-[0.8]">
+        Sincronizando <br /> Acceso Seguro
+      </h1>
+      <p class="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+        Iniciando sesión en MiGym, un momento...
+      </p>
+    </div>
+
+    {/* Fondo decorativo de rayones/industrial */}
+    <div class="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none" />
+  </div>
+
+  <script>
+    import { supabase } from "@/lib/supabase";
+
+    async function handleAuth() {
+      // 1. Esperamos un momento para que el cliente de Supabase procese el hash de la URL
+      // (Supabase hace esto automáticamente al inicializarse si detectSessionInUrl es true)
+      let { data: { session }, error } = await supabase.auth.getSession();
+      
+      // 2. Si no hay sesión inmediata, damos un pequeño margen por si el procesamiento del hash es lento
+      if (!session && !error) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const retry = await supabase.auth.getSession();
+        session = retry.data.session;
+      }
+
+      if (error) {
+        console.error("Auth Error:", error);
+        window.location.assign("/login?error=auth_failed");
+        return;
+      }
+
+      if (session) {
+        console.log("Sesión detectada, redirigiendo...");
+        const urlParams = new URLSearchParams(window.location.search);
+        const next = urlParams.get('next') || '/alumno';
+        
+        // Delay visual para que el usuario sienta el "proceso"
+        setTimeout(() => {
+          window.location.assign(next);
+        }, 1000);
+      } else {
+        console.warn("No se detectó sesión activa en el hash.");
+        // Si no hay sesión, tal vez el link ya se usó o el hash no está presente
+        if (window.location.hash.includes('access_token')) {
+             // El hash está pero Supabase no lo tomó. Reintentamos una vez más fuerte.
+             await new Promise(resolve => setTimeout(resolve, 1000));
+             const { data: finalRetry } = await supabase.auth.getSession();
+             if (finalRetry.session) {
+                window.location.assign(urlParams.get('next') || '/alumno');
+                return;
+             }
+        }
+        window.location.assign("/login?error=link_expired");
+      }
+    }
+
+    handleAuth();
+  </script>
+</Layout>

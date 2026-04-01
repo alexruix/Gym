@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StandardTable, type TableColumn } from "@/components/molecules/StandardTable";
+import { copyToClipboard } from "@/lib/utils";
 
 export interface Student {
   id: string;
@@ -116,18 +117,36 @@ export function StudentList({ students, title, hideAction = false, isDashboard =
               <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-900 my-1" />
               
               <DropdownMenuItem 
-                onClick={async () => {
-                  try {
-                    const link = `${window.location.origin}/login?email=${encodeURIComponent(student.email)}`;
-                    await navigator.clipboard.writeText(link);
-                    toast.success("Link de acceso copiado");
-                  } catch (err) {
-                    toast.error("No se pudo copiar el link");
-                  }
+                onSelect={(e) => e.preventDefault()}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  
+                  const promise = (async () => {
+                    const { data, error } = await actions.profesor.getStudentGuestLink({ id: student.id });
+                    
+                    if (error) throw new Error("Error de conexión");
+                    if (!data?.link) throw new Error("Link no generado");
+                    
+                    const copied = await copyToClipboard(data.link);
+                    if (!copied) throw new Error("Error al copiar");
+
+                    // Artificial small delay for "piling up dopamina"
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    
+                    return { name: student.name };
+                  })();
+
+                  toast.promise(promise, {
+                    loading: `Generando acceso para ${student.name}...`,
+                    success: (data) => `¡Link de invitado copiado para ${data.name}!`,
+                    error: (err) => `Falló la generación del link: ${err.message}`,
+                  });
                 }}
-                className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3"
+                className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-3 font-bold text-xs uppercase tracking-widest gap-3 group/item"
               >
-                <LinkIcon className="w-4 h-4 text-zinc-500" />
+                <div className="p-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg group-hover/item:bg-lime-400 group-hover/item:text-zinc-950 transition-all duration-300">
+                  <LinkIcon className="w-3.5 h-3.5 text-zinc-500 group-hover/item:text-zinc-950" />
+                </div>
                 {cMenu.copyMagicLink}
               </DropdownMenuItem>
               

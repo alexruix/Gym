@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS alumnos (
   nombre text NOT NULL,
   fecha_inicio date DEFAULT current_date,
   estado text DEFAULT 'activo',
+  access_token uuid DEFAULT uuid_generate_v4() UNIQUE, -- Token de Acceso Permanente (Modo Barrio)
   created_at timestamptz DEFAULT now()
 );
 
@@ -192,6 +193,10 @@ ADD COLUMN IF NOT EXISTS perfil_publico boolean DEFAULT false,
 ADD COLUMN IF NOT EXISTS permitir_contacto boolean DEFAULT true,
 ADD COLUMN IF NOT EXISTS mostrar_foto boolean DEFAULT true;
 
+-- 2. Sistema de Acceso Permanente (Modo Barrio)
+ALTER TABLE alumnos
+ADD COLUMN IF NOT EXISTS access_token uuid DEFAULT uuid_generate_v4() UNIQUE;
+
 -- 2. Crear bucket de Storage para avatars (Si no existe)
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('avatars', 'avatars', true)
@@ -251,7 +256,10 @@ CREATE POLICY "Profesores gestionan sus alumnos" ON alumnos
 FOR ALL USING (auth.uid() = profesor_id AND deleted_at IS NULL);
 
 -- 3. FUNCIÓN RPC: CREAR PLAN COMPLETO (TRANSACCIONAL)
--- CREATE OR REPLACE asegura que la función se actualice limpia en cada ejecución
+-- Eliminamos versiones previas para evitar ambigüedad de firmas (PGRST202)
+DROP FUNCTION IF EXISTS crear_plan_completo(uuid, text, int, int, jsonb);
+DROP FUNCTION IF EXISTS crear_plan_completo(uuid, text, int, int, jsonb, jsonb);
+
 CREATE OR REPLACE FUNCTION crear_plan_completo(
   p_profesor_id uuid,
   p_nombre text,
@@ -487,7 +495,10 @@ COMMENT ON COLUMN biblioteca_ejercicios.tags IS 'Etiquetas de clasificación del
 
 
 
---- 13. ACTUALIZACIÓN DE PLANES (TRANSACCIONAL)
+-- 13. ACTUALIZACIÓN DE PLANES (TRANSACCIONAL)
+-- Eliminamos versiones previas para evitar ambigüedad de firmas
+DROP FUNCTION IF EXISTS actualizar_plan_completo(uuid, uuid, text, int, int, jsonb);
+DROP FUNCTION IF EXISTS actualizar_plan_completo(uuid, uuid, text, int, int, jsonb, jsonb);
 
 -- RPC para actualizar un plan completo (nombre, rutinas, ejercicios, rotaciones) en una sola transacción.
 CREATE OR REPLACE FUNCTION actualizar_plan_completo(

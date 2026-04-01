@@ -57,6 +57,7 @@ export const GET: APIRoute = async (context) => {
       }
 
       // 3. Si no es ninguno, asumimos que es un Profesor que arranca Onboarding
+      // El middleware lo protegerá si intenta ir a /profesor sin terminar onboarding
       return redirect('/onboarding');
     }
     

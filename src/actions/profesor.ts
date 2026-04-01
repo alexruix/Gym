@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineAction } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { planSchema, studentSchema, updateStudentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema } from "@/lib/validators";
 
 export const profesorActions = {
@@ -98,14 +99,11 @@ export const profesorActions = {
 
       if (!user) throw new Error("No autorizado");
 
-      // Usamos el RPC para garantizar transaccionalidad total (todo o nada)
-      // y validación de propiedad de ejercicios en el servidor.
       const { data: planId, error } = await supabase.rpc('crear_plan_completo', {
         p_profesor_id: user.id,
         p_nombre: input.nombre,
         p_duracion_semanas: input.duracion_semanas,
         p_frecuencia_semanal: input.frecuencia_semanal,
-        p_monto: 0,
         p_rutinas: input.rutinas 
       });
 
@@ -163,12 +161,6 @@ export const profesorActions = {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
 
-      // El RPC fork_plan se encarga de:
-      // 1. Copiar planes (is_template = false)
-      // 2. Copiar rutinas_diarias
-      // 3. Copiar ejercicios_plan
-      // 4. Copiar plan_rotaciones
-      // 5. Vincular alumno a nuevo plan
       const { data: newPlanId, error } = await supabase.rpc('fork_plan', {
         p_plan_id: input.planId,
         p_alumno_id: input.alumnoId,
@@ -221,8 +213,6 @@ export const profesorActions = {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
 
-      // SOFT DELETE: No borramos la fila, solo marcamos deleted_at
-      // Esto protege los datos históricos de pagos y sesiones.
       const { error } = await supabase
         .from("alumnos")
         .update({ deleted_at: new Date().toISOString() })
@@ -231,12 +221,12 @@ export const profesorActions = {
 
       if (error) {
         console.error("[Action: deleteStudent] Error:", error);
-        throw new Error(`Error al eliminar alumno: ${error.message}`);
+        throw new Error(`Error al archivar alumno: ${error.message}`);
       }
 
       return {
         success: true,
-        mensaje: "✅ Alumno eliminado (Soft Delete activo).",
+        mensaje: "Alumno archivado",
       };
     },
   }),
@@ -254,7 +244,6 @@ export const profesorActions = {
       }
 
       try {
-        // Verificación de Seguridad (IDOR): Asegurar que el plan_id pertenece a este profesor
         if (input.plan_id) {
           const { data: planOwner, error: planError } = await supabase
             .from("planes")
@@ -269,7 +258,6 @@ export const profesorActions = {
           }
         }
 
-        // 1. Crear alumno en DB
         const dbDate = input.fecha_inicio.toISOString().split('T')[0];
 
         const { data: student, error: dbError } = await supabase
@@ -294,24 +282,21 @@ export const profesorActions = {
           throw new Error(`Error en base de datos: ${dbError?.message || "No se pudo crear el registro"}`);
         }
 
-        // 1.5. Crear pago inicial si es requerido
         if (input.cobrarPrimerMes) {
           const { error: paymentError } = await supabase
             .from("pagos")
             .insert({
               alumno_id: student.id,
               monto: input.monto || 0,
-              fecha_vencimiento: dbDate, // Vence el día de inicio
+              fecha_vencimiento: dbDate,
               estado: 'pendiente'
             });
           
           if (paymentError) {
             console.error("[Action: inviteStudent] Initial Payment Error:", paymentError);
-            // No bloqueamos la invitación, pero avisamos en el mensaje
           }
         }
 
-        // 2. Enviar Magic Link (Supabase Auth)
         const { error: authError } = await supabase.auth.signInWithOtp({
           email: input.email.toLowerCase().trim(),
           options: {
@@ -415,7 +400,6 @@ export const profesorActions = {
       const user = context.locals.user;
       if (!user) throw new Error("No autenticado");
 
-      // Verify SLUG uniqueness if provided
       if (input.slug) {
         const { data: existing } = await supabase
           .from("profesores")
@@ -603,6 +587,81 @@ export const profesorActions = {
         success: true,
         count: data?.length || 0,
         mensaje: `✅ ${data?.length} ejercicios importados exitosamente`,
+      };
+    },
+  }),
+
+  // 🛡️ ACCIÓN: Generación de Link de Invitado Permanente (Modo Barrio)
+  getStudentGuestLink: defineAction({
+    accept: "json",
+    input: z.object({ id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // 1. Obtener el access_token del alumno (o generarlo si falta)
+      const { data: student, error: studentError } = await supabase
+        .from("alumnos")
+        .select("nombre, access_token")
+        .eq("id", input.id)
+        .eq("profesor_id", user.id)
+        .single();
+
+      if (studentError || !student) {
+        throw new Error("Alumno no encontrado o no tienes permisos");
+      }
+
+      // Si por alguna razón no tiene token (alumnos viejos pre-migración), lo generamos
+      let token = student.access_token;
+      if (!token) {
+        const { data: updated, error: updateError } = await supabase
+            .from("alumnos")
+            .update({ access_token: crypto.randomUUID() })
+            .eq("id", input.id)
+            .select("access_token")
+            .single();
+        if (updateError || !updated) throw new Error("Error al inicializar token de invitado");
+        token = updated.access_token;
+      }
+
+      const guestLink = `${context.url.origin}/r/${token}`;
+
+      return {
+        success: true,
+        link: guestLink,
+        nombre: student.nombre,
+      };
+    },
+  }),
+
+  // 🔄 ACCIÓN: Regenerar Link de Invitado (Revocación)
+  regenerateStudentGuestLink: defineAction({
+    accept: "json",
+    input: z.object({ id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const newToken = crypto.randomUUID();
+
+      const { data: student, error: updateError } = await supabase
+        .from("alumnos")
+        .update({ access_token: newToken })
+        .eq("id", input.id)
+        .eq("profesor_id", user.id)
+        .select("nombre")
+        .single();
+
+      if (updateError || !student) {
+        throw new Error("No se pudo regenerar el link de acceso");
+      }
+
+      return {
+        success: true,
+        link: `${context.url.origin}/r/${newToken}`,
+        mensaje: `✅ Link de acceso regenerado para ${student.nombre}`,
       };
     },
   }),

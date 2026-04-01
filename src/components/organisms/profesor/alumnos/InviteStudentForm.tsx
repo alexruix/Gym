@@ -118,20 +118,38 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
     }
   };
 
-  const shareWhatsApp = () => {
+  const shareWhatsApp = async () => {
     if (!successData) return;
-    const msg = `¡Hola ${successData.name}! Ya sos parte de NODO. Revisá tu email (${successData.email}) para acceder a tu plan.`;
-    const url = `https://wa.me/${successData.phone?.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank");
+    const toastId = toast.loading("Generando acceso seguro...");
+    try {
+      const { data, error } = await actions.profesor.getStudentGuestLink({ id: successData.id });
+      if (error || !data?.link) {
+        toast.error("No se pudo generar el link", { id: toastId });
+        return;
+      }
+      const msg = `¡Hola ${successData.name}! Ya sos parte de MiGym. Podés acceder a tu plan desde este link permanente: ${data.link}`;
+      const url = `https://wa.me/${successData.phone?.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank");
+      toast.success("Link generado y WhatsApp abierto", { id: toastId });
+    } catch (err) {
+      toast.error("Error al generar el link", { id: toastId });
+    }
   };
 
   const copyLink = async () => {
-    const msg = `¡Hola ${successData?.name}! Ya sos parte de NODO. Revisá tu email (${successData?.email}) para acceder a tu plan.`;
+    if (!successData) return;
+    const toastId = toast.loading("Generando acceso seguro...");
     try {
-      await navigator.clipboard.writeText(msg);
-      toast.success(inviteStudentCopy.messages.successModal.linkCopied);
+      const { data, error } = await actions.profesor.getStudentGuestLink({ id: successData.id });
+      if (error || !data?.link) {
+        toast.error("No se pudo generar el link", { id: toastId });
+        return;
+      }
+      const { copyToClipboard } = await import("@/lib/utils");
+      await copyToClipboard(data.link);
+      toast.success("Acceso seguro copiado", { id: toastId });
     } catch {
-      toast.error("Error al copiar al portapapeles");
+      toast.error("Error al copiar al portapapeles", { id: toastId });
     }
   };
 
@@ -439,7 +457,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
           <div className="flex flex-col sm:flex-row gap-4 pt-10 border-t border-zinc-100 dark:border-zinc-900 items-center justify-between">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 order-2 sm:order-1 text-center sm:text-left flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
-              Se enviará Magic Link por email automáticamente.
+              Se generará un link permanente para compartir.
             </p>
             <div className="flex gap-3 w-full sm:w-auto order-1 sm:order-2">
               <Button 
@@ -495,7 +513,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
             )}
             <Button onClick={copyLink} variant="outline" size="xl" className="w-full border-zinc-100 dark:border-zinc-800 font-black uppercase text-[10px] tracking-[0.2em] text-zinc-400 h-14">
               <Copy className="w-4 h-4 mr-2" />
-              COPIAR LINK DE BIENVENIDA
+              COPIAR LINK DE INVITADO
             </Button>
             <Button 
               onClick={() => window.location.assign(`/profesor/alumnos/${successData?.id}`)} 

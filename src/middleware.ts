@@ -2,28 +2,108 @@ import { defineMiddleware } from "astro:middleware";
 import { createSupabaseServerClient } from "./lib/supabase-ssr";
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const supabase = createSupabaseServerClient(context);
-  const { data: { user } } = await supabase.auth.getUser();
-
-  context.locals.user = user ? {
-    id: user.id,
-    email: user.email || "",
-    role: (user.app_metadata?.role as any) || "profesor",
-  } : null;
-
   const url = new URL(context.request.url);
   const path = url.pathname;
 
-  // 🛡️ PROTECCIÓN DE RUTAS (RBAC)
-  // Si intenta acceder a áreas privadas sin sesión, al login.
-  if (!user && (path.startsWith('/profesor') || path.startsWith('/alumno') || path.startsWith('/entrenamiento'))) {
-    return context.redirect('/login?error=unauthorized');
+  // 🌩️ OPTIMIZACIÓN: Saltamos el middleware para assets estáticos y rutas públicas de marketing
+  const isStaticAsset = (path.includes('.') && !path.startsWith('/_actions')) || path.startsWith('/_astro');
+  const isPublicRoute = path === '/' || path === '/login' || path.startsWith('/api/auth');
+
+  if (isStaticAsset) return next();
+
+  const supabase = createSupabaseServerClient(context);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 🚪 GESTIÓN DE SESIÓN (Prioridad: AUTH > GUEST)
+  if (!user) {
+    // Si no hay Auth Real, buscamos el "Link de Invitado" (Modo Barrio)
+    const guestToken = context.cookies.get("gym_access")?.value;
+    
+    if (guestToken) {
+       // Importamos admin para validar token sin RLS
+       const { supabaseAdmin } = await import("./lib/supabase-admin");
+       const { data: guestStudent } = await supabaseAdmin
+         .from("alumnos")
+         .select("id, email, nombre")
+         .eq("access_token", guestToken)
+         .single();
+       
+       if (guestStudent) {
+         context.locals.user = {
+           id: guestStudent.id,
+           email: guestStudent.email || "",
+           role: "invitado"
+         };
+       } else {
+         context.locals.user = null;
+       }
+    } else {
+       context.locals.user = null;
+    }
+  } else {
+    // Sesión Real Detectada
+    context.locals.user = {
+      id: user.id,
+      email: user.email || "",
+      role: (user.app_metadata?.role as any) || "profesor",
+    };
   }
 
-  // Redirección lógica: Si ya está logueado y va a login, mandarlo a su dashboard
-  if (user && path === '/login') {
-    const role = user.app_metadata?.role || 'profesor';
-    return context.redirect(role === 'profesor' ? '/profesor' : '/entrenamiento');
+  const localUser = context.locals.user;
+
+  // 🛡️ ESCUDO GLOBAL (RBAC)
+
+  // 1. SI NO HAY SESIÓN (NI GUEST NI AUTH)
+  if (!localUser) {
+    if (path.startsWith('/profesor') || path.startsWith('/alumno') || path.startsWith('/onboarding')) {
+      return context.redirect('/login?error=unauthorized');
+    }
+    return next();
+  }
+
+  // 2. BLINDAJE DE ONBOARDING: Prohibido para Alumnos o Profesores ya registrados
+  if (path.startsWith('/onboarding')) {
+    if (localUser.role === 'invitado') return context.redirect('/alumno');
+    
+    const { data: isProfesor } = await supabase.from('profesores').select('id').eq('id', localUser.id).maybeSingle();
+    if (isProfesor) return context.redirect('/profesor');
+    
+    const { data: isAlumno } = await supabase.from('alumnos').select('id').eq('user_id', localUser.id).maybeSingle();
+    if (isAlumno) return context.redirect('/alumno');
+  }
+
+  // 3. PROTECCIÓN DE RUTA PROFESOR
+  if (path.startsWith('/profesor')) {
+    if (localUser.role !== 'profesor') {
+      if (localUser.role === 'invitado' || localUser.role === 'alumno') return context.redirect('/alumno');
+      return context.redirect('/onboarding');
+    }
+    // Verificación final de integridad de profesor
+    const { data: isProf } = await supabase.from('profesores').select('id').eq('id', localUser.id).maybeSingle();
+    if (!isProf) return context.redirect('/onboarding');
+  }
+
+  // 4. PROTECCIÓN DE RUTA ALUMNO
+  if (path.startsWith('/alumno')) {
+    if (localUser.role === 'profesor') return context.redirect('/profesor');
+    
+    // Si ya es un invitado válidado (tiene ID de alumno), no necesitamos re-verificar con RLS
+    if (localUser.role === 'invitado') return next();
+
+    // Para alumnos formales (Auth), verificamos que el registro exista en la tabla alumnos
+    const { data: isAlum } = await supabase
+      .from('alumnos')
+      .select('id')
+      .eq('user_id', localUser.id)
+      .maybeSingle();
+    
+    if (!isAlum) return context.redirect('/onboarding');
+  }
+
+  // 5. LOGIN REDIRECT: Si ya tiene sesión, mandarlo a su casa
+  if (path === '/login') {
+    if (localUser.role === 'profesor') return context.redirect('/profesor');
+    return context.redirect('/alumno');
   }
 
   return next();
