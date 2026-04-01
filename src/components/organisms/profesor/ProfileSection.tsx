@@ -5,6 +5,7 @@ import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { updateAccountSchema, type UpdateAccountData } from "@/lib/validators";
 import { configurationCopy } from "@/data/es/profesor/configuracion";
 
@@ -23,7 +24,7 @@ interface PerfilProps {
 }
 
 export function ProfileSection({ profesor }: { profesor: PerfilProps }) {
-  const [isPending, setIsPending] = useState(false);
+  const { execute, isPending } = useAsyncAction();
   const copy = configurationCopy.profile;
 
   const {
@@ -39,19 +40,12 @@ export function ProfileSection({ profesor }: { profesor: PerfilProps }) {
   });
 
   const onSubmit = async (data: UpdateAccountData) => {
-    setIsPending(true);
-    try {
+    execute(async () => {
       const result = await actions.profesor.updateAccount(data);
-      if (result.data?.success) {
-        toast.success(result.data.message);
-      } else if (result.error) {
-        toast.error(result.error.message);
-      }
-    } catch (err: any) {
-      toast.error(copy.toast.error);
-    } finally {
-      setIsPending(false);
-    }
+      if (result.error) throw result.error;
+    }, {
+      successMsg: copy.toast.success,
+    });
   };
 
   return (

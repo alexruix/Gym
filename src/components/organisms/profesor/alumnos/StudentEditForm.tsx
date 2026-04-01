@@ -7,6 +7,7 @@ import type { z } from "zod";
 import { toast } from "sonner";
 import { Calendar, Phone, Loader2, Save, X, Archive } from "lucide-react";
 
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,7 +45,7 @@ interface StudentEditFormProps {
 
 export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditFormProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+  const { execute, isPending } = useAsyncAction();
 
   useEffect(() => {
     setIsMounted(true);
@@ -64,22 +65,15 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
   });
 
   const onSubmit = async (data: FormValues) => {
-    setIsPending(true);
-    try {
+    execute(async () => {
       const { data: result, error } = await actions.profesor.updateStudent(data);
-      if (error) {
-        toast.error(error.message || "Error al actualizar alumno");
-        return;
-      }
+      if (error) throw error;
       if (result?.success) {
-        toast.success(result.mensaje);
         onSuccess?.();
       }
-    } catch (err: any) {
-      toast.error(err.message || "Error al actualizar alumno");
-    } finally {
-      setIsPending(false);
-    }
+    }, {
+      successMsg: "Alumno actualizado correctamente",
+    });
   };
 
   if (!isMounted) {
@@ -245,22 +239,16 @@ export function StudentEditForm({ alumno, onSuccess, onCancel }: StudentEditForm
                 type="button" 
                 variant="outline" 
                 size="sm"
-                onClick={async () => {
+                onClick={() => {
                     if (confirm(`¿Estás seguro de archivar a ${alumno.nombre}? El alumno dejará de aparecer en las listas activas.`)) {
-                        setIsPending(true);
-                        try {
+                        execute(async () => {
                             const { error } = await actions.profesor.deleteStudent({ id: alumno.id });
-                            if (error) {
-                                toast.error("Error al archivar alumno");
-                            } else {
-                                toast.success("Alumno archivado");
-                                window.location.href = "/profesor/alumnos";
-                            }
-                        } catch (err) {
-                            toast.error("Error inesperado");
-                        } finally {
-                            setIsPending(false);
-                        }
+                            if (error) throw error;
+                            window.location.href = "/profesor/alumnos";
+                        }, {
+                            loadingMsg: "Archivando...",
+                            successMsg: "Alumno archivado correctamente",
+                        });
                     }
                 }}
                 className="rounded-xl font-bold uppercase tracking-widest text-[9px] h-11 px-4 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"

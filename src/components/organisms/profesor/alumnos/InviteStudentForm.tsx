@@ -8,6 +8,7 @@ import { inviteStudentCopy } from "@/data/es/profesor/alumnos";
 import { toast } from "sonner";
 import { Copy, ArrowRight, CircleCheck, Calendar, Phone, Plus, UserCircle2, Briefcase, Info, Loader2 } from "lucide-react";
 
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -49,7 +50,7 @@ interface Plan {
 
 export function InviteStudentForm({ plans }: { plans: Plan[] }) {
   const [isMounted, setIsMounted] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+  const { execute, isPending } = useAsyncAction();
   const [successData, setSuccessData] = useState<{ id: string; email: string; name: string; date: string; phone?: string } | null>(null);
 
   // Evitar desajustes de hidratación inicializando fechas solo en el cliente
@@ -95,13 +96,9 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
   }, [selectedDate, isMounted, form]);
 
   const onSubmit = async (data: FormValues) => {
-    setIsPending(true);
-    try {
+    execute(async () => {
       const { data: result, error } = await actions.profesor.inviteStudent(data);
-      if (error) {
-        toast.error(error.message || inviteStudentCopy.messages.error);
-        return;
-      }
+      if (error) throw error;
       if (result?.success) {
         setSuccessData({
           id: result.student_id,
@@ -111,11 +108,9 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
           phone: data.telefono
         });
       }
-    } catch (err: any) {
-      toast.error(err.message || inviteStudentCopy.messages.error);
-    } finally {
-      setIsPending(false);
-    }
+    }, {
+      loadingMsg: "Enviando invitación...",
+    });
   };
 
   const shareWhatsApp = async () => {

@@ -5,6 +5,7 @@ import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { Loader2, ExternalLink, X, Award } from "lucide-react";
 
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { updatePublicProfileSchema, type UpdatePublicProfileData } from "@/lib/validators";
 import { configurationCopy } from "@/data/es/profesor/configuracion";
 
@@ -28,7 +29,7 @@ export interface PublicPerfilProps {
 }
 
 export function PublicProfileSection({ profesor }: { profesor: PublicPerfilProps }) {
-  const [isPending, setIsPending] = useState(false);
+  const { execute, isPending } = useAsyncAction();
   const copy = configurationCopy.publicProfile;
 
   const {
@@ -77,19 +78,12 @@ export function PublicProfileSection({ profesor }: { profesor: PublicPerfilProps
   };
 
   const onSubmit = async (data: UpdatePublicProfileData) => {
-    setIsPending(true);
-    try {
+    execute(async () => {
       const result = await actions.profesor.updatePublicProfile(data);
-      if (result.data?.success) {
-        toast.success(copy.toast.success);
-      } else if (result.error) {
-        toast.error(result.error.message || copy.toast.error);
-      }
-    } catch (err: any) {
-      toast.error(copy.toast.error);
-    } finally {
-      setIsPending(false);
-    }
+      if (result.error) throw result.error;
+    }, {
+      successMsg: copy.toast.success,
+    });
   };
 
   const renderDomain = typeof window !== "undefined" ? window.location.host : "migym.com";

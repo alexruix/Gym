@@ -5,6 +5,7 @@ import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { Loader2, Key, List, Info, KeyRound } from "lucide-react";
 
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { changePasswordSchema, type ChangePasswordData } from "@/lib/validators";
 import { configurationCopy } from "@/data/es/profesor/configuracion";
 
@@ -41,7 +42,7 @@ export function SecuritySection({ lastPasswordUpdate }: { lastPasswordUpdate?: s
     const diffInYears = Math.floor(diffInDays / 365);
     return `hace ${diffInYears} año${diffInYears !== 1 ? 's' : ''}`;
   }
-  const [isPending, setIsPending] = useState(false);
+  const { execute, isPending } = useAsyncAction();
   const copy = configurationCopy.security;
   const modalCopy = configurationCopy.modals.changePassword;
 
@@ -55,21 +56,16 @@ export function SecuritySection({ lastPasswordUpdate }: { lastPasswordUpdate?: s
   });
 
   const onSubmit = async (data: ChangePasswordData) => {
-    setIsPending(true);
-    try {
+    execute(async () => {
       const result = await actions.profesor.changePassword(data);
+      if (result.error) throw result.error;
       if (result.data?.success) {
-        toast.success(modalCopy.success);
         setIsOpen(false);
         reset();
-      } else if (result.error) {
-        toast.error(result.error.message || modalCopy.error.general);
       }
-    } catch (err) {
-      toast.error(modalCopy.error.general);
-    } finally {
-      setIsPending(false);
-    }
+    }, {
+      successMsg: modalCopy.success,
+    });
   };
 
   return (
