@@ -44,12 +44,17 @@ export type PlanFormData = z.infer<typeof planSchema>;
 // Exercise Library validation (SSOT for creating/editing exercises)
 export const exerciseLibrarySchema = z.object({
   id: z.string().uuid().optional(),
+  parent_id: z.string().uuid().optional(),
   nombre: z.string().min(2, "Mínimo 2 caracteres").max(120, "Máximo 120 caracteres"),
   descripcion: z.string().max(1000, "Máximo 1000 caracteres").optional(),
   media_url: z.string().url("Debe ser una URL válida").optional().or(z.literal("")),
   tags: z.array(z.string()).max(6, "Máximo 6 etiquetas"),
+  is_template_base: z.boolean().optional(),
+  variants: z.array(z.string()).optional(),
 });
-export type ExerciseLibraryFormData = z.infer<typeof exerciseLibrarySchema>;
+export type ExerciseLibraryFormData = z.infer<typeof exerciseLibrarySchema> & {
+  existing_variants?: { id: string, nombre: string }[];
+};
 
 export const studentSchema = z.object({
   nombre: z.string().min(1, "Nombre requerido"),

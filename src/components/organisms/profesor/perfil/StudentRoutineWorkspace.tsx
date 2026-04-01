@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { 
@@ -11,12 +11,18 @@ import {
   Trash2, 
   Loader2,
   Share2,
-  X
+  X,
+  Layers,
+  ArrowUpRight,
+  Library
 } from "lucide-react";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { Button } from "@/components/ui/button";
-import { ExerciseMediaModal } from "@/components/molecules/profesor/perfil/ExerciseMediaModal";
+import { RoutineExerciseRow } from "@/components/molecules/profesor/planes/RoutineExerciseRow";
+import { MasterPlanAssignmentDialog } from "@/components/molecules/profesor/perfil/MasterPlanAssignmentDialog";
 import { cn } from "@/lib/utils";
+import { useAccordion } from "@/hooks/useAccordion";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 
 // --- Tipos para la Rutina ---
 interface EjercicioPlan {
@@ -55,36 +61,27 @@ interface Props {
   planData?: AssignedPlan | null;
 }
 
+/**
+ * StudentRoutineWorkspace: Workspace de entrenamiento del alumno.
+ * Refactorizado para coincidir con la estética técnica de PlanDetail.
+ */
 export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
   const { workspace } = athleteProfileCopy;
-  const [isPending, setIsPending] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = React.useState(false);
 
-  const [openRutinas, setOpenRutinas] = useState<Set<string>>(
-    new Set(planData?.rutinas_diarias?.slice(0, 1).map((r) => r.id) || [])
+  // Hooks Core: eliminan boilerplate duplicado
+  const { execute: run, isPending } = useAsyncAction();
+  const { isOpen: isRutinaOpen, toggleItem: toggleRutina } = useAccordion(
+    planData?.rutinas_diarias?.slice(0, 1).map((r) => r.id) || []
   );
-  
-  const [selectedMedia, setSelectedMedia] = useState<{title: string, url: string} | null>(null);
 
-  const toggleRutina = (id: string) => {
-    setOpenRutinas((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const handleDeleteExercise = async (ejercicioPlanId: string) => {
+  const handleDeleteExercise = (ejercicioPlanId: string) => {
     if (!planData || isPending) return;
-    
     if (!confirm("¿Seguro que querés quitar este ejercicio?")) return;
 
-    setIsPending(true);
-    const tId = toast.loading(planData.is_template ? workspace.routine.actions.forkingTitle : "Actualizando...");
-
-    try {
+    run(async () => {
       let targetPlanId = planData.id;
 
-      // 1. Fork si es plantilla
       if (planData.is_template) {
         const { data: forkRes, error: forkErr } = await actions.profesor.forkPlan({
           planId: planData.id,
@@ -95,8 +92,6 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
         targetPlanId = forkRes.plan_id;
       }
 
-      // 2. Reconstruir plan sin el ejercicio
-      // Filtramos en todas las rutinas el ejercicio que coincida con el ID
       const updatedRutinas = planData.rutinas_diarias.map(r => ({
         dia_numero: r.dia_numero,
         nombre_dia: r.nombre_dia || `Día ${r.dia_numero}`,
@@ -122,28 +117,15 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
       });
 
       if (upError) throw new Error(upError.message);
-
-      toast.success(planData.is_template ? workspace.routine.actions.forkingDesc : "Ejercicio quitado", { id: tId });
-      window.location.reload();
-
-    } catch (err: any) {
-      toast.error(err.message, { id: tId });
-    } finally {
-      setIsPending(false);
-    }
+    }, { loadingMsg: planData.is_template ? "Personalizando rutina..." : "Actualizando...", successMsg: "Rutina actualizada", reloadOnSuccess: true });
   };
 
-  const handleDeleteDay = async (rutinaId: string) => {
+  const handleDeleteDay = (rutinaId: string) => {
     if (!planData || isPending) return;
-    
-    if (!confirm("¿Eliminar este día completo de la rutina del alumno?")) return;
+    if (!confirm("¿Eliminar este día completo?")) return;
 
-    setIsPending(true);
-    const tId = toast.loading(planData.is_template ? workspace.routine.actions.forkingTitle : "Actualizando...");
-
-    try {
+    run(async () => {
       let targetPlanId = planData.id;
-
       if (planData.is_template) {
         const { data: forkRes, error: forkErr } = await actions.profesor.forkPlan({
           planId: planData.id,
@@ -154,7 +136,6 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
         targetPlanId = forkRes.plan_id;
       }
 
-      // Reconstruir omitiendo el día borrado
       const updatedRutinas = planData.rutinas_diarias
         .filter(r => r.id !== rutinaId)
         .map((r, rIdx) => ({
@@ -178,84 +159,86 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
         frecuencia_semanal: updatedRutinas.length,
         rutinas: updatedRutinas
       });
-
       if (upError) throw new Error(upError.message);
-
-      toast.success("Día eliminado correctamente", { id: tId });
-      window.location.reload();
-
-    } catch (err: any) {
-      toast.error(err.message, { id: tId });
-    } finally {
-      setIsPending(false);
-    }
+    }, { loadingMsg: "Actualizando...", successMsg: "Día eliminado", reloadOnSuccess: true });
   };
 
-  if (!planData || !planData.rutinas_diarias || planData.rutinas_diarias.length === 0) {
-    return (
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-12 md:p-20 text-center space-y-8 shadow-sm">
-        <div className="relative mx-auto w-32 h-32 flex items-center justify-center">
-            <div className="absolute inset-0 bg-lime-400 opacity-20 blur-3xl rounded-full animate-pulse" />
-            <div className="relative bg-zinc-950 dark:bg-white p-6 rounded-[2rem] shadow-2xl rotate-3">
-               <Dumbbell className="w-12 h-12 text-lime-400 dark:text-zinc-950" />
-            </div>
-        </div>
-        
-        <div className="space-y-3 max-w-sm mx-auto">
-          <h3 className="text-2xl font-black tracking-tight text-zinc-950 dark:text-white uppercase italic">
-            {workspace.routine.emptyState.title}
-          </h3>
-          <p className="text-sm font-medium text-zinc-500 leading-relaxed">
-            {workspace.routine.emptyState.description}
-          </p>
-        </div>
-
-        <Button
-          onClick={() => window.location.href = '/profesor/planes'}
-          className="h-16 px-10 bg-zinc-950 dark:bg-lime-400 text-white dark:text-zinc-950 hover:scale-105 transition-all font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-zinc-950/20"
-        >
-          <Plus className="w-5 h-5 mr-3" />
-          {workspace.routine.emptyState.btnLabel}
-        </Button>
-      </div>
-    );
-  }
-
-  // Ordenar rutinas y ejercicios para mostrar correctamente
-  const sortedRutinas = [...planData.rutinas_diarias].sort((a, b) => a.dia_numero - b.dia_numero);
-
-  const handlePromotePlan = async () => {
+  const handlePromotePlan = () => {
     if (!planData || isPending) return;
-    if (!confirm("¿Querés convertir este plan en una Plantilla Maestra? Aparecerá en tu lista general de planes.")) return;
-
-    setIsPending(true);
-    try {
+    run(async () => {
       const { data, error } = await actions.profesor.promotePlan({ id: planData.id });
       if (error) throw new Error(error.message);
       toast.success(data.mensaje);
       window.location.reload();
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setIsPending(false);
-    }
+    }, { loadingMsg: "Promocionando..." });
   };
 
+  if (!planData || !planData.rutinas_diarias || planData.rutinas_diarias.length === 0) {
+    return (
+        <div className="py-24 bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] flex flex-col items-center gap-8 text-center shadow-2xl shadow-zinc-950/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none" />
+            <div className="w-24 h-24 bg-zinc-950 dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center border border-zinc-800 shadow-2xl group-hover:rotate-6 transition-transform duration-500">
+                <Dumbbell className="w-10 h-10 text-lime-400" />
+            </div>
+            <div className="space-y-2 relative z-10 max-w-sm">
+                <h3 className="font-black text-2xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin plan asignado</h3>
+                <p className="text-sm text-zinc-400 font-medium px-6">Este atleta aún no tiene rutinas activas. Podés asignarle una pre-definda o crear una desde cero.</p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
+                <Button 
+                    onClick={() => setIsAssignDialogOpen(true)}
+                    variant="industrial"
+                    className="h-14 px-10 rounded-2xl shadow-xl shadow-lime-500/10 uppercase"
+                >
+                    <Library className="w-4 h-4 mr-3" />
+                    Asignar de mis Planes
+                </Button>
+
+                <Button 
+                    onClick={() => window.location.href = '/profesor/planes'}
+                    variant="outline"
+                    className="h-14 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all font-sans"
+                >
+                    <Plus className="w-4 h-4 mr-3" />
+                    Crear nuevo Plan
+                </Button>
+            </div>
+
+            <MasterPlanAssignmentDialog 
+                open={isAssignDialogOpen}
+                onOpenChange={setIsAssignDialogOpen}
+                alumnoId={alumnoId}
+                onSuccess={() => window.location.reload()}
+            />
+        </div>
+    );
+  }
+
+  const sortedRutinas = [...planData.rutinas_diarias].sort((a, b) => a.dia_numero - b.dia_numero);
+
   return (
-    <div className="space-y-6">
-      {/* Cabecera */}
-      <div className="px-2 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h3 className="text-lg md:text-xl font-black tracking-tighter text-zinc-950 dark:text-white flex items-center gap-3 uppercase">
-          {workspace.routine.title}
-          <span className={cn(
-            "text-[10px] font-black px-3 py-1 rounded-full border uppercase tracking-widest",
-            planData.is_template 
-              ? "text-zinc-500 bg-zinc-100 border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700" 
-              : "text-lime-600 bg-lime-100 border-lime-200 dark:bg-lime-900/40 dark:border-lime-500/20"
-          )}>
-            {planData.nombre} {!planData.is_template && "(Personalizado)"}
-          </span>
-        </h3>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Header Operational */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+        <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center border border-zinc-800 shadow-lg">
+                <Layers className="w-6 h-6 text-lime-400" />
+            </div>
+            <div>
+                <h3 className="text-xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none mb-1">
+                    {workspace.routine.title}
+                </h3>
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{planData.nombre}</span>
+                    {!planData.is_template && (
+                        <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-400/10 px-2 py-0.5 rounded-full border border-lime-400/20">
+                            PERSONALIZADO
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
         
         <div className="flex items-center gap-3">
           {!planData.is_template && (
@@ -264,161 +247,102 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
               size="sm"
               disabled={isPending}
               onClick={handlePromotePlan}
-              className="rounded-xl font-black uppercase text-[10px] tracking-widest border-lime-500/30 text-lime-600 hover:bg-lime-50 gap-2 h-9"
+              className="h-10 rounded-xl font-black uppercase text-[9px] tracking-[0.2em] border-zinc-200 dark:border-zinc-800 hover:bg-lime-400 hover:text-zinc-950 hover:border-lime-500 transition-all gap-2"
             >
-              <Share2 className="w-3.5 h-3.5" />
-              {workspace.routine.actions.promote}
+              <ArrowUpRight className="w-3 h-3" />
+              Promover a Maestro
             </Button>
           )}
 
           <Button 
-            variant="outline" 
+            variant="industrial"
             size="sm" 
-            className="rounded-xl font-black uppercase text-[10px] tracking-widest border-zinc-200 gap-2 h-9 px-4 active:scale-95 transition-all shadow-none hover:bg-zinc-50 dark:hover:bg-zinc-900"
+            className="h-10 rounded-xl px-5 shadow-lg shadow-lime-500/10"
             onClick={() => window.location.assign(`/profesor/planes/${planData.id}/edit`)}
           >
-            <Settings2 className="w-3.5 h-3.5" />
-            Gestionar plan
+            <Settings2 className="w-3.5 h-3.5 mr-2" />
+            EDITAR COMPLETO
+          </Button>
+
+          <Button 
+            variant="outline"
+            size="sm" 
+            className="h-10 rounded-xl px-5 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 font-black uppercase text-[9px] tracking-widest"
+            onClick={() => setIsAssignDialogOpen(true)}
+          >
+            <Library className="w-3.5 h-3.5 mr-2" />
+            Cambiar Plan
           </Button>
         </div>
       </div>
 
-      {/* Lista de días tipo Acordeón */}
-      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Accordion List (PlanDetail Style) */}
+      <div className="space-y-4">
         {sortedRutinas.map((rutina) => {
-          const isOpen = openRutinas.has(rutina.id);
+          const isOpen = isRutinaOpen(rutina.id);
           const ejs = (rutina.ejercicios_plan || []).sort((a, b) => a.orden - b.orden);
 
           return (
             <div
               key={rutina.id}
-              className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden transition-all duration-300"
+              className="bg-white dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden transition-all duration-500 hover:shadow-xl hover:shadow-zinc-950/5 group"
             >
-              {/* Toggle de Día */}
               <button
                 onClick={() => toggleRutina(rutina.id)}
-                className="w-full flex items-center justify-between px-5 py-4 bg-zinc-50/80 dark:bg-zinc-900/50 hover:bg-zinc-100/80 dark:hover:bg-zinc-900/80 transition-colors group"
-                aria-expanded={isOpen}
+                className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all"
               >
-                <div className="flex items-center gap-4">
-                  <span className="w-8 h-8 rounded-xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-black text-zinc-600 dark:text-zinc-200 shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-colors shadow-sm">
+                <div className="flex items-center gap-6">
+                  <span className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-all duration-500 shadow-sm",
+                    isOpen ? "bg-zinc-950 text-white dark:bg-lime-400 dark:text-zinc-950 rotate-3" : "bg-zinc-50 dark:bg-zinc-900 text-zinc-400 group-hover:rotate-6"
+                  )}>
                     {rutina.dia_numero}
                   </span>
-                  <div className="text-left flex items-center gap-3">
-                    <p className="font-black text-zinc-950 dark:text-white text-sm uppercase tracking-tight">
-                      {workspace.routine.dayLabel} {rutina.dia_numero}
-                      {rutina.nombre_dia && rutina.nombre_dia !== `Día ${rutina.dia_numero}` && (
-                        <span className="ml-2 font-medium text-zinc-500 normal-case tracking-normal">
-                          — {rutina.nombre_dia}
-                        </span>
-                      )}
+                  <div className="text-left">
+                    <h4 className="font-black text-lg text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 transition-colors">
+                      {rutina.nombre_dia || `Día ${rutina.dia_numero}`}
+                    </h4>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                        <Clock className="w-3 h-3" />
+                        {ejs.length} Actividades técnicas
                     </p>
-                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      {ejs.length} ejercicios
-                    </span>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
                     <Button
                         variant="ghost"
                         size="icon"
                         disabled={isPending}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteDay(rutina.id);
-                        }}
-                        className="h-8 w-8 rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all opacity-0 group-hover:opacity-100"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteDay(rutina.id); }}
+                        className="h-9 w-9 rounded-xl text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-all"
                     >
                         <Trash2 className="w-4 h-4" />
                     </Button>
-                    {isOpen ? (
-                    <ChevronDown className="w-4 h-4 text-zinc-400 transition-transform" aria-hidden="true" />
-                    ) : (
-                    <ChevronRight className="w-4 h-4 text-zinc-400 transition-transform" aria-hidden="true" />
-                    )}
+                    <div className={cn(
+                        "w-8 h-8 rounded-lg bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all",
+                        isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
+                    )}>
+                        <ChevronDown className="w-4 h-4" />
+                    </div>
                 </div>
               </button>
 
-              {/* Lista de Ejercicios */}
               {isOpen && (
-                <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+                <div className="border-t border-zinc-50 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-2 duration-500">
                   {ejs.length === 0 ? (
-                    <p className="text-center py-6 text-zinc-400 text-sm font-medium">{workspace.routine.emptyDay}</p>
+                    <div className="py-10 text-center space-y-2">
+                         <X className="w-8 h-8 text-zinc-200 mx-auto" />
+                         <p className="text-xs font-black text-zinc-400 uppercase tracking-widest">{workspace.routine.emptyDay}</p>
+                    </div>
                   ) : (
                     ejs.map((ej, idx) => (
-                      <div
-                        key={ej.id}
-                        className="flex items-center gap-4 px-5 py-4 bg-white dark:bg-zinc-950 hover:bg-zinc-50/80 dark:hover:bg-zinc-900/40 transition-colors group/ej"
-                      >
-                        {/* Índice */}
-                        <span className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-400 shrink-0 border border-zinc-200/50 dark:border-zinc-700/50 shadow-inner">
-                          {idx + 1}
-                        </span>
-
-                        {/* Thumbnail */}
-                        <button 
-                          onClick={() => ej.biblioteca_ejercicios?.media_url && setSelectedMedia({ title: ej.biblioteca_ejercicios.nombre, url: ej.biblioteca_ejercicios.media_url })}
-                          disabled={!ej.biblioteca_ejercicios?.media_url}
-                          className="w-14 h-14 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden shrink-0 flex items-center justify-center shadow-inner border border-zinc-200/50 dark:border-zinc-700/50 hover:border-lime-400/50 transition-colors cursor-zoom-in"
-                        >
-                          {ej.biblioteca_ejercicios?.media_url ? (
-                            <img
-                              src={ej.biblioteca_ejercicios.media_url}
-                              alt={ej.biblioteca_ejercicios.nombre}
-                              className="w-full h-full object-cover grayscale brightness-90 group-hover/ej:grayscale-0 group-hover/ej:brightness-100 group-hover/ej:scale-105 transition-all duration-500"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <Dumbbell className="w-5 h-5 text-zinc-300 dark:text-zinc-600 group-hover/ej:scale-110 transition-transform duration-300" aria-hidden="true" />
-                          )}
-                        </button>
-
-                        {/* Info Principal */}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-black text-zinc-950 dark:text-white text-base uppercase tracking-tight truncate mb-1 md:mb-0 group-hover/ej:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
-                            {ej.biblioteca_ejercicios?.nombre || "Ejercicio no encontrado"}
-                          </p>
-                          <div className="md:hidden flex items-center gap-2">
-                             <span className="text-[10px] font-black uppercase text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">
-                                {ej.series} × {ej.reps_target}
-                             </span>
-                          </div>
-                        </div>
-
-                         {/* Detalles Desktop */}
-                        <div className="hidden md:flex items-center gap-5 shrink-0">
-                          <div className="text-center group-hover/ej:-translate-y-0.5 transition-transform duration-300">
-                            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1.5">{workspace.routine.sets}</p>
-                            <p className="text-sm font-black text-zinc-950 dark:text-white bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-lg px-2 py-1 shadow-sm">{ej.series}</p>
-                          </div>
-                          <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800" />
-                          <div className="text-center group-hover/ej:-translate-y-0.5 transition-transform duration-300 delay-75">
-                            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1.5">{workspace.routine.reps}</p>
-                            <p className="text-sm font-black text-zinc-950 dark:text-white bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-lg px-2 py-1 shadow-sm">{ej.reps_target}</p>
-                          </div>
-                          <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800" />
-                          <div className="text-center group-hover/ej:-translate-y-0.5 transition-transform duration-300 delay-150 min-w-[60px]">
-                            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center justify-center gap-1 leading-none mb-1.5">
-                              <Clock className="w-2.5 h-2.5" aria-hidden="true" /> {workspace.routine.restLabel}
-                            </p>
-                            <p className="text-sm font-black text-zinc-950 dark:text-white">{ej.descanso_seg}<span className="text-zinc-500 font-medium normal-case ml-0.5">{workspace.routine.seconds}</span></p>
-                          </div>
-                          
-                          {/* BOTÓN QUITAR */}
-                          <div className="ml-2">
-                             <Button
-                                variant="ghost"
-                                size="icon"
-                                disabled={isPending}
-                                onClick={() => handleDeleteExercise(ej.id)}
-                                className="h-10 w-10 rounded-xl text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover/ej:opacity-100 transition-all active:scale-95"
-                             >
-                                <X className="w-4 h-4" />
-                             </Button>
-                          </div>
-                        </div>
-                      </div>
+                      <RoutineExerciseRow 
+                        key={ej.id} 
+                        exercise={ej} 
+                        index={idx} 
+                        onDelete={() => handleDeleteExercise(ej.id)}
+                      />
                     ))
                   )}
                 </div>
@@ -427,11 +351,12 @@ export function StudentRoutineWorkspace({ alumnoId, planData }: Props) {
           );
         })}
       </div>
-      <ExerciseMediaModal 
-        isOpen={!!selectedMedia}
-        onClose={() => setSelectedMedia(null)}
-        title={selectedMedia?.title || ""}
-        mediaUrl={selectedMedia?.url || null}
+
+      <MasterPlanAssignmentDialog 
+        open={isAssignDialogOpen}
+        onOpenChange={setIsAssignDialogOpen}
+        alumnoId={alumnoId}
+        onSuccess={() => window.location.reload()}
       />
     </div>
   );

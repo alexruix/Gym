@@ -25,8 +25,8 @@ if (!userId) {
     <FormContainer size="sm">
       <ExerciseForm 
         client:load 
-        onSuccess={() => Astro.redirect("/profesor/ejercicios")} 
-        onCancel={() => Astro.redirect("/profesor/ejercicios")}
+        successHref="/profesor/ejercicios" 
+        cancelHref="/profesor/ejercicios"
       />
     </FormContainer>
   </div>

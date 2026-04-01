@@ -1,39 +1,40 @@
 ---
-import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
-import { getAlumnosConPagoActivo } from '@/lib/data-pagos';
-import { TablaPagos } from '@/components/organisms/TablaPagos';
-import { createSupabaseServerClient } from '@/lib/supabase-ssr';
-import PageHeader from '@/components/molecules/PageHeader.astro';
-import { pagosCopy } from '@/data/es/profesor/pagos';
+import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
+import PageHeader from "@/components/molecules/PageHeader.astro";
+import { TablaPagos } from "@/components/organisms/TablaPagos";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { getAlumnosConPagoActivo } from "@/lib/data-pagos";
+import { pagosCopy } from "@/data/es/profesor/pagos";
 
 const supabase = createSupabaseServerClient(Astro);
-const user = Astro.locals.user;
+const { data: userData } = await supabase.auth.getUser();
+const userId = userData.user?.id;
 
-if (!user) {
-  return Astro.redirect('/login');
+if (!userId) {
+  return Astro.redirect("/login");
 }
 
 let alumnosPagos = [];
 try {
-  alumnosPagos = await getAlumnosConPagoActivo(supabase, user.id);
+  alumnosPagos = await getAlumnosConPagoActivo(supabase, userId);
 } catch (e) {
-  console.error("Error fetching alumnos for pagos:", e);
+  console.error("Error cargando alumnos para pagos:", e);
 }
 ---
 
-<ProfesorLayout title={`${pagosCopy.title} - MiGym`}>
-  <main class="relative p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-    <!-- Elementos Decorativos -->
-    <div class="absolute top-0 right-0 -z-10 translate-x-1/4 -translate-y-1/4 w-96 h-96 bg-lime-400/10 blur-[120px] rounded-full"></div>
-    <div class="absolute bottom-0 left-0 -z-10 -translate-x-1/4 translate-y-1/4 w-96 h-96 bg-zinc-400/5 blur-[120px] rounded-full"></div>
-    
-    <PageHeader 
-      title={pagosCopy.title} 
+<ProfesorLayout title={`${pagosCopy.title} | MiGym`}>
+  <div class="px-4 py-6 md:py-10 max-w-7xl mx-auto space-y-8">
+    <PageHeader
+      title={pagosCopy.title}
       subtitle={pagosCopy.description}
+      breadcrumbs={[
+        { label: "Inicio", href: "/profesor" },
+        { label: "Pagos" }
+      ]}
     />
 
-    <section class="relative">
+    <div class="bg-transparent rounded-2xl">
       <TablaPagos client:load initialAlumnos={alumnosPagos} />
-    </section>
-  </main>
+    </div>
+  </div>
 </ProfesorLayout>

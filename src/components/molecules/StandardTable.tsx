@@ -14,8 +14,8 @@ export interface TableColumn<T> {
 interface StandardTableProps<T> {
   data: T[];
   columns: TableColumn<T>[];
-  searchTerm: string;
-  onSearchChange: (val: string) => void;
+  searchTerm?: string;
+  onSearchChange?: (val: string) => void;
   searchPlaceholder?: string;
   filters?: React.ReactNode;
   onRowClick?: (item: T) => void;
@@ -25,6 +25,7 @@ interface StandardTableProps<T> {
   EmptyIcon?: LucideIcon;
   /** Nombre de la entidad (ej: "Alumnos") para el contador */
   entityName?: string;
+  hideSearch?: boolean;
   className?: string;
 }
 
@@ -44,6 +45,7 @@ export function StandardTable<T extends { id: string | number }>({
   emptySearchMessage = "No hay coincidencias para tu búsqueda",
   EmptyIcon,
   entityName = "Resultados",
+  hideSearch,
   className,
 }: StandardTableProps<T>) {
   
@@ -51,15 +53,17 @@ export function StandardTable<T extends { id: string | number }>({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <SearchHeader 
-        value={searchTerm}
-        onChange={onSearchChange}
-        count={data.length}
-        label={data.length === 1 ? entityName.slice(0, -1) : entityName}
-        placeholder={searchPlaceholder}
-        actions={filters}
-        className="p-4 bg-white dark:bg-zinc-950/20 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm"
-      />
+      {(!hideSearch && searchTerm !== undefined && onSearchChange !== undefined) && (
+        <SearchHeader 
+            value={searchTerm}
+            onChange={onSearchChange}
+            count={data.length}
+            label={data.length === 1 ? entityName.slice(0, -1) : entityName}
+            placeholder={searchPlaceholder}
+            actions={filters}
+            className="p-4 bg-white dark:bg-zinc-950/20 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm"
+        />
+      )}
 
       {/* Table Container */}
       <Card className="overflow-hidden border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/20 dark:shadow-none bg-white dark:bg-zinc-950 rounded-3xl">

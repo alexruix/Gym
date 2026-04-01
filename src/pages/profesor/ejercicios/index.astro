@@ -17,7 +17,7 @@ if (!userId) {
 // Fetch existing exercises from DB
 const { data: exercises, error } = await supabase
   .from("biblioteca_ejercicios")
-  .select("id, nombre, descripcion, media_url, tags, created_at")
+  .select("id, nombre, descripcion, media_url, tags, parent_id, is_template_base, created_at")
   .eq("profesor_id", userId)
   .order("created_at", { ascending: false });
 

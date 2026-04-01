@@ -31,17 +31,12 @@ export interface PlanRowData {
 
 interface Props {
   planes: PlanRowData[];
+  onDelete?: (plan: PlanRowData) => void;
+  onDuplicate?: (id: string) => void;
 }
 
-export function PlanesTable({ planes }: Props) {
+export function PlanesTable({ planes, onDelete, onDuplicate }: Props) {
   const c = planesCopy.list.table;
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredPlanes = useMemo(() => {
-    return planes.filter(plan => 
-      plan.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [planes, searchTerm]);
 
   const columns: TableColumn<PlanRowData>[] = [
     {
@@ -88,26 +83,38 @@ export function PlanesTable({ planes }: Props) {
         <div onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg" aria-label={c.dropdownMenu.triggerAria}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg">
                 <MoreHorizontal className="w-4 h-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg border-zinc-200 dark:border-zinc-800 font-medium p-1 z-50 bg-white dark:bg-zinc-950">
-              <DropdownMenuItem className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900">
+              <DropdownMenuItem 
+                onClick={() => window.location.href = `/profesor/planes/${plan.id}`}
+                className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+              >
                 <Eye className="w-4 h-4 mr-2 text-zinc-500" aria-hidden="true" />
                 {c.dropdownMenu.viewDetails}
               </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900">
+              <DropdownMenuItem 
+                onClick={() => window.location.href = `/profesor/planes/${plan.id}/edit`}
+                className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+              >
                 <Edit3 className="w-4 h-4 mr-2 text-zinc-500" aria-hidden="true" />
                 {c.dropdownMenu.editPlan}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
-              <DropdownMenuItem className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 font-bold text-lime-600 dark:text-lime-400 focus:bg-lime-50 dark:focus:bg-lime-500/10 focus:text-lime-700">
+              <DropdownMenuItem 
+                onClick={() => onDuplicate?.(plan.id)}
+                className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 font-bold text-lime-600 dark:text-lime-400 focus:bg-lime-50 dark:focus:bg-lime-500/10 focus:text-lime-700"
+              >
                 <Copy className="w-4 h-4 mr-2" aria-hidden="true" />
                 {c.dropdownMenu.duplicatePlan}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
-              <DropdownMenuItem className="rounded-lg cursor-pointer text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 focus:bg-red-50 focus:text-red-700">
+              <DropdownMenuItem 
+                onClick={() => onDelete?.(plan)}
+                className="rounded-lg cursor-pointer text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 focus:bg-red-50 focus:text-red-700"
+              >
                 <Trash2 className="w-4 h-4 mr-2 text-red-600" aria-hidden="true" />
                 {c.dropdownMenu.deletePlan}
               </DropdownMenuItem>
@@ -120,14 +127,10 @@ export function PlanesTable({ planes }: Props) {
 
   return (
     <StandardTable
-      data={filteredPlanes}
+      data={planes}
       columns={columns}
-      searchTerm={searchTerm}
-      onSearchChange={setSearchTerm}
-      searchPlaceholder={c.searchPlaceholder}
       onRowClick={(plan) => window.location.href = `/profesor/planes/${plan.id}`}
       emptyMessage={c.empty}
-      emptySearchMessage={c.emptySearch}
       EmptyIcon={FileText}
       entityName="Planes"
     />

@@ -12,11 +12,21 @@ export const athleteProfileCopy = {
       active: "Activo",
       overdue: "Moroso",
       noPlan: "Sin Plan Asignado"
+    },
+    metrics: {
+        payDay: "Día de Pago",
+        startDate: "Inició el",
+        lastSession: "Última Sesión",
+        never: "Nunca",
+        today: "Hoy",
+        yesterday: "Ayer",
+        daysAgo: "Hace {n} días"
     }
   },
   sidebar: {
     criticalNotes: {
       label: "Notas Internas (Solo Profe)",
+      semaphore: "SEMÁFORO DE SEGURIDAD",
       empty: "Sin observaciones o notas registradas."
     },
     info: {

@@ -53,7 +53,7 @@ if (error || !plan) {
 // 3. Fetch exercise library for the form
 const { data: exercises } = await supabase
   .from("biblioteca_ejercicios")
-  .select("id, nombre, media_url")
+  .select("id, nombre, media_url, parent_id, is_template_base")
   .eq("profesor_id", user.id)
   .order("nombre", { ascending: true });
 

@@ -28,6 +28,23 @@ if (error || !exercise) {
   return Astro.redirect("/profesor/ejercicios");
 }
 
+// Fetch existing variants if it's a base exercise
+let existingVariants = [];
+if (!exercise.parent_id) {
+  const { data: variants } = await supabase
+    .from("biblioteca_ejercicios")
+    .select("id, nombre")
+    .eq("parent_id", exercise.id)
+    .eq("profesor_id", userId);
+  
+  existingVariants = variants || [];
+}
+
+const initialValues = {
+  ...exercise,
+  existing_variants: existingVariants
+};
+
 const title = `Editar ${exercise.nombre} | MiGym`;
 ---
 
@@ -43,9 +60,9 @@ const title = `Editar ${exercise.nombre} | MiGym`;
     <FormContainer size="sm">
       <ExerciseForm 
         client:load 
-        initialValues={exercise} 
-        onSuccess={() => Astro.redirect("/profesor/ejercicios")} 
-        onCancel={() => Astro.redirect("/profesor/ejercicios")}
+        initialValues={initialValues} 
+        successHref="/profesor/ejercicios" 
+        cancelHref="/profesor/ejercicios"
       />
     </FormContainer>
   </div>

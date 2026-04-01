@@ -14,7 +14,6 @@ if (!user) {
   return Astro.redirect("/login");
 }
 
-// Fetch real students data
 const { data: alumnos, error } = await supabase
   .from("alumnos")
   .select(`
@@ -23,6 +22,7 @@ const { data: alumnos, error } = await supabase
     estado,
     telefono,
     email,
+    notas,
     planes ( nombre )
   `)
   .eq("profesor_id", user.id)
@@ -40,7 +40,8 @@ const mappedStudents: Student[] = (alumnos || []).map(a => ({
   planName: Array.isArray(a.planes) ? a.planes[0]?.nombre || null : (a.planes as any)?.nombre || null,
   status: a.estado as any,
   email: a.email,
-  telefono: a.telefono || undefined
+  telefono: a.telefono || undefined,
+  notas: a.notas || undefined
 }));
 
 const c = alumnosListCopy;
@@ -59,7 +60,7 @@ const c = alumnosListCopy;
       <ActionLink href="/profesor/alumnos/import" variant="secondary" class="flex-1 md:flex-none">
         {c.header.actions.import}
       </ActionLink>
-      <ActionLink href="/profesor/alumnos/new" variant="glow" uppercase class="flex-1 md:flex-none">
+      <ActionLink href="/profesor/alumnos/new" variant="industrial" uppercase class="flex-1 md:flex-none">
         {c.header.actions.new}
       </ActionLink>
     </PageHeader>

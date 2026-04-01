@@ -1,38 +1,29 @@
-import { useState, useMemo, useEffect } from "react";
-import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
 import { planSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { toast } from "sonner";
-import { Plus, Trash2, Search, Dumbbell, Clock, Info, ArrowLeft, Filter, Loader2, Save, X } from "lucide-react";
-import { ExerciseForm } from "@/components/molecules/profesor/ejercicios/ExerciseForm";
-
+import { ExerciseCard } from "@/components/molecules/profesor/planes/ExerciseCard";
+import { ExerciseSearchDialog } from "@/components/molecules/profesor/planes/ExerciseSearchDialog";
+import { RotationDialog } from "@/components/molecules/profesor/planes/RotationDialog";
+import { QuickOptionsGroup } from "@/components/molecules/profesor/planes/QuickOptionsGroup";
+import { Save, Plus, Dumbbell, Info, X, Copy, Zap, Menu, ArrowRight, ArrowLeft, Calendar, Undo2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
+  FormMessage
 } from "@/components/ui/form";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { StandardField } from "@/components/molecules/StandardField";
-import { QuickOptionsGroup } from "@/components/molecules/QuickOptionsGroup";
+import { PlanNavigator } from "@/components/molecules/profesor/planes/PlanNavigator";
+import { BulkActionDialog } from "@/components/molecules/profesor/planes/BulkActionDialog";
 
 type FormValues = z.infer<typeof planSchema>;
 
@@ -40,6 +31,8 @@ interface Exercise {
   id: string;
   nombre: string;
   media_url: string | null;
+  parent_id?: string | null;
+  is_template_base?: boolean;
 }
 
 interface PlanFormProps {
@@ -49,15 +42,19 @@ interface PlanFormProps {
   onCancel?: () => void;
 }
 
+const DIAS_SEMANA_LARGOS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
 export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFormProps) {
   const [isPending, setIsPending] = useState(false);
-  const [activeRoutineIndex, setActiveRoutineIndex] = useState<number | null>(null);
-  const [search, setSearch] = useState("");
-  const [isCreatingInline, setIsCreatingInline] = useState(false);
+  const [activeDiaAbsoluto, setActiveDiaAbsoluto] = useState<number>(1);
   const [localLibrary, setLocalLibrary] = useState<Exercise[]>(library);
   const [rotationEditing, setRotationEditing] = useState<{ routineIdx: number; exerciseIdx: number } | null>(null);
-  const [rotationSearch, setRotationSearch] = useState("");
-  const [selectedDuration, setSelectedDuration] = useState<2 | 3 | 4>(2);
+  const [currentWeek, setCurrentWeek] = useState(1);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  
+  // Undo Support
+  const historyRef = useRef<any>(null);
 
   const form = useForm<any>({
     resolver: zodResolver(planSchema),
@@ -65,65 +62,83 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
       id: initialValues?.id,
       nombre: initialValues?.nombre || "",
       descripcion: initialValues?.descripcion || "",
-      duracion_semanas: initialValues?.duracion_semanas || 0,
+      duracion_semanas: initialValues?.duracion_semanas || 1,
       is_template: initialValues?.is_template ?? true,
-      rutinas: initialValues?.rutinas || Array.from({ length: 7 }, (_, i) => ({
+      rutinas: initialValues?.rutinas || Array.from({ length: 84 }, (_, i) => ({
         dia_numero: i + 1,
-        nombre_dia: `${planesCopy.form.routines.selectDayTitle} ${i + 1}`,
+        nombre_dia: `${DIAS_SEMANA_LARGOS[i % 7]}`,
         ejercicios: [],
       })),
       rotaciones: initialValues?.rotaciones || [],
     },
   });
 
-  const { fields: routineFields } = useFieldArray({
-    control: form.control,
-    name: "rutinas",
-  });
-
-  // Suscribirse a los cambios en las rutinas para calcular la frecuencia automáticamente
   const rutinasWatch = useWatch({
     control: form.control,
     name: "rutinas",
   });
 
-  const activeDaysCount = rutinasWatch?.filter(r => r.ejercicios && r.ejercicios.length > 0).length || 0;
+  const stats = useMemo(() => {
+    const uniqueDays = new Set<number>();
+    let totalEjercicios = 0;
+    rutinasWatch?.forEach(r => {
+        const c = r.ejercicios?.length || 0;
+        if (c > 0) {
+            uniqueDays.add(((r.dia_numero - 1) % 7) + 1);
+            totalEjercicios += c;
+        }
+    });
+    return { 
+        activeDaysCount: uniqueDays.size,
+        totalEjercicios,
+        isValid: uniqueDays.size > 0 && form.watch("nombre")?.length > 3
+    };
+  }, [rutinasWatch, form.watch("nombre")]);
 
-  // Actualizar la frecuencia_semanal en el estado del formulario cuando cambien las rutinas
+  const numWeeks = form.watch("duracion_semanas") || 1;
+
   useEffect(() => {
-    form.setValue("frecuencia_semanal", activeDaysCount);
-  }, [activeDaysCount, form]);
+    form.setValue("frecuencia_semanal", stats.activeDaysCount);
+  }, [stats.activeDaysCount, form]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+        if (e.key === "w" || e.key === "W") {
+            const nextWeek = (currentWeek % numWeeks) + 1;
+            setCurrentWeek(nextWeek);
+            setActiveDiaAbsoluto((nextWeek - 1) * 7 + 1);
+        }
+        if (e.key === "d" || e.key === "D") {
+            const nextDia = (activeDiaAbsoluto % (numWeeks * 7)) + 1;
+            if (Math.ceil(nextDia / 7) !== currentWeek) setCurrentWeek(Math.ceil(nextDia / 7));
+            setActiveDiaAbsoluto(nextDia);
+        }
+        if (e.key === "s" || e.key === "S") {
+            if (stats.isValid) form.handleSubmit(onSubmit)();
+        }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentWeek, numWeeks, activeDiaAbsoluto, stats.isValid]);
 
   const onSubmit = async (data: any) => {
-    const formData = data as FormValues;
-    if (activeDaysCount === 0) {
-      toast.error("El plan debe tener al menos un ejercicio en algún día.");
-      return;
-    }
-
     setIsPending(true);
     try {
-      // Enviamos solo las rutinas que tienen ejercicios
-      const activeRoutines = data.rutinas.filter(r => r.ejercicios.length > 0);
+      const maxDay = numWeeks * 7;
+      const activeRoutines = data.rutinas.filter((r: any) => r.ejercicios.length > 0 && r.dia_numero <= maxDay);
       const payload = { ...data, rutinas: activeRoutines };
-
       const { data: result, error } = initialValues?.id
         ? await actions.profesor.updatePlan({ id: initialValues.id, ...payload })
         : await actions.profesor.createPlan(payload);
-
       if (error) {
         toast.error(error.message || planesCopy.form.messages.error);
         return;
       }
       if (result?.success) {
         toast.success(result.mensaje);
-        if (onSuccess) {
-            onSuccess();
-        } else {
-            setTimeout(() => {
-                window.location.assign("/profesor/planes");
-            }, 1000);
-        }
+        if (onSuccess) onSuccess();
+        else setTimeout(() => window.location.assign("/profesor/planes"), 1000);
       }
     } catch (err: any) {
       toast.error(err.message || planesCopy.form.messages.error);
@@ -134,632 +149,241 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
 
   const getExerciseName = (id: string) => localLibrary.find(e => e.id === id)?.nombre || "Ejercicio";
 
-  const addExerciseToRoutine = (exerciseId: string) => {
-    if (activeRoutineIndex === null) return;
-    
-    const currentExercises = form.getValues(`rutinas.${activeRoutineIndex}.ejercicios`);
+  const addExercise = (exerciseId: string) => {
+    const routineIdx = activeDiaAbsoluto - 1;
+    const currentExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`) || [];
     const newExercise = {
-      ejercicio_id: exerciseId,
-      series: 3,
-      reps_target: "12",
-      descanso_seg: 60,
-      orden: currentExercises.length,
-      exercise_type: "base" as const, // Por defecto todos son base
-      position: currentExercises.length // Usamos el index relativo como posición
+      ejercicio_id: exerciseId, series: 3, reps_target: "12", descanso_seg: 60, orden: currentExercises.length, exercise_type: "base" as const, position: Date.now() + Math.random()
     };
-    
-    form.setValue(`rutinas.${activeRoutineIndex}.ejercicios`, [
-      ...currentExercises,
-      newExercise
-    ]);
-    
-    setActiveRoutineIndex(null);
-    setSearch("");
+    form.setValue(`rutinas.${routineIdx}.ejercicios`, [...currentExercises, newExercise]);
+    setIsSearchOpen(false);
   };
 
-  const removeExerciseFromRoutine = (routineIdx: number, exerciseIdx: number) => {
-    const currentExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`);
-    const updated = currentExercises
-      .filter((_, i) => i !== exerciseIdx)
-      .map((ex, i) => ({ ...ex, orden: i }));
+  const handleDuplicateMulti = (targetDayNums: number[]) => {
+    // Guardar historial para Undo
+    historyRef.current = JSON.parse(JSON.stringify(form.getValues("rutinas")));
     
-    form.setValue(`rutinas.${routineIdx}.ejercicios`, updated);
+    const rutinas = form.getValues("rutinas");
+    const sourceRoutine = rutinas[activeDiaAbsoluto - 1];
+    if (!sourceRoutine) return;
+    
+    const newRutinas = [...rutinas];
+    targetDayNums.forEach(dNum => {
+        newRutinas[dNum - 1] = { 
+            ...newRutinas[dNum - 1], 
+            ejercicios: JSON.parse(JSON.stringify(sourceRoutine.ejercicios || [])) 
+        };
+    });
+    
+    form.setValue("rutinas", newRutinas);
+    
+    toast(`${targetDayNums.length} ${targetDayNums.length === 1 ? 'día duplicado' : 'días duplicados'} correctamente`, {
+        action: {
+            label: "Deshacer",
+            onClick: () => {
+                if (historyRef.current) form.setValue("rutinas", historyRef.current);
+                toast.success("Cambios revertidos");
+            }
+        }
+    });
   };
 
-  const filteredLibrary = useMemo(() => {
-    if (!search) return localLibrary;
-    return localLibrary.filter((ex) =>
-      ex.nombre.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [localLibrary, search]);
-
-  const handleExerciseCreated = (newEx: any) => {
-    const exercise = {
-        id: newEx.id,
-        nombre: newEx.nombre,
-        media_url: newEx.media_url || null
-    };
-    setLocalLibrary(prev => [exercise, ...prev]);
-    addExerciseToRoutine(exercise.id);
-    setIsCreatingInline(false);
-  };
-
-  const handleSetRotation = (routineIdx: number, exerciseIdx: number, altExerciseId: string, duration: number) => {
-    const ex = form.getValues(`rutinas.${routineIdx}.ejercicios.${exerciseIdx}`);
-    const currentRotations = form.getValues("rotaciones") || [];
-    
-    const existingIdx = currentRotations.findIndex((r: any) => r.position === ex.position);
-    
-    if (existingIdx >= 0) {
-      const updated = [...currentRotations];
-      const exercises = updated[existingIdx].cycles[0].exercises;
-      
-      if (exercises.includes(altExerciseId)) {
-        toast.error("Este ejercicio ya está en la rotación");
-        return;
-      }
-      
-      if (exercises.length >= 4) {
-        toast.error("Máximo 4 ejercicios por rotación");
-        return;
-      }
-
-      exercises.push(altExerciseId);
-      form.setValue("rotaciones", updated);
-    } else {
-      const newRotation = {
-        position: ex.position,
-        applies_to_days: [form.getValues(`rutinas.${routineIdx}.nombre_dia`) || `Día ${routineIdx + 1}`],
-        cycles: [
-          { duration_weeks: duration, exercises: [ex.ejercicio_id, altExerciseId] }
-        ]
-      };
-      form.setValue("rotaciones", [...currentRotations, newRotation]);
-    }
-    
-    setRotationEditing(null);
-    setRotationSearch("");
-    toast.success("Ejercicio añadido a la rotación");
-  };
-
-  const removeRotationExercise = (position: number, altExerciseId: string) => {
-    const rotations = form.getValues("rotaciones") || [];
-    const idx = rotations.findIndex((r: any) => r.position === position);
-    if (idx < 0) return;
-
-    const updated = [...rotations];
-    updated[idx].cycles[0].exercises = updated[idx].cycles[0].exercises.filter((id: string) => id !== altExerciseId);
-    
-    // Si solo queda 1 ejercicio (el base), eliminamos la rotación
-    if (updated[idx].cycles[0].exercises.length <= 1) {
-      updated.splice(idx, 1);
-    }
-    
-    form.setValue("rotaciones", updated);
-    toast.success("Ejercicio de rotación eliminado");
-  };
-
-  const hasRotation = (position: number) => {
-    const rotations = form.watch("rotaciones") || [];
-    return rotations.some((r: any) => r.position === position);
-  };
-
-  const getRotationForPosition = (position: number) => {
-    const rotations = form.watch("rotaciones") || [];
-    return rotations.find((r: any) => r.position === position);
-  };
+  // Logic helpers
+  const currentDayOfWeek = ((activeDiaAbsoluto - 1) % 7);
+  const currentDayName = DIAS_SEMANA_LARGOS[currentDayOfWeek];
+  const routineIdx = activeDiaAbsoluto - 1;
+  const currentExercises = rutinasWatch?.[routineIdx]?.ejercicios || [];
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-screen bg-white dark:bg-zinc-950">
         
-        {/* SECTION 1: BASIC INFO */}
-        <section className="space-y-8">
-          <div className="flex border-b border-zinc-100 dark:border-zinc-900 pb-4 items-end justify-between">
-             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
-               {planesCopy.form.basic.title}
-             </h3>
-             <div className="flex items-center gap-2 group">
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300 transition-colors group-hover:text-lime-500">
-                  Frecuencia: {activeDaysCount} días / sem
-                </span>
-                <Info className="w-3 h-3 text-zinc-300 group-hover:text-lime-500 transition-colors" />
-             </div>
-          </div>
-          
-          <div className="grid gap-8 sm:grid-cols-1">
-            <FormField
-              control={form.control}
-              name="nombre"
-              render={({ field, fieldState }) => (
-                <StandardField 
-                   label={planesCopy.form.basic.labels.nombre} 
-                   error={fieldState.error?.message}
-                   required
-                >
-                  <FormControl>
-                    <div className="space-y-4">
-                      <Input 
-                          placeholder={planesCopy.form.basic.placeholders.nombre} 
-                          {...field} 
-                          className="text-xl font-black bg-zinc-50/50" 
-                      />
-                      <QuickOptionsGroup
-                        options={planesCopy.form.basic.nameOptions}
-                        selectedOptions={[field.value]}
-                        onToggle={(name) => form.setValue("nombre", name, { shouldValidate: true })}
-                        className="px-1"
-                      />
-                    </div>
-                  </FormControl>
-                </StandardField>
-              )}
-            />
-          </div>
-        </section>
+        {/* TOP NAVIGATOR: SEMANAS + DÍAS (Sticky) */}
+        <PlanNavigator 
+            currentWeek={currentWeek} 
+            numWeeks={numWeeks} 
+            onWeekChange={(w) => { setCurrentWeek(w); setActiveDiaAbsoluto((w-1)*7 + (currentDayOfWeek + 1)); }} 
+            activeDiaAbsoluto={activeDiaAbsoluto} 
+            onDiaChange={setActiveDiaAbsoluto} 
+            rutinas={rutinasWatch || []} 
+        />
 
-        {/* SECTION 2: ROUTINES */}
-        <section className="space-y-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 border-b border-zinc-100 dark:border-zinc-900 pb-4 px-1">
-            {planesCopy.form.routines.title}
-          </h3>
-          
-          <Tabs defaultValue="dia-0" className="w-full">
-            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap rounded-2xl p-1.5 bg-zinc-100/80 dark:bg-zinc-900/50 h-auto no-scrollbar border border-zinc-200/50">
-              {routineFields.map((field, idx) => {
-                const hasExercises = (rutinasWatch?.[idx]?.ejercicios?.length ?? 0) > 0;
-                return (
-                  <TabsTrigger 
-                    key={field.id} 
-                    value={`dia-${idx}`}
-                    className={cn(
-                      "rounded-xl px-5 py-3 font-black uppercase tracking-widest text-[10px] transition-all",
-                      "data-[state=active]:bg-zinc-950 data-[state=active]:text-white dark:data-[state=active]:bg-lime-400 dark:data-[state=active]:text-zinc-950 shadow-none",
-                      hasExercises ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 opacity-60"
+        {/* MAIN SECTION: EDITION */}
+        <main className="flex-1 min-w-0 flex flex-col">
+          <div className="flex-1 p-6 lg:p-12 space-y-12 max-w-4xl mx-auto w-full pb-32">
+            
+            {/* 1. Header (Nombre del Plan) */}
+            <header className="space-y-10 animate-in fade-in duration-700">
+              <div className="space-y-4">
+                 <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-300">Identidad del Plan</h3>
+                 <FormField
+                    control={form.control}
+                    name="nombre"
+                    render={({ field }) => (
+                      <FormItem className="space-y-0">
+                        <FormControl>
+                          <Input placeholder="Nombre o enfoque del plan" {...field} className="text-2xl lg:text-4xl font-black bg-transparent border-none p-0 focus-visible:ring-0 shadow-none h-auto tracking-tight" />
+                        </FormControl>
+                        <FormMessage className="text-[10px] font-black tracking-widest text-red-500 pt-2" />
+                      </FormItem>
                     )}
-                  >
-                    {planesCopy.form.routines.selectDayTitle} {idx + 1}
-                    {hasExercises && <div className="ml-2 w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+                 />
+                 <QuickOptionsGroup 
+                    options={["Fuerza", "Hipertrofia", "Acondicionamiento", "Postura"]} 
+                    selectedOptions={[form.watch("nombre")]} 
+                    onToggle={(name) => form.setValue("nombre", name)} 
+                 />
+              </div>
 
-            <div className="mt-8 border border-zinc-100 dark:border-zinc-900 rounded-3xl bg-white dark:bg-zinc-950/50 shadow-xl shadow-zinc-200/20 dark:shadow-none min-h-[400px]">
-              {routineFields.map((field, routineIdx) => {
-                const ejercicios = form.watch(`rutinas.${routineIdx}.ejercicios`);
-                const hasExercises = (ejercicios?.length ?? 0) > 0;
+              <div className="max-w-xs">
+                 <FormField
+                  control={form.control}
+                  name="duracion_semanas"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 px-1">Duración total</FormLabel>
+                      <div className="bg-zinc-50 dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center gap-3">
+                        <select className="flex-1 bg-transparent border-none font-black text-sm uppercase px-4 h-10 outline-none" value={field.value} onChange={(e) => field.onChange(parseInt(e.target.value))}>
+                            {[1, 2, 4, 8, 12, 24, 52].map(s => <option key={s} value={s}>{s} Semanas</option>)}
+                        </select>
+                      </div>
+                    </FormItem>
+                  )}
+                 />
+              </div>
+            </header>
 
-                return (
-                  <TabsContent key={`content-${field.id}`} value={`dia-${routineIdx}`} className="space-y-8 m-0 p-6 sm:p-8 outline-none">
-                    <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between border-b border-zinc-100 dark:border-zinc-900 pb-6">
-                       <FormField
+            {/* 2. Zona de Edición del Día */}
+            <section className="space-y-8">
+               <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center justify-between">
+                  <div className="space-y-2 flex-1">
+                     <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-lime-500">{currentDayName} (Semana {currentWeek})</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Día {activeDiaAbsoluto}</span>
+                     </div>
+                     <FormField
                         control={form.control}
                         name={`rutinas.${routineIdx}.nombre_dia`}
                         render={({ field }) => (
-                          <FormItem className="flex-1 w-full space-y-1.5">
-                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 block px-1">
-                                Nombre del Día {routineIdx + 1}
-                             </span>
-                             <FormControl>
-                               <Input 
-                                 placeholder={planesCopy.form.routines.dayNamePlaceholder} 
-                                 className="font-black text-2xl bg-transparent border-none shadow-none focus-visible:ring-0 p-0 text-zinc-950 dark:text-zinc-50 h-auto" 
-                                 {...field} 
-                               />
-                             </FormControl>
+                          <FormItem className="space-y-0">
+                            <FormControl>
+                              <Input placeholder="Nombre del día (ej: Empuje / Pecho)" {...field} className="text-3xl font-black bg-transparent border-none p-0 focus-visible:ring-0 shadow-none h-auto" />
+                            </FormControl>
                           </FormItem>
                         )}
-                      />
-                      <Button 
-                        type="button" 
-                        variant="industrial" 
-                        size="lg"
-                        onClick={() => setActiveRoutineIndex(routineIdx)}
-                        className="w-full sm:w-auto px-8"
-                      >
-                         <Plus className="w-4 h-4 mr-2" /> {planesCopy.form.routines.addExerciseBtn}
-                      </Button>
-                    </div>
+                     />
+                  </div>
+                  
+                  <div className="flex gap-3 shrink-0">
+                     <Button type="button" variant="outline" size="xl" onClick={() => setIsBulkOpen(true)} className="px-6 h-16 rounded-[24px] border-zinc-100 dark:border-zinc-800">
+                        <Copy className="w-5 h-5 mr-3" /> <span className="text-[10px] font-black uppercase">Copiar Día</span>
+                     </Button>
+                     <Button type="button" variant="industrial" size="xl" onClick={() => setIsSearchOpen(true)} className="px-10 h-16 rounded-[24px] shadow-2xl shadow-lime-500/10">
+                        <Plus className="w-5 h-5 mr-3" /> <span className="text-[10px] font-black uppercase">Añadir</span>
+                     </Button>
+                  </div>
+               </div>
 
-                    <div className="space-y-4 pt-2">
-                      {!hasExercises ? (
-                        <div className="py-20 text-center border-2 border-dashed border-zinc-100 dark:border-zinc-900 rounded-3xl bg-zinc-50/30 dark:bg-zinc-950/20 flex flex-col items-center">
-                          <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm mb-4">
-                            <Dumbbell className="w-8 h-8 text-zinc-200 dark:text-zinc-800" />
-                          </div>
-                          <p className="text-sm font-black uppercase tracking-widest text-zinc-300">{planesCopy.form.routines.emptyDay}</p>
+               <div className="space-y-4 min-h-[300px]">
+                  {currentExercises.length === 0 ? (
+                    <div className="py-32 flex flex-col items-center text-center border-4 border-dashed border-zinc-100 dark:border-zinc-900 rounded-[40px] bg-zinc-50/20">
+                      <Dumbbell className="w-12 h-12 text-zinc-200 dark:text-zinc-800 mb-6" />
+                      <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 max-w-[200px]">Este día aún no tiene ejercicios.</p>
+                      <Button variant="ghost" onClick={() => setIsSearchOpen(true)} className="mt-6 text-lime-500 font-black uppercase text-[10px] tracking-widest">Cargar rutina ahora</Button>
+                    </div>
+                  ) : (
+                    currentExercises.map((ex: any, exIdx: number) => (
+                      <ExerciseCard 
+                        key={ex.position || exIdx} form={form} routineIdx={routineIdx} exerciseIdx={exIdx} exercise={ex} getExerciseName={getExerciseName} 
+                        removeExercise={(ri, ei) => {
+                            const updated = [...form.getValues(`rutinas.${ri}.ejercicios`)];
+                            updated.splice(ei, 1);
+                            form.setValue(`rutinas.${ri}.ejercicios`, updated);
+                        }} 
+                        onEditRotation={(ri, ei) => setRotationEditing({ routineIdx: ri, exerciseIdx: ei })} hasRotation={(pos) => form.watch("rotaciones")?.some((r: any) => r.position === pos)} getRotationForPosition={(pos) => form.watch("rotaciones")?.find((r: any) => r.position === pos)} removeRotationExercise={(p, id) => {
+                            const updated = form.getValues("rotaciones").map((rot: any) => rot.position === p ? ({ ...rot, cycles: rot.cycles.map((c: any) => ({ ...c, exercises: c.exercises.filter((exid: string) => exid !== id) })) }) : rot).filter((rot: any) => rot.cycles[0].exercises.length > 1);
+                            form.setValue("rotaciones", updated);
+                        }} 
+                      />
+                    ))
+                  )}
+               </div>
+            </section>
+          </div>
+
+          {/* 3. FOOTER GLOBAL: NAVEGACIÓN + GUARDAR */}
+          <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl px-6 z-50 pointer-events-none">
+             <div className="bg-zinc-950/90 backdrop-blur-2xl p-4 rounded-[32px] border border-white/10 shadow-2xl flex items-center justify-between pointer-events-auto">
+                
+                {/* Navegación de Días */}
+                <div className="flex items-center gap-3 pr-6 border-r border-white/10">
+                   <Button variant="ghost" size="icon" disabled={activeDiaAbsoluto === 1} onClick={() => setActiveDiaAbsoluto(prev => prev - 1)} className="text-white hover:bg-white/10 rounded-2xl h-12 w-12">
+                     <ArrowLeft className="w-5 h-5" />
+                   </Button>
+                   <div className="flex flex-col items-center min-w-[80px]">
+                      <span className="text-[10px] font-black text-white leading-none">Día {activeDiaAbsoluto}</span>
+                      <span className="text-[8px] font-black text-zinc-500 uppercase mt-1">de {numWeeks * 7}</span>
+                   </div>
+                   <Button variant="ghost" size="icon" disabled={activeDiaAbsoluto === numWeeks * 7} onClick={() => setActiveDiaAbsoluto(prev => prev + 1)} className="text-white hover:bg-white/10 rounded-2xl h-12 w-12">
+                     <ArrowRight className="w-5 h-5" />
+                   </Button>
+                </div>
+
+                {/* Feedback de Validación y Guardado */}
+                <div className="flex items-center gap-6 ml-auto">
+                   <div className="hidden md:flex flex-col items-end">
+                      {stats.isValid ? (
+                        <div className="flex items-center gap-2 text-lime-500">
+                           <span className="text-[10px] font-black uppercase tracking-widest leading-none">Listo para guardar</span>
+                           <CheckCircle2 className="w-4 h-4" />
                         </div>
                       ) : (
-                        ejercicios.map((ex, exerciseIdx) => (
-                          <Card 
-                            key={`${field.id}-${exerciseIdx}`} 
-                            className={cn(
-                                "p-5 rounded-2xl border-zinc-100 shadow-sm relative group bg-white dark:bg-zinc-900/50 dark:border-zinc-800 transition-all duration-500",
-                                hasRotation(ex.position) 
-                                    ? "border-lime-500/40 shadow-[0_0_25px_rgba(163,230,53,0.15)] ring-1 ring-lime-500/20 scale-[1.01]" 
-                                    : "hover:border-zinc-950 dark:hover:border-lime-400"
-                            )}
-                          >
-                            <button 
-                                type="button"
-                                onClick={() => removeExerciseFromRoutine(routineIdx, exerciseIdx)} 
-                                className="absolute -top-3 -right-3 p-2.5 bg-white dark:bg-zinc-950 text-red-500 rounded-xl border border-zinc-100 dark:border-zinc-800 shadow-lg hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 z-10"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                            
-                            <div className="flex items-start gap-5">
-                              <div className="w-10 h-10 rounded-xl bg-zinc-950 text-white dark:bg-lime-400 dark:text-zinc-950 flex items-center justify-center shrink-0 font-black shadow-lg shadow-zinc-950/10 dark:shadow-lime-400/10">
-                                  {exerciseIdx + 1}
-                              </div>
-                              
-                              <div className="flex-1 space-y-4 w-full">
-                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-900 pb-4">
-                                      <p className="font-black text-lg text-zinc-950 dark:text-zinc-50 leading-tight">
-                                        {getExerciseName(ex.ejercicio_id)}
-                                      </p>
-                                      
-                                      {/* TIPO DE EJERCICIO (B, C, A) */}
-                                      <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl w-fit">
-                                          {(["base", "complementary", "accessory"] as const).map((type) => (
-                                              <button
-                                                  key={type}
-                                                  type="button"
-                                                  onClick={() => form.setValue(`rutinas.${routineIdx}.ejercicios.${exerciseIdx}.exercise_type`, type)}
-                                                  className={cn(
-                                                      "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
-                                                      ex.exercise_type === type 
-                                                          ? "bg-white dark:bg-zinc-700 text-zinc-950 dark:text-zinc-50 shadow-sm"
-                                                          : "text-zinc-400 hover:text-zinc-600"
-                                                  )}
-                                              >
-                                                  {type === "base" ? "B" : type === "complementary" ? "C" : "A"}
-                                              </button>
-                                          ))}
-                                      </div>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                                      <div className="col-span-2 sm:col-span-3 space-y-3">
-                                          <div className={cn(
-                                              "flex items-center justify-between gap-4 p-3 rounded-2xl border transition-all",
-                                              hasRotation(ex.position) 
-                                                ? "bg-lime-500/5 border-lime-500/20 shadow-inner" 
-                                                : "bg-zinc-50 dark:bg-zinc-900/80 border-dashed border-zinc-200 dark:border-zinc-800"
-                                          )}>
-                                              <div className="flex items-center gap-3">
-                                                  <div className={cn(
-                                                      "w-2.5 h-2.5 rounded-full",
-                                                      hasRotation(ex.position) ? "bg-lime-400 animate-pulse shadow-[0_0_8px_rgba(163,230,53,0.8)]" : "bg-zinc-200 dark:bg-zinc-800"
-                                                  )} />
-                                                  <span className={cn(
-                                                      "text-[10px] font-black uppercase tracking-widest",
-                                                      hasRotation(ex.position) ? "text-lime-600 dark:text-lime-400" : "text-zinc-400"
-                                                  )}>
-                                                      {planesCopy.form.routines.exerciseCard.rotation.label}
-                                                  </span>
-                                              </div>
-                                              
-                                              <Button 
-                                                  type="button" 
-                                                  variant="ghost" 
-                                                  size="sm"
-                                                  onClick={() => setRotationEditing({ routineIdx, exerciseIdx })}
-                                                  className={cn(
-                                                      "h-8 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all",
-                                                      hasRotation(ex.position) 
-                                                        ? "text-lime-600 dark:text-lime-400 hover:bg-lime-500/10" 
-                                                        : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-                                                  )}
-                                              >
-                                                  <Plus className="w-3 h-3 mr-1.5" />
-                                                  {planesCopy.form.routines.exerciseCard.rotation.btn}
-                                              </Button>
-                                          </div>
-
-                                          {/* LISTA DE EJERCICIOS EN ROTACIÓN */}
-                                          {hasRotation(ex.position) && (
-                                              <div className="flex flex-wrap gap-2 px-1">
-                                                  {getRotationForPosition(ex.position)?.cycles[0].exercises.map((altId: string, idx: number) => {
-                                                      if (altId === ex.ejercicio_id) return null; // No mostrar el base aquí
-                                                      return (
-                                                          <div 
-                                                              key={altId}
-                                                              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded-xl group/alt animate-in zoom-in-95 duration-200"
-                                                          >
-                                                              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-300">
-                                                                  {getExerciseName(altId)}
-                                                              </span>
-                                                              <button 
-                                                                  type="button"
-                                                                  onClick={() => removeRotationExercise(ex.position, altId)}
-                                                                  className="text-zinc-400 hover:text-red-500 transition-colors"
-                                                              >
-                                                                  <X className="w-3 h-3" />
-                                                              </button>
-                                                          </div>
-                                                      );
-                                                  })}
-                                              </div>
-                                          )}
-                                      </div>
-
-                                      <FormField
-                                        control={form.control}
-                                        name={`rutinas.${routineIdx}.ejercicios.${exerciseIdx}.series`}
-                                        render={({ field }) => (
-                                          <FormItem className="space-y-2">
-                                            <span className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em] px-1">Series</span>
-                                            <FormControl>
-                                              <Input type="number" min={1} {...field} onChange={e => field.onChange(parseInt(e.target.value) || 1)} className="h-12 font-black bg-zinc-50/50 border-zinc-100" />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-                                      <FormField
-                                        control={form.control}
-                                        name={`rutinas.${routineIdx}.ejercicios.${exerciseIdx}.reps_target`}
-                                        render={({ field }) => (
-                                          <FormItem className="space-y-2">
-                                            <span className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em] px-1">Objetivo</span>
-                                            <FormControl>
-                                              <Input placeholder="10-12" {...field} className="h-12 font-black bg-zinc-50/50 border-zinc-100" />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-                                      <FormField
-                                        control={form.control}
-                                        name={`rutinas.${routineIdx}.ejercicios.${exerciseIdx}.descanso_seg`}
-                                        render={({ field }) => (
-                                          <FormItem className="space-y-2 col-span-2 sm:col-span-1">
-                                            <span className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em] px-1">Descanso (s)</span>
-                                            <FormControl>
-                                              <Input type="number" step={10} min={0} {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} className="h-12 font-black bg-zinc-50/50 border-zinc-100" />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-                                  </div>
-                              </div>
-                            </div>
-                          </Card>
-                        ))
+                        <div className="flex items-center gap-2 text-zinc-500">
+                           <span className="text-[10px] font-black uppercase tracking-widest leading-none">Faltan ejercicios</span>
+                           <AlertTriangle className="w-4 h-4" />
+                        </div>
                       )}
-                    </div>
-                  </TabsContent>
-                );
-              })}
-            </div>
-          </Tabs>
-        </section>
+                      <span className="text-[8px] font-black text-zinc-600 uppercase mt-1 tracking-widest">{stats.totalEjercicios} ejercicios cargados</span>
+                   </div>
 
-        {/* SUBMIT */}
-        <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-end gap-3">
-          {onCancel && (
-            <Button 
-                type="button" 
-                variant="outline" 
-                size="lg"
-                onClick={onCancel}
-                className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-8"
-            >
-                <X className="w-4 h-4 mr-2" /> Cancelar
-            </Button>
-          )}
-          <Button 
-            type="submit" 
-            disabled={isPending} 
-            variant="industrial"
-            size="xl"
-            className="px-12 shadow-2xl shadow-lime-400/10"
-          >
-            {isPending ? planesCopy.form.submit.loading : (
-                <>
-                    <Save className="w-5 h-5 mr-3" />
-                    <span className="text-sm">
-                        {initialValues?.id ? "Guardar cambios" : planesCopy.form.submit.btn}
-                    </span>
-                </>
-            )}
-          </Button>
-        </div>
+                   <Button 
+                    type="submit" disabled={isPending || !stats.isValid} variant="industrial" size="xl" 
+                    className="px-10 h-16 rounded-[24px] shadow-2xl transition-all disabled:opacity-30 disabled:grayscale"
+                   >
+                      <Save className="w-5 h-5 mr-3" />
+                      <span className="text-[11px] font-black uppercase">{isPending ? "Guardando..." : "Guardar Plan"}</span>
+                   </Button>
+                </div>
+             </div>
+          </footer>
+        </main>
       </form>
-      
-      {/* DIALOG DE ROTACIÓN (AUTO-PILOT) */}
-      <Dialog 
-        open={rotationEditing !== null} 
-        onOpenChange={(open) => {
-          if (!open) {
+
+      <ExerciseSearchDialog 
+        open={isSearchOpen} onOpenChange={setIsSearchOpen} library={localLibrary} onSelect={addExercise} onExerciseCreated={(newEx) => { setLocalLibrary(prev => [{ id: newEx.id, nombre: newEx.nombre, media_url: newEx.media_url || null }, ...prev]); addExercise(newEx.id); }} 
+      />
+
+      <RotationDialog 
+        open={rotationEditing !== null} onOpenChange={(open) => !open && setRotationEditing(null)} exercise={rotationEditing ? form.getValues(`rutinas.${rotationEditing.routineIdx}.ejercicios.${rotationEditing.exerciseIdx}`) : null} library={localLibrary} onSetRotation={(altId, dur) => {
+            const ri = rotationEditing!.routineIdx; const ei = rotationEditing!.exerciseIdx;
+            const ex = form.getValues(`rutinas.${ri}.ejercicios.${ei}`);
+            const currot = form.getValues("rotaciones") || [];
+            const idx = currot.findIndex((r: any) => r.position === ex.position);
+            if (idx >= 0) { const updated = [...currot]; updated[idx].cycles[0].exercises.push(altId); form.setValue("rotaciones", updated); }
+            else { form.setValue("rotaciones", [...currot, { position: ex.position, cycles: [{ duration_weeks: dur, exercises: [ex.ejercicio_id, altId] }] }]); }
             setRotationEditing(null);
-            setRotationSearch("");
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-950 rounded-3xl border-none shadow-2xl">
-          <DialogTitle className="sr-only">Configurar Rotación</DialogTitle>
-          <DialogDescription className="sr-only">
-            Selecciona un ejercicio alternativo para rotar en esta posición del plan.
-          </DialogDescription>
-          <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
-            <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 uppercase tracking-tight mb-6">
-                {planesCopy.form.routines.exerciseCard.rotation.selectExercise}
-            </h2>
-            
-            <div className="relative mb-6">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
-                <Input 
-                    placeholder={planesCopy.form.exerciseModal.searchPlaceholder}
-                    value={rotationSearch}
-                    onChange={(e) => setRotationSearch(e.target.value)}
-                    className="pl-12 h-14 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold"
-                />
-            </div>
+        }} onAutoPilot={(ids, dur) => { /* logic similarly */ }}
+      />
 
-            <div className="flex items-center justify-between gap-4 p-4 bg-lime-500/5 border border-lime-500/20 rounded-2xl">
-                <span className="text-[10px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400">
-                    {planesCopy.form.routines.exerciseCard.rotation.duration}
-                </span>
-                <div className="flex gap-2">
-                    {[2, 3, 4].map((weeks) => (
-                        <button
-                            key={weeks}
-                            type="button"
-                            onClick={() => setSelectedDuration(weeks as 2|3|4)}
-                            className={cn(
-                                "px-4 py-2 rounded-xl font-black text-xs transition-all",
-                                selectedDuration === weeks 
-                                    ? "bg-zinc-950 text-white dark:bg-lime-400 dark:text-zinc-950 shadow-lg"
-                                    : "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-lime-500"
-                            )}
-                        >
-                            {weeks} {planesCopy.form.routines.exerciseCard.rotation.weeks}
-                        </button>
-                    ))}
-                </div>
-            </div>
-          </div>
-
-          <div className="max-h-[400px] overflow-y-auto p-6 custom-scrollbar space-y-2">
-             {localLibrary
-                .filter(ex => !rotationSearch || ex.nombre.toLowerCase().includes(rotationSearch.toLowerCase()))
-                .map(ex => (
-                <button
-                    key={ex.id}
-                    type="button"
-                    onClick={() => {
-                        if (rotationEditing) {
-                            handleSetRotation(rotationEditing.routineIdx, rotationEditing.exerciseIdx, ex.id, selectedDuration);
-                        }
-                    }}
-                    className="w-full text-left p-4 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-zinc-950 dark:hover:bg-lime-400 group transition-all duration-300 flex items-center justify-between border border-zinc-100 dark:border-zinc-800 shadow-sm"
-                >
-                    <span className="font-black text-sm text-zinc-950 dark:text-zinc-50 group-hover:text-white dark:group-hover:text-zinc-950">
-                        {ex.nombre}
-                    </span>
-                    <Plus className="w-4 h-4 text-zinc-400 group-hover:text-white dark:group-hover:text-zinc-950" />
-                </button>
-             ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* EXERCISE SEARCH MODAL */}
-      <Dialog 
-        open={activeRoutineIndex !== null} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setActiveRoutineIndex(null);
-            setIsCreatingInline(false);
-            setSearch("");
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-950 rounded-3xl border-none shadow-2xl">
-          <DialogTitle className="sr-only">Buscador de Ejercicios</DialogTitle>
-          <DialogDescription className="sr-only">
-            Busca y selecciona ejercicios de tu biblioteca para añadirlos a la rutina.
-          </DialogDescription>
-          <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
-            <div className="flex items-center justify-between gap-4 mb-6">
-                <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 uppercase tracking-tight">
-                    {isCreatingInline ? planesCopy.form.exerciseModal.titleCreate : planesCopy.form.exerciseModal.title}
-                </h2>
-                {!isCreatingInline ? (
-                    <Button 
-                        variant="industrial" 
-                        size="sm" 
-                        onClick={() => setIsCreatingInline(true)}
-                        className="rounded-xl px-4 text-[10px]"
-                    >
-                        <Plus className="w-3 h-3 mr-2" /> {planesCopy.form.exerciseModal.createBtn}
-                    </Button>
-                ) : (
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setIsCreatingInline(false)}
-                        className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest hover:text-zinc-950"
-                    >
-                        <ArrowLeft className="w-3 h-3 mr-2" /> {planesCopy.form.exerciseModal.backBtn}
-                    </Button>
-                )}
-            </div>
-
-            {!isCreatingInline && (
-                <div className="flex gap-3">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
-                        <Input 
-                            autoFocus
-                            placeholder={planesCopy.form.exerciseModal.searchPlaceholder}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-12 h-14 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold shadow-sm"
-                        />
-                    </div>
-                    <Button variant="outline" className="h-14 w-14 rounded-2xl border-zinc-200 dark:border-zinc-800 shrink-0">
-                        <Filter className="w-5 h-5 text-zinc-400" />
-                    </Button>
-                </div>
-            )}
-          </div>
-          
-          <div className="max-h-[500px] overflow-y-auto p-6 custom-scrollbar">
-            {isCreatingInline ? (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <ExerciseForm 
-                        onSuccess={(res) => handleExerciseCreated(res.data)} 
-                        onCancel={() => setIsCreatingInline(false)} 
-                    />
-                </div>
-            ) : (
-                <>
-                    {filteredLibrary.length === 0 ? (
-                    <div className="p-16 text-center space-y-6 animate-in fade-in duration-300">
-                        <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-full w-20 h-20 mx-auto flex items-center justify-center">
-                            <Dumbbell className="w-8 h-8 text-zinc-200" />
-                        </div>
-                        <div className="space-y-2">
-                            <p className="text-sm font-black uppercase tracking-widest text-zinc-300 italic">
-                                {planesCopy.form.exerciseModal.empty}
-                            </p>
-                            <button 
-                                onClick={() => setIsCreatingInline(true)}
-                                className="text-lime-500 font-black uppercase text-[10px] tracking-widest hover:underline"
-                            >
-                                {planesCopy.form.exerciseModal.emptyAction}
-                            </button>
-                        </div>
-                    </div>
-                    ) : (
-                    <div className="grid grid-cols-1 gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {filteredLibrary.map(ex => (
-                        <button
-                            key={ex.id}
-                            type="button"
-                            onClick={() => addExerciseToRoutine(ex.id)}
-                            className="w-full text-left p-5 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-zinc-950 dark:hover:bg-lime-400 group transition-all duration-300 flex items-center justify-between border border-zinc-100 dark:border-zinc-800 hover:border-zinc-950 dark:hover:border-lime-400 shadow-sm"
-                        >
-                            <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-950 flex items-center justify-center transition-colors group-hover:bg-white/10">
-                                <Dumbbell className="w-5 h-5 text-zinc-500 group-hover:text-white dark:group-hover:text-zinc-950" />
-                            </div>
-                            <span className="font-black text-zinc-950 dark:text-zinc-50 group-hover:text-white dark:group-hover:text-zinc-950 transition-colors">{ex.nombre}</span>
-                            </div>
-                            <div className="w-8 h-8 rounded-full border-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-center transition-all group-hover:border-white/50 dark:group-hover:border-zinc-950/50 group-hover:rotate-90">
-                            <Plus className="w-4 h-4 text-zinc-400 group-hover:text-white dark:group-hover:text-zinc-950" />
-                            </div>
-                        </button>
-                        ))}
-                    </div>
-                    )}
-                </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <BulkActionDialog 
+        open={isBulkOpen} 
+        onOpenChange={setIsBulkOpen} 
+        sourceDayNum={activeDiaAbsoluto} 
+        totalWeeks={numWeeks} 
+        onConfirm={handleDuplicateMulti} 
+        rutinas={rutinasWatch || []}
+      />
     </Form>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Calendar,
   Layers,
@@ -6,15 +6,31 @@ import {
   Edit3,
   Copy,
   Dumbbell,
-  Clock,
   ChevronDown,
   ChevronRight,
-  User as UserIcon,
   TrendingUp,
+  Search,
+  Plus,
+  RefreshCcw,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  ArrowUpRight
 } from "lucide-react";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, type StatusType } from "@/components/atoms/StatusBadge";
+import { actions } from "astro:actions";
+import { toast } from "sonner";
+import { PlanMetric } from "@/components/atoms/profesor/planes/PlanMetric";
+import { RoutineExerciseRow } from "@/components/molecules/profesor/planes/RoutineExerciseRow";
+import { StudentCompactCard } from "@/components/molecules/profesor/planes/StudentCompactCard";
+import { ViewToggle } from "@/components/atoms/ViewToggle";
+import { StudentAssignmentDialog } from "@/components/molecules/profesor/planes/StudentAssignmentDialog";
+import { StandardTable, type TableColumn } from "@/components/molecules/StandardTable";
+import { ExerciseSearchPicker } from "@/components/molecules/profesor/planes/ExerciseSearchPicker";
+import { BackButton } from "@/components/atoms/profesor/BackButton";
+import { cn } from "@/lib/utils";
 
 // --- Tipos ---
 interface EjercicioPlan {
@@ -43,6 +59,8 @@ interface Alumno {
   nombre: string;
   email: string | null;
   estado: string;
+  telefono?: string;
+  notas?: string;
 }
 
 interface PlanData {
@@ -59,12 +77,84 @@ interface Props {
   plan: PlanData;
 }
 
-export function PlanDetail({ plan }: Props) {
+type SyncStatus = "synced" | "syncing" | "error" | "retrying";
+
+/**
+ * PlanDetail: Organismo orquestador que centraliza el detalle y edición de un plan.
+ * Implementa un SyncEngine resiliente para autoguardado y borrado optimista con Undo.
+ */
+export function PlanDetail({ plan: initialPlan }: Props) {
   const c = planesCopy.detail;
   const [activeTab, setActiveTab] = useState<"routines" | "students">("routines");
+  const [studentView, setStudentView] = useState<"grid" | "table">("grid");
+  const [studentSearch, setStudentSearch] = useState("");
+  
+  // 🧠 ESTADO LOCAL REACTIVO 🧠
+  const [localPlan, setLocalPlan] = useState<PlanData>(initialPlan);
+  const [history, setHistory] = useState<PlanData[]>([]); // Para Undo
+  
+  // ⚡ SYNC ENGINE STATE ⚡
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("synced");
+  const [retryCount, setRetryCount] = useState(0);
+  const isInteracting = useRef(false); // Evitar sync en hidratación
+  
+  // Estado para los acordeones de rutinas
   const [openRutinas, setOpenRutinas] = useState<Set<string>>(
-    new Set(plan.rutinas.slice(0, 1).map((r) => r.id)) // Primer día abierto por defecto
+    new Set(initialPlan.rutinas.slice(0, 1).map((r) => r.id))
   );
+
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+
+  // 🔄 SYNC ENGINE EFFECT 🔄
+  useEffect(() => {
+    if (!isInteracting.current) return;
+
+    const syncWithServer = async () => {
+      setSyncStatus("syncing");
+      
+      // Mapear al esquema que espera el servidor (planSchema)
+      const payload = {
+        id: localPlan.id,
+        nombre: localPlan.nombre,
+        duracion_semanas: localPlan.duracion_semanas,
+        frecuencia_semanal: localPlan.frecuencia_semanal,
+        rutinas: localPlan.rutinas.map(r => ({
+          dia_numero: r.dia_numero,
+          nombre_dia: r.nombre_dia || "",
+          ejercicios: r.ejercicios_plan.map((e, idx) => ({
+            ejercicio_id: e.biblioteca_ejercicios?.id || "",
+            series: e.series,
+            reps_target: e.reps_target,
+            descanso_seg: e.descanso_seg,
+            orden: idx,
+            exercise_type: "base" as const,
+            position: idx
+          }))
+        }))
+      };
+
+      try {
+        const { error } = await actions.profesor.updatePlan(payload);
+        if (error) throw error;
+        
+        setSyncStatus("synced");
+        setRetryCount(0);
+      } catch (err) {
+        console.error("Sync Error:", err);
+        if (retryCount < 3) {
+            setSyncStatus("retrying");
+            setTimeout(() => setRetryCount(prev => prev + 1), 2000);
+        } else {
+            setSyncStatus("error");
+            toast.error("Error de conexión al guardar cambios.");
+        }
+      }
+    };
+
+    const timer = setTimeout(syncWithServer, 1000);
+    return () => clearTimeout(timer);
+  }, [localPlan, retryCount]);
 
   const toggleRutina = (id: string) => {
     setOpenRutinas((prev) => {
@@ -74,273 +164,437 @@ export function PlanDetail({ plan }: Props) {
     });
   };
 
-  const createdDate = new Date(plan.created_at).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  // 🛠️ HANDLERS: EDICIÓN IN-PLACE 🛠️
+  const updateExercise = (rutinaId: string, exerciseId: string, field: string, value: any) => {
+    isInteracting.current = true;
+    setLocalPlan(prev => ({
+        ...prev,
+        rutinas: prev.rutinas.map(r => r.id === rutinaId ? {
+            ...r,
+            ejercicios_plan: r.ejercicios_plan.map(e => e.id === exerciseId ? { ...e, [field]: value } : e)
+        } : r)
+    }));
+  };
 
-  const activeStudents = plan.alumnos.filter((a) => !("deleted_at" in a));
+  const removeExercise = (rutinaId: string, exerciseId: string) => {
+    isInteracting.current = true;
+    const oldPlan = { ...localPlan };
+    
+    // Optimistic Update
+    setLocalPlan(prev => ({
+        ...prev,
+        rutinas: prev.rutinas.map(r => r.id === rutinaId ? {
+            ...r,
+            ejercicios_plan: r.ejercicios_plan.filter(e => e.id !== exerciseId)
+        } : r)
+    }));
+
+    toast.info("Ejercicio removido", {
+        description: "Se eliminó el ejercicio de la rutina.",
+        action: {
+            label: "Deshacer",
+            onClick: () => {
+                setLocalPlan(oldPlan);
+                toast.success("Cambio revertido");
+            }
+        },
+        duration: 5000
+    });
+  };
+
+  const addExercise = (rutinaId: string, exercise: any) => {
+    isInteracting.current = true;
+    const newEx: EjercicioPlan = {
+        id: crypto.randomUUID(), // ID temporal para el cliente
+        orden: 999,
+        series: 3,
+        reps_target: "12",
+        descanso_seg: 60,
+        biblioteca_ejercicios: {
+            id: exercise.id,
+            nombre: exercise.nombre,
+            media_url: exercise.media_url
+        }
+    };
+
+    setLocalPlan(prev => ({
+        ...prev,
+        rutinas: prev.rutinas.map(r => r.id === rutinaId ? {
+            ...r,
+            ejercicios_plan: [...r.ejercicios_plan, newEx]
+        } : r)
+    }));
+    toast.success(`${exercise.nombre} añadido`);
+  };
+
+  const handleDuplicate = async () => {
+    setIsDuplicating(true);
+    toast.loading("Duplicando plan...");
+    try {
+      const { data: result, error } = await actions.profesor.duplicatePlan({ id: localPlan.id });
+      if (error) {
+        toast.error(error.message || "Error al duplicar");
+        return;
+      }
+      if (result?.success) {
+        toast.dismiss();
+        toast.success(result.mensaje);
+        window.location.href = `/profesor/planes/${result.plan_id}/edit`;
+      }
+    } catch (err) {
+      toast.dismiss();
+      toast.error("Ocurrió un error inesperado");
+    } finally {
+      setIsDuplicating(false);
+    }
+  };
+
+  const handleAssignmentSuccess = async () => {
+    // Re-fetch plan data to get updated student list with all fields
+    try {
+        const { data, error } = await actions.profesor.globalSearch({ query: localPlan.nombre }); // Simple way to trigger re-fetch if we had a getPlan action
+        // Actually, let's just use window.location.reload() for now as it's the safest way to ensure 
+        // all Supabase relations are correctly re-fetched and sorted by Astro.
+        // Or better: fetch just the students of this plan.
+        window.location.reload(); 
+    } catch (e) {
+        window.location.reload();
+    }
+  };
+
+  const createdDate = useMemo(() => {
+    return new Date(localPlan.created_at).toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }, [localPlan.created_at]);
+
+  const activeStudents = useMemo(() => {
+    return localPlan.alumnos
+        .filter((a: any) => !a.deleted_at)
+        .filter(a => a.nombre.toLowerCase().includes(studentSearch.toLowerCase()));
+  }, [localPlan.alumnos, studentSearch]);
+
+  const studentColumns: TableColumn<Alumno>[] = [
+    {
+      header: "Alumno",
+      render: (s) => (
+        <div className="flex items-center gap-3 font-bold text-zinc-950 dark:text-zinc-100">
+           <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-black text-zinc-400 text-[10px]">
+             {s.nombre.charAt(0).toUpperCase()}
+           </div>
+           {s.nombre}
+        </div>
+      )
+    },
+    {
+      header: "Correo",
+      render: (s) => <span className="text-zinc-500 font-medium">{s.email || "—"}</span>
+    },
+    {
+      header: "Estado",
+      render: (s) => <StatusBadge status={s.estado as StatusType} />
+    }
+  ];
 
   return (
-    <div className="space-y-8">
-      {/* ═══ CABECERA ═══ */}
-      <div className="bg-white dark:bg-zinc-950/40 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-        {/* Franja de acento superior */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-lime-400 to-lime-600" />
-
-        <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
-          {/* Identidad */}
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shadow-inner shrink-0">
-              <Dumbbell className="w-8 h-8 text-zinc-500 dark:text-zinc-300" aria-hidden="true" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-zinc-950 dark:text-white uppercase leading-none">
-                {plan.nombre}
-              </h1>
-              <p className="text-xs font-black text-zinc-400 uppercase tracking-widest mt-1.5">
-                {c.meta.createdAt} {createdDate}
-              </p>
-            </div>
-          </div>
-
-          {/* Acciones */}
-          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-            <Button
-              variant="outline"
-              className="gap-2 font-black text-[10px] uppercase tracking-widest rounded-xl border-2 border-zinc-200 hover:bg-zinc-50 active:scale-95 transition-all"
-              onClick={() => window.location.href = `/profesor/planes/${plan.id}/editar`}
-            >
-              <Edit3 className="w-4 h-4" aria-hidden="true" />
-              {c.actions.edit}
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2 font-black text-[10px] uppercase tracking-widest rounded-xl border-2 border-lime-300 text-lime-700 hover:bg-lime-50 hover:border-lime-400 active:scale-95 transition-all"
-            >
-              <Copy className="w-4 h-4" aria-hidden="true" />
-              {c.actions.duplicate}
-            </Button>
-          </div>
-        </div>
-
-        {/* Métricas de la cabecera */}
-        <div className="border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 dark:divide-zinc-800">
-          {[
-            { icon: Layers, label: c.meta.frequency, value: `${plan.frecuencia_semanal} ${c.meta.daysPerWeek}` },
-            { icon: Dumbbell, label: "Rutinas", value: `${plan.rutinas.length}` },
-            { icon: Users, label: c.meta.studentsCount, value: `${activeStudents.length}` },
-          ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="flex flex-col items-center justify-center gap-1 py-5 px-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition-colors">
-              <Icon className="w-4 h-4 text-zinc-400" aria-hidden="true" />
-              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest text-center">{label}</span>
-              <span className="text-xl font-black text-zinc-950 dark:text-white tracking-tight">{value}</span>
-            </div>
-          ))}
-        </div>
+    <div className={cn("space-y-8 animate-in fade-in duration-700", syncStatus === "error" && "opacity-80 pointer-events-none")}>
+      
+      {/* 🔙 BACK LINK 🔙 */}
+      <div className="flex items-center">
+          <BackButton href="/profesor/planes" />
       </div>
 
-      {/* ═══ TABS ═══ */}
-      <div className="bg-white dark:bg-zinc-950/40 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-        {/* Nav de tabs */}
-        <div className="border-b border-zinc-100 dark:border-zinc-800 flex">
-          {(["routines", "students"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 sm:flex-none px-8 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 ${
-                activeTab === tab
-                  ? "border-lime-500 text-zinc-950 dark:text-white bg-lime-50/50 dark:bg-lime-500/5"
-                  : "border-transparent text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900/40"
-              }`}
-            >
-              {tab === "routines" ? (
-                <span className="flex items-center gap-2">
-                  <Dumbbell className="w-3.5 h-3.5" aria-hidden="true" />
-                  {c.tabs.routines}
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5" aria-hidden="true" />
-                  {c.tabs.students}
-                  {activeStudents.length > 0 && (
-                    <span className="bg-lime-400 text-zinc-950 text-[9px] font-black px-1.5 py-0.5 rounded-full">
-                      {activeStudents.length}
-                    </span>
-                  )}
-                </span>
-              )}
-            </button>
-          ))}
+      {/* 🛠️ SECTION: HEADER INDUSTRIAL 🛠️ */}
+      <section className="bg-white dark:bg-zinc-950/20 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800/60 shadow-2xl shadow-zinc-950/5 overflow-hidden relative">
+        <div className="h-2 w-full bg-gradient-to-r from-lime-400 via-lime-500 to-emerald-600" />
+
+        {/* ⚡ SYNC INDICATOR ⚡ */}
+        <div className="absolute top-4 right-8 z-20">
+            {syncStatus === "syncing" && (
+                <div className="flex items-center gap-2 bg-zinc-950/10 dark:bg-zinc-50/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                    <RefreshCcw className="w-3 h-3 text-lime-500 animate-spin" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-300">Sincronizando...</span>
+                </div>
+            )}
+            {syncStatus === "synced" && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full">
+                    <CheckCircle2 className="w-3 h-3 text-lime-500" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Guardado</span>
+                </div>
+            )}
+            {syncStatus === "retrying" && (
+                 <div className="flex items-center gap-2 bg-amber-400/10 px-3 py-1.5 rounded-full border border-amber-400/20">
+                    <RefreshCcw className="w-3 h-3 text-amber-500 animate-spin" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-amber-600">Reintentando sync... ({retryCount})</span>
+                </div>
+            )}
+            {syncStatus === "error" && (
+                <div className="flex items-center gap-2 bg-red-400/10 px-3 py-1.5 rounded-full border border-red-400/20">
+                    <AlertCircle className="w-3 h-3 text-red-500" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-red-600">Error de conexión</span>
+                </div>
+            )}
         </div>
 
-        {/* ─── TAB: RUTINAS ─── */}
-        {activeTab === "routines" && (
-          <div className="p-4 md:p-8 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-400">
-            {plan.rutinas.length === 0 ? (
-              <div className="py-16 flex flex-col items-center gap-3 text-center">
-                <div className="w-14 h-14 bg-zinc-50 dark:bg-zinc-900 rounded-full flex items-center justify-center">
-                  <Dumbbell className="w-6 h-6 text-zinc-300" aria-hidden="true" />
+        <div className="p-8 md:p-10">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="flex items-center gap-6">
+                <div className="w-20 h-20 rounded-3xl bg-zinc-950 flex items-center justify-center border border-zinc-800 shadow-2xl shrink-0 group hover:rotate-6 transition-transform duration-500">
+                    <Dumbbell className="w-10 h-10 text-lime-400 group-hover:scale-110 transition-transform" />
                 </div>
-                <p className="text-zinc-400 font-medium text-sm">Este plan no tiene rutinas todavía.</p>
-              </div>
-            ) : (
-              plan.rutinas.map((rutina) => {
-                const isOpen = openRutinas.has(rutina.id);
-                return (
-                  <div
-                    key={rutina.id}
-                    className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden transition-all duration-300"
-                  >
-                    {/* Cabecera de cada día */}
+                <div>
+                   <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none mb-3">
+                     {localPlan.nombre}
+                   </h1>
+                   <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                            <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+                            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">{c.meta.createdAt} {createdDate}</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-lime-400/10 rounded-lg border border-lime-400/20">
+                            <div className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
+                            <span className="text-[10px] font-black text-lime-600 uppercase tracking-widest">Plan Maestro</span>
+                        </div>
+                   </div>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+                <Button
+                    variant="outline"
+                    onClick={() => window.location.href = `/profesor/planes/${localPlan.id}/edit`}
+                    className="h-12 px-6 gap-2 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-95 flex-1 md:flex-none shadow-sm"
+                >
+                    <Edit3 className="w-4 h-4" />
+                    Completo
+                </Button>
+                <Button
+                    disabled={isDuplicating}
+                    onClick={handleDuplicate}
+                    className="h-12 px-6 gap-2 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10 active:scale-95 transition-all flex-1 md:flex-none disabled:opacity-50"
+                >
+                    <Copy className="w-4 h-4" />
+                    {isDuplicating ? "Copiando..." : "Duplicar"}
+                </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-zinc-100 dark:border-zinc-900 grid grid-cols-1 sm:grid-cols-3 bg-zinc-50/50 dark:bg-zinc-900/20">
+          <PlanMetric 
+            icon={Layers} 
+            label={c.meta.frequency} 
+            value={localPlan.frecuencia_semanal} 
+            accent 
+            className="sm:border-r border-zinc-100 dark:border-zinc-900" 
+          />
+          <PlanMetric 
+            icon={TrendingUp} 
+            label="Semanas" 
+            value={localPlan.duracion_semanas} 
+            className="border-t sm:border-t-0 sm:border-r border-zinc-100 dark:border-zinc-900" 
+          />
+          <PlanMetric 
+            icon={Users} 
+            label={c.meta.studentsCount} 
+            value={activeStudents.length} 
+            className="border-t sm:border-t-0 border-zinc-100 dark:border-zinc-900" 
+          />
+        </div>
+      </section>
+
+      {/* 🧭 SECTION: TABS NAVIGATION 🧭 */}
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 dark:border-zinc-800 pb-1">
+            <div className="flex items-center gap-1">
+                {(["routines", "students"] as const).map((tab) => (
                     <button
-                      onClick={() => toggleRutina(rutina.id)}
-                      className="w-full flex items-center justify-between px-5 py-4 bg-zinc-50/80 dark:bg-zinc-900/50 hover:bg-zinc-100/80 dark:hover:bg-zinc-900/80 transition-colors group"
-                      aria-expanded={isOpen}
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={cn(
+                            "relative px-6 py-4 text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                            activeTab === tab ? "text-zinc-950 dark:text-white" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                        )}
                     >
-                      <div className="flex items-center gap-4">
-                        <span className="w-8 h-8 rounded-xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-black text-zinc-600 dark:text-zinc-200 shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-colors">
-                          {rutina.dia_numero}
+                        <div className="flex items-center gap-2 relative z-10">
+                            {tab === "routines" ? <Dumbbell className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+                            {tab === "routines" ? c.tabs.routines : c.tabs.students}
+                        </div>
+                        {activeTab === tab && (
+                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-lime-400 rounded-full animate-in fade-in slide-in-from-bottom-2 duration-300" />
+                        )}
+                    </button>
+                ))}
+            </div>
+
+            {activeTab === "students" && activeStudents.length > 0 && (
+                <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="relative group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
+                        <input 
+                            type="text"
+                            placeholder="Buscar alumno..."
+                            value={studentSearch}
+                            onChange={(e) => setStudentSearch(e.target.value)}
+                            className="bg-zinc-100 dark:bg-zinc-900 border-none rounded-xl pl-9 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-950 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lime-400/20 w-48 transition-all"
+                        />
+                    </div>
+                    <ViewToggle view={studentView} onChange={setStudentView} />
+                </div>
+            )}
+        </div>
+
+        {/* ─── TAB CONTENT: RUTINAS ─── */}
+        {activeTab === "routines" && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {localPlan.rutinas.sort((a,b) => a.dia_numero - b.dia_numero).map((rutina) => {
+                const isOpen = openRutinas.has(rutina.id);
+                const existingExIds = rutina.ejercicios_plan.map(e => e.biblioteca_ejercicios?.id || "");
+                
+                return (
+                <div key={rutina.id} className="bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800/60 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-zinc-950/5 transition-all duration-300">
+                    <button
+                        onClick={() => toggleRutina(rutina.id)}
+                        className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all group"
+                    >
+                    <div className="flex items-center gap-6">
+                        <span className={cn(
+                            "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg transition-all duration-500",
+                            isOpen ? "bg-zinc-950 text-white dark:bg-lime-400 dark:text-zinc-950 rotate-6" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 group-hover:rotate-6"
+                        )}>
+                            {rutina.dia_numero}
                         </span>
                         <div className="text-left">
-                          <p className="font-black text-zinc-950 dark:text-white text-sm uppercase tracking-tight">
-                            {c.routines.dayLabel} {rutina.dia_numero}
-                            {rutina.nombre_dia && rutina.nombre_dia !== `Día ${rutina.dia_numero}` && (
-                              <span className="ml-2 font-medium text-zinc-500 normal-case tracking-normal">
-                                — {rutina.nombre_dia}
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                            {rutina.ejercicios_plan.length} {rutina.ejercicios_plan.length === 1 ? "ejercicio" : "ejercicios"}
-                          </p>
+                            <h4 className="font-black text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                                {rutina.nombre_dia || `${c.routines.dayLabel} ${rutina.dia_numero}`}
+                            </h4>
+                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
+                                <Layers className="w-3 h-3" />
+                                {rutina.ejercicios_plan.length} ejercicios técnicos
+                            </p>
                         </div>
-                      </div>
-                      {isOpen ? (
-                        <ChevronDown className="w-4 h-4 text-zinc-400 transition-transform" aria-hidden="true" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-zinc-400 transition-transform" aria-hidden="true" />
-                      )}
+                    </div>
+                    <div className={cn(
+                        "gap-2 w-10 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all duration-300",
+                        isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
+                    )}>
+                        <ChevronDown className="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" />
+                    </div>
                     </button>
 
-                    {/* Ejercicios del día */}
                     {isOpen && (
-                      <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50 animate-in fade-in slide-in-from-top-2 duration-300">
-                        {rutina.ejercicios_plan.length === 0 ? (
-                          <p className="text-center py-6 text-zinc-400 text-sm font-medium">{c.routines.emptyDay}</p>
-                        ) : (
-                          rutina.ejercicios_plan.map((ej, idx) => (
-                            <div
-                              key={ej.id}
-                              className="flex items-center gap-4 px-5 py-4 bg-white dark:bg-zinc-950 hover:bg-zinc-50/80 dark:hover:bg-zinc-900/30 transition-colors group/ej"
-                            >
-                              {/* Número de orden */}
-                              <span className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-400 shrink-0">
-                                {idx + 1}
-                              </span>
-
-                              {/* Thumbnail opcional */}
-                              <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden shrink-0 flex items-center justify-center border border-zinc-100 dark:border-zinc-700">
-                                {ej.biblioteca_ejercicios?.media_url ? (
-                                  <img
-                                    src={ej.biblioteca_ejercicios.media_url}
-                                    alt={ej.biblioteca_ejercicios.nombre}
-                                    className="w-full h-full object-cover group-hover/ej:scale-105 transition-transform duration-500"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <Dumbbell className="w-5 h-5 text-zinc-300 dark:text-zinc-600" aria-hidden="true" />
-                                )}
-                              </div>
-
-                              {/* Nombre del ejercicio */}
-                              <div className="flex-1 min-w-0">
-                                <p className="font-black text-zinc-950 dark:text-white text-sm uppercase tracking-tight truncate">
-                                  {ej.biblioteca_ejercicios?.nombre || "Ejercicio desconocido"}
-                                </p>
-                              </div>
-
-                              {/* Métricas del ejercicio */}
-                              <div className="hidden sm:flex items-center gap-4 shrink-0">
-                                <div className="text-center">
-                                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{c.routines.sets}</p>
-                                  <p className="text-base font-black text-zinc-950 dark:text-white">{ej.series}</p>
-                                </div>
-                                <div className="w-px h-8 bg-zinc-100 dark:bg-zinc-800" />
-                                <div className="text-center">
-                                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{c.routines.reps}</p>
-                                  <p className="text-base font-black text-zinc-950 dark:text-white">{ej.reps_target}</p>
-                                </div>
-                                <div className="w-px h-8 bg-zinc-100 dark:bg-zinc-800" />
-                                <div className="text-center min-w-[56px]">
-                                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center justify-center gap-1">
-                                    <Clock className="w-2.5 h-2.5" aria-hidden="true" /> {c.routines.rest}
-                                  </p>
-                                  <p className="text-base font-black text-zinc-950 dark:text-white">{ej.descanso_seg}{c.routines.seconds}</p>
-                                </div>
-                              </div>
-
-                              {/* Chip móvil */}
-                              <div className="sm:hidden flex items-center gap-1.5 shrink-0">
-                                <span className="text-xs font-black text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-lg">
-                                  {ej.series}×{ej.reps_target}
-                                </span>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
+                    <div className="border-t border-zinc-100 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-4 duration-500">
+                        {rutina.ejercicios_plan.length > 0 && rutina.ejercicios_plan.map((ej, idx) => (
+                            <RoutineExerciseRow 
+                                key={ej.id} 
+                                exercise={ej} 
+                                index={idx} 
+                                onUpdate={(field, val) => updateExercise(rutina.id, ej.id, field, val)}
+                                onDelete={() => removeExercise(rutina.id, ej.id)}
+                            />
+                        ))}
+                        
+                        {/* ➕ ACCIÓN: AGREGAR EJERCICIO ➕ */}
+                        <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+                            <ExerciseSearchPicker 
+                                existingIds={existingExIds}
+                                onSelect={(ex) => addExercise(rutina.id, ex)} 
+                            />
+                        </div>
+                    </div>
                     )}
-                  </div>
+                </div>
                 );
-              })
-            )}
+            })}
           </div>
         )}
 
-        {/* ─── TAB: ALUMNOS ─── */}
+        {/* ─── TAB CONTENT: ALUMNOS ─── */}
         {activeTab === "students" && (
-          <div className="p-4 md:p-8 animate-in fade-in slide-in-from-bottom-2 duration-400">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {activeStudents.length === 0 ? (
-              <div className="py-16 flex flex-col items-center gap-4 text-center">
-                <div className="w-14 h-14 bg-zinc-50 dark:bg-zinc-900 rounded-full flex items-center justify-center">
-                  <Users className="w-6 h-6 text-zinc-300" aria-hidden="true" />
-                </div>
-                <p className="text-zinc-400 font-medium text-sm">{c.students.empty}</p>
-                <a
-                  href="/profesor/alumnos/new"
-                  className="inline-flex items-center gap-2 bg-lime-400 text-zinc-950 px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-lime-500 active:scale-95 transition-all shadow-sm"
-                >
-                  {c.students.assignBtn}
-                </a>
+              <div className="py-24 bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800 rounded-3xl flex flex-col items-center gap-6 text-center">
+                 <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-900 rounded-[2rem] flex items-center justify-center border border-dashed border-zinc-300 dark:border-zinc-800">
+                     <Users className="w-8 h-8 text-zinc-300" />
+                 </div>
+                 <div className="space-y-1">
+                     <h3 className="font-black text-xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin alumnos activos</h3>
+                     <p className="text-sm text-zinc-400 font-medium px-6">{studentSearch ? "No se encontraron coincidencias para tu búsqueda." : c.students.empty}</p>
+                 </div>
+                  <Button 
+                    onClick={() => setIsAssignDialogOpen(true)}
+                    className="bg-lime-400 text-zinc-950 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-lime-500 shadow-xl shadow-lime-500/10"
+                  >
+                    {c.students.assignBtn}
+                  </Button>
               </div>
             ) : (
-              <div className="space-y-2">
-                {activeStudents.map((alumno) => (
-                  <a
-                    key={alumno.id}
-                    href={`/profesor/alumnos/${alumno.id}`}
-                    className="flex items-center gap-4 px-4 py-4 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-white dark:hover:bg-zinc-900/60 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 rounded-2xl transition-all group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center font-black text-zinc-500 dark:text-zinc-300 text-sm shrink-0 group-hover:bg-lime-100 group-hover:text-lime-700 dark:group-hover:bg-lime-900/40 dark:group-hover:text-lime-400 transition-colors border border-zinc-100 dark:border-zinc-700 shadow-sm">
-                      {alumno.nombre.charAt(0).toUpperCase()}
+                studentView === "grid" ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {activeStudents.map((alumno) => (
+                          <StudentCompactCard 
+                            key={alumno.id} 
+                            student={{
+                                ...alumno,
+                                planName: localPlan.nombre
+                            }}
+                            onClick={(id) => window.location.href = `/profesor/alumnos/${id}`} 
+                          />
+                        ))}
+                        <button 
+                            onClick={() => setIsAssignDialogOpen(true)}
+                            className="bg-zinc-50/50 dark:bg-zinc-900/10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 flex flex-col items-center justify-center gap-3 text-zinc-400 hover:text-lime-500 hover:border-lime-400 hover:bg-lime-400/5 transition-all duration-300 group min-h-[160px]"
+                        >
+                            <div className="p-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm group-hover:rotate-12 transition-transform">
+                                <Plus className="w-6 h-6" />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Asignar alumno</span>
+                        </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-black text-zinc-950 dark:text-white text-sm uppercase tracking-tight truncate">
-                        {alumno.nombre}
-                      </p>
-                      <p className="text-zinc-400 text-xs font-medium truncate">{alumno.email}</p>
+                ) : (
+                    <div className="bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800/60 rounded-3xl overflow-hidden p-2">
+                        <StandardTable 
+                            data={activeStudents} 
+                            columns={studentColumns}
+                            onRowClick={(s) => window.location.href = `/profesor/alumnos/${s.id}`}
+                            entityName="Alumnos"
+                        />
                     </div>
-                    <StatusBadge status={alumno.estado as StatusType} />
-                    <ChevronRight className="w-4 h-4 text-zinc-300 group-hover:text-zinc-950 dark:group-hover:text-zinc-100 transition-colors" aria-hidden="true" />
-                  </a>
-                ))}
-              </div>
+                )
             )}
           </div>
         )}
       </div>
+
+      {/* ⚠️ DIALOGO DE ERROR CRITICO ⚠️ */}
+      {syncStatus === "error" && (
+        <div className="fixed inset-x-0 bottom-8 flex justify-center px-4 z-50">
+            <div className="bg-red-500 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-4 border-2 border-red-400 animate-in slide-in-from-bottom-8">
+                <AlertCircle className="w-6 h-6 animate-pulse" />
+                <div className="text-left">
+                    <p className="font-black uppercase tracking-tight text-sm">Error de sincronización persistente</p>
+                    <p className="text-[10px] font-medium opacity-90">Los cambios que hagas ahora no se guardarán. Por favor, reintentá manualmente.</p>
+                </div>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => { setSyncStatus("synced"); setRetryCount(0); }}
+                    className="bg-white/10 border-white/20 hover:bg-white/20 text-white rounded-xl text-[10px] uppercase font-black tracking-widest"
+                >
+                    Reintentar ahora
+                </Button>
+            </div>
+        </div>
+      )}
+
+      <StudentAssignmentDialog 
+        open={isAssignDialogOpen} 
+        onOpenChange={setIsAssignDialogOpen} 
+        currentPlanId={localPlan.id} 
+        onSuccess={handleAssignmentSuccess} 
+      />
     </div>
   );
 }

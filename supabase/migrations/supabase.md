@@ -27,9 +27,11 @@ CREATE POLICY "Inserción vía onboarding" ON profesores FOR INSERT WITH CHECK (
 CREATE TABLE IF NOT EXISTS biblioteca_ejercicios (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
+  parent_id uuid REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE, -- Referencia al ejercicio base
   nombre text NOT NULL,
   descripcion text,
   media_url text,
+  is_template_base boolean DEFAULT false, -- Si es la versión principal de la familia
   created_at timestamptz DEFAULT now()
 );
 
@@ -706,3 +708,10 @@ CREATE POLICY "Alumnos reclaman su perfil" ON alumnos
   WITH CHECK (
     user_id = auth.uid()
   );
+
+--- 17. JERARQUÍA DE EJERCICIOS (VARIANTES Y PATRÓN BASE)
+ALTER TABLE biblioteca_ejercicios ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE DEFAULT NULL;
+ALTER TABLE biblioteca_ejercicios ADD COLUMN IF NOT EXISTS is_template_base boolean DEFAULT FALSE;
+
+COMMENT ON COLUMN biblioteca_ejercicios.parent_id IS 'Referencia al ejercicio Padre (Patrón Base).';
+COMMENT ON COLUMN biblioteca_ejercicios.is_template_base IS 'Indica si es el ejercicio principal que el sistema usará por defecto.';

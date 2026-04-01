@@ -52,13 +52,26 @@ if (error || !alumno) {
   return Astro.redirect("/profesor/alumnos?error=not-found");
 }
 
+// 2.5 Fetch última sesión para telemetría
+const { data: ultimaSesion } = await supabase
+  .from("sesiones")
+  .select("created_at")
+  .eq("alumno_id", id)
+  .eq("completada", true)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .single();
+
 // 3. Mapeo de datos para componentes
 const studentData = {
   id: alumno.id,
   nombre: alumno.nombre,
   email: alumno.email || "",
   estado: (alumno.estado as any) || 'activo',
-  telefono: alumno.telefono || undefined
+  telefono: alumno.telefono || undefined,
+  fecha_inicio: alumno.fecha_inicio,
+  dia_pago: alumno.dia_pago,
+  ultima_sesion: ultimaSesion?.created_at || null
 };
 
 const assignedPlan = Array.isArray(alumno.planes) ? alumno.planes[0] : alumno.planes;
@@ -96,7 +109,7 @@ const sidebarProps = {
         <StudentProfileManager 
           client:load
           assignedPlan={assignedPlan}
-          sidebarProps={sidebarProps}
+          student={studentData}
         />
       </main>
     </div>

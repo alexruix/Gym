@@ -2,7 +2,8 @@
 import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
 import PageHeader from '@/components/molecules/PageHeader.astro';
 import ActionLink from '@/components/atoms/ActionLink.astro';
-import { PlanesTable, type PlanRowData } from '@/components/organisms/profesor/planes/PlanesTable.tsx';
+import { PlanesDashboard } from '@/components/organisms/profesor/planes/PlanesDashboard';
+import { type PlanRowData } from '@/components/organisms/profesor/planes/PlanesTable';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { planesCopy } from "@/data/es/profesor/planes";
 
@@ -57,7 +58,7 @@ const c = planesCopy.list.header;
     </PageHeader>
 
     <div class="animate-in slide-in-from-bottom-4 duration-500 delay-150">
-      <PlanesTable client:load planes={mappedPlanes} />
+      <PlanesDashboard client:load planes={mappedPlanes} />
     </div>
   </div>
 </ProfesorLayout>

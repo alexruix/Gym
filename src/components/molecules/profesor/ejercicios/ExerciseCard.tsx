@@ -15,6 +15,9 @@ interface Exercise {
   descripcion: string | null;
   media_url: string | null;
   tags?: string[];
+  parent_id?: string | null;
+  is_template_base?: boolean;
+  variantCount?: number;
   created_at: string;
 }
 
@@ -36,14 +39,28 @@ export function ExerciseCard({ exercise, onEdit, onDelete }: ExerciseCardProps) 
         ) : (
           <Dumbbell className="w-12 h-12 text-zinc-200 dark:text-zinc-800 rotate-12 group-hover:rotate-0 transition-transform duration-500" />
         )}
+        
+        {exercise.variantCount && exercise.variantCount > 0 && (
+          <div className="absolute bottom-3 left-3 z-10">
+            <div className="bg-zinc-950/80 backdrop-blur-md text-white border border-white/10 px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-xl">
+              <div className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
+              +{exercise.variantCount} variantes
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-5 space-y-3 flex-1 flex flex-col">
         <div className="space-y-1 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 leading-tight group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors line-clamp-2">
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 leading-tight group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors line-clamp-2 flex items-center gap-2">
               {exercise.nombre}
+              {exercise.is_template_base && (
+                <span className="shrink-0 bg-lime-400 text-zinc-950 text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-tighter shadow-[0_0_10px_rgba(163,230,53,0.3)]">
+                  Base
+                </span>
+              )}
             </h3>
             
             <DropdownMenu>

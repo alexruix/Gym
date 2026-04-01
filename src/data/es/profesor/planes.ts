@@ -6,7 +6,7 @@ export const planesCopy = {
   list: {
     header: {
       title: "Tus planes",
-      subtitle: "Gestioná tu biblioteca de rutinas y programas.",
+      subtitle: "Diseña plantillas reutilizables de varios días para asignar a tus alumnos.",
       newBtn: "Crear plan"
     },
     table: {
