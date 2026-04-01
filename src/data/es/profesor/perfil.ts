@@ -42,6 +42,7 @@ export const athleteProfileCopy = {
   },
   workspace: {
     tabs: {
+      plan: "Plan",
       routine: "Rutina",
       info: "Información",
       history: "Historial"
@@ -63,9 +64,15 @@ export const athleteProfileCopy = {
       actions: {
         deleteExercise: "Quitar",
         deleteDay: "Eliminar día",
-        forkingTitle: "Personalizando rutina...",
+        forkingTitle: "Personalizando plan...",
         forkingDesc: "Creando una instancia única para este alumno.",
         promote: "Subir a Maestro",
+      },
+      metricsTab: {
+        title: "Centro de Carga Semanal",
+        subtitle: "Ajustá las métricas sobre la base del plan activo.",
+        helper: "Cargá las métricas para esta semana sobre la base del plan",
+        lastWeights: "Ver últimos pesos"
       }
     }
   }

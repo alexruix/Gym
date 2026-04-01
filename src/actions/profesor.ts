@@ -937,7 +937,8 @@ export const profesorActions = {
       series: z.number().int().optional(), 
       reps_target: z.string().optional(), 
       descanso_seg: z.number().int().optional(), 
-      peso_target: z.string().optional() 
+      peso_target: z.string().optional(),
+      semana_numero: z.number().int().default(1)
     }), 
     handler: async (input, context) => { 
       const supabase = createSupabaseServerClient(context); 
@@ -953,13 +954,110 @@ export const profesorActions = {
           reps_target: input.reps_target, 
           descanso_seg: input.descanso_seg, 
           peso_target: input.peso_target, 
+          semana_numero: input.semana_numero,
           updated_at: new Date().toISOString() 
-        }, { onConflict: "alumno_id, ejercicio_plan_id" })
+        }, { onConflict: "alumno_id, ejercicio_plan_id, semana_numero" })
         .select()
         .single(); 
 
       if (error) throw new Error("Error al guardar personalización: " + error.message); 
       return { success: true, data }; 
     } 
+  }),
+
+  getExerciseHistory: defineAction({
+    accept: "json",
+    input: z.object({
+      alumno_id: z.string().uuid(),
+      ejercicio_id: z.string().uuid(),
+      limit: z.number().int().default(3)
+    }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // Obtenemos logs uniéndolos con sesiones para filtrar por alumno
+      const { data, error } = await supabase
+        .from("ejercicio_logs")
+        .select(`
+          id,
+          peso,
+          reps,
+          rpe,
+          created_at,
+          sesion:sesion_id (
+            alumno_id
+          )
+        `)
+        .eq("ejercicio_id", input.ejercicio_id)
+        .eq("sesion.alumno_id", input.alumno_id)
+        .order("created_at", { ascending: false })
+        .limit(input.limit);
+
+      if (error) throw new Error(`Error al obtener historial: ${error.message}`);
+
+      // Supabase PostgREST a veces devuelve nulos si el join no matchea correctamente en el filtrado eq de la relación
+      // pero aquí estamos filtrando logs de sesiones que pertenecen al alumno.
+      // Filtramos en JS por si el PostgREST no aplicó el filtro de la relación correctamente en el SELECT.
+      const filteredData = data?.filter(log => (log.sesion as any)?.alumno_id === input.alumno_id) || [];
+
+      return {
+        success: true,
+        history: filteredData.map(log => ({
+          peso: log.peso,
+          reps: log.reps,
+          rpe: log.rpe,
+          fecha: log.created_at
+        }))
+      };
+    }
+  }),
+
+  /**
+   * copyMetricsToNextWeek: Clona los overrides de una semana a la siguiente
+   * para acelerar la planificación de sobrecarga progresiva.
+   */
+  copyMetricsToNextWeek: defineAction({
+    accept: "json",
+    input: z.object({
+      alumno_id: z.string().uuid(),
+      from_week: z.number().int(),
+      to_week: z.number().int(),
+      plan_id: z.string().uuid()
+    }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // 1. Obtener todos los overrides de la semana origen
+      const { data: sourceMetrics, error: fetchError } = await supabase
+        .from("ejercicio_plan_personalizado")
+        .select("*")
+        .eq("alumno_id", input.alumno_id)
+        .eq("semana_numero", input.from_week);
+
+      if (fetchError) throw new Error("Error al obtener métricas de origen: " + fetchError.message);
+      if (!sourceMetrics || sourceMetrics.length === 0) return { success: false, mensaje: "No hay métricas para copiar" };
+
+      // 2. Preparar los datos para la semana destino (Upsert)
+      const targetMetrics = sourceMetrics.map(({ id, created_at, updated_at, semana_numero, ...rest }) => ({
+        ...rest,
+        semana_numero: input.to_week
+      }));
+
+      // 3. Upsert en batch
+      const { error: upsertError } = await supabase
+        .from("ejercicio_plan_personalizado")
+        .upsert(targetMetrics, { onConflict: "alumno_id, ejercicio_plan_id, semana_numero" });
+
+      if (upsertError) throw new Error("Error al clonar métricas: " + upsertError.message);
+
+      return { 
+        success: true, 
+        mensaje: `✅ Métricas clonadas a la Semana ${input.to_week}` 
+      };
+    }
   }),
 };

@@ -1,11 +1,12 @@
 import React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
-import { Dumbbell, Info, History, Sparkles } from "lucide-react";
+import { Dumbbell, Info, History, Sparkles, Layers } from "lucide-react";
 import { IndustrialTabs } from "@/components/molecules/IndustrialTabs";
 import { cn } from "@/lib/utils";
 
 interface ProfileWorkspaceTabsProps {
+  planContent: React.ReactNode;
   routineContent: React.ReactNode;
   infoContent: React.ReactNode;
   historyContent?: React.ReactNode;
@@ -18,6 +19,7 @@ interface ProfileWorkspaceTabsProps {
  * Utiliza IndustrialTabs para mantener la consistencia visual de alto rendimiento (underline).
  */
 export function ProfileWorkspaceTabs({ 
+  planContent,
   routineContent, 
   infoContent, 
   historyContent,
@@ -27,6 +29,7 @@ export function ProfileWorkspaceTabs({
   const { tabs } = athleteProfileCopy.workspace;
 
   const tabList = [
+    { value: "plan", label: tabs.plan, icon: Layers },
     { value: "routine", label: tabs.routine, icon: Dumbbell },
     { value: "info", label: tabs.info, icon: Info },
     { value: "history", label: tabs.history, icon: Sparkles }
@@ -41,6 +44,13 @@ export function ProfileWorkspaceTabs({
         className="w-full"
       >
         <div className="p-6 md:p-10 min-h-[400px]">
+          <TabsPrimitive.Content 
+            value="plan" 
+            className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-top-1 duration-500"
+          >
+            {planContent}
+          </TabsPrimitive.Content>
+
           <TabsPrimitive.Content 
             value="routine" 
             className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-top-1 duration-500"

@@ -1,46 +1,103 @@
 import { Card } from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown, Info, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ExerciseCardProps {
-  routineIdx: number;
+  routineIdx?: number;
   exerciseIdx: number;
   exercise: any;
   getExerciseName: (id: string) => string;
   removeExercise: (routineIdx: number, exerciseIdx: number) => void;
+  onSwap?: () => void;
+  onMove?: (direction: "up" | "down") => void;
+  isFirst?: boolean;
+  isLast?: boolean;
 }
 
+/**
+ * ExerciseCard: Molécula central para la visualización estructural del plan.
+ * Enfocada en la claridad técnica y el ordenamiento.
+ */
 export function ExerciseCard({
-  routineIdx,
+  routineIdx = 0,
   exerciseIdx,
   exercise: ex,
   getExerciseName,
   removeExercise,
+  onSwap,
+  onMove,
+  isFirst,
+  isLast
 }: ExerciseCardProps) {
+  const ejId = ex.ejercicio_id || ex.ejercicio_plan?.ejercicio_id || ex.biblioteca_ejercicios?.id;
+  
   return (
     <Card 
       className={cn(
-          "p-5 rounded-2xl border-zinc-100 shadow-sm relative group bg-white dark:bg-zinc-900/50 dark:border-zinc-800 transition-all duration-500",
-          "hover:border-zinc-950 dark:hover:border-lime-400"
+          "p-6 rounded-[2rem] border-zinc-100 shadow-sm relative group bg-white dark:bg-zinc-950 dark:border-zinc-800 transition-all duration-500",
+          "hover:border-zinc-950 dark:hover:border-lime-400 hover:shadow-2xl hover:shadow-zinc-950/5",
+          "animate-in fade-in slide-in-from-bottom-2"
       )}
     >
+      {/* Botón Eliminar (Contextual) */}
       <button 
           type="button"
           onClick={() => removeExercise(routineIdx, exerciseIdx)} 
-          className="absolute -top-3 -right-3 p-2.5 bg-white dark:bg-zinc-950 text-red-500 rounded-xl border border-zinc-100 dark:border-zinc-800 shadow-lg hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 z-10"
+          className="absolute -top-3 -right-3 p-3 bg-white dark:bg-zinc-950 text-red-500 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-red-500/10 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 z-20"
+          title="Quitar ejercicio"
       >
           <Trash2 className="w-4 h-4" />
       </button>
       
-      <div className="flex items-center gap-5">
-        <div className="w-10 h-10 rounded-xl bg-zinc-950 text-white dark:bg-lime-400 dark:text-zinc-950 flex items-center justify-center shrink-0 font-black shadow-lg shadow-zinc-950/10 dark:shadow-lime-400/10">
-            {exerciseIdx + 1}
+      <div className="flex items-center gap-6">
+        {/* Reordering Controls (Only if onMove exists) */}
+        {onMove && (
+          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              disabled={isFirst}
+              onClick={() => onMove("up")}
+              className="p-1.5 text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </button>
+            <button 
+              disabled={isLast}
+              onClick={() => onMove("down")}
+              className="p-1.5 text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Thumbnail Técnico */}
+        <div className="w-16 h-16 rounded-[1.25rem] bg-zinc-950 dark:bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 font-black shadow-xl shadow-zinc-950/10 overflow-hidden group/thumb relative">
+            {ex.biblioteca_ejercicios?.media_url ? (
+              <img src={ex.biblioteca_ejercicios.media_url} className="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity" alt="" />
+            ) : (
+              <Dumbbell className="w-6 h-6 text-zinc-500 dark:text-zinc-600" />
+            )}
+            <div className="absolute top-0 left-0 p-1.5">
+               <div className="w-5 h-5 rounded-lg bg-lime-400 text-zinc-950 flex items-center justify-center text-[10px] font-black italic shadow-inner">
+                  {exerciseIdx + 1}
+               </div>
+            </div>
         </div>
         
-        <div className="flex-1 min-w-0">
-            <p className="font-black text-lg text-zinc-950 dark:text-zinc-50 leading-tight truncate">
-              {getExerciseName(ex.ejercicio_id)}
-            </p>
+        <div className="flex-1 min-w-0 space-y-1.5">
+            <h5 className="font-black text-xl text-zinc-950 dark:text-zinc-50 tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate">
+              {getExerciseName(ejId)}
+            </h5>
+            
+            {onSwap && (
+              <button 
+                onClick={onSwap}
+                className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+              >
+                <Info className="w-3 h-3" />
+                Intercambiar Variación
+              </button>
+            )}
         </div>
       </div>
     </Card>

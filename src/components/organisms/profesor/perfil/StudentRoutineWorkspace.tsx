@@ -22,6 +22,7 @@ import { RoutineExerciseRow } from "@/components/molecules/profesor/planes/Routi
 import { MasterPlanAssignmentDialog } from "@/components/molecules/profesor/perfil/MasterPlanAssignmentDialog";
 import { ExerciseSearchDialog } from "@/components/molecules/profesor/planes/ExerciseSearchDialog";
 import { ExerciseVariationDialog } from "@/components/molecules/profesor/planes/ExerciseVariationDialog";
+import { ExerciseCard } from "@/components/molecules/profesor/planes/ExerciseCard";
 import { cn } from "@/lib/utils";
 import { useAccordion } from "@/hooks/useAccordion";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
@@ -76,13 +77,14 @@ interface Props {
   alumnoId: string;
   planData?: AssignedPlan | null;
   library: any[];
+  mode?: "plan" | "routine";
 }
 
 /**
  * StudentRoutineWorkspace: Orquestador de la personalización de rutina del alumno.
  * Implementa el Fork Automático (Invisible) y la edición inline de métricas.
  */
-export function StudentRoutineWorkspace({ alumnoId, planData, library }: Props) {
+export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "routine" }: Props) {
   const { workspace } = athleteProfileCopy;
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -619,7 +621,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library }: Props) 
           </div>
           <div>
             <h3 className="text-xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none mb-1">
-              {workspace.routine.title}
+              {mode === "plan" ? athleteProfileCopy.workspace.tabs.plan : athleteProfileCopy.workspace.tabs.routine}
             </h3>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{planData.nombre}</span>
@@ -773,43 +775,72 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library }: Props) 
                       <X className="w-8 h-8 text-zinc-200 mx-auto" />
                       <p className="text-xs font-black text-zinc-400 uppercase tracking-widest">{workspace.routine.emptyDay}</p>
                     </div>
+                  ) : mode === "plan" ? (
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                       {ejs.map((ej, idx) => {
+                          const overridesArray = Array.isArray(ej.ejercicio_plan_personalizado)
+                            ? ej.ejercicio_plan_personalizado
+                            : ej.ejercicio_plan_personalizado ? [ej.ejercicio_plan_personalizado] : [];
+                          const override = overridesArray.find((o: any) => o.alumno_id === alumnoId);
+                          
+                          return (
+                            <ExerciseCard 
+                              key={ej.id}
+                              exerciseIdx={idx}
+                              exercise={ej}
+                              getExerciseName={(id) => library.find(l => l.id === id)?.nombre || "Ejercicio"}
+                              isFirst={idx === 0}
+                              isLast={idx === ejs.length - 1}
+                              removeExercise={() => handleDeleteExercise(ej.id)}
+                              onMove={(dir) => handleMoveExercise(ej.id, dir)}
+                              onSwap={() => {
+                                setSelectedExerciseForVariation(ej);
+                                setIsVariationOpen(true);
+                              }}
+                            />
+                          );
+                       })}
+                    </div>
                   ) : (
-                    ejs.map((ej, idx) => {
-                      // MERGE LOGIC: Priorizar Overrides de la tabla personalizada (filtrado por este alumno)
-                      const overridesArray = Array.isArray(ej.ejercicio_plan_personalizado)
-                        ? ej.ejercicio_plan_personalizado
-                        : ej.ejercicio_plan_personalizado ? [ej.ejercicio_plan_personalizado] : [];
-                      
-                      const override = overridesArray.find((o: any) => o.alumno_id === alumnoId);
-                      
-                      const effectiveExercise = {
-                        ...ej,
-                        series: override?.series ?? ej.series,
-                        reps_target: override?.reps_target ?? ej.reps_target,
-                        descanso_seg: override?.descanso_seg ?? ej.descanso_seg,
-                        peso_target: override?.peso_target ?? ej.peso_target
-                      };
+                    <div className="divide-y divide-zinc-50 dark:divide-zinc-900/50">
+                      {ejs.map((ej, idx) => {
+                        // MERGE LOGIC: Priorizar Overrides de la tabla personalizada (filtrado por este alumno)
+                        const overridesArray = Array.isArray(ej.ejercicio_plan_personalizado)
+                          ? ej.ejercicio_plan_personalizado
+                          : ej.ejercicio_plan_personalizado ? [ej.ejercicio_plan_personalizado] : [];
+                        
+                        const override = overridesArray.find((o: any) => o.alumno_id === alumnoId);
+                        
+                        const effectiveExercise = {
+                          ...ej,
+                          series: override?.series ?? ej.series,
+                          reps_target: override?.reps_target ?? ej.reps_target,
+                          descanso_seg: override?.descanso_seg ?? ej.descanso_seg,
+                          peso_target: override?.peso_target ?? ej.peso_target
+                        };
 
-                      return (
-                        <RoutineExerciseRow
-                          key={ej.id}
-                          exercise={{
-                            ...effectiveExercise,
-                            peso_target: effectiveExercise.peso_target || ""
-                          }}
-                          index={idx}
-                          isFirst={idx === 0}
-                          isLast={idx === ejs.length - 1}
-                          onDelete={() => handleDeleteExercise(ej.id)}
-                          onChange={(upd) => handleUpdateExercise(ej.id, upd)}
-                          onMove={(dir) => handleMoveExercise(ej.id, dir)}
-                          onSwap={() => {
-                            setSelectedExerciseForVariation(ej);
-                            setIsVariationOpen(true);
-                          }}
-                        />
-                      );
-                    })
+                        return (
+                          <RoutineExerciseRow
+                            key={ej.id}
+                            exercise={{
+                              ...effectiveExercise,
+                              peso_target: effectiveExercise.peso_target || ""
+                            }}
+                            index={idx}
+                            hideMetrics={mode === ("plan" as string)}
+                            isFirst={idx === 0}
+                            isLast={idx === ejs.length - 1}
+                            onDelete={() => handleDeleteExercise(ej.id)}
+                            onChange={(upd) => handleUpdateExercise(ej.id, upd)}
+                            onMove={(dir) => handleMoveExercise(ej.id, dir)}
+                            onSwap={() => {
+                              setSelectedExerciseForVariation(ej);
+                              setIsVariationOpen(true);
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   )}
 
                   {/* Botón Añadir Ejercicio Profesional */}
