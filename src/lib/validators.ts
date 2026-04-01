@@ -18,7 +18,6 @@ export const planSchema = z.object({
           exercise_type: z.enum(["base", "complementary", "accessory"]).optional().default("base"),
           position: z.number().int().min(0).optional().default(0),
           notas: z.string().optional(),
-          peso_target: z.string().optional().default(""),
         })
       )
     })

@@ -39,6 +39,13 @@ const { data: alumno, error } = await supabase
             id,
             nombre,
             media_url
+          ),
+          ejercicio_plan_personalizado (
+            alumno_id,
+            series,
+            reps_target,
+            descanso_seg,
+            peso_target
           )
         )
       )
@@ -111,12 +118,13 @@ const sidebarProps = {
     )}
 
     {/* 3. WORKSPACE UNIFICADO (CENTRALIZADO) */}
-    <div class="max-w-5xl mx-auto animate-in slide-in-from-bottom-4 duration-700 delay-150">
+    <div class="w-full mx-auto animate-in slide-in-from-bottom-4 duration-700 delay-150">
       <main>
         <StudentProfileManager 
           client:load
           assignedPlan={assignedPlan}
           student={studentData}
+          library={exercises}
         />
       </main>
     </div>

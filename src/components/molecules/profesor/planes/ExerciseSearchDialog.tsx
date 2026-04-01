@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { 
     Dialog, 
     DialogContent, 
@@ -40,18 +40,19 @@ export function ExerciseSearchDialog({
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
 
   const { displayLibrary, variantsMap } = useMemo(() => {
+    const list = library || [];
     const lowerSearch = search.toLowerCase();
     const vMap: Record<string, Exercise[]> = {};
     const parents: (Exercise & { variantCount: number })[] = [];
 
-    library.forEach(ex => {
+    list.forEach(ex => {
       if (ex.parent_id) {
         if (!vMap[ex.parent_id]) vMap[ex.parent_id] = [];
         vMap[ex.parent_id].push(ex);
       }
     });
 
-    library.forEach(ex => {
+    list.forEach(ex => {
       if (!ex.parent_id) {
         const hasMatchingChild = vMap[ex.id]?.some(c => c.nombre.toLowerCase().includes(lowerSearch));
         if (ex.nombre.toLowerCase().includes(lowerSearch) || hasMatchingChild) {
@@ -92,7 +93,7 @@ export function ExerciseSearchDialog({
           
           <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
             <div className="flex items-center justify-between gap-4 mb-6">
-                <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 uppercase tracking-tight">
+                <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 tracking-tight">
                     {isCreatingInline ? planesCopy.form.exerciseModal.titleCreate : planesCopy.form.exerciseModal.title}
                 </h2>
                 {!isCreatingInline ? (

@@ -64,7 +64,32 @@ sequenceDiagram
 
 ---
 
-## 5. Fase 3: Roadmap e Inmersión (Futuro) 🚀
+## 5. Arquitectura de Doble Capa (Personalización Eficiente) 🧬
+
+Para escalar MiGym, implementamos un sistema de **Doble Capa** que separa la logística del profesor de la realidad física del alumno.
+
+### Capa 1: Estructura (Plan Maestro)
+- **Propósito**: Definir el "esqueleto" del entrenamiento (qué ejercicios, en qué orden y qué días).
+- **Consistencia**: Un Plan Maestro (ej: "Hipertrofia 4 Días") es agnóstico al alumno. **No contiene métricas** (series, reps, peso).
+- **SSOT**: Tabla `ejercicios_plan`.
+
+### Capa 2: Personalización (Metrics Overrides)
+- **Propósito**: Adaptar el plan a la capacidad real del alumno.
+- **Datos**: Aquí viven las **Series, Repeticiones, Peso y Descanso**.
+- **SSOT**: Tabla `ejercicio_plan_personalizado`. Los datos se vinculan por `alumno_id` + `ejercicio_plan_id`.
+
+### El Proceso de Fusión (The Merge)
+Cuando el alumno abre "Entrenar Hoy", el sistema realiza un merge en tiempo real:
+1. Lee la **Estructura** del Plan Maestro asignado.
+2. Busca **Overrides** de métricas específicos para ese alumno.
+3. Si existen, los inyecta. Si no, usa valores base (o pide al coach definirlos).
+
+> [!TIP]
+> **Protección de Plantillas**: Si el profesor realiza un cambio **Estructural** (ej: borra un ejercicio) en la ficha de un alumno, el sistema detecta que es un Plan Maestro y ofrece crear un **Fork** (Plan Privado) para no romper la plantilla global.
+
+---
+
+## 6. Fase 3: Roadmap e Inmersión (Futuro) 🚀
 
 Para las versiones v2.1 y superiores, el equipo tiene planeado profundizar la inmersión:
 - **Grid de Fondo**: Un patrón táctico de puntos (opacity 5%) para reforzar la estética industrial.

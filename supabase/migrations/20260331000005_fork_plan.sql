@@ -26,8 +26,8 @@ BEGIN
   END IF;
 
   -- 2. Insertar nuevo plan (is_template = false)
-  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, monto, is_template)
-  SELECT profesor_id, p_nuevo_nombre, duracion_semanas, frecuencia_semanal, monto, false
+  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, is_template)
+  SELECT profesor_id, p_nuevo_nombre, duracion_semanas, frecuencia_semanal, false
   FROM planes WHERE id = p_plan_id
   RETURNING id INTO v_new_plan_id;
 

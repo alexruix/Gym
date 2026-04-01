@@ -299,7 +299,7 @@ export const profesorActions = {
       return {
         success: true,
         plan_id: newPlanId,
-        mensaje: "✅ Plan personalizado creado y asignado al alumno.",
+        mensaje: "Plan personalizado creado y asignado al alumno.",
       };
     },
   }),
@@ -324,7 +324,7 @@ export const profesorActions = {
 
       return {
         success: true,
-        mensaje: "✅ El plan ahora es una Plantilla Maestra y aparecerá en tu biblioteca general.",
+        mensaje: "Ahora lo convertiste en un plan reutilizable y aparecerá en Planes.",
       };
     },
   }),
@@ -928,5 +928,38 @@ export const profesorActions = {
         planes: data || []
       };
     }
+  }),
+  upsertStudentMetricOverride: defineAction({ 
+    accept: "json", 
+    input: z.object({ 
+      alumno_id: z.string().uuid(), 
+      ejercicio_plan_id: z.string().uuid(), 
+      series: z.number().int().optional(), 
+      reps_target: z.string().optional(), 
+      descanso_seg: z.number().int().optional(), 
+      peso_target: z.string().optional() 
+    }), 
+    handler: async (input, context) => { 
+      const supabase = createSupabaseServerClient(context); 
+      const user = context.locals.user; 
+      if (!user) throw new Error("No autorizado"); 
+
+      const { data, error } = await supabase
+        .from("ejercicio_plan_personalizado")
+        .upsert({ 
+          alumno_id: input.alumno_id, 
+          ejercicio_plan_id: input.ejercicio_plan_id, 
+          series: input.series, 
+          reps_target: input.reps_target, 
+          descanso_seg: input.descanso_seg, 
+          peso_target: input.peso_target, 
+          updated_at: new Date().toISOString() 
+        }, { onConflict: "alumno_id, ejercicio_plan_id" })
+        .select()
+        .single(); 
+
+      if (error) throw new Error("Error al guardar personalización: " + error.message); 
+      return { success: true, data }; 
+    } 
   }),
 };
