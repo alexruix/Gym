@@ -421,31 +421,12 @@ export const profesorActions = {
           }
         }
 
-        const { error: authError } = await supabase.auth.signInWithOtp({
-          email: input.email.toLowerCase().trim(),
-          options: {
-            emailRedirectTo: `${context.url.origin}/api/auth/callback?next=/alumno`,
-            data: {
-              student_id: student.id,
-              role: "alumno"
-            }
-          }
-        });
 
-        if (authError) {
-          console.error("[Action: inviteStudent] Auth SignIn Error:", authError);
-          return {
-            success: true,
-            student_id: student.id,
-            mensaje: `Alumno creado, pero hubo un error enviando el email: ${authError.message}`,
-            auth_error: true
-          };
-        }
 
         return {
           success: true,
           student_id: student.id,
-          mensaje: `Invitación enviada exitosamente a ${input.email}`,
+          mensaje: `Alumno guardado exitosamente. Generá su enlace para darle acceso.`,
         };
 
       } catch (e: any) {

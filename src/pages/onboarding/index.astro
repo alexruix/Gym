@@ -1,16 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { OnboardingFlow } from '../../components/organisms/auth/OnboardingFlow';
-import { createSupabaseServerClient } from '@/lib/supabase-ssr';
+import { getAuthenticatedClient } from '@/lib/supabase-ssr';
 
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
 
-const supabase = createSupabaseServerClient(Astro);
-// Escudo extra: Si ya es alumno, no puede hacer onboarding de profesor
-const { data: isAlumno } = await supabase.from('alumnos').select('id').eq('user_id', user.id).maybeSingle();
-if (isAlumno) return Astro.redirect('/alumno');
-
+const supabase = getAuthenticatedClient(Astro);
 // Si ya es profesor con nombre, mandarlo al dashboard
 const { data: prof } = await supabase.from('profesores').select('nombre').eq('id', user.id).maybeSingle();
 if (prof?.nombre) return Astro.redirect('/profesor');

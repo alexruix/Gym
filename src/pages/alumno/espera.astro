@@ -1,17 +1,19 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { createSupabaseServerClient } from '@/lib/supabase-ssr';
+import { getAuthenticatedClient } from '@/lib/supabase-ssr';
 import { LogOut, Dumbbell, Clock } from 'lucide-react';
 
-const supabase = createSupabaseServerClient(Astro);
+const supabase = getAuthenticatedClient(Astro);
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
 
 const { data: alumno } = await supabase
   .from('alumnos')
   .select('nombre, plan_id')
-  .eq('user_id', user.id)
+  .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
+
+
 
 // Si mágicamente ya le asignaron el plan mientras miraba esto, mandarlo al home
 if (alumno?.plan_id) {

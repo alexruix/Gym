@@ -1,11 +1,12 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { createSupabaseServerClient } from '@/lib/supabase-ssr';
+import '../../../styles/global.css'; // OBLIGATORIO para standalone astro pages
+import { getAuthenticatedClient } from '@/lib/supabase-ssr';
 import { PlanGenerator } from '@/lib/plan-generator';
 import { ActiveSession } from '@/components/organisms/ActiveSession';
 
 // Modo enfoque: Quitamos navegaciones globales para el alumno aquí.
-const supabase = createSupabaseServerClient(Astro);
+const supabase = getAuthenticatedClient(Astro);
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
 
@@ -16,8 +17,10 @@ const sessionOffsetIndex = parseInt(numero || '1') - 1;
 const { data: alumno } = await supabase
   .from('alumnos')
   .select('id, nombre, fecha_inicio, plan_id, planes(id, nombre)')
-  .eq('user_id', user.id)
+  .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
+
+
 
 if (!alumno || !alumno.plan_id) {
   return Astro.redirect('/alumno/espera');
@@ -32,6 +35,8 @@ const { data: rutinasDiarias } = await supabase
   .select('*')
   .eq('plan_id', alumno.plan_id)
   .order('orden', { ascending: true });
+
+
 
 if (!rutinasDiarias || rutinasDiarias.length === 0) {
   return Astro.redirect('/alumno/espera');

@@ -55,9 +55,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // 1. SI NO HAY SESIÓN (NI GUEST NI AUTH)
   if (!localUser) {
-    if (path.startsWith('/profesor') || path.startsWith('/alumno') || path.startsWith('/onboarding')) {
-      return context.redirect('/login?error=unauthorized');
-    }
+    if (path.startsWith('/alumno')) return context.redirect('/login?error=no_token');
+    if (path.startsWith('/profesor') || path.startsWith('/onboarding')) return context.redirect('/login?error=unauthorized');
     return next();
   }
 
@@ -67,9 +66,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     
     const { data: isProfesor } = await supabase.from('profesores').select('id').eq('id', localUser.id).maybeSingle();
     if (isProfesor) return context.redirect('/profesor');
-    
-    const { data: isAlumno } = await supabase.from('alumnos').select('id').eq('user_id', localUser.id).maybeSingle();
-    if (isAlumno) return context.redirect('/alumno');
   }
 
   // 3. PROTECCIÓN DE RUTA PROFESOR
@@ -86,18 +82,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // 4. PROTECCIÓN DE RUTA ALUMNO
   if (path.startsWith('/alumno')) {
     if (localUser.role === 'profesor') return context.redirect('/profesor');
-    
-    // Si ya es un invitado válidado (tiene ID de alumno), no necesitamos re-verificar con RLS
-    if (localUser.role === 'invitado') return next();
-
-    // Para alumnos formales (Auth), verificamos que el registro exista en la tabla alumnos
-    const { data: isAlum } = await supabase
-      .from('alumnos')
-      .select('id')
-      .eq('user_id', localUser.id)
-      .maybeSingle();
-    
-    if (!isAlum) return context.redirect('/onboarding');
+    if (localUser.role !== 'invitado') return context.redirect('/login?error=no_token');
   }
 
   // 5. LOGIN REDIRECT: Si ya tiene sesión, mandarlo a su casa
