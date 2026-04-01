@@ -1,12 +1,12 @@
 export const inviteStudentCopy = {
   header: {
-    title: "Invitar Alumno",
-    subtitle: "Agregá a alguien nuevo a tu gimnasio.",
+    title: "Invitar alumno",
+    subtitle: "Completa los datos básicos para invitar a un nuevo alumno.",
   },
   sections: {
     basicInfo: "Información básica",
     planAndDates: "Plan y fechas",
-    optionalInfo: "Más información (Opcional)",
+    optionalInfo: "Información adicional",
   },
   labels: {
     nombre: "Nombre",
@@ -65,17 +65,17 @@ export const alumnosListCopy = {
     subtitle: "Gestioná a tus alumnos, sus planes y seguimientos.",
     actions: {
       import: "Importar Excel",
-      new: "Nuevo Alumno",
+      new: "Nuevo alumno",
     }
   },
   list: {
-    title: "Todos los Alumnos",
+    title: "Todos los alumnos",
     empty: "Aún no tenés alumnos cargados.",
     emptySearch: "No encontramos alumnos que coincidan con tu búsqueda.",
     action: "Ver todos",
     columns: {
       name: "Nombre",
-      plan: "Plan Actual",
+      plan: "Plan actual",
       status: "Estado",
     },
     filters: {
@@ -85,10 +85,9 @@ export const alumnosListCopy = {
       }
     },
     dropdownMenu: {
-      viewProfile: "Ver Perfil",
-      editRoutine: "Editar Rutina",
-      registerPayment: "Registrar Pago",
-      viewProgress: "Ver Progreso",
+      editProfile: "Editar perfil",
+      editRoutine: "Editar rutina",
+      registerPayment: "Registrar pago",
       copyMagicLink: "Copiar Magic Link",
       sendWhatsApp: "Enviar WhatsApp",
       archive: "Archivar",

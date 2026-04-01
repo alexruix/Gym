@@ -6,6 +6,7 @@ export const planSchema = z.object({
   duracion_semanas: z.number().int().min(0).max(52),
   frecuencia_semanal: z.number().int().min(0).max(7),
   descripcion: z.string().optional(),
+  is_template: z.boolean().default(true),
   rutinas: z.array(
     z.object({
       dia_numero: z.number().int().min(1).max(7),
@@ -46,6 +47,7 @@ export const exerciseLibrarySchema = z.object({
   nombre: z.string().min(2, "Mínimo 2 caracteres").max(120, "Máximo 120 caracteres"),
   descripcion: z.string().max(1000, "Máximo 1000 caracteres").optional(),
   media_url: z.string().url("Debe ser una URL válida").optional().or(z.literal("")),
+  tags: z.array(z.string()).max(6, "Máximo 6 etiquetas"),
 });
 export type ExerciseLibraryFormData = z.infer<typeof exerciseLibrarySchema>;
 
@@ -60,6 +62,7 @@ export const studentSchema = z.object({
 
 export const updateStudentSchema = z.object({
   id: z.string().uuid(),
+  nombre: z.string().min(1, "Nombre requerido").optional(),
   email: z.string().email("Email inválido").optional(),
   telefono: z.string().optional().nullable(),
   fecha_inicio: z.coerce.date().optional(),
@@ -90,7 +93,7 @@ export const inviteStudentSchema = z.object({
     .uuid("Plan inválido"),
   
   fecha_inicio: z
-    .coerce.date()
+    .date()
     .refine((date) => {
       // Comparar la fecha considerando la zona horaria local para evitar problemas de UTC
       const today = new Date();

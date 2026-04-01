@@ -18,14 +18,8 @@
 **Ambigüedad 1:** ¿Qué es "accesorio"?
 
 ```
-Opción A (Correcta?): 
+Opción A: 
 Lunes: Bench (primary) + Incline (secondary) + Tricep dips (accesorio que rota)
-
-Opción B (Alternativa?):
-Lunes: Bench (primary, fijo) | Incline + Tricep dips (ambos rotan)
-
-Opción C (Otra?):
-Lunes: [Todos los 3 rotan en ciclo, pero Bench es "más importante"]
 ```
 
 ---
@@ -35,22 +29,15 @@ Lunes: [Todos los 3 rotan en ciclo, pero Bench es "más importante"]
 **Interpretación nuestra:**
 - ✅ Variaciones por feriados/ausencias
 - ✅ Reagrupamiento de grupos musculares
-- ❓ ¿Quién decide esto? ¿Profesor o sistema?
-- ❓ ¿Se aplica a todos los alumnos o es por alumno?
+- ❓ El profesor decide esto
+- ❓ Se aplica por alumno porque se modifica la rutina del alumno que falta o que no asiste por ser dia feriado
 
 **Ambigüedad 2:** Alcance de variaciones
 
 ```
 ESCENARIO: Gym cierra viernes
 
-Opción A (Sistema auto-ajusta):
-Sistema detecta feriado → mueve automáticamente sesiones
-
-Opción B (Profesor decide):
-Profesor va a /profesor/planes/[id]/variaciones → define cambio
-Sistema aplica a TODOS los alumnos en ese plan
-
-Opción C (Profesor por alumno):
+Opción A (Profesor por alumno):
 Profesor puede crear variación POR ALUMNO
 Ej: Juan solo puede entrenar lunes+miércoles → redistribuir su sesiones
 ```
@@ -131,14 +118,7 @@ Escenario 1: "Gym cierra viernes"
 Escenario 2: "Juan falta miércoles"
 → Solo el plan de Juan cambia
 (No es variación de plan, es personalización)
-
-Escenario 3: "Profesor quiere meter 3 grupos musculares en 2 días"
-→ Reasignación de estructura
-→ ¿Global o por alumno?
 ```
-
-**Ambigüedad:** ¿Variación = plan-level o student-level?
-
 ---
 
 #### 🟡 MEDIO: Cuándo se Generan las Sesiones

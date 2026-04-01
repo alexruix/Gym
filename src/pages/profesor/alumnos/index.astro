@@ -21,6 +21,8 @@ const { data: alumnos, error } = await supabase
     id,
     nombre,
     estado,
+    telefono,
+    email,
     planes ( nombre )
   `)
   .eq("profesor_id", user.id)
@@ -35,7 +37,9 @@ const mappedStudents: Student[] = (alumnos || []).map(a => ({
   id: a.id,
   name: a.nombre,
   planName: Array.isArray(a.planes) ? a.planes[0]?.nombre || null : (a.planes as any)?.nombre || null,
-  status: a.estado as any
+  status: a.estado as any,
+  email: a.email,
+  telefono: a.telefono || undefined
 }));
 
 const c = alumnosListCopy;

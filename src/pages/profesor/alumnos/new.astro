@@ -3,11 +3,13 @@ import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import { InviteStudentForm } from "@/components/organisms/profesor/alumnos/InviteStudentForm";
 import { inviteStudentCopy } from "@/data/es/profesor/alumnos";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import CreationHeader from "@/components/molecules/profesor/CreationHeader.astro";
+import FormContainer from "@/components/molecules/profesor/FormContainer.astro";
 
 // SSR: Fetch planes del profesor
 const supabase = createSupabaseServerClient(Astro);
-const { data: userData } = await supabase.auth.getUser();
-const userId = userData.user?.id;
+const user = Astro.locals.user;
+const userId = user?.id;
 
 if (!userId) {
   return Astro.redirect("/login");
@@ -25,18 +27,16 @@ if (error) {
 ---
 
 <ProfesorLayout title="Invitar Alumno | MiGym">
-  <div class="px-4 py-6 md:py-10 max-w-4xl mx-auto space-y-8">
-    <header class="space-y-1">
-      <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-        {inviteStudentCopy.header.title}
-      </h1>
-      <p class="text-base text-zinc-500 dark:text-zinc-400">
-        {inviteStudentCopy.header.subtitle}
-      </p>
-    </header>
+  <div class="px-4 py-8 md:py-12 max-w-7xl mx-auto space-y-12">
+    <CreationHeader 
+      title={inviteStudentCopy.header.title}
+      subtitle={inviteStudentCopy.header.subtitle}
+      backHref="/profesor/alumnos"
+      backLabel="Volver a Alumnos"
+    />
 
-    <div class="bg-white dark:bg-zinc-950/50 p-6 sm:p-8 rounded-b-3xl rounded-t-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+    <FormContainer size="md">
       <InviteStudentForm client:load plans={plans || []} />
-    </div>
+    </FormContainer>
   </div>
 </ProfesorLayout>

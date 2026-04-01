@@ -1,0 +1,27 @@
+---
+import { cn } from "@/lib/utils";
+
+interface Props {
+  size?: "sm" | "md" | "lg" | "xl";
+  className?: string;
+}
+
+const { size = "md", className } = Astro.props;
+
+const widths = {
+  sm: "max-w-3xl",
+  md: "max-w-4xl",
+  lg: "max-w-5xl",
+  xl: "max-w-6xl",
+};
+---
+
+<div class={cn(
+  "w-full bg-white dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800",
+  "rounded-3xl p-6 sm:p-10 md:p-12", // Radio extra grande para estética dashboard
+  widths[size],
+  "mx-auto",
+  className
+)}>
+  <slot />
+</div>

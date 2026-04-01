@@ -14,7 +14,7 @@ import {
   Clock,
   ExternalLink,
   ChevronRight,
-  Info
+  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { pagosCopy } from '@/data/es/profesor/pagos';

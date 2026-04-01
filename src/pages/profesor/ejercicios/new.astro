@@ -2,12 +2,11 @@
 import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import { ExerciseForm } from "@/components/molecules/profesor/ejercicios/ExerciseForm";
 import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
-import { createSupabaseServerClient } from "@/lib/supabase-ssr";
-import { MoveLeft } from "lucide-react";
+import CreationHeader from "@/components/molecules/profesor/CreationHeader.astro";
+import FormContainer from "@/components/molecules/profesor/FormContainer.astro";
 
-const supabase = createSupabaseServerClient(Astro);
-const { data: userData } = await supabase.auth.getUser();
-const userId = userData.user?.id;
+const user = Astro.locals.user;
+const userId = user?.id;
 
 if (!userId) {
   return Astro.redirect("/login");
@@ -15,26 +14,20 @@ if (!userId) {
 ---
 
 <ProfesorLayout title={`${exerciseLibraryCopy.form.title} | MiGym`}>
-  <div class="px-4 py-6 md:py-10 max-w-3xl mx-auto space-y-8">
-    <a 
-      href="/profesor/ejercicios" 
-      class="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-lime-500 transition-colors"
-    >
-      <MoveLeft className="w-4 h-4" />
-      Volver a la biblioteca
-    </a>
+  <div class="px-4 py-8 md:py-12 max-w-7xl mx-auto space-y-12">
+    <CreationHeader 
+      title={exerciseLibraryCopy.form.title}
+      subtitle={exerciseLibraryCopy.form.description}
+      backHref="/profesor/ejercicios"
+      backLabel="Biblioteca de ejercicios"
+    />
 
-    <header class="space-y-2">
-      <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-        {exerciseLibraryCopy.form.title}
-      </h1>
-      <p class="text-base text-zinc-500 dark:text-zinc-400 max-w-xl">
-        {exerciseLibraryCopy.form.description}
-      </p>
-    </header>
-
-    <div class="bg-white dark:bg-zinc-950/50 p-6 sm:p-10 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-      <ExerciseForm client:load onSuccess={() => Astro.redirect("/profesor/ejercicios")} />
-    </div>
+    <FormContainer size="sm">
+      <ExerciseForm 
+        client:load 
+        onSuccess={() => Astro.redirect("/profesor/ejercicios")} 
+        onCancel={() => Astro.redirect("/profesor/ejercicios")}
+      />
+    </FormContainer>
   </div>
 </ProfesorLayout>

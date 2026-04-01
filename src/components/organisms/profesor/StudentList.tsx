@@ -3,6 +3,8 @@ import { Users, ChevronRight, User as UserIcon, Filter, MoreHorizontal, Dumbbell
 import { alumnosListCopy } from "@/data/es/profesor/alumnos";
 import { StatusBadge, type StatusType } from "@/components/atoms/StatusBadge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { actions } from "astro:actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,8 @@ export interface Student {
   name: string;
   planName: string | null;
   status: StatusType;
+  email: string;
+  telefono?: string;
 }
 
 interface Props {
@@ -53,7 +57,7 @@ export function StudentList({ students, title, hideAction = false, isDashboard =
       header: c.columns.name,
       render: (student) => (
         <div className="flex items-center gap-3 font-bold text-zinc-950 dark:text-zinc-100">
-          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center font-black text-zinc-500 dark:text-zinc-400 text-xs shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-all duration-300 transform group-hover:rotate-3 shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex font-black text-zinc-500 dark:text-zinc-400 text-xs shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-all duration-300 transform group-hover:rotate-3 shadow-sm">
             {student.name.charAt(0).toUpperCase()}
           </div>
           <span className="group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">{student.name}</span>
@@ -85,32 +89,78 @@ export function StudentList({ students, title, hideAction = false, isDashboard =
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-2xl border-zinc-100 dark:border-zinc-800 p-2 bg-white dark:bg-zinc-950">
-              <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3">
+              <DropdownMenuItem 
+                onClick={() => window.location.href = `/profesor/alumnos/${student.id}/edit`}
+                className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3"
+              >
                 <UserIcon className="w-4 h-4 text-zinc-500" />
-                {cMenu.viewProfile}
+                {cMenu.editProfile}
               </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3 text-lime-600 dark:text-lime-400">
+              
+              <DropdownMenuItem 
+                onClick={() => window.location.href = `/profesor/alumnos/${student.id}#rutina`}
+                className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3 text-lime-600 dark:text-lime-400"
+              >
                 <Dumbbell className="w-4 h-4" />
                 {cMenu.editRoutine}
               </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3">
+
+              <DropdownMenuItem 
+                onClick={() => window.location.href = `/profesor/pagos?search=${encodeURIComponent(student.name)}`}
+                className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3"
+              >
                 <DollarSign className="w-4 h-4 text-zinc-500" />
                 {cMenu.registerPayment}
               </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3">
-                <LineChart className="w-4 h-4 text-zinc-500" />
-                {cMenu.viewProgress}
-              </DropdownMenuItem>
+              
               <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-900 my-1" />
-              <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3">
+              
+              <DropdownMenuItem 
+                onClick={async () => {
+                  try {
+                    const link = `${window.location.origin}/login?email=${encodeURIComponent(student.email)}`;
+                    await navigator.clipboard.writeText(link);
+                    toast.success("Link de acceso copiado");
+                  } catch (err) {
+                    toast.error("No se pudo copiar el link");
+                  }
+                }}
+                className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3"
+              >
                 <LinkIcon className="w-4 h-4 text-zinc-500" />
                 {cMenu.copyMagicLink}
               </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3">
+              
+              <DropdownMenuItem 
+                onClick={() => {
+                  if (!student.telefono) {
+                    toast.error("El alumno no tiene teléfono registrado");
+                    return;
+                  }
+                  const cleanPhone = student.telefono.replace(/\D/g, "");
+                  const msg = encodeURIComponent(`¡Hola ${student.name.split(" ")[0]}! Te escribo de MiGym.`);
+                  window.open(`https://wa.me/${cleanPhone}?text=${msg}`, "_blank");
+                }}
+                className="rounded-xl cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 font-bold text-xs uppercase tracking-widest gap-3"
+              >
                 <MessageCircle className="w-4 h-4 text-zinc-500" />
                 {cMenu.sendWhatsApp}
               </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl cursor-pointer py-2.5 font-bold text-xs uppercase tracking-widest gap-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 focus:text-red-700">
+              
+              <DropdownMenuItem 
+                onClick={async () => {
+                  if (confirm(`¿Estás seguro de archivar a ${student.name}? El alumno dejará de aparecer en la lista activa.`)) {
+                    const { error } = await actions.profesor.deleteStudent({ id: student.id });
+                    if (error) {
+                      toast.error("Error al archivar alumno");
+                    } else {
+                      toast.success("Alumno archivado");
+                      window.location.reload();
+                    }
+                  }
+                }}
+                className="rounded-xl cursor-pointer py-2.5 font-bold text-xs uppercase tracking-widest gap-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 focus:text-red-700"
+              >
                 <Archive className="w-4 h-4" />
                 {cMenu.archive}
               </DropdownMenuItem>

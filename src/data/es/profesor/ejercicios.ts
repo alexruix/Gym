@@ -21,12 +21,17 @@ export const exerciseLibraryCopy = {
       nombre: "Nombre",
       descripcion: "Descripción (Opcional)",
       mediaUrl: "Enlace a video o imagen (Opcional)",
+      tags: "Etiquetas / Grupo Muscular",
     },
     placeholders: {
       nombre: "Ej: Sentadilla con Barra Libres",
       descripcion: "Bajar rompiendo el paralelo, pecho arriba, rodillas alineadas con la punta del pie.",
       mediaUrl: "https://youtube.com/watch?v=...",
+      tags: "Ej: Cuádriceps, Empuje, Fuerza...",
     },
+    quickTags: [
+      "Piernas", "Pecho", "Espalda", "Brazos", "Hombros", "Abdominales", "Cardio"
+    ],
     actions: {
       cancel: "Cancelar",
       submit: "Guardar Ejercicio",
