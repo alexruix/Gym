@@ -52,7 +52,14 @@ if (error || !alumno) {
   return Astro.redirect("/profesor/alumnos?error=not-found");
 }
 
-// 2.5 Fetch última sesión para telemetría
+// 2.5 Fetch biblioteca completa para búsqueda rápida
+const { data: exercises } = await supabase
+  .from("biblioteca_ejercicios")
+  .select("id, nombre, media_url, parent_id, is_template_base, tags")
+  .eq("profesor_id", user.id)
+  .order("nombre", { ascending: true });
+
+// 2.6 Fetch última sesión para telemetría
 const { data: ultimaSesion } = await supabase
   .from("sesiones")
   .select("created_at")

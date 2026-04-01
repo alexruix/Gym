@@ -433,10 +433,13 @@ export function PlanDetail({ plan: initialPlan }: Props) {
 
                     {isOpen && (
                     <div className="border-t border-zinc-100 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-4 duration-500">
-                        {rutina.ejercicios_plan.length > 0 && rutina.ejercicios_plan.map((ej, idx) => (
+                        {rutina.ejercicios_plan.length > 0 && rutina.ejercicios_plan.map((ej: any, idx: number) => (
                             <RoutineExerciseRow 
                                 key={ej.id} 
-                                exercise={ej} 
+                                exercise={{
+                                  ...ej,
+                                  peso_target: ej.peso_target || ""
+                                }} 
                                 index={idx} 
                                 onDelete={() => removeExercise(rutina.id, ej.id)}
                             />
