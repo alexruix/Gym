@@ -67,13 +67,13 @@ const { data: exercises } = await supabase
   .eq("profesor_id", user.id)
   .order("nombre", { ascending: true });
 
-// 2.6 Fetch última sesión para telemetría
+// 2.6 Fetch última sesión instanciada para telemetría
 const { data: ultimaSesion } = await supabase
-  .from("sesiones")
-  .select("created_at")
+  .from("sesiones_instanciadas")
+  .select("updated_at, completed_at")
   .eq("alumno_id", id)
-  .eq("completada", true)
-  .order("created_at", { ascending: false })
+  .eq("estado", "completada")
+  .order("completed_at", { ascending: false })
   .limit(1)
   .single();
 
@@ -86,7 +86,7 @@ const studentData = {
   telefono: alumno.telefono || undefined,
   fecha_inicio: alumno.fecha_inicio,
   dia_pago: alumno.dia_pago,
-  ultima_sesion: ultimaSesion?.created_at || null
+  ultima_sesion: ultimaSesion?.completed_at || ultimaSesion?.updated_at || null
 };
 
 const assignedPlan = Array.isArray(alumno.planes) ? alumno.planes[0] : alumno.planes;

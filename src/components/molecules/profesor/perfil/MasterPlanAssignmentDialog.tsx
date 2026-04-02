@@ -1,8 +1,9 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { EntitySelectorDialog } from "@/components/molecules/profesor/core/EntitySelectorDialog";
 import { Layers } from "lucide-react";
+import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 
 interface Plan {
     id: string;
@@ -36,16 +37,16 @@ export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuc
             const { data, error } = await actions.profesor.getProfessorMaestroPlans();
             if (error) throw error;
             // Mapeo a BaseEntity
-            setPlanes(data.planes.map((p: any) => ({
+            const planesList = data?.planes || [];
+            setPlanes(planesList.map((p: any) => ({
                 id: p.id,
                 name: p.nombre,
-                tags: ["Maestra"] // Tag automático para plantillas
+                tags: ["Maestra"]
             })));
         } catch (err: any) {
-            toast.error("No se pudieron cargar los planes");
+            toast.error(athleteProfileCopy.workspace.routine.assignmentDialog.error);
         } finally {
-            setIsLoading(true);
-            // Simular un pequeño delay para estética industrial
+            // Pequeño delay estético industrial
             setTimeout(() => setIsLoading(false), 300);
         }
     }
@@ -63,11 +64,11 @@ export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuc
             
             if (error) throw error;
             
-            toast.success("Rutina asignada correctamente");
+            toast.success(athleteProfileCopy.workspace.routine.assignmentDialog.success);
             onSuccess();
             onOpenChange(false);
         } catch (err: any) {
-            toast.error(err.message || "Error al asignar el plan");
+            toast.error(err.message || athleteProfileCopy.workspace.routine.assignmentDialog.saveError);
         } finally {
             setIsSaving(false);
         }
@@ -77,14 +78,14 @@ export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuc
         <EntitySelectorDialog 
             open={open}
             onOpenChange={onOpenChange}
-            title="Asignar Rutina Maestra"
-            description="Elegí una plantilla de tu biblioteca para este alumno."
+            title={athleteProfileCopy.workspace.routine.assignmentDialog.title}
+            description={athleteProfileCopy.workspace.routine.assignmentDialog.description}
             items={planes}
             isLoading={isLoading}
             isSaving={isSaving}
             onConfirm={handleConfirm}
-            confirmLabel="Asignar Plan"
-            warningMessage="Al asignar este plan, se reemplazará la rutina actual del alumno (si tiene una)."
+            confirmLabel={athleteProfileCopy.workspace.routine.assignmentDialog.confirmBtn}
+            warningMessage={athleteProfileCopy.workspace.routine.assignmentDialog.warning}
             allTags={["Maestra"]}
             renderItem={(item, isSelected) => (
                 <div className="flex items-center gap-4">
