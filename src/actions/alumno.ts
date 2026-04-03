@@ -8,6 +8,9 @@ import {
   instanciarSesionSchema,
   logEjercicioInstanciadoSchema,
   completarSesionSchema,
+  addExerciseToStudentPlanSchema,
+  removeExerciseFromStudentPlanSchema,
+  swapExerciseInStudentPlanSchema,
 } from "@/lib/validators";
 import { getDayNumber, getWeekNumber, getTodayISO, getCyclicDayNumber } from "@/lib/schedule";
 
@@ -49,7 +52,7 @@ export const alumnoActions = {
         .select(`
           *,
           sesion_ejercicios_instanciados (
-            id, ejercicio_id, orden, series_plan, reps_plan, peso_plan,
+            id, ejercicio_id, ejercicio_plan_id, orden, series_plan, reps_plan, peso_plan,
             descanso_seg, series_real, reps_real, peso_real, exercise_type,
             is_variation, nota_alumno, completado,
             biblioteca_ejercicios (id, nombre, descripcion, media_url)
@@ -125,6 +128,7 @@ export const alumnoActions = {
         return {
           sesion_id: nuevaSesion.id,
           ejercicio_id: ejercicioId || "",
+          ejercicio_plan_id: ej.id, // Vínculo con el plan estructural
           orden: ej.orden,
           series_plan: ej.series,
           reps_plan: ej.reps_target,
@@ -147,7 +151,7 @@ export const alumnoActions = {
         .select(`
           *,
           sesion_ejercicios_instanciados (
-            id, ejercicio_id, orden, series_plan, reps_plan, peso_plan,
+            id, ejercicio_id, ejercicio_plan_id, orden, series_plan, reps_plan, peso_plan,
             descanso_seg, series_real, reps_real, peso_real, exercise_type,
             is_variation, nota_alumno, completado,
             biblioteca_ejercicios (id, nombre, descripcion, media_url)
@@ -427,50 +431,69 @@ export const alumnoActions = {
   }),
 
   /**
-   * swapInstantiatedExercise: (Profesor) Intercambia un ejercicio de una sesión instanciada por otro.
-   * Crea una "Variación Puntual" solo para esa fecha.
+   * swapExerciseInStudentPlan: (Profesor) Sustituye un ejercicio por otro.
+   * Si es permanente, lo cambia en el plan maestro y propaga a futuras.
    */
-  swapInstantiatedExercise: defineAction({
+  swapExerciseInStudentPlan: defineAction({
     accept: "json",
-    input: z.object({
-      sesion_ejercicio_id: z.string().uuid(),
-      nuevo_biblioteca_id: z.string().uuid(),
-    }),
+    input: swapExerciseInStudentPlanSchema,
     handler: async (input, context) => {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
       const supabase = getAuthenticatedClient(context);
 
-      // 1. Obtener datos del nuevo ejercicio
-      const { data: nuevoEj, error: ejErr } = await supabase
-        .from("biblioteca_ejercicios")
-        .select("id, nombre")
-        .eq("id", input.nuevo_biblioteca_id)
-        .single();
-
-      if (ejErr || !nuevoEj) throw new Error("Ejercicio no encontrado");
-
-      // 2. Actualizar la instancia
-      const { error } = await supabase
+      const { data: instancia, error: instErr } = await supabase
         .from("sesion_ejercicios_instanciados")
-        .update({
-          ejercicio_id: input.nuevo_biblioteca_id,
-          is_variation: true,
-          series_real: null,
-          reps_real: null,
-          peso_real: null,
-          completado: false,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", input.sesion_ejercicio_id);
+        .select("*, sesiones_instanciadas(alumno_id, numero_dia_plan, semana_numero, alumnos(profesor_id, plan_id, nombre))")
+        .eq("id", input.ejercicio_id)
+        .single();
+      
+      if (instErr || !instancia) throw new Error("Ejercicio no encontrado");
+      const sesion = instancia.sesiones_instanciadas as any;
+      const alumno = sesion.alumnos as any;
+      if (alumno.profesor_id !== user.id) throw new Error("Sin permisos");
 
-      if (error) throw new Error("Error al sustituir ejercicio: " + error.message);
+      const { data: bibEj } = await supabase.from("biblioteca_ejercicios").select("nombre").eq("id", input.nuevo_biblioteca_id).single();
+      const nombreEj = bibEj?.nombre || "Nuevo Ejercicio";
 
-      return { 
-        success: true, 
-        mensaje: `Sustituido por ${nuevoEj.nombre}. Esta es una variación puntual para hoy.`,
-        is_variation: true 
-      };
+      if (input.is_permanent) {
+        let planId = alumno.plan_id;
+        const ejPlanId = instancia.ejercicio_plan_id;
+        if (!ejPlanId) throw new Error("Sólo se pueden sustituir permanentemente los ejercicios base del plan.");
+
+        const { data: plan } = await supabase.from("planes").select("is_template").eq("id", planId).single();
+        if (plan?.is_template) {
+          const { data: forkedId, error: forkErr } = await supabase.rpc("fork_plan", {
+            p_plan_id: planId,
+            p_alumno_id: input.alumno_id,
+            p_nuevo_nombre: `Plan de ${alumno.nombre}`
+          });
+          if (forkErr) throw new Error("Error personalizando plan: " + forkErr.message);
+          planId = forkedId;
+          await supabase.from("alumnos").update({ plan_id: planId }).eq("id", input.alumno_id);
+        }
+
+        // Actualizar ejercicio en el plan maestro
+        await supabase.from("ejercicios_plan").update({ ejercicio_id: input.nuevo_biblioteca_id }).eq("id", ejPlanId);
+
+        // Propagar a instancias futuras no completadas
+        const { data: futuras } = await supabase.from("sesiones_instanciadas").select("id").eq("alumno_id", input.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).is("estado", "pendiente");
+        if (futuras && futuras.length > 0) {
+            const ids = futuras.map(s => s.id);
+            await supabase.from("sesion_ejercicios_instanciados").update({ 
+                ejercicio_id: input.nuevo_biblioteca_id,
+                series_real: null, reps_real: null, peso_real: null, completado: false, is_variation: false 
+            }).eq("ejercicio_plan_id", ejPlanId).in("sesion_id", ids);
+        }
+        return { success: true, mensaje: `✅ Sustitución de "${nombreEj}" aplicada permanentemente.` };
+      } else {
+        await supabase.from("sesion_ejercicios_instanciados").update({ 
+            ejercicio_id: input.nuevo_biblioteca_id, 
+            is_variation: true,
+            series_real: null, reps_real: null, peso_real: null, completado: false 
+        }).eq("id", input.ejercicio_id);
+        return { success: true, mensaje: `✅ Sustituidopor "${nombreEj}" solo por hoy.` };
+      }
     }
   }),
 
@@ -560,6 +583,126 @@ export const alumnoActions = {
           mensaje: `Calendario de ${alumno.nombre} reajustado +${input.offset_days} días.`,
           nueva_fecha: newStartISO 
       };
+    }
+  }),
+
+  /**
+   * addExerciseToStudentPlan: (Profesor) Añade un ejercicio a la sesión.
+   * Si es permanente, lo añade al plan maestro y propaga a futuras.
+   */
+  addExerciseToStudentPlan: defineAction({
+    accept: "json",
+    input: addExerciseToStudentPlanSchema,
+    handler: async (input, context) => {
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+      const supabase = getAuthenticatedClient(context);
+
+      const { data: sesion, error: sesionErr } = await supabase
+        .from("sesiones_instanciadas")
+        .select("*, alumnos(profesor_id, plan_id, nombre)")
+        .eq("id", input.sesion_id)
+        .single();
+      if (sesionErr || !sesion) throw new Error("Sesión no encontrada");
+      const alumno = sesion.alumnos as any;
+      if (alumno.profesor_id !== user.id) throw new Error("Sin permisos");
+
+      const { data: bibEj } = await supabase
+        .from("biblioteca_ejercicios")
+        .select("nombre")
+        .eq("id", input.biblioteca_id)
+        .single();
+      const nombreEj = bibEj?.nombre || "Ejercicio";
+
+      if (input.is_permanent) {
+        let planId = alumno.plan_id;
+        const { data: plan } = await supabase.from("planes").select("is_template").eq("id", planId).single();
+        if (plan?.is_template) {
+          const { data: forkedId, error: forkErr } = await supabase.rpc("fork_plan", {
+            p_plan_id: planId,
+            p_alumno_id: input.alumno_id,
+            p_nuevo_nombre: `Plan de ${alumno.nombre}`
+          });
+          if (forkErr) throw new Error("Error personalizando plan: " + forkErr.message);
+          planId = forkedId;
+          await supabase.from("alumnos").update({ plan_id: planId }).eq("id", input.alumno_id);
+        }
+
+        const { data: rutina } = await supabase.from("rutinas_diarias").select("id").eq("plan_id", planId).eq("dia_numero", sesion.numero_dia_plan).single();
+        if (!rutina) throw new Error("Estructura de plan no encontrada para hoy");
+
+        const { data: countRes } = await supabase.from("ejercicios_plan").select("orden").eq("rutina_id", rutina.id).order("orden", { ascending: false }).limit(1);
+        const nextOrder = (countRes?.[0]?.orden ?? 0) + 1;
+
+        const { data: newEjPlan, error: insertErr } = await supabase
+          .from("ejercicios_plan")
+          .insert({ rutina_id: rutina.id, ejercicio_id: input.biblioteca_id, orden: nextOrder, series: 3, reps_target: "10", descanso_seg: 60 })
+          .select("id")
+          .single();
+        if (insertErr) throw new Error("Insert Error: " + insertErr.message);
+
+        const { data: sesionesFuturas } = await supabase.from("sesiones_instanciadas").select("id").eq("alumno_id", input.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).is("estado", "pendiente");
+        const idsAInstanciar = [sesion.id, ...((sesionesFuturas?.map(s => s.id) || []).filter(id => id !== sesion.id))];
+        
+        if (idsAInstanciar.length > 0) {
+          const instancias = idsAInstanciar.map(sid => ({
+            sesion_id: sid,
+            ejercicio_id: input.biblioteca_id,
+            ejercicio_plan_id: newEjPlan.id,
+            orden: nextOrder,
+            series_plan: 3,
+            reps_plan: "10",
+            descanso_seg: 60,
+            is_variation: false
+          }));
+          await supabase.from("sesion_ejercicios_instanciados").insert(instancias);
+        }
+        return { success: true, mensaje: `✅ Ejercicio "${nombreEj}" añadido permanentemente.` };
+      } else {
+        const { data: countRes } = await supabase.from("sesion_ejercicios_instanciados").select("orden").eq("sesion_id", input.sesion_id).order("orden", { ascending: false }).limit(1);
+        const nextOrder = (countRes?.[0]?.orden ?? 0) + 1;
+        await supabase.from("sesion_ejercicios_instanciados").insert({ sesion_id: input.sesion_id, ejercicio_id: input.biblioteca_id, orden: nextOrder, series_plan: 3, reps_plan: "10", descanso_seg: 60, is_variation: true });
+        return { success: true, mensaje: `✅ Ejercicio "${nombreEj}" añadido para hoy.` };
+      }
+    }
+  }),
+
+  /**
+   * removeExerciseFromStudentPlan: (Profesor) Elimina un ejercicio de la sesión.
+   * Si es permanente, lo quita del plan maestro y futuras sesiones.
+   */
+  removeExerciseFromStudentPlan: defineAction({
+    accept: "json",
+    input: removeExerciseFromStudentPlanSchema,
+    handler: async (input, context) => {
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+      const supabase = getAuthenticatedClient(context);
+
+      const { data: instancia, error: instErr } = await supabase
+        .from("sesion_ejercicios_instanciados")
+        .select("*, sesiones_instanciadas(alumno_id, numero_dia_plan, semana_numero, alumnos(profesor_id))")
+        .eq("id", input.ejercicio_id)
+        .single();
+      if (instErr || !instancia) throw new Error("Ejercicio no encontrado");
+      const sesion = instancia.sesiones_instanciadas as any;
+      const alumno = sesion.alumnos as any;
+      if (alumno.profesor_id !== user.id) throw new Error("Sin permisos");
+
+      if (input.is_permanent) {
+        const ejPlanId = instancia.ejercicio_plan_id;
+        if (!ejPlanId) throw new Error("Sólo se pueden eliminar ejercicios base de forma permanente.");
+        await supabase.from("ejercicios_plan").delete().eq("id", ejPlanId);
+        const { data: futuras } = await supabase.from("sesiones_instanciadas").select("id").eq("alumno_id", sesion.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).gte("semana_numero", sesion.semana_numero);
+        if (futuras && futuras.length > 0) {
+          const ids = futuras.map(s => s.id);
+          await supabase.from("sesion_ejercicios_instanciados").delete().eq("ejercicio_plan_id", ejPlanId).is("completado", false).in("sesion_id", ids);
+        }
+        return { success: true, mensaje: "✅ Ejercicio eliminado permanentemente." };
+      } else {
+        await supabase.from("sesion_ejercicios_instanciados").delete().eq("id", input.ejercicio_id);
+        return { success: true, mensaje: "✅ Ejercicio eliminado solo hoy." };
+      }
     }
   }),
 

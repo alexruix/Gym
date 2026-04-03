@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
@@ -38,7 +38,7 @@ import {
 
 import { StandardField } from "@/components/molecules/StandardField";
 import { QuickOptionsGroup } from "@/components/molecules/QuickOptionsGroup";
-import { cn } from "@/lib/utils";
+import { cn, formatDateLong } from "@/lib/utils";
 
 type FormValues = z.infer<typeof inviteStudentSchema>;
 
@@ -104,7 +104,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
           id: result.student_id,
           email: data.email,
           name: data.nombre.split(" ")[0] || data.nombre,
-          date: new Date(data.fecha_inicio).toLocaleDateString("es-AR", { day: 'numeric', month: 'long' }),
+          date: formatDateLong(data.fecha_inicio),
           phone: data.telefono
         });
       }
@@ -304,17 +304,26 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
                             <StandardField 
                                 label={inviteStudentCopy.labels.fechaInicio} 
                                 error={fieldState.error?.message}
+                                hint={inviteStudentCopy.hints.fechaInicio}
                                 required
                             >
                                 <div className="flex gap-2">
                                     <FormControl>
-                                    <Input 
-                                        type="date" 
-                                        {...field} 
-                                        value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : (field.value || '')}
-                                        onChange={(e) => field.onChange(new Date(e.target.value))}
-                                        className="font-bold h-14 rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200"
-                                    />
+                                        <div className="relative flex-1 group/date">
+                                            <input 
+                                                type="date" 
+                                                {...field} 
+                                                value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : (field.value || '')}
+                                                onChange={(e) => field.onChange(new Date(e.target.value))}
+                                                className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer"
+                                            />
+                                            <div className={cn(
+                                                "h-14 w-full rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 flex items-center px-4 font-bold text-zinc-950 dark:text-zinc-50 group-hover/date:border-zinc-300 transition-all",
+                                                fieldState.error && "border-red-500"
+                                            )}>
+                                                {field.value ? formatDateLong(field.value) : "Seleccioná fecha"}
+                                            </div>
+                                        </div>
                                     </FormControl>
                                     <Button 
                                         type="button" 
@@ -493,7 +502,7 @@ export function InviteStudentForm({ plans }: { plans: Plan[] }) {
               <div className="mt-8 relative group">
                 <div className="absolute -inset-1 bg-lime-500/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
                 <span className="relative block px-4 py-4 bg-zinc-100 dark:bg-zinc-900 rounded-2xl text-zinc-950 dark:text-lime-400 font-black tracking-widest text-lg border border-zinc-200 dark:border-zinc-800">
-                    PRÓXIMO PAGO: {successData ? successData.date.toUpperCase() : ''}
+                    PRÓXIMO PAGO: {successData ? successData.date : ''}
                 </span>
               </div>
             </div>

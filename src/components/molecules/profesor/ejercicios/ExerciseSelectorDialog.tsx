@@ -16,13 +16,19 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSelect: (exerciseId: string) => void;
   title?: string;
+  description?: string;
 }
 
 /**
  * ExerciseSelectorDialog: Diálogo ligero para seleccionar un ejercicio de la biblioteca.
- * Optimizado para el flujo de "Swap" (Sustitución) en el calendario operativo.
  */
-export function ExerciseSelectorDialog({ isOpen, onOpenChange, onSelect, title = "Sustituir ejercicio" }: Props) {
+export function ExerciseSelectorDialog({ 
+  isOpen, 
+  onOpenChange, 
+  onSelect, 
+  title = "Seleccionar ejercicio",
+  description = "Selecciona un ejercicio de tu biblioteca"
+}: Props) {
   const [search, setSearch] = useState("");
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
@@ -122,7 +128,7 @@ export function ExerciseSelectorDialog({ isOpen, onOpenChange, onSelect, title =
                 {filtered.length} ejercicios disponibles
             </span>
             <span className="text-[9px] font-black text-lime-500 uppercase tracking-widest animate-pulse">
-                Sustitución puntual
+                {description}
             </span>
           </div>
 

@@ -670,6 +670,7 @@ function EjercicioExpandibleRow({ ej, idx, alumnoId, isSaving, isExpanded, onTog
 
            {/* Acciones de Edición */}
            <div className="flex items-center gap-1 absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+<<<<<<< HEAD
                <button 
                     onClick={(e) => { e.stopPropagation(); onSwap(); }}
                     className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-90 flex items-center justify-center"
@@ -684,6 +685,26 @@ function EjercicioExpandibleRow({ ej, idx, alumnoId, isSaving, isExpanded, onTog
                 >
                  <Trash2 className="w-4 h-4 text-zinc-500 hover:text-red-500" />
                </button>
+=======
+               <Button 
+                    onClick={(e) => { e.stopPropagation(); onSwap(); }}
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-90"
+                    title="Sustituir (Solo hoy)"
+                >
+                 <RefreshCw className="w-4 h-4 text-zinc-500 hover:text-lime-500" />
+               </Button>
+               <Button 
+                    onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:bg-red-500/10 active:scale-90"
+                    title="Eliminar"
+                >
+                 <Trash2 className="w-4 h-4 text-zinc-500 hover:text-red-500" />
+               </Button>
+>>>>>>> de97d19e (Rutinas con calendario)
            </div>
         </div>
 

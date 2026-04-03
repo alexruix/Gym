@@ -15,6 +15,20 @@ export function formatCurrency(amount: number) {
 }
 
 /**
+ * Formatea una fecha en formato largo (Ej: "8 de julio")
+ */
+export function formatDateLong(date: Date | string | undefined | null): string {
+  if (!date) return "";
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+  
+  return d.toLocaleDateString("es-AR", { 
+    day: 'numeric', 
+    month: 'long' 
+  });
+}
+
+/**
  * COPIA ROBUSTA AL PORTAPAPELES
  * Funciona en contextos seguros (HTTPS) y no seguros (HTTP/IP) mediante fallback.
  */
