@@ -567,126 +567,118 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
     }, { loadingMsg: "Duplicando día...", successMsg: "Día duplicado", reloadOnSuccess: true });
   };
 
-  if (!planData || !planData.rutinas_diarias || planData.rutinas_diarias.length === 0) {
-    return (
-      <div className="py-24 bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] flex flex-col items-center gap-8 text-center shadow-2xl shadow-zinc-950/5 relative overflow-hidden group">
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none" />
-        <div className="w-24 h-24 bg-zinc-950 dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center border border-zinc-800 shadow-2xl group-hover:rotate-6 transition-transform duration-500">
-          <Dumbbell className="w-10 h-10 text-lime-400" />
-        </div>
-        <div className="space-y-2 relative z-10 max-w-sm">
-          <h3 className="font-black text-2xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin plan asignado</h3>
-          <p className="text-sm text-zinc-400 font-medium px-6">Este atleta aún no tiene rutinas activas. Podés asignarle una pre-definda o crear una desde cero.</p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
-          <Button
-            onClick={() => setIsAssignDialogOpen(true)}
-            variant="industrial"
-            className="h-14 px-10 rounded-2xl shadow-xl shadow-lime-500/10 uppercase"
-          >
-            <Library className="w-4 h-4 mr-3" />
-            Asignar de mis Planes
-          </Button>
-
-          <Button
-            onClick={() => window.location.href = '/profesor/planes'}
-            variant="outline"
-            className="h-14 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all font-sans"
-          >
-            <Plus className="w-4 h-4 mr-3" />
-            Crear nuevo Plan
-          </Button>
-        </div>
-
-        <MasterPlanAssignmentDialog
-          open={isAssignDialogOpen}
-          onOpenChange={setIsAssignDialogOpen}
-          alumnoId={alumnoId}
-          onSuccess={() => window.location.reload()}
-        />
-      </div>
-    );
-  }
-
-  const sortedRutinas = [...planData.rutinas_diarias].sort((a, b) => a.dia_numero - b.dia_numero);
+  const isEmpty = !planData || !planData.rutinas_diarias || planData.rutinas_diarias.length === 0;
+  const sortedRutinas = planData?.rutinas_diarias 
+    ? [...planData.rutinas_diarias].sort((a, b) => a.dia_numero - b.dia_numero) 
+    : [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      {/* Header Operational */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center border border-zinc-800 shadow-lg">
-            <Layers className="w-6 h-6 text-lime-400" />
+      {isEmpty ? (
+        <div className="py-24 bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] flex flex-col items-center gap-8 text-center shadow-2xl shadow-zinc-950/5 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none" />
+          <div className="w-24 h-24 bg-zinc-950 dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center border border-zinc-800 shadow-2xl group-hover:rotate-6 transition-transform duration-500">
+            <Dumbbell className="w-10 h-10 text-lime-400" />
           </div>
-          <div>
-            <h3 className="text-xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none mb-1">
-              {mode === "plan" ? athleteProfileCopy.workspace.tabs.plan : athleteProfileCopy.workspace.tabs.routine}
-            </h3>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{planData.nombre}</span>
-              {!planData.is_template && (
-                <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-400/10 px-2 py-0.5 rounded-full border border-lime-400/20">
-                  PERSONALIZADO
-                </div>
-              )}
-            </div>
+          <div className="space-y-2 relative z-10 max-w-sm">
+            <h3 className="font-black text-2xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">{workspace.routine.emptyState.title}</h3>
+            <p className="text-sm text-zinc-400 font-medium px-6">{workspace.routine.emptyState.description}</p>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          {!planData.is_template && (
+          <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
             <Button
-              variant="outline"
-              size="sm"
-              disabled={isPending}
-              onClick={handlePromotePlan}
-              className="h-10 rounded-xl font-black text-[9px] tracking-[0.2em] border-zinc-200 dark:border-zinc-800 hover:bg-lime-400 hover:text-zinc-950 hover:border-lime-500 transition-all gap-2"
-            >
-              <ArrowUpRight className="w-3 h-3" />
-              Promover a maestro
-            </Button>
-          )}
-
-
-
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-10 rounded-xl px-5 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 font-black uppercase text-[9px] tracking-widest"
-            onClick={() => setIsAssignDialogOpen(true)}
-          >
-            <Library className="w-3.5 h-3.5 mr-2" />
-            Cambiar de plan
-          </Button>
-        </div>
-      </div>
-
-      {/* Smart Promotion Banner (Bifurcación/Promoción) */}
-      {((!planData.is_template || showPromotion) && !isPromotionDismissed) && (
-        <div className="p-1 min-h-16 rounded-[2rem] bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group animate-in slide-in-from-bottom-4 duration-500">
-          <div className="absolute inset-0 bg-lime-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex items-center gap-6 px-8 relative z-10 w-full md:w-auto">
-            <div className="w-10 h-10 rounded-2xl bg-lime-400 flex items-center justify-center shadow-lg shadow-lime-500/20 rotate-3">
-              <Sparkles className="w-5 h-5 text-zinc-950" />
-            </div>
-            <div>
-              <p className="text-sm font-black text-white uppercase tracking-tight">
-                {planData.is_template ? "Cambios estructurales" : "Modificaste la rutina"}
-              </p>
-              <p className="text-[10px] font-bold text-zinc-400 max-w-[280px]">
-                {planData.is_template 
-                  ? "Para guardar estos cambios debés crear una versión personalizada para el alumno."
-                  : "¿Querés guardarla como un nuevo Plan Maestro para usar con otros?"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 px-8 relative z-10 w-full md:w-auto">
-            <Button
+              onClick={() => setIsAssignDialogOpen(true)}
               variant="industrial"
-              onClick={async () => {
-                const newId = await handleAutoFork();
+              size="xl"
+              className="shadow-xl shadow-lime-500/10"
+            >
+              <Library className="w-5 h-5 mr-3" />
+              {workspace.routine.emptyState.assignBtn}
+            </Button>
+
+            <Button
+              onClick={() => window.location.href = '/profesor/planes'}
+              variant="outline"
+              className="h-14 px-8 rounded-[1.25rem] font-black uppercase text-[10px] tracking-widest border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all font-sans"
+            >
+              <Plus className="w-4 h-4 mr-3" />
+              {workspace.routine.emptyState.createBtn}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Header Operational */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center border border-zinc-800 shadow-lg">
+                <Layers className="w-6 h-6 text-lime-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none mb-1">
+                  {mode === "plan" ? athleteProfileCopy.workspace.tabs.plan : athleteProfileCopy.workspace.tabs.routine}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{planData?.nombre}</span>
+                  {planData && !planData.is_template && (
+                    <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-400/10 px-2 py-0.5 rounded-full border border-lime-400/20">
+                      PERSONALIZADO
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {planData && !planData.is_template && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isPending}
+                  onClick={handlePromotePlan}
+                  className="h-10 rounded-xl font-black text-[9px] tracking-[0.2em] border-zinc-200 dark:border-zinc-800 hover:bg-lime-400 hover:text-zinc-950 hover:border-lime-500 transition-all gap-2"
+                >
+                  <ArrowUpRight className="w-3 h-3" />
+                  {workspace.routine.emptyState.promoteBtn}
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 rounded-xl px-5 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 font-black uppercase text-[9px] tracking-widest"
+                onClick={() => setIsAssignDialogOpen(true)}
+              >
+                <Library className="w-3.5 h-3.5 mr-2" />
+                {workspace.routine.emptyState.changeBtn}
+              </Button>
+            </div>
+          </div>
+
+          {/* Smart Promotion Banner (Bifurcación/Promoción) */}
+          {(planData && ((!planData.is_template || showPromotion) && !isPromotionDismissed)) && (
+            <div className="p-1 min-h-16 rounded-[2rem] bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group animate-in slide-in-from-bottom-4 duration-500">
+              <div className="absolute inset-0 bg-lime-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-center gap-6 px-8 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-2xl bg-lime-400 flex items-center justify-center shadow-lg shadow-lime-500/20 rotate-3">
+                  <Sparkles className="w-5 h-5 text-zinc-950" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-white uppercase tracking-tight">
+                    {planData.is_template ? "Cambios estructurales" : "Modificaste la rutina"}
+                  </p>
+                  <p className="text-[10px] font-bold text-zinc-400 max-w-[280px]">
+                    {planData.is_template 
+                      ? "Para guardar estos cambios debés crear una versión personalizada para el alumno."
+                      : "¿Querés guardarla como un nuevo Plan Maestro para usar con otros?"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-8 relative z-10 w-full md:w-auto">
+                <Button
+                  variant="industrial"
+                  onClick={async () => {
+                    const newId = await handleAutoFork();
                 if (newId) window.location.reload();
               }}
               disabled={isPending}
@@ -863,6 +855,8 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
           );
         })}
       </div>
+    </>
+  )}
 
       <MasterPlanAssignmentDialog
         open={isAssignDialogOpen}

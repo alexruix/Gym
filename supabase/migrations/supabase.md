@@ -131,6 +131,10 @@ CREATE TABLE IF NOT EXISTS pagos (
   created_at timestamptz DEFAULT now()
 );
 
+--- 7. Tracking de Entrenamiento (Legacy - Deprecated)
+-- NOTA: Estas tablas fueron reemplazadas por sesiones_instanciadas en la Fase del Calendario Operativo Real.
+-- Se mantienen los CREATE TABLE IF NOT EXISTS solo para que el script no falle si se corre sobre una DB con ellas,
+-- pero se recomienda usar las nuevas tablas.
 CREATE TABLE IF NOT EXISTS sesiones (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
@@ -162,18 +166,26 @@ CREATE POLICY "Acceso a pagos vía alumnos" ON pagos FOR ALL USING (
 );
 
 DROP POLICY IF EXISTS "Acceso a sesiones vía alumnos" ON sesiones;
-CREATE POLICY "Acceso a sesiones vía alumnos" ON sesiones FOR ALL USING (
-  EXISTS (SELECT 1 FROM alumnos WHERE id = sesiones.alumno_id AND profesor_id = auth.uid())
-);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'sesiones') THEN
+    CREATE POLICY "Acceso a sesiones vía alumnos" ON sesiones FOR ALL USING (
+      EXISTS (SELECT 1 FROM alumnos WHERE id = sesiones.alumno_id AND profesor_id = auth.uid())
+    );
+  END IF;
+END $$;
 
 DROP POLICY IF EXISTS "Acceso a logs vía sesiones" ON ejercicio_logs;
-CREATE POLICY "Acceso a logs vía sesiones" ON ejercicio_logs FOR ALL USING (
-  EXISTS (
-    SELECT 1 FROM sesiones s
-    JOIN alumnos a ON s.alumno_id = a.id
-    WHERE s.id = ejercicio_logs.sesion_id AND a.profesor_id = auth.uid()
-  )
-);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'ejercicio_logs') THEN
+    CREATE POLICY "Acceso a logs vía sesiones" ON ejercicio_logs FOR ALL USING (
+      EXISTS (
+        SELECT 1 FROM sesiones s
+        JOIN alumnos a ON s.alumno_id = a.id
+        WHERE s.id = ejercicio_logs.sesion_id AND a.profesor_id = auth.uid()
+      )
+    );
+  END IF;
+END $$;
 
 
 --- MIGRACIONES / ACTUALIZACIONES (Seguras para re-run)
@@ -647,17 +659,21 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 --- 15. COMENTARIOS Y NOTIFICACIONES (FASE 3)
 
 -- 1. Agregar columnas para comentarios a sesiones (Nivel d�a)
-ALTER TABLE sesiones
-ADD COLUMN IF NOT EXISTS notas_alumno text,
-ADD COLUMN IF NOT EXISTS notas_profesor text;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'sesiones') THEN
+    ALTER TABLE sesiones ADD COLUMN IF NOT EXISTS notas_alumno text, ADD COLUMN IF NOT EXISTS notas_profesor text;
+  END IF;
+END $$;
 
 COMMENT ON COLUMN sesiones.notas_alumno IS 'Feedback general del alumno al terminar la sesi�n (d�a completo).';
 COMMENT ON COLUMN sesiones.notas_profesor IS 'Respuesta general o anotaci�n del profesor sobre este d�a espec�fico.';
 
 -- 2. Agregar columnas para comentarios a ejercicio_logs (Nivel de ejercicio puntual)
-ALTER TABLE ejercicio_logs
-ADD COLUMN IF NOT EXISTS nota_alumno text,
-ADD COLUMN IF NOT EXISTS respuesta_profesor text;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'ejercicio_logs') THEN
+    ALTER TABLE ejercicio_logs ADD COLUMN IF NOT EXISTS nota_alumno text, ADD COLUMN IF NOT EXISTS respuesta_profesor text;
+  END IF;
+END $$;
 
 COMMENT ON COLUMN ejercicio_logs.nota_alumno IS 'Comentario del alumno sobre un ejercicio espec�fico (ej: "Me doli� el hombro").';
 COMMENT ON COLUMN ejercicio_logs.respuesta_profesor IS 'Respuesta del profesor a esa nota (independiente de la semana siguiente).';
@@ -976,3 +992,109 @@ CREATE POLICY "Profesores gestionan personalizaciones de sus alumnos" ON ejercic
   );
 
 COMMENT ON TABLE ejercicio_plan_personalizado IS 'Valores que sobrescriben la guía del plan maestro para un alumno específico.';
+
+--- 19. CALENDARIO OPERATIVO REAL (FASE 1)
+-- Migración idempotente para descartar tablas legacy y crear sesiones instanciadas
+
+DO $$ BEGIN
+  -- Drop tablas legacy (aún en desarrollo, sin historial real)
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'ejercicio_logs') THEN
+    DROP TABLE IF EXISTS ejercicio_logs CASCADE;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'sesiones') THEN
+    DROP TABLE IF EXISTS sesiones CASCADE;
+  END IF;
+END $$;
+
+-- 2. sesiones_instanciadas
+CREATE TABLE IF NOT EXISTS sesiones_instanciadas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  alumno_id UUID NOT NULL REFERENCES alumnos(id) ON DELETE CASCADE,
+  plan_id UUID NOT NULL REFERENCES planes(id) ON DELETE CASCADE,
+  numero_dia_plan INT NOT NULL, -- Qué día del plan es (ej: 4)
+  semana_numero INT NOT NULL DEFAULT 1, -- Semana del ciclo (ej: 1)
+  fecha_real DATE NOT NULL DEFAULT CURRENT_DATE,
+  nombre_dia TEXT, -- Ej: "Pecho + Tríceps"
+  estado TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'en_progreso', 'completada', 'omitida')),
+  notas_alumno TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  completed_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sesiones_alumno_fecha ON sesiones_instanciadas (alumno_id, fecha_real);
+CREATE INDEX IF NOT EXISTS idx_sesiones_alumno_dia ON sesiones_instanciadas (alumno_id, numero_dia_plan);
+
+-- 3. sesion_ejercicios_instanciados
+CREATE TABLE IF NOT EXISTS sesion_ejercicios_instanciados (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sesion_id UUID NOT NULL REFERENCES sesiones_instanciadas(id) ON DELETE CASCADE,
+  ejercicio_id UUID NOT NULL REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE,
+  orden INT NOT NULL DEFAULT 0,
+  series_plan INT NOT NULL DEFAULT 3,
+  reps_plan TEXT NOT NULL DEFAULT '10', -- Puede ser "8-12" o "10"
+  peso_plan DECIMAL(7,2), -- Null si no aplica (bodyweight)
+  descanso_seg INT DEFAULT 60,
+  series_real INT,
+  reps_real TEXT,
+  peso_real DECIMAL(7,2),
+  exercise_type TEXT DEFAULT 'base' CHECK (exercise_type IN ('base', 'complementary', 'accessory')),
+  is_variation BOOLEAN DEFAULT FALSE, -- Si es un accesorio rotado
+  nota_alumno TEXT,
+  completado BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sesion_ej_sesion_id ON sesion_ejercicios_instanciados (sesion_id);
+
+ALTER TABLE sesiones_instanciadas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sesion_ejercicios_instanciados ENABLE ROW LEVEL SECURITY;
+
+-- Alumno Policies
+DROP POLICY IF EXISTS "alumno_select_own_sesiones" ON sesiones_instanciadas;
+CREATE POLICY "alumno_select_own_sesiones" ON sesiones_instanciadas
+  FOR SELECT USING (alumno_id = auth.uid());
+
+DROP POLICY IF EXISTS "alumno_insert_own_sesiones" ON sesiones_instanciadas;
+CREATE POLICY "alumno_insert_own_sesiones" ON sesiones_instanciadas
+  FOR INSERT WITH CHECK (alumno_id = auth.uid());
+
+DROP POLICY IF EXISTS "alumno_update_own_sesiones" ON sesiones_instanciadas;
+CREATE POLICY "alumno_update_own_sesiones" ON sesiones_instanciadas
+  FOR UPDATE USING (alumno_id = auth.uid());
+
+-- Ejercicios instanciados: el alumno puede ver/modificar los de sus sesiones
+DROP POLICY IF EXISTS "alumno_select_own_ej_instanciados" ON sesion_ejercicios_instanciados;
+CREATE POLICY "alumno_select_own_ej_instanciados" ON sesion_ejercicios_instanciados
+  FOR SELECT USING (
+    sesion_id IN (
+      SELECT id FROM sesiones_instanciadas WHERE alumno_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "alumno_update_own_ej_instanciados" ON sesion_ejercicios_instanciados;
+CREATE POLICY "alumno_update_own_ej_instanciados" ON sesion_ejercicios_instanciados
+  FOR UPDATE USING (
+    sesion_id IN (
+      SELECT id FROM sesiones_instanciadas WHERE alumno_id = auth.uid()
+    )
+  );
+
+-- Profesor: puede ver las sesiones de sus alumnos
+DROP POLICY IF EXISTS "profesor_select_alumno_sesiones" ON sesiones_instanciadas;
+CREATE POLICY "profesor_select_alumno_sesiones" ON sesiones_instanciadas
+  FOR SELECT USING (
+    alumno_id IN (
+      SELECT id FROM alumnos WHERE profesor_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "profesor_select_alumno_ej" ON sesion_ejercicios_instanciados;
+CREATE POLICY "profesor_select_alumno_ej" ON sesion_ejercicios_instanciados
+  FOR SELECT USING (
+    sesion_id IN (
+      SELECT s.id FROM sesiones_instanciadas s
+      JOIN alumnos a ON a.id = s.alumno_id
+      WHERE a.profesor_id = auth.uid()
+    )
+  );

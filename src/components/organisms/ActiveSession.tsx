@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { actions } from 'astro:actions';
 import { MessageSquare, CheckCircle, Timer } from 'lucide-react';
 
@@ -72,15 +72,26 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
   const handleCompleteSession = async () => {
     setIsFinishing(true);
     try {
-      await actions.alumno.completeSession({
+      // Usa la nueva action del Calendario Operativo Real
+      // El sessionId puede ser un UUID de sesiones_instanciadas
+      await actions.alumno.completarSesionInstanciada({
         sesion_id: sessionId,
-        notas_alumno: globalNota
+        notas_alumno: globalNota || undefined,
       });
-      window.location.href = "/alumno"; // Regresar al dashboard
+      window.location.href = "/alumno";
     } catch (e) {
-      console.error(e);
-      alert("Error cerrando sesión");
-      setIsFinishing(false);
+      // Fallback a la action legacy si falla la nueva
+      try {
+        await actions.alumno.completeSession({
+          sesion_id: sessionId,
+          notas_alumno: globalNota
+        });
+        window.location.href = "/alumno";
+      } catch (e2) {
+        console.error(e2);
+        alert("Error cerrando sesión");
+        setIsFinishing(false);
+      }
     }
   };
 

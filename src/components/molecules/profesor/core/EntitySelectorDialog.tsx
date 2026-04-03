@@ -87,7 +87,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
             setActiveTags([]);
             setTimeout(() => searchInputRef.current?.focus(), 150);
         }
-    }, [open, initialSelectedIds]);
+    }, [open]); // No incluimos initialSelectedIds para evitar bucles si es un literal []
 
     // Lógica de Filtrado (Coincidencia con DashboardConsole)
     const filteredItems = useMemo(() => {
@@ -134,9 +134,11 @@ export function EntitySelectorDialog<T extends BaseEntity>({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md p-0 overflow-hidden border-zinc-200 dark:border-zinc-800 rounded-[32px] bg-white dark:bg-zinc-950 shadow-2xl">
                 <DialogHeader className="p-6 pb-4 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/10">
-                    <DialogTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-                        <DialogTitle className="shrink-0">{title}</DialogTitle>
-                    </DialogTitle>
+                    <div className="flex items-center gap-3">
+                        <DialogTitle className="text-xl font-black uppercase tracking-tight shrink-0">
+                            {title}
+                        </DialogTitle>
+                    </div>
                     <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                         {description}
                     </DialogDescription>

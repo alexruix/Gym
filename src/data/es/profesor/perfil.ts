@@ -50,9 +50,12 @@ export const athleteProfileCopy = {
     routine: {
       title: "Rutina Asignada",
       emptyState: {
-        title: "Aún no tiene un plan asignado.",
-        description: "Podés asignarle una rutina yendo a tus Planes.",
-        btnLabel: "Ver planes"
+        title: "Sin plan asignado",
+        description: "Esta persona aún no tiene rutinas activas. Podés asignarle una pre-definida o crear una desde cero.",
+        assignBtn: "Asignar de mis Planes",
+        createBtn: "Crear nuevo Plan",
+        changeBtn: "Cambiar de plan",
+        promoteBtn: "Promover a maestro"
       },
       dayLabel: "Día",
       restLabel: "Descanso",
@@ -73,6 +76,15 @@ export const athleteProfileCopy = {
         subtitle: "Ajustá las métricas sobre la base del plan activo.",
         helper: "Cargá las métricas para esta semana sobre la base del plan",
         lastWeights: "Ver últimos pesos"
+      },
+      assignmentDialog: {
+        title: "Asignar Rutina Maestra",
+        description: "Elegí una plantilla de tu biblioteca para este alumno.",
+        confirmBtn: "Asignar Plan",
+        warning: "Al asignar este plan, se reemplazará la rutina actual del alumno (si tiene una).",
+        success: "Rutina asignada correctamente",
+        error: "No se pudieron cargar los planes",
+        saveError: "Error al asignar el plan"
       }
     }
   }

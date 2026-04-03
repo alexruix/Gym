@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ProfileWorkspaceTabs } from "./ProfileWorkspaceTabs";
 import { StudentRoutineWorkspace } from "./StudentRoutineWorkspace";
-import { StudentMetricsWorkspace } from "./StudentMetricsWorkspace";
+import { StudentCalendarTab } from "./StudentCalendarTab";
 import { StudentInfoTab } from "./StudentInfoTab";
 
 interface StudentProfileManagerProps {
@@ -12,7 +12,8 @@ interface StudentProfileManagerProps {
 
 /**
  * StudentProfileManager: Orquestador del Workspace del Alumno.
- * Gestiona la transición entre la Rutina Técnica y la Ficha de Información.
+ * - Tab "Plan": Editor de rutina técnica y métricas (StudentRoutineWorkspace)
+ * - Tab "Rutina": Agenda operativa real con calendario de sesiones (StudentCalendarTab)
  */
 export function StudentProfileManager({ assignedPlan, student, library }: StudentProfileManagerProps) {
   const [activeTab, setActiveTab] = useState<"plan" | "routine" | "info" | "history">("routine");
@@ -26,10 +27,12 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
     />
   );
 
+  // Tab "Rutina" → Agenda Operativa Real del alumno
   const routineWorkspace = (
-    <StudentMetricsWorkspace 
-      alumnoId={student.id} 
-      planData={assignedPlan} 
+    <StudentCalendarTab
+      alumnoId={student.id}
+      fechaInicio={student.fecha_inicio || null}
+      planData={assignedPlan}
     />
   );
 

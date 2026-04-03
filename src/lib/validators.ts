@@ -131,9 +131,41 @@ export const paymentSchema = z.object({
 
 export type PaymentFormData = z.infer<typeof paymentSchema>;
 
-// Session tracker validation
-export const sessionLogSchema = z.object({
+// =============================================
+// Schemas para el Calendario Operativo Real
+// Reemplazan los schemas legacy de sesiones
+// =============================================
+
+// Instanciar la sesión del día (obtener o crear)
+export const instanciarSesionSchema = z.object({
+  fecha_real: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD requerido").optional(),
+});
+
+export type InstanciarSesionData = z.infer<typeof instanciarSesionSchema>;
+
+// Guardar las métricas reales de un ejercicio
+export const logEjercicioInstanciadoSchema = z.object({
+  sesion_ejercicio_id: z.string().uuid(),
+  series_real: z.number().int().min(1),
+  reps_real: z.string().min(1),
+  peso_real: z.number().min(0).optional(),
+  nota_alumno: z.string().max(300).optional(),
+  completado: z.boolean().default(true),
+});
+
+export type LogEjercicioInstanciadoData = z.infer<typeof logEjercicioInstanciadoSchema>;
+
+// Completar la sesión del día
+export const completarSesionSchema = z.object({
   sesion_id: z.string().uuid(),
+  notas_alumno: z.string().max(500).optional(),
+});
+
+export type CompletarSesionData = z.infer<typeof completarSesionSchema>;
+
+// Schema legacy mantenido para compatibilidad con el componente ActiveSession
+export const sessionLogSchema = z.object({
+  sesion_id: z.string(),
   ejercicio_id: z.string().uuid(),
   series_completadas: z.array(
     z.object({
@@ -147,7 +179,7 @@ export const sessionLogSchema = z.object({
 
 export type SessionLogData = z.infer<typeof sessionLogSchema>;
 
-// Comment Exercise independently
+// Comment Exercise independently (mantenemos para notas inline)
 export const commentExerciseSchema = z.object({
   alumno_id: z.string().uuid(),
   ejercicio_id: z.string().uuid(),
@@ -157,9 +189,9 @@ export const commentExerciseSchema = z.object({
 
 export type CommentExerciseData = z.infer<typeof commentExerciseSchema>;
 
-// Complete Session validation
+// Complete Session validation (legacy, mantenido para compatibilidad)
 export const completeSessionSchema = z.object({
-  sesion_id: z.string().uuid(),
+  sesion_id: z.string(),
   notas_alumno: z.string().max(500, "Máximo 500 caracteres").optional(),
 });
 

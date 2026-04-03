@@ -1,0 +1,93 @@
+---
+import { getAuthenticatedClient } from '@/lib/supabase-ssr';
+import { actions } from 'astro:actions';
+import { getDayNumber, getWeekNumber, getTodayISO } from '@/lib/schedule';
+import { ActiveSession } from '@/components/organisms/ActiveSession';
+
+const supabase = getAuthenticatedClient(Astro);
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login');
+
+// 1. Verificar que el alumno tiene plan asignado
+const { data: alumno } = await supabase
+  .from('alumnos')
+  .select('id, nombre, fecha_inicio, plan_id')
+  .or(`id.eq.${user.id},user_id.eq.${user.id}`)
+  .single();
+
+if (!alumno || !alumno.plan_id) {
+  return Astro.redirect('/alumno/espera');
+}
+
+// 2. Calcular datos temporales para el header
+const fechaInicio = alumno.fecha_inicio || getTodayISO();
+const hoy = new Date();
+const semanaActual = getWeekNumber(fechaInicio, hoy);
+const diaAbsoluto = getDayNumber(fechaInicio, hoy);
+
+// 3. Instanciar la sesión de hoy (obtener si existe, crear si no)
+// Llamamos directamente a la acción en el servidor para SSR
+const { data: instanciado, error: errorInst } = await actions.alumno.instanciarSesion({
+  fecha_real: getTodayISO(),
+});
+
+if (errorInst || !instanciado?.sesion) {
+  return Astro.redirect('/alumno/espera');
+}
+
+const sesion = instanciado.sesion;
+const nombreDia = sesion.nombre_dia || `Día ${sesion.numero_dia_plan}`;
+
+// 4. Mapear ejercicios al formato que acepta ActiveSession (contrato de datos)
+// Reutilizamos el componente existente respetando su interfaz de props
+const sesionBase = (sesion.sesion_ejercicios_instanciados || [])
+  .sort((a: any, b: any) => a.orden - b.orden)
+  .map((ej: any) => ({
+    // Mantenemos el contrato de ActiveSession: ejercicio_id, biblioteca_ejercicios, series, reps_target, descanso_seg
+    ejercicio_id: ej.ejercicio_id,
+    biblioteca_ejercicios: ej.biblioteca_ejercicios,
+    series: ej.series_plan,
+    reps_target: ej.reps_plan,
+    descanso_seg: ej.descanso_seg || 60,
+    is_variation: ej.is_variation || false,
+    // Extras para la nueva arquitectura (disponibles en el componente si los usa)
+    sesion_ejercicio_id: ej.id,
+    peso_plan: ej.peso_plan,
+    series_real: ej.series_real,
+    reps_real: ej.reps_real,
+    peso_real: ej.peso_real,
+    completado: ej.completado,
+  }));
+---
+
+<html lang="es" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+  <title>Entrenando – MiGym</title>
+</head>
+<body class="bg-black text-white antialiased selection:bg-lime-500/30 overflow-x-hidden min-h-screen font-sans">
+  <!-- Header modo enfoque (sticky, minimalista) -->
+  <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5 py-4 px-6 flex justify-between items-center">
+    <a href="/alumno" class="pt-1 pb-1 px-3 rounded-full border border-white/20 text-xs font-bold text-zinc-400 hover:text-white transition-colors">
+      ✕ Abandonar
+    </a>
+    <div class="flex flex-col items-center">
+      <span class="text-xs text-lime-400 font-bold uppercase tracking-widest">Semana {semanaActual}</span>
+      <h1 class="text-sm font-bold opacity-80">{nombreDia}</h1>
+    </div>
+    <div class="text-xs font-bold text-zinc-600 uppercase tracking-widest">
+      Día {sesion.numero_dia_plan}
+    </div>
+  </header>
+
+  <main class="w-full h-full p-4 mt-6">
+    <ActiveSession 
+      client:load 
+      sesionBase={sesionBase}
+      sessionId={sesion.id}
+      alumnoId={alumno.id}
+    />
+  </main>
+</body>
+</html>
