@@ -11,8 +11,11 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertTriangle,
-  Sparkles
+  Sparkles,
+  Plus,
+  Trash2
 } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { DayCalendarStrip } from "@/components/molecules/DayCalendarStrip";
 import type { CalendarDay, DayStatus } from "@/components/molecules/DayCalendarStrip";
@@ -30,6 +33,7 @@ import { Button } from "@/components/ui/button";
 interface EjercicioDetail {
   id: string; // ID en sesion_ejercicios_instanciados
   biblioteca_ejercicio_id: string;
+  ejercicio_plan_id?: string | null;
   nombre: string;
   series_real?: number | null;
   reps_real?: string | null;
@@ -150,9 +154,18 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
   const [hasOmissions, setHasOmissions] = useState(false);
   const [isRealigning, setIsRealigning] = useState(false);
 
-  // Estado para la sustitución de ejercicios
+  // Estado para la gestión de ejercicios
   const [swapExId, setSwapExId] = useState<string | null>(null);
-  const [isSwapDialogOpen, setIsSwapDialogOpen] = useState(false);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const [selectorMode, setSelectorMode] = useState<"swap" | "add">("swap");
+  
+  // Estado para el selector de alcance (Solo hoy vs Para siempre)
+  const [scopeData, setScopeData] = useState<{
+    type: "add" | "remove" | "swap";
+    id: string; // instancia_id para remove/swap, biblioteca_id para add
+    nuevoId?: string; // Solo para swap
+    nombre: string;
+  } | null>(null);
 
   const hoyISO = new Date().toISOString().split("T")[0];
   const ancla = fechaInicio || hoyISO;
@@ -218,6 +231,7 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
             const bib = Array.isArray(ej.biblioteca_ejercicios) ? ej.biblioteca_ejercicios[0] : ej.biblioteca_ejercicios;
             return {
               id: ej.id,
+              ejercicio_plan_id: ej.ejercicio_plan_id,
               biblioteca_ejercicio_id: bib?.id,
               nombre: bib?.nombre || "Ejercicio",
               series_real: ej.series_real,
@@ -268,6 +282,7 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
         const bib = Array.isArray(ej.biblioteca_ejercicios) ? ej.biblioteca_ejercicios[0] : ej.biblioteca_ejercicios;
         return {
           id: ej.id,
+          ejercicio_plan_id: ej.id, // En preview, el ID es el del plan
           biblioteca_ejercicio_id: bib?.id,
           nombre: bib?.nombre || "Ejercicio",
           series_plan: ej.series,
@@ -346,22 +361,81 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
     }
   };
 
-  // Sustitución de Ejercicio
-  const handleSwapExercise = async (nuevoId: string) => {
-    if (!swapExId) return;
-    const toastId = toast.loading("Sustituyendo ejercicio...");
+  // Gestión de Ejercicios (Añadir / Sustituir / Eliminar)
+  const handleExerciseSelected = (exerciseId: string) => {
+    if (selectorMode === "swap") {
+        if (!swapExId) return;
+        const currentEj = selectedSesion?.ejercicios.find(e => e.id === swapExId);
+        setScopeData({ 
+            type: "swap", 
+            id: swapExId, 
+            nuevoId: exerciseId, 
+            nombre: `Sustituir ${currentEj?.nombre || 'ejercicio'}` 
+        });
+    } else {
+        setScopeData({ type: "add", id: exerciseId, nombre: "Añadir ejercicio" });
+    }
+  };
+
+  const handleConfirmSwap = async (isPermanent: boolean) => {
+    if (!scopeData || !scopeData.nuevoId || !selectedSesion) return;
+    const tId = toast.loading(isPermanent ? "Sustituyendo en el plan maestro..." : "Sustituyendo para hoy...");
     try {
-        const { data, error } = await actions.alumno.swapInstantiatedExercise({
-            sesion_ejercicio_id: swapExId,
-            nuevo_biblioteca_id: nuevoId
+        const { data, error } = await actions.alumno.swapExerciseInStudentPlan({
+            alumno_id: alumnoId,
+            sesion_id: selectedSesion.id,
+            ejercicio_id: scopeData.id,
+            nuevo_biblioteca_id: scopeData.nuevoId,
+            is_permanent: isPermanent
         });
         if (error) throw error;
-        toast.success(data.mensaje, { id: toastId });
-        loadSesionDetalle(selectedSesion!.id, calendarDays.find(d => d.fecha === selectedDay!)!);
+        toast.success(data.mensaje, { id: tId });
+        loadSesionDetalle(selectedSesion.id, calendarDays.find(d => d.fecha === selectedDay!)!);
     } catch (err: any) {
-        toast.error("Error al sustituir: " + err.message, { id: toastId });
+        toast.error("Error: " + err.message, { id: tId });
     } finally {
+        setScopeData(null);
         setSwapExId(null);
+    }
+  };
+
+  const handleConfirmAdd = async (isPermanent: boolean) => {
+    if (!scopeData || !selectedSesion) return;
+    const tId = toast.loading(isPermanent ? "Añadiendo al plan maestro..." : "Añadiendo para hoy...");
+    try {
+        const { data, error } = await actions.alumno.addExerciseToStudentPlan({
+            alumno_id: alumnoId,
+            sesion_id: selectedSesion.id,
+            biblioteca_id: scopeData.id,
+            is_permanent: isPermanent
+        });
+        if (error) throw error;
+        toast.success(data.mensaje, { id: tId });
+        loadSesionDetalle(selectedSesion.id, calendarDays.find(d => d.fecha === selectedDay!)!);
+    } catch (err: any) {
+        toast.error("Error: " + err.message, { id: tId });
+    } finally {
+        setScopeData(null);
+    }
+  };
+
+  const handleConfirmRemove = async (isPermanent: boolean) => {
+    if (!scopeData || !selectedSesion) return;
+    const tId = toast.loading(isPermanent ? "Eliminando del plan maestro..." : "Eliminando de hoy...");
+    try {
+        const { data, error } = await actions.alumno.removeExerciseFromStudentPlan({
+            alumno_id: alumnoId,
+            sesion_id: selectedSesion.id,
+            ejercicio_id: scopeData.id,
+            is_permanent: isPermanent
+        });
+        if (error) throw error;
+        toast.success(data.mensaje, { id: tId });
+        loadSesionDetalle(selectedSesion.id, calendarDays.find(d => d.fecha === selectedDay!)!);
+    } catch (err: any) {
+        toast.error("Error: " + err.message, { id: tId });
+    } finally {
+        setScopeData(null);
     }
   };
 
@@ -386,20 +460,8 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
 
   // Helper para identificar el ID del plan a partir del ejercicio_id instanciado
   function getOriginalExercisePlanId(sesionEjId: string): string | null {
-     // Si estamos en un preview (id vacío), el ej.id en realidad es el id del plan
      if (selectedSesion?.id === "") return sesionEjId;
-     
-     // Si ya está instanciada, necesitamos mapear. El backend ya nos dio los datos.
-     // Pero en `instanciarSesion` de la Fase 4, devolvía `ejercicio_plan_id`.
-     // Busquemos en el objeto de la sesión actual si lo tenemos (no lo guardamos en el estado local en la versión anterior).
-     // Para ser precisos, el componente ya tiene el ID correcto si vino de buildingPreview.
-     // Si vino de base de datos, el `id` es el de `sesion_ejercicios_instanciados`.
-     // El backend de `updateStudentMetricWithPropagation` espera el `ejercicio_plan_id` (Plan Maestro).
-     // Necesitamos que `loadSesionDetalle` nos devuelva ese valor.
-     
-     // He modificado `instanciarSesion` en el backend anteriormente para que devuelva `ejercicio_plan_id`.
-     // Voy a ajustar el componente para guardarlo.
-     return (selectedSesion?.ejercicios.find(e => e.id === sesionEjId) as any)?.ejercicio_plan_id || sesionEjId;
+     return selectedSesion?.ejercicios.find(e => e.id === sesionEjId)?.ejercicio_plan_id || null;
   }
 
   const variacionesCount = selectedSesion?.ejercicios.filter(e => e.is_variation).length || 0;
@@ -411,11 +473,10 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
       {/* Header Operativo */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
-          <h3 className="text-xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none mb-1 flex items-center gap-2">
+          <h3 className="text-xl font-black tracking-tighter text-zinc-950 dark:text-white leading-none mb-1 flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-lime-500" />
-            Agenda Operativa
+            Agenda
           </h3>
-          <p className="text-[10px] font-black text-zinc-400 tracking-widest uppercase">Semana {getWeekNumber(ancla, new Date())} del plan</p>
         </div>
         <div className="flex items-center gap-4">
           <StatBadge label="Cumplimiento" value={`${stats.total > 0 ? Math.round((stats.completadas / stats.total) * 100) : 0}%`} />
@@ -520,20 +581,48 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
                     isExpanded={expandedExId === ej.id}
                     onToggle={() => setExpandedExId(expandedExId === ej.id ? null : ej.id)}
                     onSave={(fields) => handleUpdatePropagated(ej, fields)}
-                    onSwap={() => { setSwapExId(ej.id); setIsSwapDialogOpen(true); }}
+                    onSwap={() => { setSwapExId(ej.id); setSelectorMode("swap"); setIsSelectorOpen(true); }}
+                    onRemove={() => setScopeData({ type: "remove", id: ej.id, nombre: ej.nombre })}
                   />
                 ))}
+
+                {/* Botón Añadir Ejercicio */}
+                <div className="p-4 bg-zinc-50/30 dark:bg-zinc-900/10">
+                    <Button 
+                        onClick={() => { setSelectorMode("add"); setIsSelectorOpen(true); }}
+                        variant="ghost"
+                        className="w-full h-16 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center gap-3 hover:border-lime-400/50 hover:bg-lime-400/5 transition-all group"
+                    >
+                        <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-lime-400 group-hover:text-zinc-950 transition-colors">
+                            <Plus className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs font-black uppercase tracking-widest text-zinc-400 group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">Añadir ejercicio al plan</span>
+                    </Button>
+                </div>
               </div>
             </>
           )}
         </div>
       )}
 
-      {/* DialogSelector para Sustitución */}
+      {/* Selector de Ejercicios */}
       <ExerciseSelectorDialog 
-        isOpen={isSwapDialogOpen}
-        onOpenChange={setIsSwapDialogOpen}
-        onSelect={handleSwapExercise}
+        isOpen={isSelectorOpen}
+        onOpenChange={setIsSelectorOpen}
+        onSelect={handleExerciseSelected}
+        title={selectorMode === "add" ? "Añadir ejercicio" : "Sustituir ejercicio"}
+        description={selectorMode === "add" ? "Se añadirá al final de la rutina" : "Se perderá el progreso de hoy"}
+      />
+
+      {/* Selector de Alcance (Solo hoy vs Para siempre) */}
+      <ScopeSelectorDialog 
+        data={scopeData}
+        onClose={() => setScopeData(null)}
+        onConfirm={(permanent) => {
+            if (scopeData?.type === "add") handleConfirmAdd(permanent);
+            else if (scopeData?.type === "remove") handleConfirmRemove(permanent);
+            else if (scopeData?.type === "swap") handleConfirmSwap(permanent);
+        }}
       />
     </div>
   );
@@ -543,7 +632,7 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
 // Sub-componentes
 // =============================================
 
-function EjercicioExpandibleRow({ ej, idx, alumnoId, isSaving, isExpanded, onToggle, onSave, onSwap }: any) {
+function EjercicioExpandibleRow({ ej, idx, alumnoId, isSaving, isExpanded, onToggle, onSave, onSwap, onRemove }: any) {
   return (
     <div className={cn(
       "transition-all duration-300 relative",
@@ -579,15 +668,27 @@ function EjercicioExpandibleRow({ ej, idx, alumnoId, isSaving, isExpanded, onTog
              )}
            </div>
 
-           {/* Botón Sustituir (Swap) */}
-           <Button 
-                onClick={(e) => { e.stopPropagation(); onSwap(); }}
-                variant="ghost" 
-                size="icon" 
-                className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all opacity-0 group-hover:opacity-100 absolute right-0 top-1/2 -translate-y-1/2"
-            >
-             <RefreshCw className="w-4 h-4 text-zinc-500 hover:text-lime-500" />
-           </Button>
+           {/* Acciones de Edición */}
+           <div className="flex items-center gap-1 absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+               <Button 
+                    onClick={(e) => { e.stopPropagation(); onSwap(); }}
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-90"
+                    title="Sustituir (Solo hoy)"
+                >
+                 <RefreshCw className="w-4 h-4 text-zinc-500 hover:text-lime-500" />
+               </Button>
+               <Button 
+                    onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:bg-red-500/10 active:scale-90"
+                    title="Eliminar"
+                >
+                 <Trash2 className="w-4 h-4 text-zinc-500 hover:text-red-500" />
+               </Button>
+           </div>
         </div>
 
         {/* Consola Unificada */}
@@ -650,4 +751,67 @@ function StatusBadge({ estado }: { estado: string }) {
 
 function formatFechaDisplay(fechaISO: string): string {
   return new Date(fechaISO + "T12:00:00").toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function ScopeSelectorDialog({ data, onClose, onConfirm }: { data: any, onClose: () => void, onConfirm: (p: boolean) => void }) {
+  if (!data) return null;
+  const isRemove = data.type === "remove";
+  const isSwap = data.type === "swap";
+
+  let title = "¿Añadir ejercicio?";
+  if (isRemove) title = "¿Eliminar ejercicio?";
+  if (isSwap) title = "¿Sustituir ejercicio?";
+
+  let Icon = Plus;
+  if (isRemove) Icon = Trash2;
+  if (isSwap) Icon = RefreshCw;
+
+  return (
+    <Dialog.Root open={!!data} onOpenChange={(o) => !o && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 animate-in fade-in" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-sm bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl z-50 overflow-hidden p-8 animate-in zoom-in-95">
+          <div className="text-center space-y-6">
+            <div className={cn(
+                "w-16 h-16 rounded-[2rem] mx-auto flex items-center justify-center shadow-lg",
+                isRemove ? "bg-red-500/10 text-red-500" : (isSwap ? "bg-blue-500/10 text-blue-500" : "bg-lime-500/10 text-lime-500")
+            )}>
+                <Icon className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-2">
+                <h3 className="text-xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-none">
+                    {title}
+                </h3>
+                <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{data.nombre}</p>
+            </div>
+
+            <div className="grid gap-3">
+                <Button 
+                    onClick={() => onConfirm(false)}
+                    className="h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-950 dark:text-white font-black uppercase text-[10px] tracking-widest transition-all"
+                >
+                    <History className="w-4 h-4 mr-2 opacity-50" />
+                    Solo por hoy
+                </Button>
+                <Button 
+                    onClick={() => onConfirm(true)}
+                    className={cn(
+                        "h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-xl",
+                        isRemove ? "bg-zinc-950 text-white" : "bg-lime-400 text-zinc-950"
+                    )}
+                >
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Para siempre (Plan)
+                </Button>
+            </div>
+
+            <button onClick={onClose} className="text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-zinc-600 transition-colors">
+                Cancelar
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
 }

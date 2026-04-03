@@ -31,7 +31,7 @@ export const inviteStudentCopy = {
     nombre: "Tu alumno",
     email: "Le enviaremos un link de acceso a la app (Magic Link).",
     plan: "¿Qué va a entrenar?",
-    fechaInicio: "Cuándo arranca a entrenar con este plan.",
+    fechaInicio: " ",
     diaPago: "Día del mes en que vence su membresía.",
     telefono: "Para contactarlo por WhatsApp (sin el 0 ni el 15).",
     monto: "Solo como referencia. No se cobra automáticamente en MiGym.",

@@ -163,6 +163,28 @@ export const completarSesionSchema = z.object({
 
 export type CompletarSesionData = z.infer<typeof completarSesionSchema>;
 
+export const addExerciseToStudentPlanSchema = z.object({
+  alumno_id: z.string().uuid(),
+  sesion_id: z.string().uuid(),
+  biblioteca_id: z.string().uuid(),
+  is_permanent: z.boolean().default(false),
+});
+
+export const removeExerciseFromStudentPlanSchema = z.object({
+  alumno_id: z.string().uuid(),
+  sesion_id: z.string().uuid(),
+  ejercicio_id: z.string().uuid(), // Puede ser instancia_id o ejercicio_plan_id
+  is_permanent: z.boolean().default(false),
+});
+
+export const swapExerciseInStudentPlanSchema = z.object({
+  alumno_id: z.string().uuid(),
+  sesion_id: z.string().uuid(),
+  ejercicio_id: z.string().uuid(), // ID de la instancia actual
+  nuevo_biblioteca_id: z.string().uuid(), // ID del nuevo ejercicio en biblioteca
+  is_permanent: z.boolean().default(false),
+});
+
 // Schema legacy mantenido para compatibilidad con el componente ActiveSession
 export const sessionLogSchema = z.object({
   sesion_id: z.string(),
