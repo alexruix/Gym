@@ -503,14 +503,14 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData }: Props) {
                     <h5 className="text-lg font-black text-zinc-950 dark:text-white tracking-tight">¿Querés reajustar el calendario para que no pierda contenido técnico?</h5>
                 </div>
             </div>
-            <button 
+            <Button 
                 onClick={handleRealignCalendar}
                 disabled={isRealigning}
-                className="bg-zinc-950 hover:bg-zinc-800 text-white font-black uppercase text-[10px] tracking-widest h-12 px-8 rounded-2xl shadow-xl transition-all active:scale-95 border border-zinc-800 flex items-center justify-center"
+                className="bg-zinc-950 hover:bg-zinc-800 text-white font-black uppercase text-[10px] tracking-widest h-12 px-8 rounded-2xl shadow-xl transition-all active:scale-95 border border-zinc-800 flex items-center justify-center whitespace-nowrap"
             >
                 {isRealigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2 text-lime-400" />}
                 Reajustar 3 días
-            </button>
+            </Button>
          </div>
       )}
 
@@ -670,41 +670,24 @@ function EjercicioExpandibleRow({ ej, idx, alumnoId, isSaving, isExpanded, onTog
 
            {/* Acciones de Edición */}
            <div className="flex items-center gap-1 absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-<<<<<<< HEAD
-               <button 
+               <Button 
                     onClick={(e) => { e.stopPropagation(); onSwap(); }}
+                    variant="ghost" 
+                    size="icon" 
                     className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-90 flex items-center justify-center"
                     title="Sustituir (Solo hoy)"
                 >
                  <RefreshCw className="w-4 h-4 text-zinc-500 hover:text-lime-500" />
-               </button>
-               <button 
+               </Button>
+               <Button 
                     onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                    variant="ghost" 
+                    size="icon" 
                     className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-red-500/10 active:scale-90 flex items-center justify-center"
                     title="Eliminar"
                 >
                  <Trash2 className="w-4 h-4 text-zinc-500 hover:text-red-500" />
-               </button>
-=======
-               <Button 
-                    onClick={(e) => { e.stopPropagation(); onSwap(); }}
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-90"
-                    title="Sustituir (Solo hoy)"
-                >
-                 <RefreshCw className="w-4 h-4 text-zinc-500 hover:text-lime-500" />
                </Button>
-               <Button 
-                    onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:bg-red-500/10 active:scale-90"
-                    title="Eliminar"
-                >
-                 <Trash2 className="w-4 h-4 text-zinc-500 hover:text-red-500" />
-               </Button>
->>>>>>> de97d19e (Rutinas con calendario)
            </div>
         </div>
 
