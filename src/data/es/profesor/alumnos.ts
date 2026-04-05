@@ -79,7 +79,7 @@ export const alumnosListCopy = {
       status: "Estado",
     },
     filters: {
-      searchPlaceholder: "Buscar por nombre o plan...",
+      searchPlaceholder: "Buscar por alumno o plan...",
       plan: {
         all: "Todos los planes",
       }
@@ -88,10 +88,27 @@ export const alumnosListCopy = {
       editProfile: "Editar perfil",
       editRoutine: "Editar rutina",
       registerPayment: "Registrar pago",
-      copyMagicLink: "Copiar Magic Link",
+      copyMagicLink: "Copiar link de acceso",
       sendWhatsApp: "Enviar WhatsApp",
       archive: "Archivar",
       triggerAria: "Abrir opciones de: ",
+    },
+    import: {
+      title: "Importar Alumnos",
+      description: "Subí tu Excel o CSV con las columnas Nombre, Email, o Teléfono para traer a tus clientes a MiGym de una vez.",
+      dropzone: "Arrastrá tu Excel acá o hacé clic",
+      hint: "Soporta .xlsx, .xls, .csv",
+      empty: "El archivo no tiene filas para procesar.",
+      error: "No se pudo leer el Excel. Aseguráte que el archivo no esté corrupto.",
+      success: "¡Bien hecho! Se importaron {count} nuevos alumnos.",
+      preview: "Vista Previa (Primeros 5)",
+      cancel: "Cancelar",
+      confirm: "Importar a MiGym",
+      columns: {
+        name: "Nombre",
+        email: "Email",
+        phone: "WhatsApp"
+      }
     }
   }
 } as const;

@@ -17,6 +17,8 @@ export interface UpcomingSessionData {
   fechaHumana: string;     // 'Mañana, Viernes'
   numeroDiaPlan: number;
   semana: number;
+  cycleNumber?: number;
+  relativeWeek?: number;
   nombreDia: string;       // 'Espalda + Bíceps'
   ejercicios: UpcomingEjercicio[];
   tiempoEstimadoMin?: number; // Estimado en minutos
@@ -73,6 +75,11 @@ export function UpcomingSessionPreview({ sesion, className }: UpcomingSessionPre
           <h3 className="text-lg font-black text-white tracking-tight">{sesion.nombreDia}</h3>
           <p className="text-xs font-medium text-zinc-500 mt-0.5">
             Día {sesion.numeroDiaPlan} · Semana {sesion.semana}
+            {sesion.cycleNumber && sesion.cycleNumber > 1 && (
+              <span className="text-lime-500/80 ml-1.5 font-bold">
+                (Ciclo {sesion.cycleNumber} • Sem {sesion.relativeWeek})
+              </span>
+            )}
           </p>
         </div>
 

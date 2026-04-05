@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { 
     MoreHorizontal, 
     UserIcon, 
@@ -24,7 +24,7 @@ import { toast } from "sonner";
 
 export type EntityType = "alumno" | "plan" | "ejercicio";
 
-interface Action {
+export interface Action {
     label: string;
     icon: React.ReactNode;
     onClick: () => void;
@@ -55,12 +55,12 @@ export function ResourceActionMenu({ type, id, name, actions: customActions = []
     if (type === "alumno") {
         defaultActions.push(
             { 
-                label: "Ver Perfil", 
+                label: "Ver perfil", 
                 icon: <UserIcon className="w-4 h-4" />, 
                 onClick: () => window.location.href = `/profesor/alumnos/${id}` 
             },
             { 
-                label: "Editar Rutina", 
+                label: "Editar rutina", 
                 icon: <Dumbbell className="w-4 h-4 text-lime-500" />, 
                 onClick: () => window.location.href = `/profesor/alumnos/${id}#rutina` 
             }
@@ -70,7 +70,7 @@ export function ResourceActionMenu({ type, id, name, actions: customActions = []
     if (type === "plan") {
         defaultActions.push(
             { 
-                label: "Editar Plan", 
+                label: "Editar plan", 
                 icon: <Copy className="w-4 h-4" />, 
                 onClick: () => window.location.href = `/profesor/planes/${id}/edit` 
             }

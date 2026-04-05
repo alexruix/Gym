@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   FileText, 
   MoreHorizontal, 
@@ -88,19 +88,17 @@ export function PlanesTable({ planes, onDelete, onDuplicate }: Props) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg border-zinc-200 dark:border-zinc-800 font-medium p-1 z-50 bg-white dark:bg-zinc-950">
-              <DropdownMenuItem 
-                onClick={() => window.location.href = `/profesor/planes/${plan.id}`}
-                className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
-              >
-                <Eye className="w-4 h-4 mr-2 text-zinc-500" aria-hidden="true" />
-                {c.dropdownMenu.viewDetails}
+              <DropdownMenuItem asChild>
+                <a href={`/profesor/planes/${plan.id}`} className="flex items-center rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 w-full p-2">
+                  <Eye className="w-4 h-4 mr-2 text-zinc-500" aria-hidden="true" />
+                  {c.dropdownMenu.viewDetails}
+                </a>
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => window.location.href = `/profesor/planes/${plan.id}/edit`}
-                className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
-              >
-                <Edit3 className="w-4 h-4 mr-2 text-zinc-500" aria-hidden="true" />
-                {c.dropdownMenu.editPlan}
+              <DropdownMenuItem asChild>
+                <a href={`/profesor/planes/${plan.id}/edit`} className="flex items-center rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 w-full p-2">
+                  <Edit3 className="w-4 h-4 mr-2 text-zinc-500" aria-hidden="true" />
+                  {c.dropdownMenu.editPlan}
+                </a>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
               <DropdownMenuItem 

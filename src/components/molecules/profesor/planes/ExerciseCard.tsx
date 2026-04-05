@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Trash2, ChevronUp, ChevronDown, Info, Dumbbell } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown, Info, Dumbbell, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ExerciseCardProps {
@@ -12,6 +12,13 @@ interface ExerciseCardProps {
   onMove?: (direction: "up" | "down") => void;
   isFirst?: boolean;
   isLast?: boolean;
+  
+  // Rotation / Personalized Props
+  form?: any;
+  onEditRotation?: (routineIdx: number, exerciseIdx: number) => void;
+  hasRotation?: (position: number) => boolean;
+  getRotationForPosition?: (position: number) => any;
+  removeRotationExercise?: (position: number, exerciseId: string) => void;
 }
 
 /**
@@ -27,16 +34,23 @@ export function ExerciseCard({
   onSwap,
   onMove,
   isFirst,
-  isLast
+  isLast,
+  onEditRotation,
+  hasRotation,
+  getRotationForPosition,
+  removeRotationExercise
 }: ExerciseCardProps) {
   const ejId = ex.ejercicio_id || ex.ejercicio_plan?.ejercicio_id || ex.biblioteca_ejercicios?.id;
-  
+  const rotationActive = hasRotation?.(ex.position);
+  const rotationData = getRotationForPosition?.(ex.position);
+
   return (
     <Card 
       className={cn(
           "p-6 rounded-[2rem] border-zinc-100 shadow-sm relative group bg-white dark:bg-zinc-950 dark:border-zinc-800 transition-all duration-500",
           "hover:border-zinc-950 dark:hover:border-lime-400 hover:shadow-2xl hover:shadow-zinc-950/5",
-          "animate-in fade-in slide-in-from-bottom-2"
+          "animate-in fade-in slide-in-from-bottom-2",
+          rotationActive && "border-lime-500/30 bg-lime-500/[0.02]"
       )}
     >
       {/* Botón Eliminar (Contextual) */}
@@ -85,19 +99,42 @@ export function ExerciseCard({
         </div>
         
         <div className="flex-1 min-w-0 space-y-1.5">
-            <h5 className="font-black text-xl text-zinc-950 dark:text-zinc-50 tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate">
-              {getExerciseName(ejId)}
-            </h5>
+            <div className="flex items-center justify-between">
+              <h5 className="font-black text-xl text-zinc-950 dark:text-zinc-50 tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate">
+                {getExerciseName(ejId)}
+              </h5>
+              
+              {rotationActive && (
+                <span className="flex items-center gap-1.5 px-3 py-1 bg-lime-400/10 text-lime-600 dark:text-lime-400 text-[8px] font-black uppercase tracking-widest rounded-full border border-lime-400/20">
+                  <span className="w-1 h-1 rounded-full bg-lime-500 animate-pulse" />
+                  Rotación: {rotationData?.cycles[0]?.exercises?.length || 2} variantes
+                </span>
+              )}
+            </div>
             
-            {onSwap && (
-              <button 
-                onClick={onSwap}
-                className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
-              >
-                <Info className="w-3 h-3" />
-                Intercambiar Variación
-              </button>
-            )}
+            <div className="flex gap-4 items-center">
+              {onSwap && (
+                <button 
+                  type="button"
+                  onClick={onSwap}
+                  className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+                >
+                  <Info className="w-3 h-3" />
+                  Intercambiar Variación
+                </button>
+              )}
+
+              {onEditRotation && (
+                <button 
+                  type="button"
+                  onClick={() => onEditRotation(routineIdx, exerciseIdx)}
+                  className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+                >
+                  <Layers className="w-3 h-3" />
+                  {rotationActive ? "Gestionar Rotación" : "Añadir Rotación"}
+                </button>
+              )}
+            </div>
         </div>
       </div>
     </Card>

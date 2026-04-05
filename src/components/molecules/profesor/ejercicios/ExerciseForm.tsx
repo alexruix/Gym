@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
@@ -6,7 +6,7 @@ import { exerciseLibrarySchema, type ExerciseLibraryFormData } from "@/lib/valid
 import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
 import { toast } from "sonner";
 import { Loader2, Save, X, Plus, ArrowLeft } from "lucide-react";
-
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ interface ExerciseFormProps {
 }
 
 export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel, successHref, cancelHref }: ExerciseFormProps) {
-  const [isPending, setIsPending] = React.useState(false);
+  const { execute, isPending } = useAsyncAction();
   const [tagInput, setTagInput] = React.useState("");
   const [variantInput, setVariantInput] = React.useState("");
   const copy = exerciseLibraryCopy.form;
@@ -59,9 +59,8 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
   const parentId = form.watch("parent_id");
   const isBaseExercise = !parentId;
 
-  const onSubmit: SubmitHandler<ExerciseLibraryFormData> = async (values) => {
-    setIsPending(true);
-    try {
+  const onSubmit: SubmitHandler<ExerciseLibraryFormData> = (values) => {
+    execute(async () => {
       // Inyectar is_template_base automáticamente: si no tiene padre, es base.
       const finalValues = {
         ...values,
@@ -73,32 +72,21 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
         : await actions.profesor.createExercise(finalValues);
 
       if (error || !result) {
-        console.error("[Action: createExercise] Error:", error);
-        throw new Error(`Error DB: ${error?.message}`);
+        throw error || new Error("Error desconocido");
       }
 
-      if (result?.success) {
-        toast.success(result.mensaje);
-        onSuccess?.(result);
+      onSuccess?.(result);
 
-        if (successHref) {
-          setTimeout(() => {
-            window.location.assign(successHref);
-          }, 500);
-          return; // No resetear si vamos a redirigir
-        }
-
-        if (!values.id) {
-          form.reset();
-          setTagInput("");
-          setVariantInput("");
-        }
+      if (!values.id) {
+        form.reset();
+        setTagInput("");
+        setVariantInput("");
       }
-    } catch (err: any) {
-      toast.error(err.message || copy.messages.error);
-    } finally {
-      setIsPending(false);
-    }
+    }, {
+      loadingMsg: values.id ? "Guardando cambios..." : "Creando ejercicio...",
+      successMsg: values.id ? "Cambios guardados correctamente" : copy.messages.success,
+      successHref: successHref
+    });
   };
 
   const addTag = (tag: string) => {

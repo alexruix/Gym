@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 // Tipos del DayCalendarStrip
 // =============================================
 
-export type DayStatus = 'completada' | 'en_progreso' | 'pendiente' | 'omitida' | 'futura';
+export type DayStatus = 'completada' | 'en_progreso' | 'pendiente' | 'omitida' | 'futura' | 'descanso';
 
 export interface CalendarDay {
   fecha: string;             // ISO: '2024-04-02'
@@ -14,11 +14,14 @@ export interface CalendarDay {
   diaSemana: string;         // Corto: 'Jue'
   numeroDiaPlan: number;     // Día del plan: 4
   semana: number;            // Semana del ciclo: 1
+  cycleNumber?: number;      // Número de ciclo: 2
+  relativeWeek?: number;     // Semana dentro del ciclo: 1
   status: DayStatus;
   nombreDia?: string;        // Nombre del grupo: 'Pecho + Tríceps'
   esHoy: boolean;
   esFuturo: boolean;
   sesionId?: string;
+  rutinaIdOriginal?: string;
 }
 
 interface DayCalendarStripProps {
@@ -38,6 +41,7 @@ function getStatusIcon(status: DayStatus, esHoy: boolean): string {
     case 'completada': return '✓';
     case 'omitida':    return '✕';
     case 'en_progreso': return '▶';
+    case 'descanso':    return '○';
     default:           return '';
   }
 }
@@ -92,6 +96,14 @@ function getStatusColors(status: DayStatus, esHoy: boolean, selected: boolean): 
         bg:     '',
         border: 'border-zinc-900',
       };
+    case 'descanso':
+      return {
+        dot:    'bg-zinc-800',
+        num:    'text-zinc-700 bg-transparent border-zinc-900',
+        label:  'text-zinc-800',
+        bg:     'opacity-40',
+        border: 'border-zinc-950',
+      };
     default:
       return {
         dot:    'bg-zinc-600',
@@ -113,118 +125,168 @@ export function DayCalendarStrip({
   onSelectDia,
   className,
 }: DayCalendarStripProps) {
-  // Encontrar el índice del día de hoy para centrar el scroll inicial
-  const hoyIdx = dias.findIndex((d) => d.esHoy);
-  const [startIdx, setStartIdx] = useState(Math.max(0, hoyIdx - 3));
+  const containerRef = useRef<HTMLDivElement>(null);
+  const hoyRef = useRef<HTMLButtonElement>(null);
+  const selectedRef = useRef<HTMLButtonElement>(null);
+  const [currentMonth, setCurrentMonth] = useState("");
 
-  const VISIBLE_DAYS = 7;
-  const visibleDias = dias.slice(startIdx, startIdx + VISIBLE_DAYS);
-  const canGoBack = startIdx > 0;
-  const canGoForward = startIdx + VISIBLE_DAYS < dias.length;
+  // Centrar hoy o seleccionado al montar o cambiar selección
+  useEffect(() => {
+    const target = selectedRef.current || hoyRef.current;
+    if (target) {
+      setTimeout(() => {
+        target.scrollIntoView({ 
+          behavior: 'smooth', 
+          inline: 'center', 
+          block: 'nearest' 
+        });
+      }, 100);
+    }
+  }, [dias.length, diaSeleccionado]);
+
+  // Trackear el mes visible mediante Intersection Observer o Scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      // Aproximar el mes basado en el centro del scroll
+      const center = containerRef.current.scrollLeft + (containerRef.current.offsetWidth / 2);
+      const items = containerRef.current.children;
+      let closestItem: any = null;
+      let minDiff = Infinity;
+
+      for (let i = 0; i < items.length; i++) {
+        const item: any = items[i];
+        const diff = Math.abs((item.offsetLeft + item.offsetWidth / 2) - center);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestItem = item;
+        }
+      }
+
+      if (closestItem) {
+        const dateStr = closestItem.getAttribute('data-date');
+        if (dateStr) {
+          const month = new Date(dateStr + 'T12:00:00').toLocaleDateString('es-AR', {
+            month: 'long',
+            year: 'numeric',
+          });
+          setCurrentMonth(month);
+        }
+      }
+    };
+
+    const container = containerRef.current;
+    container?.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial call
+    return () => container?.removeEventListener('scroll', handleScroll);
+  }, [dias]);
+
+  const scrollJump = (weeks: number) => {
+    if (!containerRef.current) return;
+    const width = containerRef.current.offsetWidth;
+    containerRef.current.scrollBy({ left: width * weeks, behavior: 'smooth' });
+  };
 
   return (
-    <div className={cn('w-full select-none', className)}>
+    <div className={cn('w-full select-none flex flex-col', className)}>
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+
       {/* Encabezado del strip */}
-      <div className="flex items-center justify-between mb-3 px-1">
+      <div className="flex items-center justify-between mb-4 px-1">
         <button
-          onClick={() => setStartIdx(Math.max(0, startIdx - 7))}
-          disabled={!canGoBack}
-          className={cn(
-            'p-1.5 rounded-lg transition-all',
-            canGoBack
-              ? 'text-zinc-400 hover:text-white hover:bg-white/5 active:scale-95'
-              : 'text-zinc-800 cursor-not-allowed'
-          )}
+          onClick={() => scrollJump(-1)}
+          className="p-2 rounded-xl text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all active:scale-95 border border-zinc-800/10"
           aria-label="Semana anterior"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
 
-        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em]">
-          {visibleDias[0]
-            ? new Date(visibleDias[0].fecha + 'T12:00:00').toLocaleDateString('es-AR', {
-                month: 'long',
-                year: 'numeric',
-              })
-            : ''}
+        <span 
+          key={currentMonth} 
+          className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em] animate-in fade-in slide-in-from-bottom-1 duration-500 min-w-[120px] text-center"
+        >
+          {currentMonth}
         </span>
 
         <button
-          onClick={() => setStartIdx(Math.min(dias.length - VISIBLE_DAYS, startIdx + 7))}
-          disabled={!canGoForward}
-          className={cn(
-            'p-1.5 rounded-lg transition-all',
-            canGoForward
-              ? 'text-zinc-400 hover:text-white hover:bg-white/5 active:scale-95'
-              : 'text-zinc-800 cursor-not-allowed'
-          )}
+          onClick={() => scrollJump(1)}
+          className="p-2 rounded-xl text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all active:scale-95 border border-zinc-800/10"
           aria-label="Semana siguiente"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Grid de 7 días */}
-      <div className="grid grid-cols-7 gap-1.5">
-        {visibleDias.map((dia) => {
+      {/* Grid Deslizable (Native UX) */}
+      <div 
+        ref={containerRef}
+        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-2 sm:gap-3 scroll-smooth py-2 px-1 scroll-p-10 sm:scroll-p-20"
+      >
+        {dias.map((dia) => {
           const selected = dia.fecha === diaSeleccionado;
           const colors = getStatusColors(dia.status, dia.esHoy, selected);
           const icon = getStatusIcon(dia.status, dia.esHoy);
-          const clickable = !dia.esFuturo || dia.esHoy;
 
           return (
             <button
               key={dia.fecha}
-              onClick={() => clickable && onSelectDia?.(dia.fecha)}
-              disabled={!clickable && !onSelectDia}
-              aria-label={`${dia.diaSemana} ${dia.fechaDisplay} - Día ${dia.numeroDiaPlan} - ${dia.status}`}
-              aria-current={dia.esHoy ? 'date' : undefined}
+              ref={selected ? selectedRef : (dia.esHoy ? hoyRef : null)}
+              data-date={dia.fecha}
+              onClick={() => onSelectDia?.(dia.fecha)}
               className={cn(
-                'flex flex-col items-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-200',
+                'flex-none w-[calc((100%-48px)/7)] min-w-[60px] sm:min-w-[70px] snap-center flex flex-col items-center gap-1.5 py-4 sm:py-5 rounded-[2rem] border transition-all duration-500 group',
                 colors.bg,
                 colors.border,
-                clickable ? 'cursor-pointer hover:bg-white/5 active:scale-95' : 'cursor-default',
+                selected ? 'shadow-xl shadow-lime-500/20 scale-105 z-10' : 'hover:bg-zinc-800/10 active:scale-95 border-zinc-800/5',
               )}
             >
               {/* Día de semana */}
-              <span className={cn('text-[9px] font-black uppercase tracking-wider', colors.label)}>
+              <span className={cn('text-[10px] font-black uppercase tracking-widest transition-colors', colors.label)}>
                 {dia.diaSemana}
               </span>
 
               {/* Número del día del mes */}
               <span className={cn(
-                'w-8 h-8 flex items-center justify-center rounded-xl text-sm font-black transition-all',
+                'w-10 h-10 flex items-center justify-center rounded-[1rem] text-sm font-black transition-all group-hover:scale-105',
                 colors.num,
               )}>
                 {dia.fechaDisplay}
               </span>
 
-              {/* Indicador de estado */}
-              <span className={cn(
-                'w-1.5 h-1.5 rounded-full transition-all',
-                icon ? colors.dot : 'bg-transparent',
-              )} />
-
-              {/* Número de día del plan */}
-              <span className="text-[8px] font-bold text-zinc-700 uppercase tracking-wider">
-                D{dia.numeroDiaPlan}
-              </span>
+              {/* Indicador de estado + Plan Info */}
+              <div className="flex flex-col items-center gap-1 px-1">
+                <span className={cn(
+                  'w-1.5 h-1.5 rounded-full transition-all',
+                  icon ? colors.dot : 'bg-transparent border border-zinc-800/50',
+                )} />
+                <span className="text-[8px] font-black text-zinc-500/70 uppercase tracking-tighter">
+                  D{dia.numeroDiaPlan}
+                </span>
+                {dia.cycleNumber && dia.cycleNumber > 1 && (
+                  <span className="text-[7px] font-black text-lime-500/60 uppercase tracking-tighter leading-none mt-0.5">
+                    C{dia.cycleNumber}•S{dia.relativeWeek}
+                  </span>
+                )}
+              </div>
             </button>
           );
         })}
       </div>
 
-      {/* Leyenda */}
-      <div className="flex items-center justify-center gap-5 mt-4">
+      {/* Leyenda y Cycle Info */}
+      <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
         {[
           { color: 'bg-lime-500', label: 'Completada' },
           { color: 'bg-lime-400 animate-pulse', label: 'Hoy' },
-          { color: 'bg-zinc-600', label: 'Pendiente' },
           { color: 'bg-red-500/60', label: 'Omitida' },
+          { color: 'bg-zinc-800', label: 'Descanso' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className={cn('w-1.5 h-1.5 rounded-full', color)} />
-            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">{label}</span>
+            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{label}</span>
           </div>
         ))}
       </div>

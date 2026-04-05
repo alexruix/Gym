@@ -17,6 +17,13 @@ const { data: alumno, error } = await supabase
   .from("alumnos")
   .select(`
     *,
+    pagos (
+      id,
+      monto,
+      estado,
+      fecha_vencimiento,
+      fecha_pago
+    ),
     planes (
       id,
       nombre,
@@ -78,6 +85,9 @@ const { data: ultimaSesion } = await supabase
   .single();
 
 // 3. Mapeo de datos para componentes
+const sortedPagos = (alumno.pagos || []).sort((a: any, b: any) => new Date(b.fecha_vencimiento).getTime() - new Date(a.fecha_vencimiento).getTime());
+const pago_activo = sortedPagos.length > 0 ? sortedPagos[0] : null;
+
 const studentData = {
   id: alumno.id,
   nombre: alumno.nombre,
@@ -86,7 +96,10 @@ const studentData = {
   telefono: alumno.telefono || undefined,
   fecha_inicio: alumno.fecha_inicio,
   dia_pago: alumno.dia_pago,
-  ultima_sesion: ultimaSesion?.completed_at || ultimaSesion?.updated_at || null
+  monto: alumno.monto || null,
+  ultima_sesion: ultimaSesion?.completed_at || ultimaSesion?.updated_at || null,
+  pago_activo,
+  historial_pagos: sortedPagos
 };
 
 const assignedPlan = Array.isArray(alumno.planes) ? alumno.planes[0] : alumno.planes;

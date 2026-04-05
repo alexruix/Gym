@@ -8,6 +8,10 @@ interface AsyncActionOptions {
     successMsg?: string;
     /** Si es true, recarga la página al completar con éxito */
     reloadOnSuccess?: boolean;
+    /** URL a la que redirigir tras éxito (con un pequeño delay para el toast) */
+    successHref?: string;
+    /** Callback ejecutado tras éxito (antes de redirecciones/recargas) */
+    onSuccess?: () => void;
 }
 
 /**
@@ -38,7 +42,7 @@ export function useAsyncAction() {
         action: () => Promise<void>,
         options: AsyncActionOptions = {}
     ) => {
-        const { loadingMsg, successMsg, reloadOnSuccess = false } = options;
+        const { loadingMsg, successMsg, reloadOnSuccess = false, successHref } = options;
 
         if (isPending) return; // Evitar doble-click
         setIsPending(true);
@@ -53,7 +57,14 @@ export function useAsyncAction() {
 
             if (toastId !== undefined) toast.dismiss(toastId);
             if (successMsg) toast.success(successMsg);
-            if (reloadOnSuccess) window.location.reload();
+            
+            if (options.onSuccess) options.onSuccess();
+
+            if (successHref) {
+                setTimeout(() => window.location.assign(successHref), 500);
+            } else if (reloadOnSuccess) {
+                window.location.reload();
+            }
         } catch (err: any) {
             if (toastId !== undefined) toast.dismiss(toastId);
             toast.error(err?.message || "Ocurrió un error inesperado.");

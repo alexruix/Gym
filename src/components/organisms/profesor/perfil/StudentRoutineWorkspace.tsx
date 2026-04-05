@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { RoutineExerciseRow } from "@/components/molecules/profesor/planes/RoutineExerciseRow";
 import { MasterPlanAssignmentDialog } from "@/components/molecules/profesor/perfil/MasterPlanAssignmentDialog";
 import { ExerciseSearchDialog } from "@/components/molecules/profesor/planes/ExerciseSearchDialog";
-import { ExerciseVariationDialog } from "@/components/molecules/profesor/planes/ExerciseVariationDialog";
+import { RotationDialog } from "@/components/molecules/profesor/planes/RotationDialog";
 import { ExerciseCard } from "@/components/molecules/profesor/planes/ExerciseCard";
 import { cn } from "@/lib/utils";
 import { useAccordion } from "@/hooks/useAccordion";
@@ -709,9 +709,12 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
               key={rutina.id}
               className="bg-white dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden transition-all duration-500 hover:shadow-xl hover:shadow-zinc-950/5 group"
             >
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => toggleRutina(rutina.id)}
-                className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleRutina(rutina.id); }}
+                className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-6">
                   <span className={cn(
@@ -758,7 +761,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                     <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
-              </button>
+              </div>
 
               {isOpen && (
                 <div className="border-t border-zinc-50 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-2 duration-500">
@@ -873,18 +876,16 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
         onExerciseCreated={() => window.location.reload()}
       />
 
-      <ExerciseVariationDialog
+      <RotationDialog
         open={isVariationOpen}
         onOpenChange={setIsVariationOpen}
-        currentExercise={selectedExerciseForVariation?.biblioteca_ejercicios ? {
-          id: selectedExerciseForVariation.biblioteca_ejercicios.id,
-          nombre: selectedExerciseForVariation.biblioteca_ejercicios.nombre,
-          media_url: selectedExerciseForVariation.biblioteca_ejercicios.media_url,
-          parent_id: selectedExerciseForVariation.biblioteca_ejercicios.parent_id,
-          tags: selectedExerciseForVariation.biblioteca_ejercicios.tags
+        exercise={selectedExerciseForVariation ? {
+          ejercicio_id: selectedExerciseForVariation.biblioteca_ejercicios?.id,
+          ...selectedExerciseForVariation
         } : null}
         library={library}
-        onSelect={handleSwapExercise}
+        onSetRotation={(altId) => handleSwapExercise(altId)}
+        onAutoPilot={(altIds) => handleSwapExercise(altIds[0])}
       />
     </div>
   );

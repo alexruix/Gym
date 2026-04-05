@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { defineAction } from "astro:actions";
+import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { planSchema, studentSchema, updateStudentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema } from "@/lib/validators";
+import { planSchema, studentSchema, updateStudentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema, turnoSchema, bulkAssignSchema } from "@/lib/validators";
 
 export const profesorActions = {
   createExercise: defineAction({
@@ -128,7 +128,8 @@ export const profesorActions = {
         p_nombre: input.nombre,
         p_duracion_semanas: input.duracion_semanas,
         p_frecuencia_semanal: input.frecuencia_semanal,
-        p_rutinas: input.rutinas 
+        p_rutinas: input.rutinas,
+        p_rotaciones: input.rotaciones
       });
 
       if (error) {
@@ -157,7 +158,8 @@ export const profesorActions = {
         p_nombre: input.nombre,
         p_duracion_semanas: input.duracion_semanas,
         p_frecuencia_semanal: input.frecuencia_semanal,
-        p_rutinas: input.rutinas
+        p_rutinas: input.rutinas,
+        p_rotaciones: input.rotaciones
       });
 
       if (error) {
@@ -335,17 +337,23 @@ export const profesorActions = {
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new Error("No autorizado");
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
       const { error } = await supabase
         .from("alumnos")
-        .update({ deleted_at: new Date().toISOString() })
+        .update({ 
+            deleted_at: new Date().toISOString(),
+            estado: 'archivado'
+        })
         .eq("id", input.id)
         .eq("profesor_id", user.id);
 
       if (error) {
         console.error("[Action: deleteStudent] Error:", error);
-        throw new Error(`Error al archivar alumno: ${error.message}`);
+        throw new ActionError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: `Error al archivar alumno: ${error.message}` 
+        });
       }
 
       return {
@@ -353,6 +361,134 @@ export const profesorActions = {
         mensaje: "Alumno archivado",
       };
     },
+  }),
+
+  getTurnos: defineAction({
+    accept: "json",
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { data, error } = await supabase
+        .from("turnos")
+        .select("*")
+        .eq("profesor_id", user.id)
+        .order("hora_inicio");
+
+      if (error) throw new Error(`Error DB: ${error.message}`);
+      return data || [];
+    }
+  }),
+
+  upsertTurno: defineAction({
+    accept: "json",
+    input: turnoSchema,
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const dataToUpsert = {
+        profesor_id: user.id,
+        nombre: input.nombre,
+        hora_inicio: input.hora_inicio,
+        hora_fin: input.hora_fin,
+        capacidad_max: input.capacidad_max,
+        color_tag: input.color_tag || null,
+        dias_asistencia: input.dias_asistencia || [],
+      };
+
+      const { data, error } = input.id 
+        ? await supabase.from("turnos").update(dataToUpsert).eq("id", input.id).eq("profesor_id", user.id).select().single()
+        : await supabase.from("turnos").insert(dataToUpsert).select().single();
+
+      if (error) throw new Error(`Error DB: ${error.message}`);
+
+      return {
+        success: true,
+        turno: data,
+        mensaje: `✅ Turno "${data.nombre}" guardado`,
+      };
+    }
+  }),
+
+  deleteTurno: defineAction({
+    accept: "json",
+    input: z.object({ id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { error } = await supabase
+        .from("turnos")
+        .delete()
+        .eq("id", input.id)
+        .eq("profesor_id", user.id);
+
+      if (error) throw new Error(`Error DB: ${error.message}`);
+
+      return {
+        success: true,
+        mensaje: "✅ Turno eliminado",
+      };
+    }
+  }),
+
+  seedTurnos: defineAction({
+    accept: "json",
+    input: z.object({ 
+      template: z.enum(["morning", "afternoon", "full"]) 
+    }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const slots: { hora_inicio: string, hora_fin: string }[] = [];
+
+      if (input.template === "morning" || input.template === "full") {
+        for (let i = 8; i < 12; i++) {
+          slots.push({ 
+            hora_inicio: `${String(i).padStart(2, '0')}:00`, 
+            hora_fin: `${String(i + 1).padStart(2, '0')}:00` 
+          });
+        }
+      }
+
+      if (input.template === "afternoon" || input.template === "full") {
+        for (let i = 16; i < 21; i++) {
+          slots.push({ 
+            hora_inicio: `${String(i).padStart(2, '0')}:00`, 
+            hora_fin: `${String(i + 1).padStart(2, '0')}:00` 
+          });
+        }
+      }
+
+      const turnosToInsert = slots.map(slot => ({
+        profesor_id: user.id,
+        nombre: `${slot.hora_inicio} - ${slot.hora_fin}`,
+        hora_inicio: slot.hora_inicio,
+        hora_fin: slot.hora_fin,
+        capacidad_max: 10,
+        color_tag: null,
+        dias_asistencia: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]
+      }));
+
+      const { data, error } = await supabase
+        .from("turnos")
+        .insert(turnosToInsert)
+        .select();
+
+      if (error) throw new Error(`Error al sembrar turnos: ${error.message}`);
+
+      return { 
+        success: true, 
+        count: data?.length || 0,
+        mensaje: `✅ ${data?.length} bloques horarios creados exitosamente`
+      };
+    }
   }),
 
   inviteStudent: defineAction({
@@ -391,11 +527,13 @@ export const profesorActions = {
             email: input.email.toLowerCase().trim(),
             nombre: input.nombre,
             plan_id: input.plan_id || null,
+            turno_id: input.turno_id || null,
             fecha_inicio: dbDate,
             dia_pago: input.dia_pago,
             telefono: input.telefono || null,
             monto: input.monto || null,
             notas: input.notas || null,
+            dias_asistencia: input.dias_asistencia || [],
             estado: 'activo'
           })
           .select()
@@ -436,6 +574,147 @@ export const profesorActions = {
     },
   }),
 
+  importStudents: defineAction({
+    accept: "json",
+    input: z.object({
+        students: z.array(z.object({
+            nombre: z.string().min(2),
+            email: z.string().email().optional().or(z.literal('')),
+            telefono: z.string().optional().or(z.literal('')),
+            horario: z.string().optional().or(z.literal('')), // Campo para Smart-Match
+            fecha_inicio: z.string(),
+            dia_pago: z.number().min(1).max(31)
+        }))
+    }),
+    handler: async (input, context) => {
+        const supabase = createSupabaseServerClient(context);
+        const user = context.locals.user;
+        
+        if (!user) {
+            throw new Error("No autorizado");
+        }
+
+        // 1. Obtener turnos existentes para el Smart-Match
+        const { data: existingTurnos } = await supabase
+            .from("turnos")
+            .select("*")
+            .eq("profesor_id", user.id);
+
+        const turnosMap = new Map<string, string>(); // Cache de nombre/hora -> id
+
+        // Función Helper: Smart-Parse y Smart-Match
+        const findOrCreateTurno = async (horarioStr?: string) => {
+            if (!horarioStr) return null;
+            
+            // Normalizar string (ej: "9 a 10hs" -> "09:00:00")
+            const match = horarioStr.match(/(\d{1,2})([:.](\d{2}))?/);
+            if (!match) return null;
+
+            let hours = parseInt(match[1]);
+            let mins = match[3] ? parseInt(match[3]) : 0;
+            const startTimeStr = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
+
+            // Buscar coincidencia exacta o cercana en el cache/DB
+            const existing = (existingTurnos || []).find(t => t.hora_inicio.startsWith(startTimeStr.substring(0, 5)));
+            if (existing) return existing.id;
+
+            // Si no existe, crear un bloque de 60 min
+            const endHours = (hours + 1) % 24;
+            const endTimeStr = `${endHours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
+            
+            const { data: newTurno, error } = await supabase
+                .from("turnos")
+                .insert({
+                    profesor_id: user.id,
+                    nombre: `${hours}hs a ${endHours}hs`,
+                    hora_inicio: startTimeStr,
+                    hora_fin: endTimeStr,
+                })
+                .select()
+                .single();
+
+            if (error || !newTurno) return null;
+            
+            existingTurnos?.push(newTurno); // Actualizar cache local para el siguiente alumno
+            return newTurno.id;
+        };
+
+        const studentsWithTurnos = [];
+        for (const s of input.students) {
+            const turnoId = await findOrCreateTurno(s.horario);
+            studentsWithTurnos.push({
+                profesor_id: user.id,
+                nombre: s.nombre,
+                email: s.email ? s.email.toLowerCase().trim() : null,
+                telefono: s.telefono || null,
+                turno_id: turnoId,
+                fecha_inicio: s.fecha_inicio.split('T')[0],
+                dia_pago: s.dia_pago,
+                estado: 'activo'
+            });
+        }
+
+        const { data, error } = await supabase
+            .from("alumnos")
+            .insert(studentsWithTurnos)
+            .select("id");
+
+        if (error) {
+            console.error("[Action: importStudents] Insert Error", error);
+            throw new Error(`Falló la importación: ${error.message}`);
+        }
+
+        return {
+            success: true,
+            importedCount: data.length
+        };
+    }
+  }),
+
+  /** Recalcula y devuelve el progreso de la sesión de un alumno (para Realtime) */
+  getStudentSessionProgress: defineAction({
+    accept: "json",
+    input: z.object({ alumno_id: z.string().uuid() }),
+    handler: async (input, context) => {
+        const supabase = createSupabaseServerClient(context);
+        const today = new Date().toISOString().split('T')[0];
+
+        const { data: session, error } = await supabase
+            .from("sesiones_instanciadas")
+            .select(`
+                id,
+                sesion_ejercicios_instanciados (
+                    id,
+                    completado,
+                    exercise_type,
+                    peso_target,
+                    peso_real,
+                    biblioteca_ejercicios ( nombre )
+                )
+            `)
+            .eq("alumno_id", input.alumno_id)
+            .eq("fecha_real", today)
+            .maybeSingle();
+
+        if (error || !session) return null;
+
+        const exercises = session.sesion_ejercicios_instanciados || [];
+        const total = exercises.length;
+        const completed = exercises.filter((e: any) => e.completado).length;
+        const core = exercises.find((e: any) => e.exercise_type === 'base');
+
+        return {
+            alumno_id: input.alumno_id,
+            progress: total > 0 ? (completed / total) * 100 : 0,
+            coreExercise: core ? {
+                nombre: (core as any).biblioteca_ejercicios?.nombre || "Ejercicio",
+                peso_target: (core as any).peso_target?.toString(),
+                peso_real: (core as any).peso_real?.toString()
+            } : undefined
+        };
+    }
+  }),
+
   updateStudent: defineAction({
     accept: "json",
     input: updateStudentSchema,
@@ -450,7 +729,10 @@ export const profesorActions = {
       if (input.telefono !== undefined) updateData.telefono = input.telefono;
       if (input.fecha_inicio) updateData.fecha_inicio = input.fecha_inicio.toISOString().split('T')[0];
       if (input.dia_pago) updateData.dia_pago = input.dia_pago;
+      if (input.monto !== undefined) updateData.monto = input.monto;
       if (input.notas !== undefined) updateData.notas = input.notas;
+      if (input.turno_id !== undefined) updateData.turno_id = input.turno_id;
+      if (input.dias_asistencia !== undefined) updateData.dias_asistencia = input.dias_asistencia;
 
       const { data: student, error } = await supabase
         .from("alumnos")
@@ -614,48 +896,54 @@ export const profesorActions = {
     },
   }),
 
-  globalSearch: defineAction({
+  getExercises: defineAction({
     accept: "json",
-    input: z.object({ query: z.string() }),
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user || !input.query || input.query.length < 2) {
-        return { success: true, results: { alumnos: [], planes: [], ejercicios: [] } };
+      if (!user) throw new Error("No autorizado");
+      const { data } = await supabase.from("biblioteca_ejercicios").select("id, nombre, media_url").eq("profesor_id", user.id).order("nombre");
+      return data;
+    },
+  }),
+
+  /**
+   * getExerciseVariants: Obtiene los ejercicios que son variantes o padres del ejercicio dado.
+   * Útil para sugerir sustituciones directas (hermanos o padre).
+   */
+  getExerciseVariants: defineAction({
+    accept: "json",
+    input: z.object({ exercise_id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // 1. Obtener datos del ejercicio actual para conocer su parentesco
+      const { data: current } = await supabase
+        .from("biblioteca_ejercicios")
+        .select("id, parent_id, is_template_base")
+        .eq("id", input.exercise_id)
+        .single();
+
+      if (!current) throw new Error("Ejercicio no encontrado");
+
+      const query = supabase
+        .from("biblioteca_ejercicios")
+        .select("id, nombre, media_url")
+        .eq("profesor_id", user.id)
+        .neq("id", input.exercise_id); // Excluir el mismo
+
+      if (current.parent_id) {
+          // Es una variante -> Buscar hermanos y al padre
+          query.or(`parent_id.eq.${current.parent_id},id.eq.${current.parent_id}`);
+      } else {
+          // Es un base -> Buscar sus variantes (hijos)
+          query.eq("parent_id", current.id);
       }
 
-      const searchTerm = `%${input.query}%`;
-
-      const [alumnosRes, planesRes, ejerciciosRes] = await Promise.all([
-        supabase
-          .from("alumnos")
-          .select("id, nombre, email")
-          .eq("profesor_id", user.id)
-          .is("deleted_at", null)
-          .or(`nombre.ilike.${searchTerm},email.ilike.${searchTerm}`)
-          .limit(5),
-        supabase
-          .from("planes")
-          .select("id, nombre")
-          .eq("profesor_id", user.id)
-          .ilike("nombre", searchTerm)
-          .limit(5),
-        supabase
-          .from("biblioteca_ejercicios")
-          .select("id, nombre")
-          .eq("profesor_id", user.id)
-          .ilike("nombre", searchTerm)
-          .limit(5)
-      ]);
-
-      return {
-        success: true,
-        results: {
-          alumnos: alumnosRes.data || [],
-          planes: planesRes.data || [],
-          ejercicios: ejerciciosRes.data || []
-        }
-      };
+      const { data } = await query.order("nombre");
+      return data || [];
     },
   }),
   importExercises: defineAction({
@@ -1040,5 +1328,34 @@ export const profesorActions = {
         mensaje: `✅ Métricas clonadas a la Semana ${input.to_week}` 
       };
     }
+  }),
+
+  bulkUpdateStudents: defineAction({
+    accept: "json",
+    input: bulkAssignSchema,
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { error } = await supabase
+        .from("alumnos")
+        .update({
+          turno_id: input.turno_id,
+          dias_asistencia: input.dias_asistencia,
+        })
+        .in("id", input.studentIds)
+        .eq("profesor_id", user.id);
+
+      if (error) {
+        console.error("[Action: bulkUpdateStudents] Error:", error);
+        throw new Error(`Falla técnica al organizar a los chicos: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        mensaje: "¡Listo! Ya sumaste a los chicos al turno correspondiente.",
+      };
+    },
   }),
 };

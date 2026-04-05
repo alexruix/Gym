@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { User, Mail, Phone, Calendar, CreditCard, Activity, Pencil, MapPin, BadgeInfo } from "lucide-react";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { Button } from "@/components/ui/button";
@@ -105,12 +105,14 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
       {/* Botón Acción (Sticky Bottom en Mobile) */}
       <div className="pt-8 text-right px-4">
           <Button 
-            onClick={() => window.location.href = `/profesor/alumnos/${student.id}/edit`}
+            asChild
             variant="industrial"
             className="w-full md:w-auto h-14 px-10 rounded-2xl shadow-xl shadow-zinc-950/10 uppercase"
           >
-            <Pencil className="w-4 h-4 mr-3" />
-            Editar Ficha Completa
+            <a href={`/profesor/alumnos/${student.id}/edit`}>
+                <Pencil className="w-4 h-4 mr-3" />
+                Editar Ficha Completa
+            </a>
           </Button>
       </div>
 

@@ -65,9 +65,16 @@ Este archivo es la **Única Fuente de Verdad (SSOT)** para el desarrollo de MiGy
 
 - **Hidratación**: Solo hidratar lo necesario (`client:load`, `client:idle`).
 - **RLS (Supabase)**: Mandatorio validar pertenencia de datos en cada Astro Action.
-- **Localización**:
-  - **Moneda**: Peso Argentino (ARS). Formato: `$3.482,50`.
   - **Fecha**: `DD/MM/YYYY`. Hora: `24hs`.
+
+## 8. Reglas de Negocio Críticas (SSOT)
+
+- **Planes Maestros**:
+  - Solo pueden contener **Ejercicios Base** (`is_template_base: true` o sin `parent_id`).
+  - No se permiten variantes/hijos dentro de un Plan Maestro para mantener la estructura limpia.
+- **Sesiones Operativas (Calendario)**:
+  - Permiten **Variantes** (hijos) para reemplazos o ajustes específicos del día.
+  - La lógica de "Swap" debe sugerir variantes de la misma familia.
 
 ---
 

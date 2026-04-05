@@ -108,11 +108,11 @@ export function AuthForm() {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-black tracking-tighter text-zinc-950 mb-2">{copy.title}</h2>
         <p className="text-zinc-500 font-medium">{copy.subtitle}</p>
-        <div className="mt-6 p-4 bg-lime-500/10 border border-lime-500/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-500">
+        {/* <div className="mt-6 p-4 bg-lime-500/10 border border-lime-500/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-500">
           <p className="text-xs font-bold text-lime-700 dark:text-lime-400">
             ¿Sos alumno? Pedile tu link mágico de acceso directamente a tu profesor por WhatsApp.
           </p>
-        </div>
+        </div> */}
       </div>
 
       <form onSubmit={handleMagicLink} className="space-y-5">

@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from "react";
+import React, { useMemo } from "react";
 import { actions } from "astro:actions";
 import { MessageCircle, Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, RefreshCw, Copy, ChevronRight } from "lucide-react";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
@@ -11,8 +11,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
-import { copyToClipboard, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { PlanMetric } from "@/components/atoms/profesor/planes/PlanMetric";
+import { StudentPaymentSheet } from "@/components/organisms/profesor/pagos/StudentPaymentSheet";
+import { useStudentActions } from "@/hooks/useStudentActions";
 
 interface Props {
   alumno: {
@@ -21,9 +23,12 @@ interface Props {
     email: string;
     estado: string;
     telefono?: string;
+    monto?: number | null;
     fecha_inicio?: string;
     dia_pago?: number;
     ultima_sesion?: string | null;
+    pago_activo?: any;
+    historial_pagos?: any[];
   };
   planName?: string | null;
 }
@@ -34,6 +39,11 @@ interface Props {
  */
 export function AthleteHeader({ alumno, planName }: Props) {
   const { header, sidebar } = athleteProfileCopy;
+  const [isPaymentSheetOpen, setPaymentSheetOpen] = React.useState(false);
+  const [localPagoActivo, setLocalPagoActivo] = React.useState(alumno.pago_activo);
+  const [localMonto, setLocalMonto] = React.useState(alumno.monto);
+
+  const { copyGuestLink, openWhatsApp } = useStudentActions();
 
   const lastSessionText = useMemo(() => {
     if (!alumno.ultima_sesion) return header.metrics.never;
@@ -56,28 +66,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
     });
   }, [alumno.fecha_inicio]);
 
-  const copyGuestLink = async () => {
-    toast.loading("GENERANDO ACCESO...");
-    try {
-      const { data, error } = await actions.profesor.getStudentGuestLink({ id: alumno.id });
-      if (error || !data?.link) throw new Error("Error de conexión");
-      await copyToClipboard(data.link);
-      toast.dismiss();
-      toast.success("¡LINK DE ACCESO COPIADO!");
-    } catch (err: any) {
-      toast.dismiss();
-      toast.error(`FALLÓ: ${err.message}`);
-    }
-  };
-
-  const openWhatsApp = () => {
-    if (!alumno.telefono) {
-      toast.error(header.actions.noPhone);
-      return;
-    }
-    const cleanTel = alumno.telefono.replace(/\D/g, "");
-    window.open(`https://wa.me/${cleanTel}`, "_blank");
-  };
+  const currentStatus = localPagoActivo?.estado === 'pagado' ? 'pagado' : alumno.estado;
 
   return (
     <div className="relative overflow-hidden bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl shadow-zinc-950/5 group">
@@ -94,7 +83,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
                 {alumno.nombre.substring(0, 2).toUpperCase()}
               </div>
               <div className="absolute -bottom-2 -right-2">
-                 <StatusBadge status={alumno.estado as StatusType} />
+                 <StatusBadge status={currentStatus as StatusType} />
               </div>
             </div>
             
@@ -118,11 +107,20 @@ export function AthleteHeader({ alumno, planName }: Props) {
           <div className="flex flex-wrap items-center gap-3">
             <Button 
                 variant="outline" 
-                onClick={openWhatsApp}
-                className="flex-1 md:flex-none h-14 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl font-black gap-2 px-6 transition-all active:scale-95 uppercase tracking-widest text-[10px]"
+                onClick={() => {
+                  if (!alumno.telefono) {
+                    window.location.assign(`/profesor/alumnos/${alumno.id}/edit`);
+                    return;
+                  }
+                  openWhatsApp(alumno.nombre, alumno.telefono, { type: 'general' });
+                }}
+                className={cn(
+                    "flex-1 md:flex-none h-14 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl font-black gap-2 px-6 transition-all active:scale-95 uppercase tracking-widest text-[10px]",
+                    !alumno.telefono ? "border-dashed text-zinc-400" : ""
+                )}
             >
-                <MessageCircle className="w-5 h-5 text-emerald-500" />
-                WhatsApp
+                <MessageCircle className={cn("w-5 h-5", !alumno.telefono ? "text-zinc-400" : "text-emerald-500")} />
+                {!alumno.telefono ? "Agregar WhatsApp" : "WhatsApp"}
             </Button>
             
             <DropdownMenu>
@@ -136,7 +134,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 shadow-2xl">
-                <DropdownMenuItem onClick={copyGuestLink} className="rounded-xl py-3 font-black text-[10px] uppercase tracking-[0.15em] gap-3 cursor-pointer">
+                <DropdownMenuItem onClick={() => copyGuestLink(alumno.id)} className="rounded-xl py-3 font-black text-[10px] uppercase tracking-[0.15em] gap-3 cursor-pointer">
                   <Copy className="w-4 h-4 text-zinc-400" />
                   Copiar Magic Link
                 </DropdownMenuItem>
@@ -144,6 +142,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
             </DropdownMenu>
 
             <Button 
+              onClick={() => setPaymentSheetOpen(true)}
               className="flex-1 md:flex-none h-14 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 hover:opacity-90 rounded-2xl font-black text-[10px] uppercase tracking-widest gap-2 px-8 transition-all active:scale-95 shadow-xl"
             >
               <CreditCard className="w-5 h-5" />
@@ -153,7 +152,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
         </div>
 
         {/* Telemetry Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 border-t border-zinc-100 dark:border-zinc-900 pt-0 bg-zinc-50/50 dark:bg-zinc-900/20 -mx-10 -mb-10">
+        <div className="grid grid-cols-3 border-t border-zinc-100 dark:border-zinc-900 pt-0 bg-zinc-50/50 dark:bg-zinc-900/20 -mx-10 -mb-10">
           <PlanMetric 
             icon={PaymentIcon} 
             label={header.metrics.payDay} 
@@ -175,6 +174,20 @@ export function AthleteHeader({ alumno, planName }: Props) {
           />
         </div>
       </div>
+
+      <StudentPaymentSheet 
+          isOpen={isPaymentSheetOpen}
+          onOpenChange={setPaymentSheetOpen}
+          alumno={{
+              ...alumno,
+              pago_activo: localPagoActivo,
+              historial_pagos: alumno.historial_pagos || [],
+              monto: localMonto ?? null,
+              dia_pago: alumno.dia_pago || null
+          }}
+          onPaymentSuccess={setLocalPagoActivo}
+          onMontoUpdate={setLocalMonto}
+      />
     </div>
   );
 }

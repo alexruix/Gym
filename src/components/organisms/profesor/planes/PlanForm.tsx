@@ -8,10 +8,12 @@ import { planesCopy } from "@/data/es/profesor/planes";
 import { toast } from "sonner";
 import { ExerciseCard } from "@/components/molecules/profesor/planes/ExerciseCard";
 import { ExerciseSearchDialog } from "@/components/molecules/profesor/planes/ExerciseSearchDialog";
+import { RotationDialog } from "@/components/molecules/profesor/planes/RotationDialog";
 import { QuickOptionsGroup } from "@/components/molecules/profesor/planes/QuickOptionsGroup";
-import { Save, Plus, Dumbbell, Copy, ArrowRight, ArrowLeft, CheckCircle2, AlertTriangle, ChevronRight, ChevronLeft } from "lucide-react";
+import { Save, Plus, Dumbbell, Info, X, Copy, Zap, Menu, ArrowRight, ArrowLeft, Calendar, Undo2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -22,7 +24,6 @@ import {
 } from "@/components/ui/form";
 import { PlanNavigator } from "@/components/molecules/profesor/planes/PlanNavigator";
 import { BulkActionDialog } from "@/components/molecules/profesor/planes/BulkActionDialog";
-import { cn } from "@/lib/utils";
 
 type FormValues = z.infer<typeof planSchema>;
 
@@ -41,16 +42,17 @@ interface PlanFormProps {
   onCancel?: () => void;
 }
 
-const DIAS_SEMANA_LARGOS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+// Quitamos DIAS_SEMANA_LARGOS para favorecer el sistema secuencial Día 1, Día 2...
 
 export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFormProps) {
   const [isPending, setIsPending] = useState(false);
   const [activeDiaAbsoluto, setActiveDiaAbsoluto] = useState<number>(1);
   const [localLibrary, setLocalLibrary] = useState<Exercise[]>(library);
+  const [rotationEditing, setRotationEditing] = useState<{ routineIdx: number; exerciseIdx: number } | null>(null);
   const [currentWeek, setCurrentWeek] = useState(1);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
-
+  
   // Undo Support
   const historyRef = useRef<any>(null);
 
@@ -62,11 +64,12 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
       descripcion: initialValues?.descripcion || "",
       duracion_semanas: initialValues?.duracion_semanas || 1,
       is_template: initialValues?.is_template ?? true,
-      rutinas: initialValues?.rutinas || Array.from({ length: 365 }, (_, i) => ({
+      rutinas: initialValues?.rutinas || Array.from({ length: 84 }, (_, i) => ({
         dia_numero: i + 1,
-        nombre_dia: `${DIAS_SEMANA_LARGOS[i % 7]}`,
+        nombre_dia: `Día ${i + 1}`,
         ejercicios: [],
       })),
+      rotaciones: initialValues?.rotaciones || [],
     },
   });
 
@@ -79,23 +82,20 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
     const uniqueDays = new Set<number>();
     let totalEjercicios = 0;
     rutinasWatch?.forEach(r => {
-      const c = r.ejercicios?.length || 0;
-      if (c > 0) {
-        uniqueDays.add(((r.dia_numero - 1) % 7) + 1);
-        totalEjercicios += c;
-      }
+        const c = r.ejercicios?.length || 0;
+        if (c > 0) {
+            uniqueDays.add(((r.dia_numero - 1) % 7) + 1);
+            totalEjercicios += c;
+        }
     });
-    const nombre = form.watch("nombre") || "";
-    return {
-      activeDaysCount: uniqueDays.size,
-      totalEjercicios,
-      isValid: uniqueDays.size > 0 && nombre.length >= 3
+    return { 
+        activeDaysCount: uniqueDays.size,
+        totalEjercicios,
+        isValid: uniqueDays.size > 0 && form.watch("nombre")?.length > 3
     };
   }, [rutinasWatch, form.watch("nombre")]);
 
   const numWeeks = form.watch("duracion_semanas") || 1;
-  const totalDays = numWeeks * 7;
-  const progressPercent = (activeDiaAbsoluto / totalDays) * 100;
 
   useEffect(() => {
     form.setValue("frecuencia_semanal", stats.activeDaysCount);
@@ -103,29 +103,30 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === "w" || e.key === "W") {
-        const nextWeek = (currentWeek % numWeeks) + 1;
-        setCurrentWeek(nextWeek);
-        setActiveDiaAbsoluto((nextWeek - 1) * 7 + 1);
-      }
-      if (e.key === "d" || e.key === "D") {
-        const nextDia = (activeDiaAbsoluto % totalDays) + 1;
-        if (Math.ceil(nextDia / 7) !== currentWeek) setCurrentWeek(Math.ceil(nextDia / 7));
-        setActiveDiaAbsoluto(nextDia);
-      }
-      if (e.key === "s" || e.key === "S") {
-        if (stats.isValid) onSubmitHandler(e as any);
-      }
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+        if (e.key === "s" || e.key === "S") {
+            const nextWeek = (currentWeek % numWeeks) + 1;
+            setCurrentWeek(nextWeek);
+            setActiveDiaAbsoluto((nextWeek - 1) * 7 + 1);
+        }
+        if (e.key === "d" || e.key === "D") {
+            const nextDia = (activeDiaAbsoluto % (numWeeks * 7)) + 1;
+            if (Math.ceil(nextDia / 7) !== currentWeek) setCurrentWeek(Math.ceil(nextDia / 7));
+            setActiveDiaAbsoluto(nextDia);
+        }
+        if (e.key === "Enter" && e.ctrlKey) {
+            if (stats.isValid) form.handleSubmit(onSubmit)();
+        }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentWeek, numWeeks, activeDiaAbsoluto, stats.isValid, totalDays]);
+  }, [currentWeek, numWeeks, activeDiaAbsoluto, stats.isValid]);
 
   const onSubmit = async (data: any) => {
     setIsPending(true);
     try {
-      const activeRoutines = data.rutinas.filter((r: any) => r.ejercicios.length > 0 && r.dia_numero <= totalDays);
+      const maxDay = numWeeks * 7;
+      const activeRoutines = data.rutinas.filter((r: any) => r.ejercicios.length > 0 && r.dia_numero <= maxDay);
       const payload = { ...data, rutinas: activeRoutines };
       const { data: result, error } = initialValues?.id
         ? await actions.profesor.updatePlan({ id: initialValues.id, ...payload })
@@ -137,7 +138,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
       if (result?.success) {
         toast.success(result.mensaje);
         if (onSuccess) onSuccess();
-        else setTimeout(() => window.location.href = "/profesor/planes", 1000);
+        else setTimeout(() => window.location.assign("/profesor/planes"), 1000);
       }
     } catch (err: any) {
       toast.error(err.message || planesCopy.form.messages.error);
@@ -146,304 +147,237 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
     }
   };
 
-  const onSubmitHandler = (e: React.FormEvent) => {
-    e.preventDefault();
-    form.handleSubmit(onSubmit, (errors) => {
-      console.error("Errores de validación:", errors);
-      
-      const getErrorMessage = (errs: any): string | null => {
-        if (!errs) return null;
-        if (typeof errs.message === "string") return errs.message;
-        for (const key of Object.keys(errs)) {
-          const msg = getErrorMessage(errs[key]);
-          if (msg) return msg;
-        }
-        return null;
-      };
-
-      const message = getErrorMessage(errors) || "Revisá los datos del plan";
-      toast.error(message);
-    })();
-  };
-
   const getExerciseName = (id: string) => localLibrary.find(e => e.id === id)?.nombre || "Ejercicio";
 
   const addExercise = (exerciseId: string) => {
     const routineIdx = activeDiaAbsoluto - 1;
     const currentExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`) || [];
     const newExercise = {
-      ejercicio_id: exerciseId, 
-      orden: currentExercises.length, 
-      exercise_type: "base" as const, 
-      position: currentExercises.length + 1
+      ejercicio_id: exerciseId, series: 3, reps_target: "12", descanso_seg: 60, orden: currentExercises.length, exercise_type: "base" as const, position: Date.now() + Math.random(), peso_target: ""
     };
     form.setValue(`rutinas.${routineIdx}.ejercicios`, [...currentExercises, newExercise]);
     setIsSearchOpen(false);
   };
 
   const handleDuplicateMulti = (targetDayNums: number[]) => {
+    // Guardar historial para Undo
     historyRef.current = JSON.parse(JSON.stringify(form.getValues("rutinas")));
-
+    
     const rutinas = form.getValues("rutinas");
     const sourceRoutine = rutinas[activeDiaAbsoluto - 1];
     if (!sourceRoutine) return;
-
+    
     const newRutinas = [...rutinas];
     targetDayNums.forEach(dNum => {
-      newRutinas[dNum - 1] = {
-        ...newRutinas[dNum - 1],
-        ejercicios: JSON.parse(JSON.stringify(sourceRoutine.ejercicios || []))
-      };
+        newRutinas[dNum - 1] = { 
+            ...newRutinas[dNum - 1], 
+            ejercicios: JSON.parse(JSON.stringify(sourceRoutine.ejercicios || [])) 
+        };
     });
-
+    
     form.setValue("rutinas", newRutinas);
-
-    toast(`${targetDayNums.length} ${targetDayNums.length === 1 ? 'día duplicado' : 'días duplicados'} correctamente`, {
-      action: {
-        label: "Deshacer",
-        onClick: () => {
-          if (historyRef.current) form.setValue("rutinas", historyRef.current);
-          toast.success("Cambios revertidos");
+    
+    toast(`${targetDayNums.length} ${targetDayNums.length === 1 ? 'Día duplicado' : 'Días duplicados'} correctamente`, {
+        action: {
+            label: "Deshacer",
+            onClick: () => {
+                if (historyRef.current) form.setValue("rutinas", historyRef.current);
+                toast.success("Cambios revertidos");
+            }
         }
-      }
     });
   };
 
-  const currentDayOfWeek = ((activeDiaAbsoluto - 1) % 7);
-  const currentDayName = DIAS_SEMANA_LARGOS[currentDayOfWeek];
+  // Logic helpers
   const routineIdx = activeDiaAbsoluto - 1;
   const currentExercises = rutinasWatch?.[routineIdx]?.ejercicios || [];
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmitHandler} className="min-h-screen bg-white dark:bg-zinc-950">
-
-        <PlanNavigator
-          currentWeek={currentWeek}
-          numWeeks={numWeeks}
-          onWeekChange={(w) => { setCurrentWeek(w); setActiveDiaAbsoluto((w - 1) * 7 + (currentDayOfWeek + 1)); }}
-          activeDiaAbsoluto={activeDiaAbsoluto}
-          onDiaChange={setActiveDiaAbsoluto}
-          rutinas={rutinasWatch || []}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-screen bg-white dark:bg-zinc-950">
+        
+        {/* TOP NAVIGATOR: SEMANAS + DÃAS (Sticky) */}
+        <PlanNavigator 
+            currentWeek={currentWeek} 
+            numWeeks={numWeeks} 
+            onWeekChange={(w) => { setCurrentWeek(w); setActiveDiaAbsoluto((w-1)*7 + 1); }} 
+            activeDiaAbsoluto={activeDiaAbsoluto} 
+            onDiaChange={setActiveDiaAbsoluto} 
+            rutinas={rutinasWatch || []} 
         />
 
+        {/* MAIN SECTION: EDITION */}
         <main className="flex-1 min-w-0 flex flex-col">
-          <div className="flex-1 p-6 lg:p-12 space-y-16 max-w-5xl mx-auto w-full pb-48">
-
-            {/* Cabecera de Identidad (Mockup Style) */}
-            <header className="flex flex-col lg:flex-row lg:items-start justify-between gap-12 animate-in fade-in slide-in-from-top-4 duration-700">
-              <div className="space-y-6 flex-1">
-                <div className="space-y-3">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-300">Identidad del Plan</h3>
-                  <FormField
+          <div className="flex-1 p-6 lg:p-12 space-y-12 max-w-4xl mx-auto w-full pb-56 lg:pb-32">
+            
+            {/* 1. Header (Nombre del Plan) */}
+            <header className="space-y-10 animate-in fade-in duration-700">
+              <div className="space-y-4">
+                 <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-300">Identidad del Plan</h3>
+                 <FormField
                     control={form.control}
                     name="nombre"
                     render={({ field }) => (
                       <FormItem className="space-y-0">
                         <FormControl>
-                          <Input placeholder="Nombre o enfoque del plan" {...field} className="text-2xl lg:text-3xl font-black bg-transparent border-none p-0 focus-visible:ring-0 shadow-none h-auto tracking-tighter" />
+                          <Input placeholder="Nombre o enfoque del plan" {...field} className="text-2xl lg:text-4xl font-black bg-transparent border-none p-0 focus-visible:ring-0 shadow-none h-auto tracking-tight" />
                         </FormControl>
                         <FormMessage className="text-[10px] font-black tracking-widest text-red-500 pt-2" />
-                        {!form.formState.errors.nombre && <p className="text-[10px] font-medium text-zinc-400 mt-2">Mínimo 3 caracteres</p>}
                       </FormItem>
                     )}
-                  />
-                </div>
-                <QuickOptionsGroup
-                  options={["Fuerza", "Hipertrofia", "Acondicionamiento", "Postura"]}
-                  selectedOptions={[form.watch("nombre")]}
-                  onToggle={(name) => form.setValue("nombre", name)}
-                />
+                 />
+                 <QuickOptionsGroup 
+                    options={["Fuerza", "Hipertrofia", "Acondicionamiento", "Postura"]} 
+                    selectedOptions={[form.watch("nombre")]} 
+                    onToggle={(name) => form.setValue("nombre", name)} 
+                 />
               </div>
 
-              <div className="max-w-xs w-full">
-                <FormField
+              <div className="max-w-xs">
+                 <FormField
                   control={form.control}
                   name="duracion_semanas"
                   render={({ field }) => (
-                    <FormItem className="space-y-4">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 px-1 lg:text-right block">Duración del plan</FormLabel>
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 px-1">DuraciÃ³n total</FormLabel>
                       <div className="bg-zinc-50 dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center gap-3">
-                        <select className="flex-1 bg-transparent border-none font-black text-xs uppercase px-4 h-12 outline-none appearance-none" value={field.value} onChange={(e) => field.onChange(parseInt(e.target.value))}>
-                          {[1, 2, 4, 8, 12, 24, 52].map(s => <option key={s} value={s}>{s} Semanas</option>)}
+                        <select className="flex-1 bg-transparent border-none font-black text-sm uppercase px-4 h-10 outline-none" value={field.value} onChange={(e) => field.onChange(parseInt(e.target.value))}>
+                            {[1, 2, 4, 8, 12, 24, 52].map(s => <option key={s} value={s}>{s} Semanas</option>)}
                         </select>
-                        <ChevronRight className="w-4 h-4 text-zinc-300 rotate-90 mr-4" />
                       </div>
                     </FormItem>
                   )}
-                />
+                 />
               </div>
             </header>
 
-            {/* Sección de Rutina con Header Sticky (UX Decision) */}
+            {/* 2. Zona de EdiciÃ³n del Día */}
             <section className="space-y-8">
-              <div className="sticky top-[72px] z-30 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl -mx-6 px-6 py-4 border-y border-zinc-100 dark:border-zinc-900 sm:rounded-[32px] sm:mx-0 sm:px-8">
-                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">{currentDayName} (Semana {currentWeek})</span>
-                      <div className="w-1.5 h-1.5 rounded-full bg-lime-500" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-500">Día {activeDiaAbsoluto}</span>
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name={`rutinas.${routineIdx}.nombre_dia`}
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input placeholder="Nombre del día (ej: Empuje / Pecho)" {...field} className="text-2xl font-black bg-transparent border-none p-0 focus-visible:ring-0 shadow-none h-auto px-0" />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+               <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center justify-between">
+                  <div className="space-y-1">
+                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-lime-500">Semana {currentWeek}</span>
+                     <h2 className="text-md lg:text-md font-black bg-transparent border-none p-0 tracking-tighter text-zinc-950 dark:text-white uppercase transition-all duration-300">
+                        Día {activeDiaAbsoluto}
+                     </h2>
                   </div>
+                  
+                  <div className="flex gap-3 shrink-0">
+                     <Button type="button" variant="outline" size="xl" onClick={() => setIsBulkOpen(true)} className="px-6 h-16 rounded-[24px] border-zinc-100 dark:border-zinc-800">
+                        <Copy className="w-5 h-5 mr-3" /> <span className="text-[10px] font-black uppercase">Copiar día</span>
+                     </Button>
+                     <Button type="button" variant="industrial" size="xl" onClick={() => setIsSearchOpen(true)} className="px-10 h-16 rounded-[24px] shadow-2xl shadow-lime-500/10">
+                        <Plus className="w-5 h-5 mr-3" /> <span className="text-[10px] font-black uppercase">Añadir</span>
+                     </Button>
+                  </div>
+               </div>
 
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      type="button" variant="outline"
-                      onClick={() => setIsBulkOpen(true)}
-                      className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-2xl h-14 px-6 gap-3 hover:bg-zinc-50 transition-all font-black"
-                    >
-                      <Copy className="w-4 h-4" /> <span className="text-[10px] uppercase tracking-widest leading-none">Copiar Día</span>
-                    </Button>
-                    <Button
-                      type="button" variant="industrial"
-                      onClick={() => setIsSearchOpen(true)}
-                      className="bg-lime-400 text-zinc-950 border-none rounded-2xl h-14 px-8 gap-3 hover:bg-lime-500 transition-all font-black shadow-lg shadow-lime-500/20"
-                    >
-                      <Plus className="w-4 h-4" /> <span className="text-[10px] uppercase tracking-widest leading-none">Añadir</span>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lista de Ejercicios */}
-              <div className="space-y-4 min-h-[400px]">
-                {currentExercises.length === 0 ? (
-                  <div className="py-40 flex flex-col items-center text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[56px] bg-zinc-50/10 hover:bg-zinc-50/20 transition-colors group cursor-pointer" onClick={() => setIsSearchOpen(true)}>
-                    <div className="w-20 h-20 rounded-[32px] bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
-                      <Dumbbell className="w-8 h-8 text-zinc-300 dark:text-zinc-600" />
+               <div className="space-y-4 min-h-[300px]">
+                  {currentExercises.length === 0 ? (
+                    <div className="py-32 flex flex-col items-center text-center border-4 border-dashed border-zinc-100 dark:border-zinc-900 rounded-[40px] bg-zinc-50/20">
+                      <Dumbbell className="w-12 h-12 text-zinc-200 dark:text-zinc-800 mb-6" />
+                      <p className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 max-w-[200px]">Este día aún no tiene ejercicios.</p>
+                      <Button variant="ghost" onClick={() => setIsSearchOpen(true)} className="mt-6 text-lime-500 font-black uppercase text-[10px] tracking-widest">Cargar rutina ahora</Button>
                     </div>
-                    <h4 className="text-lg font-black uppercase tracking-tight text-zinc-400">Sin ejercicios cargados</h4>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-300 mt-2">Día {activeDiaAbsoluto}</p>
-                  </div>
-                ) : (
-                  currentExercises.map((ex: any, exIdx: number) => (
-                    <ExerciseCard
-                      key={ex.position || exIdx}
-                      routineIdx={routineIdx}
-                      exerciseIdx={exIdx}
-                      exercise={ex}
-                      getExerciseName={getExerciseName}
-                      removeExercise={(ri, ei) => {
-                        const updated = [...form.getValues(`rutinas.${ri}.ejercicios`)];
-                        updated.splice(ei, 1);
-                        form.setValue(`rutinas.${ri}.ejercicios`, updated);
-                      }}
-                    />
-                  ))
-                )}
-              </div>
+                  ) : (
+                    currentExercises.map((ex: any, exIdx: number) => (
+                      <ExerciseCard 
+                        key={ex.position || exIdx} form={form} routineIdx={routineIdx} exerciseIdx={exIdx} exercise={ex} getExerciseName={getExerciseName} 
+                        removeExercise={(ri, ei) => {
+                            const updated = [...form.getValues(`rutinas.${ri}.ejercicios`)];
+                            updated.splice(ei, 1);
+                            form.setValue(`rutinas.${ri}.ejercicios`, updated);
+                        }} 
+                        onEditRotation={(ri, ei) => setRotationEditing({ routineIdx: ri, exerciseIdx: ei })} hasRotation={(pos) => form.watch("rotaciones")?.some((r: any) => r.position === pos)} getRotationForPosition={(pos) => form.watch("rotaciones")?.find((r: any) => r.position === pos)} removeRotationExercise={(p, id) => {
+                            const updated = form.getValues("rotaciones").map((rot: any) => rot.position === p ? ({ ...rot, cycles: rot.cycles.map((c: any) => ({ ...c, exercises: c.exercises.filter((exid: string) => exid !== id) })) }) : rot).filter((rot: any) => rot.cycles[0].exercises.length > 1);
+                            form.setValue("rotaciones", updated);
+                        }} 
+                      />
+                    ))
+                  )}
+               </div>
             </section>
           </div>
 
-          {/* Footer Premium (Mockup Ref) */}
-          <footer className="fixed bottom-0 left-0 w-full z-50 pointer-events-none p-6 md:p-10 flex justify-center">
-            <div className="bg-zinc-950/95 backdrop-blur-2xl px-8 py-5 rounded-[40px] border border-white/10 shadow-2xl flex flex-col md:flex-row items-center gap-8 pointer-events-auto w-full max-w-5xl relative overflow-hidden">
-
-
-              <div className="flex items-center gap-6">
-                <div className="flex gap-2">
-                  <Button
-                    type="button" variant="ghost" size="icon"
-                    disabled={activeDiaAbsoluto === 1}
-                    onClick={() => setActiveDiaAbsoluto(prev => prev - 1)}
-                    className="text-white hover:bg-white/10 rounded-2xl h-12 w-12 border border-white/5"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    type="button" variant="ghost" size="icon"
-                    disabled={activeDiaAbsoluto === totalDays}
-                    onClick={() => setActiveDiaAbsoluto(prev => prev + 1)}
-                    className="text-white hover:bg-white/10 rounded-2xl h-12 w-12 border border-white/5"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
+          {/* 3. FOOTER GLOBAL: NAVEGACIÃ“N + GUARDAR */}
+          <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl px-6 z-50 pointer-events-none">
+             <div className="bg-zinc-950/90 backdrop-blur-2xl p-4 rounded-[32px] border border-white/10 shadow-2xl flex items-center justify-between pointer-events-auto">
+                
+                {/* NavegaciÃ³n de Días */}
+                <div className="flex items-center gap-3 pr-6 border-r border-white/10">
+                   <Button variant="ghost" size="icon" disabled={activeDiaAbsoluto === 1} onClick={() => setActiveDiaAbsoluto(prev => prev - 1)} className="text-white hover:bg-white/10 rounded-2xl h-12 w-12">
+                     <ArrowLeft className="w-5 h-5" />
+                   </Button>
+                   <div className="flex flex-col items-center min-w-[80px]">
+                      <span className="text-[10px] font-black text-white leading-none">Día {activeDiaAbsoluto}</span>
+                      <span className="text-[8px] font-black text-zinc-500 uppercase mt-1">de {numWeeks * 7}</span>
+                   </div>
+                   <Button variant="ghost" size="icon" disabled={activeDiaAbsoluto === numWeeks * 7} onClick={() => setActiveDiaAbsoluto(prev => prev + 1)} className="text-white hover:bg-white/10 rounded-2xl h-12 w-12">
+                     <ArrowRight className="w-5 h-5" />
+                   </Button>
                 </div>
 
-                   <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-white leading-none uppercase tracking-widest">Día {activeDiaAbsoluto} <span className="text-zinc-500">DE {totalDays}</span></span>
+                {/* Feedback de ValidaciÃ³n y Guardado */}
+                <div className="flex items-center gap-6 ml-auto">
+                   <div className="hidden md:flex flex-col items-end">
+                      {stats.isValid ? (
+                        <div className="flex items-center gap-2 text-lime-500">
+                           <span className="text-[10px] font-black uppercase tracking-widest leading-none">Listo para guardar</span>
+                           <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-zinc-500">
+                           <span className="text-[10px] font-black uppercase tracking-widest leading-none">Faltan ejercicios</span>
+                           <AlertTriangle className="w-4 h-4" />
+                        </div>
+                      )}
+                      <span className="text-[8px] font-black text-zinc-600 uppercase mt-1 tracking-widest">{stats.totalEjercicios} ejercicios cargados</span>
                    </div>
-              </div>
 
-              <div className="flex-1 hidden md:flex justify-end gap-3">
-                {!stats.isValid && (
-                  <div className="flex items-center gap-3 px-4 py-2 bg-zinc-800 rounded-full border border-white/5">
-                    <AlertTriangle className="w-4 h-4 text-zinc-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Falta información</span>
-                  </div>
-                )}
-                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest ml-4">{stats.totalEjercicios} ejercicios agregados</span>
-              </div>
-
-              <Button
-                type="button"
-                onClick={onSubmitHandler}
-                disabled={isPending || !stats.isValid}
-                className={cn(
-                  "h-16 px-12 rounded-[28px] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl",
-                  stats.isValid
-                    ? "bg-lime-400 text-zinc-950 hover:bg-lime-500 shadow-lime-500/10"
-                    : "bg-zinc-800 text-zinc-500 opacity-50 grayscale"
-                )}
-              >
-                {isPending ? (
-                  <RefreshCcw className="w-4 h-4 animate-spin mr-3" />
-                ) : (
-                  <Save className="w-4 h-4 mr-3" />
-                )}
-                {isPending ? "Procesando..." : "Guardar Plan"}
-              </Button>
-            </div>
+                   <Button 
+                    type="submit" disabled={isPending || !stats.isValid} variant="industrial" size="xl" 
+                    className="px-10 h-16 rounded-[24px] shadow-2xl transition-all disabled:opacity-30 disabled:grayscale"
+                   >
+                      <Save className="w-5 h-5 mr-3" />
+                      <span className="text-[11px] font-black uppercase">{isPending ? "Guardando..." : "Guardar Plan"}</span>
+                   </Button>
+                </div>
+             </div>
           </footer>
         </main>
       </form>
 
-      <ExerciseSearchDialog
-        open={isSearchOpen} onOpenChange={setIsSearchOpen} library={localLibrary} onSelect={addExercise} onExerciseCreated={(newEx) => { setLocalLibrary(prev => [{ id: newEx.id, nombre: newEx.nombre, media_url: newEx.media_url || null }, ...prev]); addExercise(newEx.id); }}
+      <ExerciseSearchDialog 
+        open={isSearchOpen} 
+        onOpenChange={setIsSearchOpen} 
+        library={localLibrary} 
+        onSelect={addExercise} 
+        onExerciseCreated={(newEx) => { 
+            setLocalLibrary(prev => [{ id: newEx.id, nombre: newEx.nombre, media_url: newEx.media_url || null }, ...prev]); 
+            addExercise(newEx.id); 
+        }} 
+        onlyBase={true}
       />
 
-      <BulkActionDialog
-        open={isBulkOpen}
-        onOpenChange={setIsBulkOpen}
-        sourceDayNum={activeDiaAbsoluto}
-        totalWeeks={numWeeks}
-        onConfirm={handleDuplicateMulti}
+      <RotationDialog 
+        open={rotationEditing !== null} onOpenChange={(open) => !open && setRotationEditing(null)} exercise={rotationEditing ? form.getValues(`rutinas.${rotationEditing.routineIdx}.ejercicios.${rotationEditing.exerciseIdx}`) : null} library={localLibrary} onSetRotation={(altId, dur) => {
+            const ri = rotationEditing!.routineIdx; const ei = rotationEditing!.exerciseIdx;
+            const ex = form.getValues(`rutinas.${ri}.ejercicios.${ei}`);
+            const currot = form.getValues("rotaciones") || [];
+            const idx = currot.findIndex((r: any) => r.position === ex.position);
+            if (idx >= 0) { const updated = [...currot]; updated[idx].cycles[0].exercises.push(altId); form.setValue("rotaciones", updated); }
+            else { form.setValue("rotaciones", [...currot, { position: ex.position, cycles: [{ duration_weeks: dur, exercises: [ex.ejercicio_id, altId] }] }]); }
+            setRotationEditing(null);
+        }} onAutoPilot={(ids, dur) => { /* logic similarly */ }}
+      />
+
+      <BulkActionDialog 
+        open={isBulkOpen} 
+        onOpenChange={setIsBulkOpen} 
+        sourceDayNum={activeDiaAbsoluto} 
+        totalWeeks={numWeeks} 
+        onConfirm={handleDuplicateMulti} 
         rutinas={rutinasWatch || []}
       />
     </Form>
   );
-}
-
-function RefreshCcw(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-      <path d="M3 3v5h5" />
-      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-      <path d="M16 16h5v5" />
-    </svg>
-  )
 }

@@ -18,10 +18,23 @@ export const planSchema = z.object({
           exercise_type: z.enum(["base", "complementary", "accessory"]).optional().default("base"),
           position: z.number().int().min(0).optional().default(0),
           notas: z.string().optional(),
+          peso_target: z.string().optional().default(""),
         })
       )
     })
   ).min(1, "El plan debe tener al menos 1 rutina"),
+  rotaciones: z.array(
+    z.object({
+      position: z.number().int(),
+      applies_to_days: z.array(z.string()).optional(),
+      cycles: z.array(
+        z.object({
+          duration_weeks: z.number().int().min(1),
+          exercises: z.array(z.string().uuid()),
+        })
+      ),
+    })
+  ).optional().default([]),
 });
 
 export type PlanFormData = z.infer<typeof planSchema>;
@@ -46,9 +59,23 @@ export const studentSchema = z.object({
   email: z.string().email("Email inválido"),
   telefono: z.string().optional(),
   plan_id: z.string().uuid("Plan inválido").optional(),
+  turno_id: z.string().uuid("Turno inválido").optional().nullable(),
+  dias_asistencia: z.array(z.string()).default([]),
   fecha_inicio: z.coerce.date().default(() => new Date()),
   dia_pago: z.number().min(1).max(31).default(1),
 });
+
+export const turnoSchema = z.object({
+  id: z.string().uuid().optional(),
+  nombre: z.string().min(2, "Mínimo 2 caracteres"),
+  hora_inicio: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Formato HH:MM requerido"),
+  hora_fin: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Formato HH:MM requerido"),
+  capacidad_max: z.number().int().min(1).default(10),
+  color_tag: z.string().optional().nullable(),
+  dias_asistencia: z.array(z.string()).default([]),
+});
+
+export type TurnoFormData = z.infer<typeof turnoSchema>;
 
 export const updateStudentSchema = z.object({
   id: z.string().uuid(),
@@ -57,7 +84,10 @@ export const updateStudentSchema = z.object({
   telefono: z.string().optional().nullable(),
   fecha_inicio: z.coerce.date().optional(),
   dia_pago: z.number().min(1).max(31).optional(),
+  monto: z.number().min(0).optional().nullable(),
   notas: z.string().max(500).optional().nullable(),
+  turno_id: z.string().uuid().optional().nullable(),
+  dias_asistencia: z.array(z.string()).optional(),
 });
 
 export const personalizeExerciseSchema = z.object({
@@ -114,6 +144,16 @@ export const inviteStudentSchema = z.object({
     .string()
     .max(500, "Máximo 500 caracteres")
     .optional(),
+
+  turno_id: z
+    .string()
+    .uuid("Turno inválido")
+    .optional()
+    .nullable(),
+  
+  dias_asistencia: z
+    .array(z.string())
+    .default([]),
   
   cobrarPrimerMes: z
     .boolean()
@@ -139,6 +179,8 @@ export type PaymentFormData = z.infer<typeof paymentSchema>;
 // Instanciar la sesión del día (obtener o crear)
 export const instanciarSesionSchema = z.object({
   fecha_real: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD requerido").optional(),
+  alumno_id: z.string().uuid("ID de alumno inválido").optional(),
+  rutina_id: z.string().uuid("ID de rutina inválido").optional(),
 });
 
 export type InstanciarSesionData = z.infer<typeof instanciarSesionSchema>;
@@ -281,4 +323,11 @@ export const importPlansSchema = z.array(z.object({
   frecuencia_semanal: z.number().int().min(1).max(7).default(3),
 }));
 
-export type ImportPlansData = z.infer<typeof importPlansSchema>;
+export const bulkAssignSchema = z.object({
+  studentIds: z.array(z.string().uuid("ID de alumno inválido")).min(1, "Seleccioná al menos un alumno"),
+  turno_id: z.string().uuid("Turno inválido"),
+  dias_asistencia: z.array(z.string()).min(1, "Elegí al menos un día"),
+});
+
+export type BulkAssignData = z.infer<typeof bulkAssignSchema>;
+

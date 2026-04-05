@@ -1,10 +1,11 @@
-﻿import React from "react";
+import React from "react";
 import { User, Mail, Phone, ChevronRight, MessageCircle, Zap, Activity, AlertCircle } from "lucide-react";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
 import { cn, copyToClipboard } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
+import { ResourceActionMenu, type Action } from "@/components/molecules/profesor/core/ResourceActionMenu";
 
 interface StudentCompactCardProps {
   student: {
@@ -17,6 +18,8 @@ interface StudentCompactCardProps {
     notas?: string;
   };
   onClick?: (id: string) => void;
+  customActions?: Action[];
+  href?: string;
   className?: string;
 }
 
@@ -24,7 +27,7 @@ interface StudentCompactCardProps {
  * StudentCompactCard: Molécula premium para representar alumnos con prioridad en 
  * Nombre, Plan, Salud y Acciones Operativas.
  */
-export function StudentCompactCard({ student, onClick, className }: StudentCompactCardProps) {
+export function StudentCompactCard({ student, onClick, href, customActions, className }: StudentCompactCardProps) {
   
   const handleCopyMagicLink = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -42,28 +45,41 @@ export function StudentCompactCard({ student, onClick, className }: StudentCompa
     }
   };
 
-  const handleWhatsApp = (e: React.MouseEvent) => {
+  const handleWhatsApp = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!student.telefono) {
         toast.error("El alumno no tiene teléfono registrado");
         return;
     }
     const cleanPhone = student.telefono.replace(/\D/g, "");
-    window.open(`https://wa.me/${cleanPhone}`, "_blank");
+    const link = `https://wa.me/${cleanPhone}`;
+    const win = window.open(link, "_blank");
+    if (!win || win.closed || typeof win.closed == 'undefined') {
+        await navigator.clipboard.writeText(link);
+        toast.success("Link generado y copiado al portapapeles. Ya podés pegarlo en el chat del alumno");
+    }
   };
 
   return (
     <Card 
-      onClick={() => onClick?.(student.id)}
+      onClick={(e) => {
+          const target = e.target as HTMLElement;
+          if (!target.closest('button, [role="menu"], a') && onClick) {
+              onClick(student.id);
+          }
+      }}
       className={cn(
         "group relative p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-3xl transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-950/5 hover:-translate-y-1 cursor-pointer overflow-hidden active:scale-[0.98]",
         className
       )}
     >
+      {href && (
+          <a href={href} className="absolute inset-0 z-0 opacity-0" aria-label="Ver perfil completo"></a>
+      )}
       {/* Background Decorative Accent */}
       <div className="absolute top-0 right-0 w-24 h-24 bg-lime-400/5 rounded-full -mr-12 -mt-12 transition-all group-hover:scale-150 duration-700" />
 
-      <div className="flex flex-col gap-5 relative z-10">
+      <div className="flex flex-col gap-5 relative z-10 pointer-events-none">
         {/* Row 1: Avatar & Status */}
         <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
@@ -98,7 +114,7 @@ export function StudentCompactCard({ student, onClick, className }: StudentCompa
                 Ver perfil <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pointer-events-auto">
                 {/* MAGIC LINK BUTTON */}
                 <button 
                   onClick={handleCopyMagicLink}
@@ -118,6 +134,15 @@ export function StudentCompactCard({ student, onClick, className }: StudentCompa
                         <MessageCircle className="w-4 h-4" />
                     </button>
                 )}
+
+                {/* FULL ACTION MENU */}
+                <ResourceActionMenu 
+                    type="alumno"
+                    id={student.id}
+                    name={student.nombre}
+                    actions={customActions}
+                    className="ml-1"
+                />
             </div>
         </div>
       </div>

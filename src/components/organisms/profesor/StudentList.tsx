@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { User as UserIcon, MessageCircle, Archive, Zap } from "lucide-react";
 import { alumnosListCopy } from "@/data/es/profesor/alumnos";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
@@ -10,6 +10,8 @@ import { DashboardConsole } from "@/components/molecules/profesor/DashboardConso
 import { StudentCompactCard } from "@/components/molecules/profesor/planes/StudentCompactCard";
 import { ResourceActionMenu } from "@/components/molecules/profesor/core/ResourceActionMenu";
 import { useUniqueTags } from "@/hooks/useUniqueTags";
+import { useStudentActions } from "@/hooks/useStudentActions";
+import { DeleteConfirmDialog } from "@/components/molecules/DeleteConfirmDialog";
 
 export interface Student {
   id: string;
@@ -35,13 +37,25 @@ export function StudentList({ students }: Props) {
   const c = alumnosListCopy.list;
   const cMenu = alumnosListCopy.list.dropdownMenu;
 
+  // Estado para Diálogo de Eliminación (Atomic Design)
+  const [deletingStudent, setDeletingStudent] = React.useState<Student | null>(null);
+
+  const { isArchiving, copyGuestLink, openWhatsApp, archiveStudent } = useStudentActions();
+
+  const [localStudents, setLocalStudents] = React.useState(students);
+
+  // Sincronizar con props si cambian desde arriba
+  React.useEffect(() => {
+    setLocalStudents(students);
+  }, [students]);
+
   // Adaptación a BaseEntity para el DashboardConsole
   const studentsWithTags = React.useMemo(() => {
-    return students.map(s => ({
+    return localStudents.map(s => ({
         ...s,
         tags: s.planName ? [s.planName] : []
     }));
-  }, [students]);
+  }, [localStudents]);
 
   // Hooks Core
   const uniquePlans = useUniqueTags(students, (s) => s.planName ? [s.planName] : []);
@@ -79,6 +93,31 @@ export function StudentList({ students }: Props) {
       header: c.columns.status,
       render: (s) => <StatusBadge status={s.status} />,
     },
+  ];
+
+  // Acción Centralizada para Reutilización
+  const getActions = (s: typeof studentsWithTags[0]) => [
+    {
+        label: cMenu.copyMagicLink,
+        icon: <Zap className="w-4 h-4" />,
+        onClick: () => copyGuestLink(s.id)
+    },
+    {
+        label: cMenu.sendWhatsApp,
+        icon: <MessageCircle className="w-4 h-4" />,
+        className: "text-emerald-600",
+        onClick: () => openWhatsApp(s.name, s.telefono, { type: 'general' })
+    },
+    {
+        label: cMenu.archive,
+        icon: <Archive className="w-4 h-4" />,
+        variant: "destructive" as const,
+        onClick: () => setDeletingStudent(s)
+    }
+  ];
+
+  const tableColumns: TableColumn<typeof studentsWithTags[0]>[] = [
+    ...columns.slice(0, 3),
     {
       header: "",
       align: "right",
@@ -88,51 +127,7 @@ export function StudentList({ students }: Props) {
             type="alumno"
             id={s.id}
             name={s.name}
-            actions={[
-                {
-                    label: cMenu.copyMagicLink,
-                    icon: <Zap className="w-4 h-4" />,
-                    onClick: async () => {
-                        toast.loading("Generando acceso...");
-                        try {
-                          const { data, error } = await actions.profesor.getStudentGuestLink({ id: s.id });
-                          if (error || !data?.link) throw new Error("Error de conexión");
-                          await copyToClipboard(data.link);
-                          toast.dismiss();
-                          toast.success("¡Link de invitado copiado!");
-                        } catch (err: any) {
-                          toast.dismiss();
-                          toast.error(err.message || "Error al generar link");
-                        }
-                    }
-                },
-                {
-                    label: cMenu.sendWhatsApp,
-                    icon: <MessageCircle className="w-4 h-4" />,
-                    className: "text-emerald-600",
-                    onClick: () => {
-                        if (!s.telefono) {
-                            toast.error("Sin teléfono registrado");
-                            return;
-                        }
-                        const cleanPhone = s.telefono.replace(/\D/g, "");
-                        const msg = encodeURIComponent(`¡Hola ${s.name.split(" ")[0]}! Te escribo de MiGym.`);
-                        window.open(`https://wa.me/${cleanPhone}?text=${msg}`, "_blank");
-                    }
-                },
-                {
-                    label: cMenu.archive,
-                    icon: <Archive className="w-4 h-4" />,
-                    variant: "destructive",
-                    onClick: async () => {
-                        if (confirm(`¿Archivar a ${s.name}?`)) {
-                            const { error } = await actions.profesor.deleteStudent({ id: s.id });
-                            if (error) toast.error("Error al archivar");
-                            else { toast.success("Alumno archivado"); window.location.reload(); }
-                        }
-                    }
-                }
-            ]}
+            actions={getActions(s)}
         />
       ),
     },
@@ -144,6 +139,7 @@ export function StudentList({ students }: Props) {
   ];
 
   return (
+    <>
     <DashboardConsole 
         items={studentsWithTags}
         itemLabel="Alumnos"
@@ -170,22 +166,43 @@ export function StudentList({ students }: Props) {
                             planName: s.planName,
                             notas: s.notas
                         }} 
-                        onClick={(id) => window.location.href = `/profesor/alumnos/${id}`} 
+                        href={`/profesor/alumnos/${s.id}`} 
+                        customActions={getActions(s)}
                     />
                 ))}
             </div>
         )}
         renderTable={(items: any[]) => (
-            <div className="bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800/60 rounded-3xl overflow-hidden p-2">
                 <StandardTable 
                     data={items} 
-                    columns={columns}
-                    onRowClick={(s) => window.location.href = `/profesor/alumnos/${s.id}`}
+                    columns={tableColumns}
+                    rowHref={(s) => `/profesor/alumnos/${s.id}`}
                     entityName="Alumnos"
                     hideSearch={true}
                 />
-            </div>
         )}
     />
+
+    <DeleteConfirmDialog 
+        isOpen={!!deletingStudent}
+        onOpenChange={(open) => !open && setDeletingStudent(null)}
+        onConfirm={async () => {
+            if (!deletingStudent) return;
+            const studentId = deletingStudent.id;
+            
+            await archiveStudent(studentId, {
+                onSuccess: () => {
+                    // Borrado Optimista (SPA reflex) tras éxito en db
+                    setLocalStudents(prev => prev.filter(s => s.id !== studentId));
+                    setDeletingStudent(null);
+                    toast.success("Alumno archivado");
+                }
+            });
+        }}
+        title="Archivar"
+        description={<>¿Estás seguro que querés archivar a <strong>{deletingStudent?.name}</strong>?</>}
+        isDeleting={isArchiving}
+    />
+    </>
   );
 }

@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { 
   Menu,
   LayoutDashboard, 
@@ -7,6 +7,7 @@ import {
   Dumbbell, 
   CreditCard, 
   Settings,
+  Clock,
 } from "lucide-react";
 
 import { 
@@ -33,6 +34,7 @@ export function MobileNav({ currentPath }: MobileNavProps) {
 
   const navItems = [
     { name: globalCopy.layout.profesorNav.dashboard, href: '/profesor', icon: LayoutDashboard },
+    { name: globalCopy.layout.profesorNav.agenda, href: '/profesor/agenda', icon: Clock },
     { name: globalCopy.layout.profesorNav.planes, href: '/profesor/planes', icon: ClipboardList },
     { name: globalCopy.layout.profesorNav.alumnos, href: '/profesor/alumnos', icon: Users },
     { name: globalCopy.layout.profesorNav.ejercicios, href: '/profesor/ejercicios', icon: Dumbbell },

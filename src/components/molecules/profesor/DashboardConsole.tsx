@@ -11,6 +11,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useResourceDashboard } from "@/hooks/useResourceDashboard";
 import type { BaseEntity, SortOption } from "@/types/core";
@@ -33,6 +40,9 @@ interface DashboardConsoleProps<T extends BaseEntity> {
     emptyIcon?: React.ReactNode;
     emptyTitle?: string;
     emptyDescription?: string;
+    searchSuffix?: React.ReactNode;
+    /** Si es true, renderiza la vista incluso si la lista estÃ¡ vacÃ­a (util para la Agenda) */
+    forceRender?: boolean;
 }
 
 /**
@@ -54,7 +64,9 @@ export function DashboardConsole<T extends BaseEntity>({
     renderCreateAction,
     emptyIcon,
     emptyTitle,
-    emptyDescription
+    emptyDescription,
+    searchSuffix,
+    forceRender = false
 }: DashboardConsoleProps<T>) {
     const [isSticky, setIsSticky] = useState(false);
 
@@ -131,23 +143,33 @@ export function DashboardConsole<T extends BaseEntity>({
                         )}
                     </div>
 
+                    {searchSuffix && (
+                        <div className="shrink-0">
+                            {searchSuffix}
+                        </div>
+                    )}
+
                     {/* ACTIONS TOOLBAR */}
                     <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
-                        {/* SELECTOR DE ORDEN */}
+                        {/* SELECTOR DE ORDEN (RADIX) */}
                         {sortOptions.length > 0 && (
-                            <div className="relative group">
-                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 group-hover:text-lime-500 transition-colors" />
-                                <select 
-                                    value={sortOrder}
-                                    onChange={(e) => setSortOrder(e.target.value)}
-                                    className="h-12 md:h-14 pl-10 pr-10 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-950 dark:text-zinc-50 focus:ring-2 focus:ring-lime-400/20 transition-all appearance-none cursor-pointer min-w-[160px]"
-                                >
+                            <Select value={sortOrder} onValueChange={setSortOrder}>
+                                <SelectTrigger className="h-12 md:h-14 pl-10 pr-4 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-950 dark:text-zinc-50 focus:ring-2 focus:ring-lime-400/20 transition-all cursor-pointer min-w-[180px] relative">
+                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+                                    <SelectValue placeholder="Ordenar por" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-2xl border-zinc-100 dark:border-zinc-800 shadow-2xl p-1 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl">
                                     {sortOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        <SelectItem 
+                                            key={opt.value} 
+                                            value={opt.value}
+                                            className="rounded-xl cursor-pointer py-3 text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400 focus:bg-lime-400 focus:text-zinc-950 transition-all"
+                                        >
+                                            {opt.label}
+                                        </SelectItem>
                                     ))}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
-                            </div>
+                                </SelectContent>
+                            </Select>
                         )}
 
                         {/* TOGGLE VISTA */}
@@ -222,30 +244,42 @@ export function DashboardConsole<T extends BaseEntity>({
                 )}
             </div>
 
-            {/* ðŸŽ¯ MAIN CONTENT AREA ðŸŽ¯ */}
+            {/* MAIN CONTENT AREA */}
             <div className="min-h-[400px]">
-                {filteredItems.length === 0 ? (
+                {filteredItems.length === 0 && (search || activeTags.length > 0) ? (
                     <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in duration-700">
                         <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center mb-8 border border-zinc-100 dark:border-zinc-800">
-                            {emptyIcon || <div className="w-12 h-12 text-zinc-200 dark:text-zinc-800"><Search /></div>}
+                            {emptyIcon || <Search className="w-12 h-12 text-zinc-200 dark:text-zinc-800" />}
+                        </div>
+                        <div className="space-y-2 mb-8">
+                            <h3 className="text-2xl font-black uppercase tracking-tighter text-zinc-900 dark:text-zinc-50">
+                                Sin resultados
+                            </h3>
+                            <p className="text-sm text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed px-6">
+                                No encontramos nada que coincida con "{search}". ProbÃ¡ con otro tÃ©rmino.
+                            </p>
+                        </div>
+                        <Button 
+                            variant="outline" 
+                            onClick={clearFilters}
+                            className="rounded-2xl h-12 px-6 font-black text-[10px] uppercase tracking-widest border-2"
+                        >
+                            Reestablecer filtros
+                        </Button>
+                    </div>
+                ) : filteredItems.length === 0 && !forceRender ? (
+                    <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in duration-700">
+                        <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center mb-8 border border-zinc-100 dark:border-zinc-800">
+                            {emptyIcon || <Search className="w-12 h-12 text-zinc-200 dark:text-zinc-800" />}
                         </div>
                         <div className="space-y-2 mb-8">
                             <h3 className="text-2xl font-black uppercase tracking-tighter text-zinc-900 dark:text-zinc-50">
                                 {emptyTitle || `Sin ${itemLabel} encontrados`}
                             </h3>
                             <p className="text-sm text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed px-6">
-                                {emptyDescription || "No encontramos lo que buscás con los filtros activos. Probá ajustando el término de búsqueda o removiendo etiquetas."}
+                                {emptyDescription || "TodavÃ­a no hay datos cargados en esta secciÃ³n."}
                             </p>
                         </div>
-                        {(search || activeTags.length > 0) && (
-                            <Button 
-                                variant="outline" 
-                                onClick={clearFilters}
-                                className="rounded-2xl h-12 px-6 font-black text-[10px] uppercase tracking-widest border-2"
-                            >
-                                Reestablecer filtros
-                            </Button>
-                        )}
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">

@@ -86,6 +86,69 @@ export const athleteProfileCopy = {
         error: "No se pudieron cargar los planes",
         saveError: "Error al asignar el plan"
       }
+    },
+    calendar: {
+      title: "Agenda",
+      metrics: {
+        compliance: "Cumplimiento",
+        sessions: "Sesiones"
+      },
+      status: {
+        loading: "Cargando historial...",
+        fetching: "Consultando sesión..."
+      },
+      banners: {
+        omissions: {
+          tag: "Inasistencia prolongada detectada",
+          title: "¿Querés reajustar el calendario para que no pierda contenido técnico?",
+          action: "Reajustar 3 días"
+        },
+        structural: {
+          tag: "Cambios estructurales detectados",
+          title: "¿Querés guardar esta nueva estructura como un Plan Base?",
+          action: "Guardar como nuevo plan"
+        }
+      },
+      actions: {
+        complete: "Marcar como realizada",
+        addExercise: "Añadir ejercicio a la rutina",
+        addExtraSession: "Sumar sesión extra"
+      },
+      restDay: {
+        title: "Día de Descanso",
+        description: "El plan no tiene actividad hoy. ¿Querés sumar algo?",
+        action: "Sumar sesión extra"
+      },
+      exerciseRow: {
+        variant: "Variante",
+        real: "Real",
+        swapHint: "Sustituir",
+        removeHint: "Eliminar"
+      },
+      dialogs: {
+        selector: {
+          addTitle: "Añadir ejercicio",
+          swapTitle: "Sustituir ejercicio",
+          addDesc: "Se añadirá al final de la rutina",
+          swapDesc: "Se perderá el progreso de hoy"
+        },
+        scope: {
+          addTitle: "¿Añadir ejercicio?",
+          removeTitle: "¿Eliminar ejercicio?",
+          swapTitle: "¿Sustituir ejercicio?",
+          description: "Seleccioná el alcance de este cambio para",
+          temporary: {
+            title: "Solo por hoy",
+            desc: "El cambio se aplicará únicamente a esta sesión de entrenamiento."
+          },
+          permanent: {
+            title: "Plan Base",
+            tag: "Permanente",
+            desc: "Modifica la estructura del plan para todas las semanas siguientes."
+          },
+          cancel: "Cancelar operación"
+        }
+      }
     }
   }
 } as const;

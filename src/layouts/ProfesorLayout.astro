@@ -1,4 +1,4 @@
-﻿---
+---
 import Layout from './Layout.astro';
 import { 
   LayoutDashboard, 
@@ -9,7 +9,8 @@ import {
   Settings,
   LogOut,
   Bell,
-  Search
+  Search,
+  Clock
 } from 'lucide-react';
 
 import { globalCopy } from '../data/es/global';
@@ -53,6 +54,7 @@ const safeProfesor = {
 // Mock navigation items
 const navItems = [
   { name: globalCopy.layout.profesorNav.dashboard, href: '/profesor', icon: LayoutDashboard },
+  { name: globalCopy.layout.profesorNav.agenda, href: '/profesor/agenda', icon: Clock },
   { name: globalCopy.layout.profesorNav.planes, href: '/profesor/planes', icon: ClipboardList },
   { name: globalCopy.layout.profesorNav.alumnos, href: '/profesor/alumnos', icon: Users },
   { name: globalCopy.layout.profesorNav.ejercicios, href: '/profesor/ejercicios', icon: Dumbbell },

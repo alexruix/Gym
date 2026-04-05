@@ -1,0 +1,98 @@
+---
+import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
+import PageHeader from "@/components/molecules/PageHeader.astro";
+import { agendaCopy } from "@/data/es/profesor/agenda";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { AgendaConsole } from "@/components/organisms/profesor/agenda/AgendaConsole";
+
+const supabase = createSupabaseServerClient(Astro);
+const { data: userAuth } = await supabase.auth.getUser();
+const user = userAuth?.user;
+
+if (!user) return Astro.redirect("/login");
+
+// 1. Fetch de Turnos
+const { data: turnos } = await supabase
+  .from("turnos")
+  .select("*, dias_asistencia")
+  .eq("profesor_id", user.id)
+  .order("hora_inicio");
+
+// 2. Fetch de Alumnos con su turno asignado
+const { data: rawStudents } = await supabase
+  .from("alumnos")
+  .select("id, nombre, turno_id, dias_asistencia")
+  .eq("profesor_id", user.id)
+  .is("deleted_at", null);
+
+// Mapeo a BaseEntity (name <-> nombre) para que DashboardConsole funcione SSOT
+const students = (rawStudents || []).map(s => ({
+  ...s,
+  name: s.nombre
+}));
+
+// 3. Fetch de Sesiones e Instancias para calcular progreso HOY
+const today = new Date().toISOString().split('T')[0];
+
+const { data: rawSessions } = await supabase
+  .from("sesiones_instanciadas")
+  .select(`
+    id,
+    alumno_id,
+    sesion_ejercicios_instanciados (
+      id,
+      completado,
+      exercise_type,
+      peso_target,
+      peso_real,
+      biblioteca_ejercicios ( nombre )
+    )
+  `)
+  .eq("fecha_real", today)
+  .in("alumno_id", (students || []).map(s => s.id));
+
+// 4. Mapear sesiones a formato simplificado para el componente
+const initialSessions = (rawSessions || []).map(s => {
+  const exercises = s.sesion_ejercicios_instanciados || [];
+  const total = exercises.length;
+  const completed = exercises.filter((e: any) => e.completado).length;
+  
+  // Buscar ejercicio "Core" para la telemetría (base type)
+  const core = exercises.find((e: any) => e.exercise_type === 'base');
+
+  return {
+    alumno_id: s.alumno_id,
+    progress: total > 0 ? (completed / total) * 100 : 0,
+    coreExercise: core ? {
+      nombre: (core as any).biblioteca_ejercicios?.nombre || "Ejercicio",
+      peso_target: (core as any).peso_target?.toString(),
+      peso_real: (core as any).peso_real?.toString()
+    } : undefined
+  };
+});
+
+// 5. Conteo de alumnos con actividad hoy para el Badge
+const presentCount = initialSessions.filter(s => s.progress > 0).length;
+
+const c = agendaCopy.header;
+---
+
+<ProfesorLayout title={`${c.title} - MiGym`}>
+  <main class="min-h-screen bg-white">
+    <div class="p-6 max-w-7xl mx-auto space-y-8 pb-32 md:pb-6">
+        <PageHeader
+        title={c.title}
+        subtitle={c.subtitle}
+        breadcrumbs={[{ label: "Dashboard", href: "/profesor" }, { label: "Agenda" }]}
+        />
+
+        <AgendaConsole 
+        client:load 
+        turnos={turnos || []} 
+        students={students as any} 
+        initialSessions={initialSessions}
+        presentCount={presentCount}
+        />
+    </div>
+  </main>
+</ProfesorLayout>

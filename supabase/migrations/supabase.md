@@ -1,63 +1,121 @@
--- Asegurar que la extensión de UUIDs esté activa
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- ========================================================
+-- MiGym | Esquema de Base de Datos Consolidado (V2.2)
+-- Única Fuente de Verdad (SSOT) — Sincronizado con código
+-- ========================================================
 
---- 1. Profesores
+-- 0. EXTENSIONES Y TIPOS
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'exercise_type') THEN
+        CREATE TYPE exercise_type AS ENUM ('base', 'complementary', 'accessory');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'variation_type') THEN
+        CREATE TYPE variation_type AS ENUM ('move_day', 'rest_day', 'redistribute', 'combine_days');
+    END IF;
+END $$;
+
+-- ============================================================
+-- MANTENIMIENTO / SYNC: Asegurar columnas nuevas en tablas existentes
+-- ============================================================
+DO $$ BEGIN
+    -- alumnos
+    PERFORM 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'telefono';
+    IF NOT FOUND THEN ALTER TABLE alumnos ADD COLUMN telefono text; END IF;
+
+    PERFORM 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'notas';
+    IF NOT FOUND THEN ALTER TABLE alumnos ADD COLUMN notas text; END IF;
+
+    -- sesiones_instanciadas
+    PERFORM 1 FROM information_schema.columns WHERE table_name = 'sesiones_instanciadas' AND column_name = 'completed_by_professor';
+    IF NOT FOUND THEN ALTER TABLE sesiones_instanciadas ADD COLUMN completed_by_professor boolean DEFAULT false; END IF;
+
+    -- sesion_ejercicios_instanciados
+    PERFORM 1 FROM information_schema.columns WHERE table_name = 'sesion_ejercicios_instanciados' AND column_name = 'descanso_plan';
+    IF NOT FOUND THEN ALTER TABLE sesion_ejercicios_instanciados ADD COLUMN descanso_plan int DEFAULT 60; END IF;
+
+    -- ejercicio_plan_personalizado
+    PERFORM 1 FROM information_schema.columns WHERE table_name = 'ejercicio_plan_personalizado' AND column_name = 'semana_numero';
+    IF NOT FOUND THEN ALTER TABLE ejercicio_plan_personalizado ADD COLUMN semana_numero int NOT NULL DEFAULT 1; END IF;
+END $$;
+
+
+-- ============================================================
+-- 1. PROFESORES
+-- Columnas verificadas contra: updateAccountSchema, updatePublicProfileSchema,
+-- updateNotificationsSchema, updatePrivacySchema
+-- ============================================================
 CREATE TABLE IF NOT EXISTS profesores (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email text UNIQUE NOT NULL,
   nombre text,
   gym_nombre text,
+  telefono text,
+  bio text,
+  ubicacion text,
+  foto_url text,
+  slug text UNIQUE,
+  portada_url text,
+  instagram text,
+  youtube text,
+  tiktok text,
+  x_twitter text,
+  especialidades text[],
+  -- Notificaciones (updateNotificationsSchema)
+  notif_cuotas_vencer boolean DEFAULT true,
+  notif_cuota_vencida boolean DEFAULT true,
+  notif_alumno_completado boolean DEFAULT true,
+  notif_nuevo_alumno boolean DEFAULT true,
+  notif_email_semanal boolean DEFAULT false,
+  notif_frecuencia text DEFAULT 'evento',
+  -- Privacidad (updatePrivacySchema)
+  perfil_publico boolean DEFAULT false,
+  permitir_contacto boolean DEFAULT true,
+  mostrar_foto boolean DEFAULT true,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
 
-ALTER TABLE profesores ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Dueño puede ver su propio perfil" ON profesores;
-CREATE POLICY "Dueño puede ver su propio perfil" ON profesores FOR SELECT USING (auth.uid() = id);
-
-DROP POLICY IF EXISTS "Dueño puede actualizar su propio perfil" ON profesores;
-CREATE POLICY "Dueño puede actualizar su propio perfil" ON profesores FOR UPDATE USING (auth.uid() = id);
-
-DROP POLICY IF EXISTS "Inserción vía onboarding" ON profesores;
-CREATE POLICY "Inserción vía onboarding" ON profesores FOR INSERT WITH CHECK (true);
-
-
---- 2. Biblioteca de Ejercicios
+-- ============================================================
+-- 2. BIBLIOTECA DE EJERCICIOS
+-- Columnas verificadas contra: createExercise, updateExercise, importExercises
+-- ============================================================
 CREATE TABLE IF NOT EXISTS biblioteca_ejercicios (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
-  parent_id uuid REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE, -- Referencia al ejercicio base
+  parent_id uuid REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE,
   nombre text NOT NULL,
   descripcion text,
   media_url text,
-  is_template_base boolean DEFAULT false, -- Si es la versión principal de la familia
+  tags text[] DEFAULT '{}',
+  is_template_base boolean DEFAULT false,
   created_at timestamptz DEFAULT now()
 );
+CREATE INDEX IF NOT EXISTS idx_biblioteca_ej_tags ON biblioteca_ejercicios USING GIN (tags);
 
-ALTER TABLE biblioteca_ejercicios ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Profesores gestionan su biblioteca" ON biblioteca_ejercicios;
-CREATE POLICY "Profesores gestionan su biblioteca" ON biblioteca_ejercicios FOR ALL USING (auth.uid() = profesor_id);
-
-
---- 3. Planes
+-- ============================================================
+-- 3. PLANES (MAESTROS Y FORKS)
+-- Columnas verificadas contra: createPlan, updatePlan, duplicatePlan, forkPlan,
+-- promotePlan, importPlans, getProfessorMaestroPlans, assignPlanToStudents
+-- ============================================================
 CREATE TABLE IF NOT EXISTS planes (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
   nombre text NOT NULL,
+  descripcion text,                   -- usado en importPlans
   duracion_semanas int DEFAULT 4,
-  frecuencia_semanal int DEFAULT 3, -- Días por semana
-  created_at timestamptz DEFAULT now()
+  frecuencia_semanal int DEFAULT 3,
+  monto numeric DEFAULT 0,
+  is_template boolean DEFAULT true,   -- usado en promotePlan, getProfessorMaestroPlans, forkPlan
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
 );
 
-ALTER TABLE planes ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Profesores gestionan sus planes" ON planes;
-CREATE POLICY "Profesores gestionan sus planes" ON planes FOR ALL USING (auth.uid() = profesor_id);
-
-
---- 4. Rutinas Diarias
+-- ============================================================
+-- 4. RUTINAS DIARIAS
+-- Verificado contra: crear_plan_completo RPC, duplicatePlan, addExerciseToStudentPlan
+-- ============================================================
 CREATE TABLE IF NOT EXISTS rutinas_diarias (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   plan_id uuid REFERENCES planes(id) ON DELETE CASCADE NOT NULL,
@@ -66,61 +124,56 @@ CREATE TABLE IF NOT EXISTS rutinas_diarias (
   orden int DEFAULT 0
 );
 
-ALTER TABLE rutinas_diarias ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Profesores gestionan sus rutinas" ON rutinas_diarias;
-CREATE POLICY "Profesores gestionan sus rutinas" ON rutinas_diarias
-  FOR ALL USING (EXISTS (SELECT 1 FROM planes WHERE id = rutinas_diarias.plan_id AND profesor_id = auth.uid()));
-
-
---- 5. Ejercicios del Plan (Métricas Granulares)
+-- ============================================================
+-- 5. EJERCICIOS DEL PLAN (ESTRUCTURAL)
+-- Columnas verificadas contra: duplicatePlan (selecciona exercise_type, position),
+-- instanciarSesion (selecciona peso_target), swapExerciseInStudentPlan, 
+-- removeExerciseFromStudentPlan, addExerciseToStudentPlan
+-- ============================================================
 CREATE TABLE IF NOT EXISTS ejercicios_plan (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   rutina_id uuid REFERENCES rutinas_diarias(id) ON DELETE CASCADE NOT NULL,
   ejercicio_id uuid REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE NOT NULL,
   series int DEFAULT 3,
-  reps_target text DEFAULT '12', -- Puede ser "10-12", "Al fallo", etc.
-  descanso_seg int DEFAULT 60,    -- Clave para el cronómetro de la app
-  orden int DEFAULT 0
+  reps_target text DEFAULT '12',
+  descanso_seg int DEFAULT 60,
+  orden int DEFAULT 0,
+  exercise_type exercise_type DEFAULT 'base',
+  position int DEFAULT 0,
+  peso_target text DEFAULT ''
 );
 
-ALTER TABLE ejercicios_plan ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Profesores gestionan ejercicios del plan" ON ejercicios_plan;
-CREATE POLICY "Profesores gestionan ejercicios del plan" ON ejercicios_plan
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM rutinas_diarias rd
-      JOIN planes p ON rd.plan_id = p.id
-      WHERE rd.id = ejercicios_plan.rutina_id AND p.profesor_id = auth.uid()
-    )
-  );
-
-
---- 6. Alumnos (Identidad Segura)
+-- ============================================================
+-- 6. ALUMNOS
+-- Columnas verificadas contra: inviteStudent (telefono, notas, monto, dia_pago),
+-- updateStudent (telefono, notas, dia_pago), deleteStudent (deleted_at),
+-- getStudentGuestLink (access_token), updateStudentStartDateOffset (fecha_inicio),
+-- getProfessorStudentsWithPlans, assignPlanToStudents
+-- ============================================================
 CREATE TABLE IF NOT EXISTS alumnos (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL, -- Identidad real
+  user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
   plan_id uuid REFERENCES planes(id) ON DELETE SET NULL,
   email text,
   nombre text NOT NULL,
+  telefono text,                                        -- usado en inviteStudent, updateStudent
+  notas text,                                           -- usado en inviteStudent, updateStudent
+  dia_pago int DEFAULT 1,                               -- usado en inviteStudent, registrar_pago_atomico
+  monto numeric,                                        -- usado en inviteStudent
   fecha_inicio date DEFAULT current_date,
   estado text DEFAULT 'activo',
-  access_token uuid DEFAULT uuid_generate_v4() UNIQUE, -- Token de Acceso Permanente (Modo Barrio)
+  access_token uuid DEFAULT uuid_generate_v4() UNIQUE,  -- usado en getStudentGuestLink
+  deleted_at timestamptz,                               -- usado en deleteStudent, filtro RLS
+  ultimo_recordatorio_pago_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
 
-ALTER TABLE alumnos ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Profesores gestionan sus alumnos" ON alumnos;
-CREATE POLICY "Profesores gestionan sus alumnos" ON alumnos FOR ALL USING (auth.uid() = profesor_id);
-
-DROP POLICY IF EXISTS "Alumnos ven su propio perfil heredado" ON alumnos;
-CREATE POLICY "Alumnos ven su propio perfil heredado" ON alumnos FOR SELECT USING (auth.uid() = user_id OR email = (auth.jwt() ->> 'email'));
-
-
---- 7. Pagos y Tracking
+-- ============================================================
+-- 7. PAGOS Y NOTIFICACIONES
+-- Pagos: verificado contra registrar_pago_atomico, inviteStudent
+-- Notificaciones: verificado contra completarSesionInstanciada
+-- ============================================================
 CREATE TABLE IF NOT EXISTS pagos (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
@@ -131,264 +184,47 @@ CREATE TABLE IF NOT EXISTS pagos (
   created_at timestamptz DEFAULT now()
 );
 
---- 7. Tracking de Entrenamiento (Legacy - Deprecated)
--- NOTA: Estas tablas fueron reemplazadas por sesiones_instanciadas en la Fase del Calendario Operativo Real.
--- Se mantienen los CREATE TABLE IF NOT EXISTS solo para que el script no falle si se corre sobre una DB con ellas,
--- pero se recomienda usar las nuevas tablas.
-CREATE TABLE IF NOT EXISTS sesiones (
+CREATE TABLE IF NOT EXISTS notificaciones (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
+  alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
+  tipo text NOT NULL,       -- 'sesion_completada', 'comentario_sesion', 'pago_vencido', etc.
+  mensaje text NOT NULL,
+  referencia_id uuid,       -- ID de la sesión u objeto que disparó la notificación
+  leida boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+-- ============================================================
+-- 8. PERSONALIZACIONES Y VARIACIONES
+-- ejercicio_plan_personalizado: verificado contra upsertStudentMetricOverride,
+-- copyMetricsToNextWeek, updateStudentMetricWithPropagation.
+-- IMPORTANTE: onConflict usa "alumno_id, ejercicio_plan_id, semana_numero"
+-- por lo que la UNIQUE constraint debe incluir semana_numero.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS ejercicio_plan_personalizado (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
-  fecha date NOT NULL,
-  completada boolean DEFAULT false,
-  notas text,
-  created_at timestamptz DEFAULT now()
+  ejercicio_plan_id uuid REFERENCES ejercicios_plan(id) ON DELETE CASCADE NOT NULL,
+  semana_numero int NOT NULL DEFAULT 1,   -- crítico para predicados de propagación
+  series int,
+  reps_target text,
+  descanso_seg int,
+  peso_target text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(alumno_id, ejercicio_plan_id, semana_numero)  -- onConflict en el código
 );
 
-CREATE TABLE IF NOT EXISTS ejercicio_logs (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  sesion_id uuid REFERENCES sesiones(id) ON DELETE CASCADE NOT NULL,
-  ejercicio_id uuid REFERENCES ejercicios_plan(id) ON DELETE CASCADE NOT NULL,
-  series_reales int,
-  reps_reales int,
-  peso_kg numeric,
-  rpe int,
-  created_at timestamptz DEFAULT now()
-);
-
-ALTER TABLE pagos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sesiones ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ejercicio_logs ENABLE ROW LEVEL SECURITY;
-
---- Políticas de Herencia Ligera para Pagos y Sesiones (Soft Delete Aware)
-DROP POLICY IF EXISTS "Acceso a pagos vía alumnos" ON pagos;
-CREATE POLICY "Acceso a pagos vía alumnos" ON pagos FOR ALL USING (
-  EXISTS (SELECT 1 FROM alumnos WHERE id = pagos.alumno_id AND profesor_id = auth.uid())
-);
-
-DROP POLICY IF EXISTS "Acceso a sesiones vía alumnos" ON sesiones;
-DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'sesiones') THEN
-    CREATE POLICY "Acceso a sesiones vía alumnos" ON sesiones FOR ALL USING (
-      EXISTS (SELECT 1 FROM alumnos WHERE id = sesiones.alumno_id AND profesor_id = auth.uid())
-    );
-  END IF;
-END $$;
-
-DROP POLICY IF EXISTS "Acceso a logs vía sesiones" ON ejercicio_logs;
-DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'ejercicio_logs') THEN
-    CREATE POLICY "Acceso a logs vía sesiones" ON ejercicio_logs FOR ALL USING (
-      EXISTS (
-        SELECT 1 FROM sesiones s
-        JOIN alumnos a ON s.alumno_id = a.id
-        WHERE s.id = ejercicio_logs.sesion_id AND a.profesor_id = auth.uid()
-      )
-    );
-  END IF;
-END $$;
-
-
---- MIGRACIONES / ACTUALIZACIONES (Seguras para re-run)
-
--- 1. Agregar nuevas columnas a tabla profesores
-ALTER TABLE profesores
-ADD COLUMN IF NOT EXISTS telefono text,
-ADD COLUMN IF NOT EXISTS bio text,
-ADD COLUMN IF NOT EXISTS gimnasio text,
-ADD COLUMN IF NOT EXISTS ubicacion text,
-ADD COLUMN IF NOT EXISTS foto_url text,
-ADD COLUMN IF NOT EXISTS notif_cuotas_vencer boolean DEFAULT true,
-ADD COLUMN IF NOT EXISTS notif_cuota_vencida boolean DEFAULT true,
-ADD COLUMN IF NOT EXISTS notif_alumno_completado boolean DEFAULT true,
-ADD COLUMN IF NOT EXISTS notif_nuevo_alumno boolean DEFAULT true,
-ADD COLUMN IF NOT EXISTS notif_email_semanal boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS notif_frecuencia text DEFAULT 'evento',
-ADD COLUMN IF NOT EXISTS perfil_publico boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS permitir_contacto boolean DEFAULT true,
-ADD COLUMN IF NOT EXISTS mostrar_foto boolean DEFAULT true;
-
--- 2. Sistema de Acceso Permanente (Modo Barrio)
-ALTER TABLE alumnos
-ADD COLUMN IF NOT EXISTS access_token uuid DEFAULT uuid_generate_v4() UNIQUE;
-
--- 2. Crear bucket de Storage para avatars (Si no existe)
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('avatars', 'avatars', true)
-ON CONFLICT (id) DO NOTHING;
-
--- 3. Políticas RLS para Storage 'avatars'
-
--- A) Lectura Pública
-DROP POLICY IF EXISTS "Avatares son de lectura publica" ON storage.objects;
-CREATE POLICY "Avatares son de lectura publica" 
-ON storage.objects FOR SELECT 
-USING (bucket_id = 'avatars');
-
--- B) Subir avatar
-DROP POLICY IF EXISTS "Profesor sube su propio avatar" ON storage.objects;
-CREATE POLICY "Profesor sube su propio avatar"
-ON storage.objects FOR INSERT
-TO authenticated
-WITH CHECK (
-  bucket_id = 'avatars' AND
-  (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- C) Actualizar avatar
-DROP POLICY IF EXISTS "Profesor actualiza su propio avatar" ON storage.objects;
-CREATE POLICY "Profesor actualiza su propio avatar"
-ON storage.objects FOR UPDATE
-TO authenticated
-USING (
-  bucket_id = 'avatars' AND
-  (storage.foldername(name))[1] = auth.uid()::text
-)
-WITH CHECK (
-  bucket_id = 'avatars' AND
-  (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- D) Eliminar avatar
-DROP POLICY IF EXISTS "Profesor elimina su propio avatar" ON storage.objects;
-CREATE POLICY "Profesor elimina su propio avatar"
-ON storage.objects FOR DELETE
-TO authenticated
-USING (
-  bucket_id = 'avatars' AND
-  (storage.foldername(name))[1] = auth.uid()::text
-);
-
---- 8. ACTUALIZACIONES DE LA ITERACIÓN 1 (Soft Delete y Funciones)
-
--- 1. SOPORTE PARA BORRADO LÓGICO (SOFT DELETE) EN ALUMNOS
-ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
-
--- 2. ACTUALIZAR RLS PARA FILTRAR ELIMINADOS
--- Al usar DROP IF EXISTS nos aseguramos de no duplicar la política al re-ejecutar
-DROP POLICY IF EXISTS "Profesores gestionan sus alumnos" ON alumnos;
-CREATE POLICY "Profesores gestionan sus alumnos" ON alumnos 
-FOR ALL USING (auth.uid() = profesor_id AND deleted_at IS NULL);
-
--- 3. FUNCIÓN RPC: CREAR PLAN COMPLETO (TRANSACCIONAL)
--- Eliminamos versiones previas para evitar ambigüedad de firmas (PGRST202)
-DROP FUNCTION IF EXISTS crear_plan_completo(uuid, text, int, int, jsonb);
-DROP FUNCTION IF EXISTS crear_plan_completo(uuid, text, int, int, jsonb, jsonb);
-
-CREATE OR REPLACE FUNCTION crear_plan_completo(
-  p_profesor_id uuid,
-  p_nombre text,
-  p_duracion_semanas int,
-  p_frecuencia_semanal int,
-  p_rutinas jsonb,
-  p_rotaciones jsonb DEFAULT '[]'::jsonb
-) RETURNS uuid AS $$
-DECLARE
-  v_plan_id uuid;
-  v_rutina_id uuid;
-  v_rutina jsonb;
-  v_ejercicio jsonb;
-  v_rotacion jsonb;
-BEGIN
-  -- 1. Insertar Plan Maestro
-  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal)
-  VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal)
-  RETURNING id INTO v_plan_id;
-
-  -- 2. Iterar sobre rutinas
-  FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas)
-  LOOP
-    INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
-    VALUES (v_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
-    RETURNING id INTO v_rutina_id;
-
-    -- 3. Iterar sobre ejercicios de la rutina
-    IF v_rutina ? 'ejercicios' THEN
-      FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios')
-      LOOP
-        -- VALIDACIÓN IDOR: El ejercicio debe pertenecer al profesor
-        IF NOT EXISTS (SELECT 1 FROM biblioteca_ejercicios WHERE id = (v_ejercicio->>'ejercicio_id')::uuid AND profesor_id = p_profesor_id) THEN
-          RAISE EXCEPTION 'IDOR Detectado: El ejercicio % no pertenece al profesor %', (v_ejercicio->>'ejercicio_id'), p_profesor_id;
-        END IF;
-
-        INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
-        VALUES (
-          v_rutina_id, 
-          (v_ejercicio->>'ejercicio_id')::uuid, 
-          (v_ejercicio->>'series')::int, 
-          v_ejercicio->>'reps_target', 
-          (v_ejercicio->>'descanso_seg')::int, 
-          (v_ejercicio->>'orden')::int,
-          COALESCE((v_ejercicio->>'exercise_type')::exercise_type, 'base'::exercise_type),
-          COALESCE((v_ejercicio->>'position')::int, 0)
-        );
-      END LOOP;
-    END IF;
-  END LOOP;
-
-  -- 4. Iterar sobre rotaciones
-  IF p_rotaciones IS NOT NULL THEN
-    FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones)
-    LOOP
-      INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
-      VALUES (
-        v_plan_id,
-        (v_rotacion->>'position')::int,
-        ARRAY(SELECT jsonb_array_elements_text(v_rotacion->'applies_to_days')),
-        v_rotacion->'cycles'
-      );
-    END LOOP;
-  END IF;
-
-  RETURN v_plan_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-
---- 9. ACTUALIZACIONES DE LA ITERACIÓN 2 (Perfil Público)
-
--- 1. SOPORTE PARA CAMPOS DE LANDING PAGE Y REDES SOCIALES
-ALTER TABLE profesores
-ADD COLUMN IF NOT EXISTS slug text UNIQUE,
-ADD COLUMN IF NOT EXISTS portada_url text,
-ADD COLUMN IF NOT EXISTS instagram text,
-ADD COLUMN IF NOT EXISTS youtube text,
-ADD COLUMN IF NOT EXISTS tiktok text,
-ADD COLUMN IF NOT EXISTS x_twitter text,
-ADD COLUMN IF NOT EXISTS especialidades text[];
-
---- 10. RUTINAS DINÁMICAS (SPRINT 1)
-
--- A) Tipos ENUM Idempotentes
-DO $$ BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'exercise_type') THEN
-        CREATE TYPE exercise_type AS ENUM ('base', 'complementary', 'accessory');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'variation_type') THEN
-        CREATE TYPE variation_type AS ENUM ('move_day', 'rest_day', 'redistribute', 'combine_days');
-    END IF;
-END $$;
-
--- B) Modificación de ejercicios_plan
-ALTER TABLE ejercicios_plan 
-ADD COLUMN IF NOT EXISTS exercise_type exercise_type DEFAULT 'base',
-ADD COLUMN IF NOT EXISTS position int DEFAULT 0;
-
--- C) Tabla Plan Rotaciones
 CREATE TABLE IF NOT EXISTS plan_rotaciones (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   plan_id uuid REFERENCES planes(id) ON DELETE CASCADE NOT NULL,
   position int NOT NULL,
-  applies_to_days text[] NOT NULL, -- Ej: ['lunes', 'miercoles']
-  cycles jsonb NOT NULL, -- Estructura de ciclos descrita en rutinasvariables.md
+  applies_to_days text[] NOT NULL,
+  cycles jsonb NOT NULL,
   created_at timestamptz DEFAULT now()
 );
 
-ALTER TABLE plan_rotaciones ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Profesores gestionan rotaciones" ON plan_rotaciones;
-CREATE POLICY "Profesores gestionan rotaciones" ON plan_rotaciones
-  FOR ALL USING (EXISTS (SELECT 1 FROM planes WHERE id = plan_rotaciones.plan_id AND profesor_id = auth.uid()));
-
--- D) Tabla Plan Variaciones (Globales)
 CREATE TABLE IF NOT EXISTS plan_variaciones (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   plan_id uuid REFERENCES planes(id) ON DELETE CASCADE NOT NULL,
@@ -399,12 +235,6 @@ CREATE TABLE IF NOT EXISTS plan_variaciones (
   created_at timestamptz DEFAULT now()
 );
 
-ALTER TABLE plan_variaciones ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Profesores gestionan variaciones" ON plan_variaciones;
-CREATE POLICY "Profesores gestionan variaciones" ON plan_variaciones
-  FOR ALL USING (EXISTS (SELECT 1 FROM planes WHERE id = plan_variaciones.plan_id AND profesor_id = auth.uid()));
-
--- E) Tabla Personalizaciones de Alumno (Personal)
 CREATE TABLE IF NOT EXISTS student_plan_customizations (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
@@ -416,334 +246,185 @@ CREATE TABLE IF NOT EXISTS student_plan_customizations (
   created_at timestamptz DEFAULT now()
 );
 
-ALTER TABLE student_plan_customizations ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Profesores gestionan personalizaciones" ON student_plan_customizations;
-CREATE POLICY "Profesores gestionan personalizaciones" ON student_plan_customizations
-  FOR ALL USING (EXISTS (SELECT 1 FROM alumnos WHERE id = student_plan_customizations.alumno_id AND profesor_id = auth.uid()));
-
-DROP POLICY IF EXISTS "Alumnos ven sus personalizaciones" ON student_plan_customizations;
-CREATE POLICY "Alumnos ven sus personalizaciones" ON student_plan_customizations
-  FOR SELECT USING (EXISTS (SELECT 1 FROM alumnos WHERE id = student_plan_customizations.alumno_id AND (auth.uid() = user_id OR email = (auth.jwt() ->> 'email'))));
-
-  
---- 11. SEGUIMIENTO DE RECORDATORIOS Y PAGOS ATÓMICOS (PAGOS V2)
-
--- A) Columna para evitar spam de WhatsApp
-ALTER TABLE alumnos
-ADD COLUMN IF NOT EXISTS ultimo_recordatorio_pago_at timestamptz;
-
-COMMENT ON COLUMN alumnos.ultimo_recordatorio_pago_at IS 'Fecha y hora del último mensaje de recordatorio de pago enviado vía WhatsApp.';
-
--- B) RPC para registrar cobro y renovar mes de forma atómica
-CREATE OR REPLACE FUNCTION registrar_pago_atomico(
-  p_alumno_id uuid,
-  p_pago_id text, -- Puede ser UUID real o 'virtual-...'
-  p_monto numeric,
-  p_profesor_id uuid
-) RETURNS json AS $$
-DECLARE
-  v_alumno_record record;
-  v_next_date date;
-  v_max_days int;
-  v_pago_uuid uuid;
-BEGIN
-  -- 1. Verificar propiedad y obtener datos del alumno
-  SELECT id, dia_pago, monto INTO v_alumno_record
-  FROM alumnos WHERE id = p_alumno_id AND profesor_id = p_profesor_id AND deleted_at IS NULL;
-  
-  IF NOT FOUND THEN
-    RETURN json_build_object('success', false, 'mensaje', 'Alumno no encontrado o sin permisos');
-  END IF;
-
-  -- 2. Manejar Pago Actual
-  IF p_pago_id LIKE 'virtual-%' THEN
-    -- Insertar el pago que era virtual como ya pagado
-    INSERT INTO pagos (alumno_id, monto, fecha_vencimiento, estado, fecha_pago)
-    VALUES (p_alumno_id, p_monto, CURRENT_DATE, 'pagado', NOW());
-  ELSE
-    -- Actualizar pago existente
-    v_pago_uuid := p_pago_id::uuid;
-    UPDATE pagos 
-    SET estado = 'pagado', fecha_pago = NOW(), monto = p_monto
-    WHERE id = v_pago_uuid AND alumno_id = p_alumno_id;
-  END IF;
-
-  -- 3. Calcular Próximo Vencimiento
-  v_next_date := CURRENT_DATE + INTERVAL '1 month';
-  v_max_days := date_part('days', (date_trunc('month', v_next_date) + interval '1 month - 1 day'))::int;
-  
-  -- Ajustar al día de pago
-  v_next_date := make_date(
-    date_part('year', v_next_date)::int,
-    date_part('month', v_next_date)::int,
-    LEAST(COALESCE(v_alumno_record.dia_pago, 15), v_max_days)
-  );
-
-  -- 4. Generar Próxima Cuota (Solo si no existe una pendiente para ese mes/futuro)
-  IF NOT EXISTS (
-    SELECT 1 FROM pagos 
-    WHERE alumno_id = p_alumno_id 
-    AND estado = 'pendiente' 
-    AND fecha_vencimiento >= v_next_date
-  ) THEN
-    INSERT INTO pagos (alumno_id, monto, fecha_vencimiento, estado)
-    VALUES (p_alumno_id, p_monto, v_next_date, 'pendiente');
-  END IF;
-
-  RETURN json_build_object('success', true, 'mensaje', '✅ Pago registrado y mes renovado con éxito');
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-
-
---- 12. ETIQUETAS (TAGS) EN BIBLIOTECA DE EJERCICIOS
-
--- A) Columna tags como array de texto
-ALTER TABLE biblioteca_ejercicios 
-ADD COLUMN IF NOT EXISTS tags text[] DEFAULT '{}';
-
--- B) Índice para mejorar búsqueda por tags
-CREATE INDEX IF NOT EXISTS idx_biblioteca_ejercicios_tags ON biblioteca_ejercicios USING GIN (tags);
-
-COMMENT ON COLUMN biblioteca_ejercicios.tags IS 'Etiquetas de clasificación del ejercicio (ej: grupo muscular, dificultad).';
-
-
-
--- 13. ACTUALIZACIÓN DE PLANES (TRANSACCIONAL)
--- Eliminamos versiones previas para evitar ambigüedad de firmas
-DROP FUNCTION IF EXISTS actualizar_plan_completo(uuid, uuid, text, int, int, jsonb);
-DROP FUNCTION IF EXISTS actualizar_plan_completo(uuid, uuid, text, int, int, jsonb, jsonb);
-
--- RPC para actualizar un plan completo (nombre, rutinas, ejercicios, rotaciones) en una sola transacción.
-CREATE OR REPLACE FUNCTION actualizar_plan_completo(
-  p_plan_id uuid,
-  p_profesor_id uuid,
-  p_nombre text,
-  p_duracion_semanas int,
-  p_frecuencia_semanal int,
-  p_rutinas jsonb,
-  p_rotaciones jsonb DEFAULT '[]'::jsonb
-) RETURNS boolean AS $$
-DECLARE
-  v_rutina_id uuid;
-  v_rutina jsonb;
-  v_ejercicio jsonb;
-  v_rotacion jsonb;
-BEGIN
-  -- 1. Verificar propiedad y existencia
-  IF NOT EXISTS (SELECT 1 FROM planes WHERE id = p_plan_id AND profesor_id = p_profesor_id) THEN
-    RAISE EXCEPTION 'Plan no encontrado o no pertenece al profesor';
-  END IF;
-
-  -- 2. Actualizar Plan Maestro
-  UPDATE planes 
-  SET 
-    nombre = p_nombre,
-    duracion_semanas = p_duracion_semanas,
-    frecuencia_semanal = p_frecuencia_semanal,
-    updated_at = now()
-  WHERE id = p_plan_id;
-
-  -- 3. Limpiar rutinas y rotaciones existentes (CASCADE borrará ejercicios_plan)
-  DELETE FROM rutinas_diarias WHERE plan_id = p_plan_id;
-  DELETE FROM plan_rotaciones WHERE plan_id = p_plan_id;
-
-  -- 4. Re-insertar Rutinas y Ejercicios
-  FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas)
-  LOOP
-    INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
-    VALUES (p_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
-    RETURNING id INTO v_rutina_id;
-
-    IF v_rutina ? 'ejercicios' THEN
-      FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios')
-      LOOP
-        -- VALIDACIÓN IDOR: El ejercicio debe pertenecer al profesor
-        IF NOT EXISTS (SELECT 1 FROM biblioteca_ejercicios WHERE id = (v_ejercicio->>'ejercicio_id')::uuid AND profesor_id = p_profesor_id) THEN
-          RAISE EXCEPTION 'IDOR Detectado: El ejercicio % no pertenece al profesor %', (v_ejercicio->>'ejercicio_id'), p_profesor_id;
-        END IF;
-
-        INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
-        VALUES (
-          v_rutina_id, 
-          (v_ejercicio->>'ejercicio_id')::uuid, 
-          (v_ejercicio->>'series')::int, 
-          v_ejercicio->>'reps_target', 
-          (v_ejercicio->>'descanso_seg')::int, 
-          (v_ejercicio->>'orden')::int,
-          COALESCE((v_ejercicio->>'exercise_type')::exercise_type, 'base'::exercise_type),
-          COALESCE((v_ejercicio->>'position')::int, 0)
-        );
-      END LOOP;
-    END IF;
-  END LOOP;
-
-  -- 5. Re-insertar Rotaciones
-  IF p_rotaciones IS NOT NULL AND jsonb_array_length(p_rotaciones) > 0 THEN
-    FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones)
-    LOOP
-      INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
-      VALUES (
-        p_plan_id,
-        (v_rotacion->>'position')::int,
-        ARRAY(SELECT jsonb_array_elements_text(v_rotacion->'applies_to_days')),
-        v_rotacion->'cycles'
-      );
-    END LOOP;
-  END IF;
-
-  RETURN true;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-
---- 14. FORKING SILENCIOSO (PLANES DE INSTANCIA)
-
--- A) Agregar flag is_template a planes
-ALTER TABLE planes ADD COLUMN IF NOT EXISTS is_template boolean DEFAULT true;
-
--- B) RPC: fork_plan
--- Crea una copia profunda de un plan y lo asigna a un alumno específico.
-CREATE OR REPLACE FUNCTION fork_plan(
-  p_plan_id uuid,
-  p_alumno_id uuid,
-  p_nuevo_nombre text
-) RETURNS uuid AS $$
-DECLARE
-  v_new_plan_id uuid;
-  v_profesor_id uuid;
-  v_new_rutina_id uuid;
-  v_rutina_rec record;
-  v_ejercicio_rec record;
-  v_rotacion_rec record;
-BEGIN
-  -- 1. Obtener profesor_id y validar existencia
-  SELECT profesor_id INTO v_profesor_id FROM planes WHERE id = p_plan_id;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Plan origen no encontrado';
-  END IF;
-
-  -- 2. Insertar nuevo plan (is_template = false)
-  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, monto, is_template)
-  SELECT profesor_id, p_nuevo_nombre, duracion_semanas, frecuencia_semanal, monto, false
-  FROM planes WHERE id = p_plan_id
-  RETURNING id INTO v_new_plan_id;
-
-  -- 3. Copiar rutinas_diarias
-  FOR v_rutina_rec IN SELECT * FROM rutinas_diarias WHERE plan_id = p_plan_id LOOP
-    INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
-    VALUES (v_new_plan_id, v_rutina_rec.dia_numero, v_rutina_rec.nombre_dia, v_rutina_rec.orden)
-    RETURNING id INTO v_new_rutina_id;
-
-    -- 4. Copiar ejercicios de esta rutina
-    FOR v_ejercicio_rec IN SELECT * FROM ejercicios_plan WHERE rutina_id = v_rutina_rec.id LOOP
-      INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
-      VALUES (v_new_rutina_id, v_ejercicio_rec.ejercicio_id, v_ejercicio_rec.series, v_ejercicio_rec.reps_target, v_ejercicio_rec.descanso_seg, v_ejercicio_rec.orden, v_ejercicio_rec.exercise_type, v_ejercicio_rec.position);
-    END LOOP;
-  END LOOP;
-
-  -- 5. Copiar rotaciones
-  FOR v_rotacion_rec IN SELECT * FROM plan_rotaciones WHERE plan_id = p_plan_id LOOP
-    INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
-    VALUES (v_new_plan_id, v_rotacion_rec.position, v_rotacion_rec.applies_to_days, v_rotacion_rec.cycles);
-  END LOOP;
-
-  -- 6. Asignar el nuevo plan al alumno
-  UPDATE alumnos SET plan_id = v_new_plan_id WHERE id = p_alumno_id AND profesor_id = v_profesor_id;
-
-  RETURN v_new_plan_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-
---- 15. COMENTARIOS Y NOTIFICACIONES (FASE 3)
-
--- 1. Agregar columnas para comentarios a sesiones (Nivel d�a)
-DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'sesiones') THEN
-    ALTER TABLE sesiones ADD COLUMN IF NOT EXISTS notas_alumno text, ADD COLUMN IF NOT EXISTS notas_profesor text;
-  END IF;
-END $$;
-
-COMMENT ON COLUMN sesiones.notas_alumno IS 'Feedback general del alumno al terminar la sesi�n (d�a completo).';
-COMMENT ON COLUMN sesiones.notas_profesor IS 'Respuesta general o anotaci�n del profesor sobre este d�a espec�fico.';
-
--- 2. Agregar columnas para comentarios a ejercicio_logs (Nivel de ejercicio puntual)
-DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'ejercicio_logs') THEN
-    ALTER TABLE ejercicio_logs ADD COLUMN IF NOT EXISTS nota_alumno text, ADD COLUMN IF NOT EXISTS respuesta_profesor text;
-  END IF;
-END $$;
-
-COMMENT ON COLUMN ejercicio_logs.nota_alumno IS 'Comentario del alumno sobre un ejercicio espec�fico (ej: "Me doli� el hombro").';
-COMMENT ON COLUMN ejercicio_logs.respuesta_profesor IS 'Respuesta del profesor a esa nota (independiente de la semana siguiente).';
-
--- 3. Crear tabla de Notificaciones para el Profesor
-CREATE TABLE IF NOT EXISTS notificaciones (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
-  alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
-  tipo text NOT NULL, -- Valores esperados: 'comentario_sesion', 'comentario_ejercicio', 'sesion_completada', 'pago_vencido'
-  mensaje text NOT NULL,
-  referencia_id uuid, -- ID de la sesi�n o ejercicio_log que dispar� la notificaci�n
-  leida boolean DEFAULT false,
-  created_at timestamptz DEFAULT now()
+-- ============================================================
+-- 9. CALENDARIO OPERATIVO (SESIONES INSTANCIADAS)
+-- sesiones_instanciadas: verificado contra instanciarSesion, getWeeklySessions,
+-- completeSessionByProfessor, completarSesionInstanciada, swapExerciseInStudentPlan,
+-- addExerciseToStudentPlan, removeExerciseFromStudentPlan, updateStudentMetricWithPropagation
+--
+-- sesion_ejercicios_instanciados: verificado contra instanciarSesion, 
+-- logEjercicioInstanciado, swapExerciseInStudentPlan, addExerciseToStudentPlan,
+-- removeExerciseFromStudentPlan, updateStudentMetricWithPropagation.
+-- IMPORTANTE: updateStudentMetricWithPropagation actualiza "descanso_plan" (no "descanso_seg")
+-- ============================================================
+CREATE TABLE IF NOT EXISTS sesiones_instanciadas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  alumno_id UUID NOT NULL REFERENCES alumnos(id) ON DELETE CASCADE,
+  plan_id UUID NOT NULL REFERENCES planes(id) ON DELETE CASCADE,
+  numero_dia_plan INT NOT NULL,
+  semana_numero INT NOT NULL DEFAULT 1,
+  fecha_real DATE NOT NULL DEFAULT CURRENT_DATE,
+  nombre_dia TEXT,
+  estado TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'en_progreso', 'completada', 'omitida')),
+  notas_alumno TEXT,
+  notas_profesor TEXT,
+  completed_by_professor BOOLEAN DEFAULT FALSE,   -- completarSesionInstanciada, completeSessionByProfessor
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sesiones_alumno_fecha ON sesiones_instanciadas (alumno_id, fecha_real);
+CREATE INDEX IF NOT EXISTS idx_sesiones_alumno_dia ON sesiones_instanciadas (alumno_id, numero_dia_plan);
 
--- Habilitar RLS en notificaciones
+CREATE TABLE IF NOT EXISTS sesion_ejercicios_instanciados (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sesion_id UUID NOT NULL REFERENCES sesiones_instanciadas(id) ON DELETE CASCADE,
+  ejercicio_id UUID NOT NULL REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE,
+  ejercicio_plan_id UUID REFERENCES ejercicios_plan(id) ON DELETE SET NULL, -- nullable: ejercicios ad-hoc del día no tienen plan_id
+  orden INT NOT NULL DEFAULT 0,
+  series_plan INT NOT NULL DEFAULT 3,
+  reps_plan TEXT NOT NULL DEFAULT '10',
+  peso_plan DECIMAL(7,2),
+  descanso_seg INT DEFAULT 60,                    -- valor original del plan en el momento de instanciar
+  descanso_plan INT DEFAULT 60,                   -- actualizado por updateStudentMetricWithPropagation
+  series_real INT,
+  reps_real TEXT,
+  peso_real DECIMAL(7,2),
+  exercise_type TEXT DEFAULT 'base' CHECK (exercise_type IN ('base', 'complementary', 'accessory')),
+  is_variation BOOLEAN DEFAULT FALSE,
+  nota_alumno TEXT,
+  respuesta_profesor TEXT,
+  completado BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_sesion_ej_sesion_id ON sesion_ejercicios_instanciados (sesion_id);
+CREATE INDEX IF NOT EXISTS idx_sesion_ej_plan_id ON sesion_ejercicios_instanciados (ejercicio_plan_id);
+
+-- ============================================================
+-- 10. SEGURIDAD (RLS) — PATRÓN CONSOLIDADO
+-- ============================================================
+ALTER TABLE profesores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE biblioteca_ejercicios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE planes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rutinas_diarias ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ejercicios_plan ENABLE ROW LEVEL SECURITY;
+ALTER TABLE alumnos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pagos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notificaciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ejercicio_plan_personalizado ENABLE ROW LEVEL SECURITY;
+ALTER TABLE plan_rotaciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE plan_variaciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_plan_customizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sesiones_instanciadas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sesion_ejercicios_instanciados ENABLE ROW LEVEL SECURITY;
 
--- Pol�tica: Profesores solo ven y editan sus propias notificaciones
-DROP POLICY IF EXISTS "Profesores gestionan sus notificaciones" ON notificaciones;
-CREATE POLICY "Profesores gestionan sus notificaciones" ON notificaciones 
-  FOR ALL USING (auth.uid() = profesor_id);
+-- Propietario directo
+DROP POLICY IF EXISTS "Dueño gestiona su perfil" ON profesores;
+CREATE POLICY "Dueño gestiona su perfil" ON profesores FOR ALL USING (auth.uid() = id);
 
--- Pol�tica: Alumnos pueden insertar notificaciones (v�a un Trigger o API cuando comentan)
-DROP POLICY IF EXISTS "Alumnos/Sistema env�an notificaciones" ON notificaciones;
-CREATE POLICY "Alumnos/Sistema env�an notificaciones" ON notificaciones 
-  FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM alumnos WHERE id = notificaciones.alumno_id AND (auth.uid() = user_id OR email = (auth.jwt() ->> 'email')))
-  );
+DROP POLICY IF EXISTS "Profesores gestionan su biblioteca" ON biblioteca_ejercicios;
+CREATE POLICY "Profesores gestionan su biblioteca" ON biblioteca_ejercicios FOR ALL USING (auth.uid() = profesor_id);
 
+DROP POLICY IF EXISTS "Profesores gestionan sus planes" ON planes;
+CREATE POLICY "Profesores gestionan sus planes" ON planes FOR ALL USING (auth.uid() = profesor_id);
 
---- 16. FIX ONBOARDING ALUMNOS (RLS UPDATE)
+-- Alumnos: El profesor sus alumnos (con soft delete), el alumno se ve a sí mismo
+DROP POLICY IF EXISTS "Profesores gestionan sus alumnos" ON alumnos;
+CREATE POLICY "Profesores gestionan sus alumnos" ON alumnos
+  FOR ALL USING (auth.uid() = profesor_id AND deleted_at IS NULL);
 
--- Permitir a un alumno vincular su cuenta Auth real (user_id)
--- si y solo si:
--- 1. El email que usa para loguearse coincide con el insertado por el profesor.
--- 2. La columna user_id en la base sigue vac�a (previniendo robos).
--- 3. S�lo est� intentando actualizar el 'user_id' para que coincida con su identidad Real.
+DROP POLICY IF EXISTS "Alumnos ven su propio perfil" ON alumnos;
+CREATE POLICY "Alumnos ven su propio perfil" ON alumnos
+  FOR SELECT USING (auth.uid() = user_id OR email = (auth.jwt() ->> 'email'));
 
 DROP POLICY IF EXISTS "Alumnos reclaman su perfil" ON alumnos;
+CREATE POLICY "Alumnos reclaman su perfil" ON alumnos
+  FOR UPDATE USING (email = (auth.jwt() ->> 'email') AND user_id IS NULL)
+  WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "Alumnos reclaman su perfil" ON alumnos 
-  FOR UPDATE USING (
-    email = (auth.jwt() ->> 'email') AND 
-    user_id IS NULL
-  ) 
-  WITH CHECK (
-    user_id = auth.uid()
-  );
+-- Jerarquía de propietario (a través del plan)
+DROP POLICY IF EXISTS "acceso_rutinas" ON rutinas_diarias;
+CREATE POLICY "acceso_rutinas" ON rutinas_diarias FOR ALL USING (
+  EXISTS (SELECT 1 FROM planes p WHERE p.id = rutinas_diarias.plan_id AND p.profesor_id = auth.uid())
+);
 
-  
---- 17. JERARQUÍA DE EJERCICIOS (VARIANTES Y PATRÓN BASE)
-ALTER TABLE biblioteca_ejercicios ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE DEFAULT NULL;
-ALTER TABLE biblioteca_ejercicios ADD COLUMN IF NOT EXISTS is_template_base boolean DEFAULT FALSE;
+DROP POLICY IF EXISTS "acceso_ejercicios_plan" ON ejercicios_plan;
+CREATE POLICY "acceso_ejercicios_plan" ON ejercicios_plan FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM rutinas_diarias rd
+    JOIN planes p ON rd.plan_id = p.id
+    WHERE rd.id = ejercicios_plan.rutina_id AND p.profesor_id = auth.uid()
+  )
+);
 
-COMMENT ON COLUMN biblioteca_ejercicios.parent_id IS 'Referencia al ejercicio Padre (Patrón Base).';
-COMMENT ON COLUMN biblioteca_ejercicios.is_template_base IS 'Indica si es el ejercicio principal que el sistema usará por defecto.';
+-- Pagos y notificaciones
+DROP POLICY IF EXISTS "acceso_pagos" ON pagos;
+CREATE POLICY "acceso_pagos" ON pagos FOR ALL USING (
+  EXISTS (SELECT 1 FROM alumnos a WHERE a.id = pagos.alumno_id AND a.profesor_id = auth.uid())
+);
 
--- MIGRACIÓN: ROBUSTECIMIENTO DE RPC PARA PLANES (SOPORTE PARA PLANES MÍNIMOS)
--- Fecha: 2026-04-01
--- Objetivo: Permitir la creación y actualización de planes sin métricas técnicas predefinidas.
+DROP POLICY IF EXISTS "Propietario gestiona notificaciones" ON notificaciones;
+CREATE POLICY "Propietario gestiona notificaciones" ON notificaciones FOR ALL USING (auth.uid() = profesor_id);
 
--- A) IDEMPOTENCIA: Eliminar firmas previas inconsistentes
+DROP POLICY IF EXISTS "Alumnos insertan notificaciones" ON notificaciones;
+CREATE POLICY "Alumnos insertan notificaciones" ON notificaciones FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM alumnos WHERE id = notificaciones.alumno_id AND (auth.uid() = user_id OR email = (auth.jwt() ->> 'email')))
+);
+
+-- Personalizaciones
+DROP POLICY IF EXISTS "acceso_personalizaciones" ON ejercicio_plan_personalizado;
+CREATE POLICY "acceso_personalizaciones" ON ejercicio_plan_personalizado FOR ALL USING (
+  EXISTS (SELECT 1 FROM alumnos a WHERE a.id = ejercicio_plan_personalizado.alumno_id AND a.profesor_id = auth.uid())
+);
+
+DROP POLICY IF EXISTS "acceso_rotaciones" ON plan_rotaciones;
+CREATE POLICY "acceso_rotaciones" ON plan_rotaciones FOR ALL USING (
+  EXISTS (SELECT 1 FROM planes p WHERE p.id = plan_rotaciones.plan_id AND p.profesor_id = auth.uid())
+);
+
+DROP POLICY IF EXISTS "acceso_variaciones" ON plan_variaciones;
+CREATE POLICY "acceso_variaciones" ON plan_variaciones FOR ALL USING (
+  EXISTS (SELECT 1 FROM planes p WHERE p.id = plan_variaciones.plan_id AND p.profesor_id = auth.uid())
+);
+
+DROP POLICY IF EXISTS "acceso_spc" ON student_plan_customizations;
+CREATE POLICY "acceso_spc" ON student_plan_customizations FOR ALL USING (
+  EXISTS (SELECT 1 FROM alumnos a WHERE a.id = student_plan_customizations.alumno_id AND a.profesor_id = auth.uid())
+);
+
+-- Sesiones: Visible para el profesor del alumno O el propio alumno (via user_id)
+DROP POLICY IF EXISTS "acceso_sesiones" ON sesiones_instanciadas;
+CREATE POLICY "acceso_sesiones" ON sesiones_instanciadas FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM alumnos a
+    WHERE a.id = sesiones_instanciadas.alumno_id
+    AND (a.profesor_id = auth.uid() OR a.user_id = auth.uid())
+  )
+);
+
+DROP POLICY IF EXISTS "acceso_ej_operativos" ON sesion_ejercicios_instanciados;
+CREATE POLICY "acceso_ej_operativos" ON sesion_ejercicios_instanciados FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM sesiones_instanciadas s
+    JOIN alumnos a ON a.id = s.alumno_id
+    WHERE s.id = sesion_ejercicios_instanciados.sesion_id
+    AND (a.profesor_id = auth.uid() OR a.user_id = auth.uid())
+  )
+);
+
+-- ============================================================
+-- 11. RPCS / FUNCIONES NUCLEARES
+-- ============================================================
+
+-- Limpiar firmas previas para evitar ambigüedades (PGRST202)
 DROP FUNCTION IF EXISTS crear_plan_completo(uuid, text, int, int, jsonb);
 DROP FUNCTION IF EXISTS crear_plan_completo(uuid, text, int, int, jsonb, jsonb);
 DROP FUNCTION IF EXISTS actualizar_plan_completo(uuid, uuid, text, int, int, jsonb);
 DROP FUNCTION IF EXISTS actualizar_plan_completo(uuid, uuid, text, int, int, jsonb, jsonb);
+DROP FUNCTION IF EXISTS fork_plan(uuid, uuid, text);
 
--- 1. RPC: crear_plan_completo (IDEMPOTENTE)
+-- RPC 1: crear_plan_completo
+-- Usada por: createPlan, duplicatePlan
 CREATE OR REPLACE FUNCTION crear_plan_completo(
   p_profesor_id uuid,
   p_nombre text,
@@ -759,46 +440,43 @@ DECLARE
   v_ejercicio jsonb;
   v_rotacion jsonb;
 BEGIN
-  -- 1. Insertar Plan Maestro
   INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal)
   VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal)
   RETURNING id INTO v_plan_id;
 
-  -- 2. Iterar sobre rutinas
-  FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas)
-  LOOP
+  FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas) LOOP
     INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
-    VALUES (v_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
+    VALUES (
+      v_plan_id,
+      (v_rutina->>'dia_numero')::int,
+      v_rutina->>'nombre_dia',
+      (v_rutina->>'dia_numero')::int
+    )
     RETURNING id INTO v_rutina_id;
 
-    -- 3. Iterar sobre ejercicios de la rutina
     IF v_rutina ? 'ejercicios' THEN
-      FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios')
-      LOOP
-        -- VALIDACIÓN IDOR: El ejercicio debe pertenecer al profesor
-        IF NOT EXISTS (SELECT 1 FROM biblioteca_ejercicios WHERE id = (v_ejercicio->>'ejercicio_id')::uuid AND profesor_id = p_profesor_id) THEN
-          RAISE EXCEPTION 'IDOR Detectado: El ejercicio % no pertenece al profesor %', (v_ejercicio->>'ejercicio_id'), p_profesor_id;
-        END IF;
-
-        INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
+      FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios') LOOP
+        INSERT INTO ejercicios_plan (
+          rutina_id, ejercicio_id, series, reps_target, descanso_seg,
+          orden, exercise_type, position, peso_target
+        )
         VALUES (
-          v_rutina_id, 
-          (v_ejercicio->>'ejercicio_id')::uuid, 
-          COALESCE((v_ejercicio->>'series')::int, 3), 
-          COALESCE(v_ejercicio->>'reps_target', '12'), 
-          COALESCE((v_ejercicio->>'descanso_seg')::int, 60), 
+          v_rutina_id,
+          (v_ejercicio->>'ejercicio_id')::uuid,
+          COALESCE((v_ejercicio->>'series')::int, 3),
+          COALESCE(v_ejercicio->>'reps_target', '12'),
+          COALESCE((v_ejercicio->>'descanso_seg')::int, 60),
           COALESCE((v_ejercicio->>'orden')::int, 0),
           COALESCE((v_ejercicio->>'exercise_type')::exercise_type, 'base'::exercise_type),
-          COALESCE((v_ejercicio->>'position')::int, 0)
+          COALESCE((v_ejercicio->>'position')::int, 0),
+          COALESCE(v_ejercicio->>'peso_target', '')
         );
       END LOOP;
     END IF;
   END LOOP;
 
-  -- 4. Iterar sobre rotaciones
   IF p_rotaciones IS NOT NULL AND jsonb_array_length(p_rotaciones) > 0 THEN
-    FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones)
-    LOOP
+    FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones) LOOP
       INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
       VALUES (
         v_plan_id,
@@ -813,7 +491,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 2. RPC: actualizar_plan_completo (IDEMPOTENTE)
+
+-- RPC 2: actualizar_plan_completo
+-- Usada por: updatePlan
 CREATE OR REPLACE FUNCTION actualizar_plan_completo(
   p_plan_id uuid,
   p_profesor_id uuid,
@@ -829,58 +509,51 @@ DECLARE
   v_ejercicio jsonb;
   v_rotacion jsonb;
 BEGIN
-  -- 1. Verificar propiedad y existencia
   IF NOT EXISTS (SELECT 1 FROM planes WHERE id = p_plan_id AND profesor_id = p_profesor_id) THEN
     RAISE EXCEPTION 'Plan no encontrado o no pertenece al profesor';
   END IF;
 
-  -- 2. Actualizar Plan Maestro
-  UPDATE planes 
-  SET 
-    nombre = p_nombre,
-    duracion_semanas = p_duracion_semanas,
-    frecuencia_semanal = p_frecuencia_semanal,
-    updated_at = now()
+  UPDATE planes
+  SET nombre = p_nombre, duracion_semanas = p_duracion_semanas,
+      frecuencia_semanal = p_frecuencia_semanal, updated_at = now()
   WHERE id = p_plan_id;
 
-  -- 3. Limpiar rutinas y rotaciones existentes (CASCADE borrará ejercicios_plan)
   DELETE FROM rutinas_diarias WHERE plan_id = p_plan_id;
   DELETE FROM plan_rotaciones WHERE plan_id = p_plan_id;
 
-  -- 4. Re-insertar Rutinas y Ejercicios
-  FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas)
-  LOOP
+  FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas) LOOP
     INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
-    VALUES (p_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
+    VALUES (
+      p_plan_id,
+      (v_rutina->>'dia_numero')::int,
+      v_rutina->>'nombre_dia',
+      (v_rutina->>'dia_numero')::int
+    )
     RETURNING id INTO v_rutina_id;
 
     IF v_rutina ? 'ejercicios' THEN
-      FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios')
-      LOOP
-        -- VALIDACIÓN IDOR: El ejercicio debe pertenecer al profesor
-        IF NOT EXISTS (SELECT 1 FROM biblioteca_ejercicios WHERE id = (v_ejercicio->>'ejercicio_id')::uuid AND profesor_id = p_profesor_id) THEN
-          RAISE EXCEPTION 'IDOR Detectado: El ejercicio % no pertenece al profesor %', (v_ejercicio->>'ejercicio_id'), p_profesor_id;
-        END IF;
-
-        INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
+      FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios') LOOP
+        INSERT INTO ejercicios_plan (
+          rutina_id, ejercicio_id, series, reps_target, descanso_seg,
+          orden, exercise_type, position, peso_target
+        )
         VALUES (
-          v_rutina_id, 
-          (v_ejercicio->>'ejercicio_id')::uuid, 
-          COALESCE((v_ejercicio->>'series')::int, 3), 
-          COALESCE(v_ejercicio->>'reps_target', '12'), 
-          COALESCE((v_ejercicio->>'descanso_seg')::int, 60), 
+          v_rutina_id,
+          (v_ejercicio->>'ejercicio_id')::uuid,
+          COALESCE((v_ejercicio->>'series')::int, 3),
+          COALESCE(v_ejercicio->>'reps_target', '12'),
+          COALESCE((v_ejercicio->>'descanso_seg')::int, 60),
           COALESCE((v_ejercicio->>'orden')::int, 0),
           COALESCE((v_ejercicio->>'exercise_type')::exercise_type, 'base'::exercise_type),
-          COALESCE((v_ejercicio->>'position')::int, 0)
+          COALESCE((v_ejercicio->>'position')::int, 0),
+          COALESCE(v_ejercicio->>'peso_target', '')
         );
       END LOOP;
     END IF;
   END LOOP;
 
-  -- 5. Re-insertar Rotaciones
   IF p_rotaciones IS NOT NULL AND jsonb_array_length(p_rotaciones) > 0 THEN
-    FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones)
-    LOOP
+    FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones) LOOP
       INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
       VALUES (
         p_plan_id,
@@ -894,20 +567,10 @@ BEGIN
   RETURN true;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
--- AGREGAR PESO TARGET A EJERCICIOS DEL PLAN
--- Esto permite la personalización granular requerida para atletas.
 
-ALTER TABLE ejercicios_plan 
-ADD COLUMN IF NOT EXISTS peso_target text DEFAULT '';
 
-COMMENT ON COLUMN ejercicios_plan.peso_target IS 'Carga u objetivo de peso para el ejercicio (ej: "80kg", "Carga máxima", "RPE 8").';
-
--- MIGRACIÓN: Soporte para Forking Silencioso y Planes de Instancia
--- 1. Agregar flag is_template a planes
-ALTER TABLE planes ADD COLUMN IF NOT EXISTS is_template boolean DEFAULT true;
-
--- 2. RPC: fork_plan
--- Crea una copia profunda de un plan y lo asigna a un alumno específico.
+-- RPC 3: fork_plan
+-- Usada por: forkPlan, swapExerciseInStudentPlan, addExerciseToStudentPlan, removeExerciseFromStudentPlan
 CREATE OR REPLACE FUNCTION fork_plan(
   p_plan_id uuid,
   p_alumno_id uuid,
@@ -916,185 +579,194 @@ CREATE OR REPLACE FUNCTION fork_plan(
 DECLARE
   v_new_plan_id uuid;
   v_profesor_id uuid;
-  v_rutina_map jsonb := '{}'::jsonb;
-  v_old_rutina_id uuid;
   v_new_rutina_id uuid;
   v_rutina_rec record;
   v_ejercicio_rec record;
   v_rotacion_rec record;
 BEGIN
-  -- 1. Obtener profesor_id y validar existencia
   SELECT profesor_id INTO v_profesor_id FROM planes WHERE id = p_plan_id;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Plan origen no encontrado';
-  END IF;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Plan origen no encontrado'; END IF;
 
-  -- 2. Insertar nuevo plan (is_template = false)
-  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, is_template)
-  SELECT profesor_id, p_nuevo_nombre, duracion_semanas, frecuencia_semanal, false
+  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, monto, is_template)
+  SELECT profesor_id, p_nuevo_nombre, duracion_semanas, frecuencia_semanal, monto, false
   FROM planes WHERE id = p_plan_id
   RETURNING id INTO v_new_plan_id;
 
-  -- 3. Copiar rutinas_diarias y mapear IDs
   FOR v_rutina_rec IN SELECT * FROM rutinas_diarias WHERE plan_id = p_plan_id LOOP
     INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
     VALUES (v_new_plan_id, v_rutina_rec.dia_numero, v_rutina_rec.nombre_dia, v_rutina_rec.orden)
     RETURNING id INTO v_new_rutina_id;
 
-    -- 4. Copiar ejercicios de esta rutina
     FOR v_ejercicio_rec IN SELECT * FROM ejercicios_plan WHERE rutina_id = v_rutina_rec.id LOOP
-      INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position)
-      VALUES (v_new_rutina_id, v_ejercicio_rec.ejercicio_id, v_ejercicio_rec.series, v_ejercicio_rec.reps_target, v_ejercicio_rec.descanso_seg, v_ejercicio_rec.orden, v_ejercicio_rec.exercise_type, v_ejercicio_rec.position);
+      INSERT INTO ejercicios_plan (
+        rutina_id, ejercicio_id, series, reps_target, descanso_seg,
+        orden, exercise_type, position, peso_target
+      )
+      VALUES (
+        v_new_rutina_id, v_ejercicio_rec.ejercicio_id, v_ejercicio_rec.series,
+        v_ejercicio_rec.reps_target, v_ejercicio_rec.descanso_seg, v_ejercicio_rec.orden,
+        v_ejercicio_rec.exercise_type, v_ejercicio_rec.position, v_ejercicio_rec.peso_target
+      );
     END LOOP;
   END LOOP;
 
-  -- 5. Copiar rotaciones
   FOR v_rotacion_rec IN SELECT * FROM plan_rotaciones WHERE plan_id = p_plan_id LOOP
     INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
     VALUES (v_new_plan_id, v_rotacion_rec.position, v_rotacion_rec.applies_to_days, v_rotacion_rec.cycles);
   END LOOP;
 
-  -- 6. Asignar el nuevo plan al alumno
   UPDATE alumnos SET plan_id = v_new_plan_id WHERE id = p_alumno_id AND profesor_id = v_profesor_id;
 
   RETURN v_new_plan_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-ALTER TABLE planes 
-ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
 
-COMMENT ON COLUMN planes.updated_at IS 'Fecha y hora de la última modificación estructural del plan.';
+-- RPC 4: registrar_pago_atomico
+-- Usada por: pagos.ts (registrarPago action)
+CREATE OR REPLACE FUNCTION registrar_pago_atomico(
+  p_alumno_id uuid,
+  p_pago_id text,
+  p_monto numeric,
+  p_profesor_id uuid
+) RETURNS json AS $$
+DECLARE
+  v_alumno_record record;
+  v_next_date date;
+  v_max_days int;
+  v_pago_uuid uuid;
+BEGIN
+  SELECT id, dia_pago, monto INTO v_alumno_record
+  FROM alumnos WHERE id = p_alumno_id AND profesor_id = p_profesor_id AND deleted_at IS NULL;
 
---- 18. PERSONALIZACIÓN DE MÉTRICAS (OVERRIDES)
-CREATE TABLE IF NOT EXISTS ejercicio_plan_personalizado (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  alumno_id uuid REFERENCES alumnos(id) ON DELETE CASCADE NOT NULL,
-  ejercicio_plan_id uuid REFERENCES ejercicios_plan(id) ON DELETE CASCADE NOT NULL,
-  series int,
-  reps_target text,
-  descanso_seg int,
-  peso_target text,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now(),
-  UNIQUE(alumno_id, ejercicio_plan_id)
-);
+  IF NOT FOUND THEN
+    RETURN json_build_object('success', false, 'mensaje', 'Alumno no encontrado o sin permisos');
+  END IF;
 
-ALTER TABLE ejercicio_plan_personalizado ENABLE ROW LEVEL SECURITY;
+  IF p_pago_id LIKE 'virtual-%' THEN
+    INSERT INTO pagos (alumno_id, monto, fecha_vencimiento, estado, fecha_pago)
+    VALUES (p_alumno_id, p_monto, CURRENT_DATE, 'pagado', NOW());
+  ELSE
+    v_pago_uuid := p_pago_id::uuid;
+    UPDATE pagos SET estado = 'pagado', fecha_pago = NOW(), monto = p_monto
+    WHERE id = v_pago_uuid AND alumno_id = p_alumno_id;
+  END IF;
 
-DROP POLICY IF EXISTS "Profesores gestionan personalizaciones de sus alumnos" ON ejercicio_plan_personalizado;
-CREATE POLICY "Profesores gestionan personalizaciones de sus alumnos" ON ejercicio_plan_personalizado
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM alumnos a
-      WHERE a.id = ejercicio_plan_personalizado.alumno_id AND a.profesor_id = auth.uid()
-    )
+  v_next_date := CURRENT_DATE + INTERVAL '1 month';
+  v_max_days := date_part('days', (date_trunc('month', v_next_date) + interval '1 month - 1 day'))::int;
+  v_next_date := make_date(
+    date_part('year', v_next_date)::int,
+    date_part('month', v_next_date)::int,
+    LEAST(COALESCE(v_alumno_record.dia_pago, 1), v_max_days)
   );
 
-COMMENT ON TABLE ejercicio_plan_personalizado IS 'Valores que sobrescriben la guía del plan maestro para un alumno específico.';
+  IF NOT EXISTS (
+    SELECT 1 FROM pagos WHERE alumno_id = p_alumno_id AND estado = 'pendiente' AND fecha_vencimiento >= v_next_date
+  ) THEN
+    INSERT INTO pagos (alumno_id, monto, fecha_vencimiento, estado)
+    VALUES (p_alumno_id, p_monto, v_next_date, 'pendiente');
+  END IF;
 
---- 19. CALENDARIO OPERATIVO REAL (FASE 1)
--- Migración idempotente para descartar tablas legacy y crear sesiones instanciadas
+  RETURN json_build_object('success', true, 'mensaje', '✅ Pago registrado y mes renovado con éxito');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
+
+-- ============================================================
+-- 12. STORAGE (AVATARS)
+-- ============================================================
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Lectura publica avatars" ON storage.objects;
+CREATE POLICY "Lectura publica avatars" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+
+DROP POLICY IF EXISTS "Gestión propia de avatar" ON storage.objects;
+CREATE POLICY "Gestión propia de avatar" ON storage.objects FOR ALL
+  TO authenticated
+  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text)
+  WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- 1. Limpiamos políticas anteriores para el soft delete
+DROP POLICY IF EXISTS "Profesores gestionan sus alumnos" ON alumnos;
+DROP POLICY IF EXISTS "Profesores ven y gestionan alumnos activos" ON alumnos;
+DROP POLICY IF EXISTS "Profesores archivan alumnos" ON alumnos;
+
+-- 2. Política para ver y gestionar alumnos ACTIVOS
+CREATE POLICY "Profesores ven y gestionan alumnos activos" ON alumnos
+  FOR ALL USING (auth.uid() = profesor_id AND deleted_at IS NULL);
+
+-- 3. Política específica para PERMITIR el archivado (soft delete)
+-- Permite el UPDATE de un registro que era NULL a cualquier valor (timestamp)
+CREATE POLICY "Profesores archivan alumnos" ON alumnos
+  FOR UPDATE USING (auth.uid() = profesor_id AND deleted_at IS NULL)
+  WITH CHECK (auth.uid() = profesor_id);
+
+-- Migración: Agregar soporte para Turnos y Agenda Colectiva
+-- Fecha: 2026-04-05
+
+-- 1. Crear tabla de turnos
+CREATE TABLE IF NOT EXISTS turnos (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
+  nombre text NOT NULL,
+  hora_inicio time NOT NULL,
+  hora_fin time NOT NULL,
+  capacidad_max int DEFAULT 10,
+  color_tag text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- 2. Vincular alumnos con turnos
 DO $$ BEGIN
-  -- Drop tablas legacy (aún en desarrollo, sin historial real)
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'ejercicio_logs') THEN
-    DROP TABLE IF EXISTS ejercicio_logs CASCADE;
-  END IF;
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'sesiones') THEN
-    DROP TABLE IF EXISTS sesiones CASCADE;
-  END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'turno_id') THEN
+        ALTER TABLE alumnos ADD COLUMN turno_id uuid REFERENCES turnos(id) ON DELETE SET NULL;
+    END IF;
 END $$;
 
--- 2. sesiones_instanciadas
-CREATE TABLE IF NOT EXISTS sesiones_instanciadas (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  alumno_id UUID NOT NULL REFERENCES alumnos(id) ON DELETE CASCADE,
-  plan_id UUID NOT NULL REFERENCES planes(id) ON DELETE CASCADE,
-  numero_dia_plan INT NOT NULL, -- Qué día del plan es (ej: 4)
-  semana_numero INT NOT NULL DEFAULT 1, -- Semana del ciclo (ej: 1)
-  fecha_real DATE NOT NULL DEFAULT CURRENT_DATE,
-  nombre_dia TEXT, -- Ej: "Pecho + Tríceps"
-  estado TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'en_progreso', 'completada', 'omitida')),
-  notas_alumno TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  completed_at TIMESTAMPTZ
-);
+-- 3. Habilitar RLS
+ALTER TABLE turnos ENABLE ROW LEVEL SECURITY;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sesiones_alumno_fecha ON sesiones_instanciadas (alumno_id, fecha_real);
-CREATE INDEX IF NOT EXISTS idx_sesiones_alumno_dia ON sesiones_instanciadas (alumno_id, numero_dia_plan);
+-- 4. Políticas RLS
+DROP POLICY IF EXISTS "Profesores gestionan sus turnos" ON turnos;
+CREATE POLICY "Profesores gestionan sus turnos" ON turnos FOR ALL USING (auth.uid() = profesor_id);
 
--- 3. sesion_ejercicios_instanciados
-CREATE TABLE IF NOT EXISTS sesion_ejercicios_instanciados (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  sesion_id UUID NOT NULL REFERENCES sesiones_instanciadas(id) ON DELETE CASCADE,
-  ejercicio_id UUID NOT NULL REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE,
-  orden INT NOT NULL DEFAULT 0,
-  series_plan INT NOT NULL DEFAULT 3,
-  reps_plan TEXT NOT NULL DEFAULT '10', -- Puede ser "8-12" o "10"
-  peso_plan DECIMAL(7,2), -- Null si no aplica (bodyweight)
-  descanso_seg INT DEFAULT 60,
-  series_real INT,
-  reps_real TEXT,
-  peso_real DECIMAL(7,2),
-  exercise_type TEXT DEFAULT 'base' CHECK (exercise_type IN ('base', 'complementary', 'accessory')),
-  is_variation BOOLEAN DEFAULT FALSE, -- Si es un accesorio rotado
-  nota_alumno TEXT,
-  completado BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- 5. Índices para performance en la Agenda
+CREATE INDEX IF NOT EXISTS idx_alumnos_turno_id ON alumnos(turno_id);
+CREATE INDEX IF NOT EXISTS idx_turnos_profesor_id ON turnos(profesor_id);
 
-CREATE INDEX IF NOT EXISTS idx_sesion_ej_sesion_id ON sesion_ejercicios_instanciados (sesion_id);
 
-ALTER TABLE sesiones_instanciadas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sesion_ejercicios_instanciados ENABLE ROW LEVEL SECURITY;
+-- ============================================================
+-- MiGym | Migración: Días de Asistencia (v2.3)
+-- ============================================================
 
--- Alumno Policies
-DROP POLICY IF EXISTS "alumno_select_own_sesiones" ON sesiones_instanciadas;
-CREATE POLICY "alumno_select_own_sesiones" ON sesiones_instanciadas
-  FOR SELECT USING (alumno_id = auth.uid());
+-- Agregar la columna dias_asistencia a la tabla alumnos
+-- Usamos text[] para representar 'Lunes', 'Martes', etc.
+DO $$ BEGIN
+    PERFORM 1 FROM information_schema.columns 
+    WHERE table_name = 'alumnos' AND column_name = 'dias_asistencia';
+    
+    IF NOT FOUND THEN 
+        ALTER TABLE alumnos ADD COLUMN dias_asistencia text[] DEFAULT '{}';
+    END IF;
+END $$;
 
-DROP POLICY IF EXISTS "alumno_insert_own_sesiones" ON sesiones_instanciadas;
-CREATE POLICY "alumno_insert_own_sesiones" ON sesiones_instanciadas
-  FOR INSERT WITH CHECK (alumno_id = auth.uid());
+-- Comentario para la tabla
+COMMENT ON COLUMN alumnos.dias_asistencia IS 'Días de la semana en los que el alumno asiste (ej: {Lunes, Miércoles, Viernes})';
 
-DROP POLICY IF EXISTS "alumno_update_own_sesiones" ON sesiones_instanciadas;
-CREATE POLICY "alumno_update_own_sesiones" ON sesiones_instanciadas
-  FOR UPDATE USING (alumno_id = auth.uid());
+-- ============================================================
+-- MiGym | Migración: Días de Asistencia en Turnos (v2.4)
+-- ============================================================
 
--- Ejercicios instanciados: el alumno puede ver/modificar los de sus sesiones
-DROP POLICY IF EXISTS "alumno_select_own_ej_instanciados" ON sesion_ejercicios_instanciados;
-CREATE POLICY "alumno_select_own_ej_instanciados" ON sesion_ejercicios_instanciados
-  FOR SELECT USING (
-    sesion_id IN (
-      SELECT id FROM sesiones_instanciadas WHERE alumno_id = auth.uid()
-    )
-  );
+-- Agregar la columna dias_asistencia a la tabla turnos
+-- Permite filtrar qué bloques horarios están activos cada día
+DO $$ BEGIN
+    PERFORM 1 FROM information_schema.columns 
+    WHERE table_name = 'turnos' AND column_name = 'dias_asistencia';
+    
+    IF NOT FOUND THEN 
+        ALTER TABLE turnos ADD COLUMN dias_asistencia text[] DEFAULT '{}';
+    END IF;
+END $$;
 
-DROP POLICY IF EXISTS "alumno_update_own_ej_instanciados" ON sesion_ejercicios_instanciados;
-CREATE POLICY "alumno_update_own_ej_instanciados" ON sesion_ejercicios_instanciados
-  FOR UPDATE USING (
-    sesion_id IN (
-      SELECT id FROM sesiones_instanciadas WHERE alumno_id = auth.uid()
-    )
-  );
-
--- Profesor: puede ver las sesiones de sus alumnos
-DROP POLICY IF EXISTS "profesor_select_alumno_sesiones" ON sesiones_instanciadas;
-CREATE POLICY "profesor_select_alumno_sesiones" ON sesiones_instanciadas
-  FOR SELECT USING (
-    alumno_id IN (
-      SELECT id FROM alumnos WHERE profesor_id = auth.uid()
-    )
-  );
-
-DROP POLICY IF EXISTS "profesor_select_alumno_ej" ON sesion_ejercicios_instanciados;
-CREATE POLICY "profesor_select_alumno_ej" ON sesion_ejercicios_instanciados
-  FOR SELECT USING (
-    sesion_id IN (
-      SELECT s.id FROM sesiones_instanciadas s
-      JOIN alumnos a ON a.id = s.alumno_id
-      WHERE a.profesor_id = auth.uid()
-    )
-  );
+-- Comentario para la tabla
+COMMENT ON COLUMN turnos.dias_asistencia IS 'Días de la semana en los que el turno está activo (ej: {Lunes, Miércoles, Viernes})';

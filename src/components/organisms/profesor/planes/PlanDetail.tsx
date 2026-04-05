@@ -223,8 +223,21 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
     }
   };
 
-  const handleAssignmentSuccess = async () => {
-    window.location.reload(); 
+  const handleAssignmentSuccess = (newAssignedStudents: any[]) => {
+    setLocalPlan(prev => {
+        const mappedStudents = newAssignedStudents.map(s => ({
+            id: s.id,
+            nombre: s.name,
+            email: s.email,
+            estado: s.estado || 'activo',
+            telefono: s.telefono || undefined,
+            notas: s.notas || undefined
+        }));
+        return {
+            ...prev,
+            alumnos: mappedStudents
+        };
+    });
   };
 
   const createdDate = useMemo(() => {
@@ -307,7 +320,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                     <Dumbbell className="w-10 h-10 text-lime-400 group-hover:scale-110 transition-transform" />
                 </div>
                 <div>
-                   <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none mb-3">
+                   <h1 className="text-3xl md:text-4xl font-black capitalize tracking-tighter text-zinc-950 dark:text-white leading-none mb-3">
                      {localPlan.nombre}
                    </h1>
                    <div className="flex flex-wrap items-center gap-4">
@@ -326,11 +339,13 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
             <div className="flex items-center gap-3">
                 <Button
                     variant="outline"
-                    onClick={() => window.location.href = `/profesor/planes/${localPlan.id}/edit`}
+                    asChild
                     className="h-12 px-6 gap-2 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-95 flex-1 md:flex-none shadow-sm"
                 >
-                    <Edit3 className="w-4 h-4" />
-                    Simplificar
+                    <a href={`/profesor/planes/${localPlan.id}/edit`}>
+                        <Edit3 className="w-4 h-4" />
+                        Editar
+                    </a>
                 </Button>
                 <Button
                     disabled={isDuplicating}

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { actions } from "astro:actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,7 +114,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
         
         setIsSaving(true);
         try {
-            const { error } = await actions.profesor.inviteStudent({
+            const { data, error } = await actions.profesor.inviteStudent({
                 nombre: newName,
                 email: newEmail,
                 plan_id: currentPlanId,
@@ -125,7 +125,14 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
 
             if (error) throw error;
             toast.success(`Alumno ${newName} creado y asignado`);
-            onSuccess([]); 
+            onSuccess([{
+                id: data.student_id,
+                name: newName,
+                email: newEmail,
+                plan_id: currentPlanId,
+                nombre_plan: null,
+                estado: 'activo'
+            }]); 
             onOpenChange(false);
         } catch (err: any) {
             toast.error(err.message || "Error al crear alumno");

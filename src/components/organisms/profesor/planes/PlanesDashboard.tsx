@@ -35,15 +35,29 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
 
   const { execute: runDuplicate, isPending: isDuplicating } = useAsyncAction();
 
-  const handleDuplicate = (id: string) =>
+  const handleDuplicate = (id: string) => {
+    const sourcePlan = planes.find((p) => p.id === id);
+    if (!sourcePlan) return;
+
     runDuplicate(
       async () => {
         const { data: result, error } = await actions.profesor.duplicatePlan({ id });
         if (error) throw new Error(error.message || "Error al duplicar");
-        if (result?.success) window.location.reload();
+        if (result?.success && result.plan_id) {
+          const newPlan: PlanRowData = {
+            id: result.plan_id,
+            name: `${sourcePlan.name} (Copia)`,
+            duration: sourcePlan.duration,
+            frequency: sourcePlan.frequency,
+            studentsCount: 0,
+            createdAt: new Date().toISOString(),
+          };
+          setPlanes((prev) => [newPlan, ...prev]);
+        }
       },
       { loadingMsg: "Duplicando plan...", successMsg: "Plan duplicado" }
     );
+  };
 
   const sortOptions = [
     { label: "Nombre A-Z", value: "name-asc" },

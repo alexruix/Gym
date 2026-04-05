@@ -11,7 +11,7 @@ interface PlanNavigatorProps {
   rutinas: any[];
 }
 
-const DIAS_CORTOS = ["L", "M", "M", "J", "V", "S", "D"];
+const DIAS_LABELS = ["D1", "D2", "D3", "D4", "D5", "D6", "D7"];
 
 export function PlanNavigator({
   currentWeek,
@@ -82,7 +82,7 @@ export function PlanNavigator({
 
             {/* Selector de Días (Grid 7 Columnas) */}
             <div className="flex-1 grid grid-cols-7 gap-2">
-                {DIAS_CORTOS.map((label, dIdx) => {
+                {DIAS_LABELS.map((label, dIdx) => {
                     const diaNumAbsoluto = (currentWeek - 1) * 7 + (dIdx + 1);
                     const isActive = activeDiaAbsoluto === diaNumAbsoluto;
                     const routine = rutinas[diaNumAbsoluto - 1];

@@ -7,6 +7,7 @@ export const globalCopy = {
   layout: {
     profesorNav: {
       dashboard: "Dashboard",
+      agenda: "Agenda",
       planes: "Planes",
       alumnos: "Alumnos",
       ejercicios: "Ejercicios",

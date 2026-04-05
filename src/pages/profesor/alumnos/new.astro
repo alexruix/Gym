@@ -24,6 +24,17 @@ const { data: plans, error } = await supabase
 if (error) {
   console.error("Error cargando planes:", error);
 }
+
+// SSR: Fetch turnos del profesor
+const { data: turnos, error: turnosError } = await supabase
+  .from("turnos")
+  .select("id, nombre, hora_inicio, hora_fin")
+  .eq("profesor_id", userId)
+  .order("hora_inicio", { ascending: true });
+
+if (turnosError) {
+  console.error("Error cargando turnos:", turnosError);
+}
 ---
 
 <ProfesorLayout title="Invitar Alumno | MiGym">
@@ -36,7 +47,7 @@ if (error) {
     />
 
     <FormContainer size="md">
-      <InviteStudentForm client:load plans={plans || []} />
+      <InviteStudentForm client:load plans={plans || []} turnos={turnos || []} />
     </FormContainer>
   </div>
 </ProfesorLayout>

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Search, type LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ interface StandardTableProps<T> {
   searchPlaceholder?: string;
   filters?: React.ReactNode;
   onRowClick?: (item: T) => void;
+  rowHref?: (item: T) => string;
   emptyMessage?: string;
   emptySearchMessage?: string;
   /** Icono para el estado vacío */
@@ -41,6 +42,7 @@ export function StandardTable<T extends { id: string | number }>({
   searchPlaceholder = "Buscar...",
   filters,
   onRowClick,
+  rowHref,
   emptyMessage = "No se encontraron resultados",
   emptySearchMessage = "No hay coincidencias para tu búsqueda",
   EmptyIcon,
@@ -105,22 +107,37 @@ export function StandardTable<T extends { id: string | number }>({
                   <tr 
                     key={item.id} 
                     className={cn(
-                      "group transition-colors",
-                      onRowClick && "cursor-pointer hover:bg-zinc-50/80 dark:hover:bg-lime-400/[0.02]"
+                      "group transition-colors relative",
+                      (onRowClick || rowHref) && "hover:bg-zinc-50/80 dark:hover:bg-lime-400/[0.02]"
                     )}
-                    onClick={() => onRowClick?.(item)}
+                    onClick={(e) => {
+                        if (onRowClick) {
+                            const target = e.target as HTMLElement;
+                            if (!target.closest('button, a, [role="menuitem"]')) {
+                                onRowClick(item);
+                            }
+                        }
+                    }}
                   >
+                    {/* Native Link Overlay for Multitasking */}
+                    {rowHref && (
+                        <td className="p-0 border-0 m-0 absolute inset-0 z-0">
+                             <a href={rowHref(item)} className="block w-full h-full opacity-0" aria-label="Ver detalle" />
+                        </td>
+                    )}
                     {columns.map((col, idx) => (
                       <td 
                         key={idx} 
                         className={cn(
-                          "px-6 py-4", 
+                          "px-6 py-4 relative z-10", 
                           col.align === "center" && "text-center", 
                           col.align === "right" && "text-right",
                           col.className
                         )}
                       >
-                        {col.render(item)}
+                        <div className={cn("inline-flex w-full", col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "")}>
+                            {col.render(item)}
+                        </div>
                       </td>
                     ))}
                   </tr>
