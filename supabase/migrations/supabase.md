@@ -770,3 +770,151 @@ END $$;
 
 -- Comentario para la tabla
 COMMENT ON COLUMN turnos.dias_asistencia IS 'Días de la semana en los que el turno está activo (ej: {Lunes, Miércoles, Viernes})';
+
+-- ============================================================
+-- MiGym | Migración: Suscripciones y Precios SSOT (v2.5)
+-- ============================================================
+
+-- 1. Crear tabla de suscripciones
+CREATE TABLE IF NOT EXISTS suscripciones (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
+  nombre text NOT NULL,
+  monto numeric NOT NULL DEFAULT 0,
+  cantidad_dias int NOT NULL DEFAULT 0, -- 0 = Libre, 2, 3, etc.
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- 2. Habilitar RLS para suscripciones
+ALTER TABLE suscripciones ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Profesores gestionan sus suscripciones" ON suscripciones;
+CREATE POLICY "Profesores gestionan sus suscripciones" ON suscripciones 
+  FOR ALL USING (auth.uid() = profesor_id);
+
+-- 3. Modificar tabla alumnos para vincular con suscripciones
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'suscripcion_id') THEN
+        ALTER TABLE alumnos ADD COLUMN suscripcion_id uuid REFERENCES suscripciones(id) ON DELETE SET NULL;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'monto_personalizado') THEN
+        ALTER TABLE alumnos ADD COLUMN monto_personalizado boolean DEFAULT false;
+    END IF;
+END $$;
+
+-- 4. Índices para performance
+CREATE INDEX IF NOT EXISTS idx_alumnos_suscripcion_id ON alumnos(suscripcion_id);
+CREATE INDEX IF NOT EXISTS idx_suscripciones_profesor_id ON suscripciones(profesor_id);
+
+-- 5. Función helper para inicializar suscripciones por defecto (si no existen)
+-- Esto se puede llamar desde la UI del profesor o un trigger
+CREATE OR REPLACE FUNCTION inicializar_suscripciones_profesor(p_profesor_id uuid) 
+RETURNS void AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM suscripciones WHERE profesor_id = p_profesor_id) THEN
+    INSERT INTO suscripciones (profesor_id, nombre, monto, cantidad_dias) VALUES
+    (p_profesor_id, 'Plan 2 días', 15000, 2),
+    (p_profesor_id, 'Plan 3 días', 18000, 3),
+    (p_profesor_id, 'Pase Libre', 22000, 0);
+  END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON COLUMN suscripciones.cantidad_dias IS 'Frecuencia semanal asociada al plan. 0 indica pase libre/sin limite.';
+COMMENT ON COLUMN alumnos.monto_personalizado IS 'Si es TRUE, el alumno mantiene un monto diferencial y se ignora en updates masivos.';
+
+-- 1. Crear tabla de Bloques Maestros
+CREATE TABLE IF NOT EXISTS bloques (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profesor_id UUID NOT NULL REFERENCES profesores(id) ON DELETE CASCADE,
+    nombre TEXT NOT NULL,
+    tags TEXT[] DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Crear tabla de Ejercicios dentro de los Bloques
+CREATE TABLE IF NOT EXISTS bloques_ejercicios (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    bloque_id UUID NOT NULL REFERENCES bloques(id) ON DELETE CASCADE,
+    ejercicio_id UUID NOT NULL REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE,
+    orden INTEGER NOT NULL,
+    series INTEGER DEFAULT 3,
+    reps_target TEXT DEFAULT '12',
+    descanso_seg INTEGER DEFAULT 60,
+    notas TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. Actualizar la tabla de Ejercicios del Plan (para trazabilidad)
+-- Evitamos errores si las columnas ya existen
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ejercicios_plan' AND column_name='grupo_bloque_id') THEN
+        ALTER TABLE ejercicios_plan ADD COLUMN grupo_bloque_id UUID;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ejercicios_plan' AND column_name='grupo_nombre') THEN
+        ALTER TABLE ejercicios_plan ADD COLUMN grupo_nombre TEXT;
+    END IF;
+END $$;
+
+-- 4. Políticas de Seguridad (RLS) - Opcional pero Recomendado
+ALTER TABLE bloques ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bloques_ejercicios ENABLE ROW LEVEL SECURITY;
+
+-- Profesores solo ven y editan sus propios bloques
+CREATE POLICY "Profesores gestionan sus bloques" ON bloques
+    FOR ALL USING (auth.uid() = profesor_id);
+
+-- Profesores solo ven ejercicios de bloques que les pertenecen
+CREATE POLICY "Profesores gestionan ejercicios de sus bloques" ON bloques_ejercicios
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM bloques 
+            WHERE bloques.id = bloques_ejercicios.bloque_id 
+            AND bloques.profesor_id = auth.uid()
+        )
+    );
+
+-- Migration: Agregar fecha de nacimiento a alumnos (v2.5)
+-- Referencia: Requerimiento de cálculo de edad automática
+
+DO $$ BEGIN
+    PERFORM 1 FROM information_schema.columns 
+    WHERE table_name = 'alumnos' AND column_name = 'fecha_nacimiento';
+    
+    IF NOT FOUND THEN 
+        ALTER TABLE alumnos ADD COLUMN fecha_nacimiento DATE;
+    END IF;
+END $$;
+
+COMMENT ON COLUMN alumnos.fecha_nacimiento IS 'Fecha de nacimiento del alumno para cálculo de edad (opcional)';
+
+-- 1. Quitar la restricción de 'profesor_id' obligatorio
+ALTER TABLE biblioteca_ejercicios ALTER COLUMN profesor_id DROP NOT NULL;
+
+-- 2. Habilitar la lectura para todos (RLS)
+DROP POLICY IF EXISTS "Profesores gestionan su biblioteca" ON biblioteca_ejercicios;
+
+CREATE POLICY "Lectura biblioteca integrada" ON biblioteca_ejercicios
+  FOR SELECT USING (is_template_base = true OR auth.uid() = profesor_id);
+
+CREATE POLICY "Gestión biblioteca privada" ON biblioteca_ejercicios
+  FOR ALL USING (auth.uid() = profesor_id)
+  WITH CHECK (auth.uid() = profesor_id);
+
+-- Migration: Agregar fecha de nacimiento a alumnos (v2.5)
+-- Referencia: Requerimiento de cálculo de edad automática
+
+DO $$ BEGIN
+    PERFORM 1 FROM information_schema.columns 
+    WHERE table_name = 'alumnos' AND column_name = 'fecha_nacimiento';
+    
+    IF NOT FOUND THEN 
+        ALTER TABLE alumnos ADD COLUMN fecha_nacimiento DATE;
+    END IF;
+END $$;
+
+COMMENT ON COLUMN alumnos.fecha_nacimiento IS 'Fecha de nacimiento del alumno para cálculo de edad (opcional)';

@@ -124,7 +124,7 @@ const currentPath = Astro.url.pathname;
 
         <!-- Right Actions -->
         <div class="flex items-center gap-3 shrink-0 transition-all duration-300 has-[:hover]:scale-105">
-          <NotificationDropdown client:load />
+          <NotificationDropdown client:load profesorId={user.id} />
           <div class="h-8 w-[1px] bg-zinc-200 mx-1"></div>
           <UserAccountMenu client:load profesor={safeProfesor} />
         </div>

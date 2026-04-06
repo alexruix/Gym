@@ -178,40 +178,40 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
   const renderList = (filteredBySearch: Student[]) => {
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="bg-white border border-zinc-100 rounded-[2rem] overflow-hidden shadow-xl shadow-zinc-900/5">
-          <div className="overflow-x-auto">
-            <table className="w-auto sm:w-full min-w-[600px]">
+        <div className="bg-white border border-zinc-100 dark:border-zinc-800 rounded-[2rem] overflow-hidden shadow-xl shadow-zinc-950/5">
+          <div className="overflow-x-auto sm:overflow-visible custom-scrollbar">
+            <table className="w-full text-nowrap">
               <thead>
-                <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                  <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-zinc-400">Alumno</th>
-                  <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-zinc-400">Turno</th>
-                  <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-zinc-400">Progreso {activeDay === realTodayName ? "Hoy" : activeDay}</th>
-                  <th className="px-6 py-5 text-right text-[10px] font-black uppercase tracking-widest text-zinc-400">Acción</th>
+                <tr className="border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
+                  <th className="px-5 md:px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-zinc-400">Alumno</th>
+                  <th className="px-5 md:px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-zinc-400">Turno</th>
+                  <th className="px-5 md:px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-zinc-400">Progreso</th>
+                  <th className="px-5 md:px-6 py-5 text-right text-[10px] font-black uppercase tracking-widest text-zinc-400">Acción</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-50">
+              <tbody className="divide-y divide-zinc-50 dark:divide-zinc-900/50">
                 {filteredBySearch.map(student => {
                   const turno = turnos.find(t => t.id === student.turno_id);
                   const session = sessions.find(s => s.alumno_id === student.id);
                   return (
-                    <tr key={student.id} className="group hover:bg-zinc-50 transition-colors">
-                      <td className="px-8 py-4">
-                        <span className="font-bold text-zinc-900 group-hover:text-lime-600 transition-colors">{student.nombre}</span>
+                    <tr key={student.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+                      <td className="px-5 md:px-8 py-4">
+                        <span className="font-bold text-zinc-900 dark:text-zinc-50 group-hover:text-lime-600 transition-colors">{student.nombre}</span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-5 md:px-6 py-4">
                         <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                           {turno ? `${turno.hora_inicio.slice(0, 5)} - ${turno.nombre}` : "Sin turno"}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-5 md:px-6 py-4">
                         <div className="flex items-center gap-3">
-                           <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                           <div className="w-16 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                               <div className="h-full bg-lime-400 transition-all duration-700" style={{ width: `${session?.progress || 0}%` }} />
                            </div>
-                           <span className="text-xs font-black text-zinc-900 leading-none">{Math.round(session?.progress || 0)}%</span>
+                           <span className="text-xs font-black text-zinc-900 dark:text-zinc-100 leading-none">{Math.round(session?.progress || 0)}%</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-5 md:px-6 py-4 text-right">
                         <Button 
                           variant="ghost" 
                           size="sm" 

@@ -223,7 +223,7 @@ export function DayCalendarStrip({
       {/* Grid Deslizable (Native UX) */}
       <div 
         ref={containerRef}
-        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-2 sm:gap-3 scroll-smooth py-2 px-1 scroll-p-10 sm:scroll-p-20"
+        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-1.5 sm:gap-3 scroll-smooth py-2 px-1 scroll-p-10 sm:scroll-p-20"
       >
         {dias.map((dia) => {
           const selected = dia.fecha === diaSeleccionado;
@@ -237,7 +237,7 @@ export function DayCalendarStrip({
               data-date={dia.fecha}
               onClick={() => onSelectDia?.(dia.fecha)}
               className={cn(
-                'flex-none w-[calc((100%-48px)/7)] min-w-[60px] sm:min-w-[70px] snap-center flex flex-col items-center gap-1.5 py-4 sm:py-5 rounded-[2rem] border transition-all duration-500 group',
+                'flex-none w-[calc((100%-48px)/7)] min-w-[52px] sm:min-w-[70px] snap-center flex flex-col items-center gap-1 sm:gap-1.5 py-3 sm:py-5 rounded-2xl sm:rounded-[2rem] border transition-all duration-500 group',
                 colors.bg,
                 colors.border,
                 selected ? 'shadow-xl shadow-lime-500/20 scale-105 z-10' : 'hover:bg-zinc-800/10 active:scale-95 border-zinc-800/5',
@@ -250,7 +250,7 @@ export function DayCalendarStrip({
 
               {/* Número del día del mes */}
               <span className={cn(
-                'w-10 h-10 flex items-center justify-center rounded-[1rem] text-sm font-black transition-all group-hover:scale-105',
+                'w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl sm:rounded-[1rem] text-xs sm:text-sm font-black transition-all group-hover:scale-105',
                 colors.num,
               )}>
                 {dia.fechaDisplay}

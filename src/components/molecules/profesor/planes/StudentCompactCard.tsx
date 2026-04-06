@@ -2,7 +2,7 @@ import React from "react";
 import { User, Mail, Phone, ChevronRight, Zap, Activity, AlertCircle } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
-import { cn, copyToClipboard } from "@/lib/utils";
+import { cn, copyToClipboard, calculateAge } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ interface StudentCompactCardProps {
     telefono?: string;
     planName?: string | null;
     notas?: string;
+    fecha_nacimiento?: string | null;
   };
   onClick?: (id: string) => void;
   customActions?: Action[];
@@ -90,9 +91,15 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                 <div className="space-y-0.5">
                     <h4 className="font-black text-zinc-950 dark:text-white text-base uppercase tracking-tight group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate max-w-[150px]">
                         {student.nombre}
+                        {student.fecha_nacimiento && (
+                            <span className="ml-2 text-xs font-medium text-zinc-400 normal-case tracking-normal">
+                                ({calculateAge(student.fecha_nacimiento)})
+                            </span>
+                        )}
                     </h4>
                     <span className="block text-[10px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400 opacity-80">
-                        {student.planName || "Sin rutina"}                    </span>
+                        {student.planName || "Sin rutina"}
+                    </span>
                 </div>
             </div>
             {/* <StatusBadge status={student.estado as StatusType} /> */}

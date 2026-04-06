@@ -5,8 +5,9 @@ import { actions } from "astro:actions";
 import { updateStudentSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { toast } from "sonner";
-import { Calendar, Phone, Loader2, Save, X, Archive, CreditCard, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Calendar as CalendarIcon, Phone, Loader2, Save, X, Archive, CreditCard, Clock } from "lucide-react";
+import { cn, toInputDate, formatDateLatam } from "@/lib/utils";
+import { DatePicker } from "@/components/molecules/profesor/core/DatePicker";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useStudentActions } from "@/hooks/useStudentActions";
@@ -51,6 +52,7 @@ interface Student {
     notas?: string | null;
     turno_id?: string | null;
     dias_asistencia?: string[];
+    fecha_nacimiento?: string | null;
 }
 
 interface Turno {
@@ -93,6 +95,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
             notas: alumno.notas || "",
             turno_id: alumno.turno_id || null,
             dias_asistencia: alumno.dias_asistencia || [],
+            fecha_nacimiento: alumno.fecha_nacimiento ? new Date(alumno.fecha_nacimiento) : null,
         },
     });
 
@@ -126,7 +129,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
                 <Loader2 className="w-8 h-8 animate-spin text-zinc-300" />
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Cargando Formulario...</p>
+                <p className="industrial-label text-zinc-300">Cargando Formulario...</p>
             </div>
         );
     }
@@ -169,7 +172,6 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                             </StandardField>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="telefono"
@@ -188,43 +190,58 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                             </StandardField>
                         )}
                     />
+
+                    <FormField
+                        control={form.control}
+                        name="fecha_nacimiento"
+                        render={({ field, fieldState }) => (
+                            <StandardField
+                                label="Fecha de nacimiento"
+                                error={fieldState.error?.message}
+                                hint="Para cálculo de edad"
+                            >
+                                <FormControl>
+                                    <DatePicker 
+                                        date={field.value}
+                                        setDate={field.onChange}
+                                        label="Fecha de nacimiento"
+                                        placeholder="Opcional"
+                                        error={!!fieldState.error}
+                                    />
+                                </FormControl>
+                            </StandardField>
+                        )}
+                    />
                 </div>
 
-                <div className="grid gap-10 sm:grid-cols-2 pt-4">
+                <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 pt-4">
                     <FormField
                         control={form.control}
                         name="fecha_inicio"
                         render={({ field, fieldState }) => (
                             <FormItem className="space-y-1.5 w-full">
                                 <div className="flex justify-between items-end px-1">
-                                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 select-none">
+                                    <FormLabel className="industrial-label">
                                         Fecha de Inicio <span className="text-lime-500 ml-0.5">*</span>
                                     </FormLabel>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-3">
                                     <FormControl>
-                                        <Input
-                                            type="date"
-                                            {...field}
-                                            value={(field.value instanceof Date && !isNaN(field.value.getTime())) 
-                                                ? field.value.toISOString().split('T')[0] 
-                                                : ''}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                if (!val) return;
-                                                const date = new Date(val + 'T12:00:00'); // Evitar problemas de zona horaria
-                                                field.onChange(date);
-                                            }}
-                                            className="font-bold border-zinc-200"
+                                        <DatePicker 
+                                            date={field.value}
+                                            setDate={field.onChange}
+                                            label="Fecha de Inicio"
+                                            error={!!fieldState.error}
+                                            required
                                         />
                                     </FormControl>
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="px-4 rounded-xl font-black uppercase text-[9px] tracking-widest text-zinc-400 hover:text-lime-600 hover:border-lime-500 transition-all active:scale-95 shrink-0"
+                                        className="industrial-label h-14 px-5 rounded-2xl border-zinc-200 hover:text-lime-600 hover:border-lime-500 transition-all active:scale-95 shrink-0"
                                         onClick={() => form.setValue("fecha_inicio", new Date(), { shouldValidate: true })}
                                     >
-                                        <Calendar className="w-4 h-4 mr-2" /> Hoy
+                                        <CalendarIcon className="w-4 h-4 mr-2" /> Hoy
                                     </Button>
                                 </div>
                                 <FormMessage />
@@ -245,7 +262,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                 <div className="space-y-4">
                                     <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value ? String(field.value) : undefined}>
                                         <FormControl>
-                                            <SelectTrigger className="rounded-xl border-zinc-200 font-bold">
+                                            <SelectTrigger className="industrial-select-trigger">
                                                 <SelectValue placeholder="Elegí día" />
                                             </SelectTrigger>
                                         </FormControl>
@@ -270,14 +287,14 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                 </div>
                 {/* GRUPO 3: AGENDA Y HORARIOS */}
                 <div className="space-y-6">
-                    <div className="flex items-center gap-2 px-1 text-zinc-400">
+                    <div className="industrial-section-header">
                         <Clock className="w-4 h-4" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">
+                        <h3 className="industrial-label">
                             Agenda y Horarios
                         </h3>
                     </div>
 
-                    <div className="bg-zinc-50/50 dark:bg-zinc-900/20 p-6 sm:p-8 rounded-[2rem] border border-zinc-100 dark:border-zinc-900/50 space-y-10 transition-all hover:bg-white dark:hover:bg-zinc-900/40 hover:shadow-xl hover:shadow-zinc-100/50 dark:hover:shadow-none duration-500">
+                    <div className="industrial-card group bg-ui-soft/30 p-6 sm:p-8 space-y-10">
                         <FormField
                             control={form.control}
                             name="turno_id"
@@ -289,7 +306,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                 >
                                     <FormControl>
                                         <Select onValueChange={field.onChange} value={field.value || undefined}>
-                                            <SelectTrigger className="h-14 rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 font-bold">
+                                            <SelectTrigger className="industrial-select-trigger">
                                                 <SelectValue placeholder="Seleccioná un bloque" />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-2xl border-zinc-200 shadow-2xl z-[100]">
@@ -301,7 +318,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                                     ))
                                                 ) : (
                                                     <div className="p-6 text-center space-y-4">
-                                                        <p className="text-xs font-bold text-zinc-500">No hay bloques horarios creados</p>
+                                                        <p className="industrial-description">No hay bloques horarios creados</p>
                                                     </div>
                                                 )}
                                             </SelectContent>
@@ -332,7 +349,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                className="rounded-xl font-black text-[9px] uppercase tracking-widest h-8 border-zinc-100 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                                                className="rounded-xl industrial-label h-8 border-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                                                 onClick={() => field.onChange(["Lunes", "Miércoles", "Viernes"])}
                                             >
                                                 L-M-V
@@ -341,7 +358,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                className="rounded-xl font-black text-[9px] uppercase tracking-widest h-8 border-zinc-100 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                                                className="rounded-xl industrial-label h-8 border-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                                                 onClick={() => field.onChange(["Martes", "Jueves"])}
                                             >
                                                 M-J
@@ -350,7 +367,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                className="rounded-xl font-black text-[9px] uppercase tracking-widest h-8 border-zinc-100 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                                                className="rounded-xl industrial-label h-8 border-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                                                 onClick={() => field.onChange(["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"])}
                                             >
                                                 Lu a Vi
@@ -366,14 +383,14 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
 
                 {/* GRUPO 4: FINANZAS Y SUSCRIPCIÓN */}
                 <div className="space-y-6">
-                    <div className="flex items-center gap-2 px-1 text-zinc-400">
+                    <div className="industrial-section-header">
                         <CreditCard className="w-4 h-4" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">
+                        <h3 className="industrial-label">
                             Finanzas y Suscripción
                         </h3>
                     </div>
 
-                    <div className="bg-zinc-50/50 dark:bg-zinc-900/20 p-6 sm:p-8 rounded-[2rem] border border-zinc-100 dark:border-zinc-900/50 space-y-8 transition-all hover:bg-white dark:hover:bg-zinc-900/40 hover:shadow-xl hover:shadow-zinc-100/50 dark:hover:shadow-none duration-500">
+                    <div className="industrial-card group bg-ui-soft/30 p-6 sm:p-8 space-y-8">
                         <div className="grid gap-8 sm:grid-cols-2">
                             <FormField
                                 control={form.control}
@@ -386,7 +403,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                     >
                                         <FormControl>
                                             <Select onValueChange={handleSuscripcionChange} value={field.value || undefined}>
-                                                <SelectTrigger className="h-14 rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 font-bold">
+                                                <SelectTrigger className="industrial-select-trigger">
                                                     <SelectValue placeholder="Seleccioná un plan" />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl border-zinc-200 shadow-2xl z-[100]">
@@ -420,15 +437,15 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                         <FormControl>
                                             <div className="relative">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-zinc-400">$</span>
-                                                <Input 
-                                                    type="number" 
-                                                    {...field} 
+                                                <Input
+                                                    type="number"
+                                                    {...field}
                                                     onChange={e => field.onChange(parseFloat(e.target.value))}
                                                     disabled={!montoPersonalizado}
                                                     className={cn(
-                                                        "h-14 pl-8 rounded-2xl font-black text-lg transition-all",
+                                                        "industrial-input pl-8",
                                                         !montoPersonalizado ? "bg-zinc-100 dark:bg-zinc-900 border-transparent opacity-70" : "bg-white dark:bg-zinc-950 border-zinc-200"
-                                                    )} 
+                                                    )}
                                                 />
                                             </div>
                                         </FormControl>
@@ -441,10 +458,10 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                             control={form.control}
                             name="monto_personalizado"
                             render={({ field }) => (
-                                <div className="flex items-center justify-between p-4 bg-zinc-100/50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200/50">
+                                <div className="industrial-card-sm bg-ui-soft/50 border-zinc-200/50">
                                     <div className="space-y-0.5">
-                                        <Label className="text-xs font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-50">Monto personalizado</Label>
-                                        <p className="text-[10px] text-zinc-500 font-medium tracking-tight">Activalo para ignorar aumentos masivos de este plan</p>
+                                        <Label className="industrial-label text-zinc-900 dark:text-zinc-50">Monto personalizado</Label>
+                                        <p className="industrial-description">Activalo para ignorar aumentos masivos de este plan</p>
                                     </div>
                                     <FormControl>
                                         <Switch
@@ -471,7 +488,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                     placeholder="Aclaraciones sobre lesiones o cuidado especial..."
                                     {...field}
                                     value={field.value || ""}
-                                    className="bg-zinc-50/30 border-zinc-100 dark:bg-zinc-900/10 focus:bg-white dark:focus:bg-zinc-950 transition-all font-medium h-12"
+                                    className="industrial-input h-14"
                                 />
                             </FormControl>
                         </StandardField>
@@ -484,7 +501,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                         variant="outline"
                         size="sm"
                         onClick={() => setIsArchiveDialogOpen(true)}
-                        className="rounded-xl font-bold uppercase tracking-widest text-[9px] h-11 px-4 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+                        className="rounded-xl industrial-label text-[9px] h-11 px-4 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
                     >
                         <Archive className="w-4 h-4 mr-2" /> Archivar Alumno
                     </Button>
@@ -495,7 +512,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                             variant="outline"
                             size="lg"
                             onClick={onCancel || (() => window.location.assign(`/profesor/alumnos/${alumno.id}`))}
-                            className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-8"
+                            className="rounded-2xl industrial-label h-14 px-8"
                         >
                             <X className="w-4 h-4 mr-2" /> Cancelar
                         </Button>

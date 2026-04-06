@@ -30,7 +30,7 @@ export const athleteProfileCopy = {
       empty: "Sin observaciones o notas registradas."
     },
     info: {
-      label: "Información del Alumno",
+      label: "Información del alumno",
       email: "Email",
       phone: "Teléfono",
       startDate: "Fecha de inicio",
@@ -42,7 +42,7 @@ export const athleteProfileCopy = {
   },
   workspace: {
     tabs: {
-      plan: "Plan",
+      plan: "Planificación",
       routine: "Rutina",
       info: "Información",
       history: "Historial"
@@ -89,7 +89,7 @@ export const athleteProfileCopy = {
       assignmentDialog: {
         title: "Asignar planificación",
         description: "Elegí una planificación de tu biblioteca para este alumno.",
-        confirmBtn: "Asignar planificación",
+        confirmBtn: "Asignar",
         warning: "Al asignar esta planificación, se reemplazará la rutina actual del alumno (si tiene una).",
         success: "Planificación asignada correctamente",
         error: "No se pudieron cargar las planificaciones",

@@ -146,8 +146,8 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
             <EntitySelectorDialog 
                 open={open}
                 onOpenChange={onOpenChange}
-                title="Invitación Rápida"
-                description="Cargá los datos básicos para asignar este plan ahora."
+                title="Invitación rápida"
+                description="Cargá los datos básicos para invitar a un nuevo alumno ahora."
                 items={[]}
                 onConfirm={() => {}}
                 renderItem={() => null}
@@ -159,31 +159,31 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                 <form onSubmit={handleCreateAndAssign} className="flex flex-col animate-in slide-in-from-right-4 duration-300">
                     <div className="p-8 space-y-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Nombre Completo</label>
+                            <label className="industrial-label px-1">Nombre Completo</label>
                             <Input 
                                 autoFocus
                                 placeholder="Ej: Nacho Giménez" 
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
-                                className="h-14 bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl text-sm font-black"
+                                className="industrial-input"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Correo Electrónico</label>
+                            <label className="industrial-label px-1">Correo Electrónico</label>
                             <Input 
                                 type="email"
                                 placeholder="ejemplo@email.com" 
                                 value={newEmail}
                                 onChange={(e) => setNewEmail(e.target.value)}
-                                className="h-14 bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl text-sm font-black"
+                                className="industrial-input"
                             />
                         </div>
                     </div>
                     <div className="p-6 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/10 flex items-center gap-3">
-                        <Button type="button" variant="ghost" onClick={() => setShowCreateForm(false)} className="flex-1 h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest">
+                        <Button type="button" variant="ghost" onClick={() => setShowCreateForm(false)} className="flex-1 h-12 rounded-2xl industrial-label">
                             <ChevronLeft className="w-4 h-4 mr-2" /> Atrás
                         </Button>
-                        <Button type="submit" disabled={isSaving || !newName || !newEmail} className="flex-[2] h-12 rounded-2xl bg-lime-400 text-zinc-950 font-black text-[10px] uppercase tracking-widest">
+                        <Button type="submit" disabled={isSaving || !newName || !newEmail} className="flex-[2] h-12 rounded-2xl bg-lime-400 text-zinc-950 industrial-label text-base">
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Crear y Asignar"}
                         </Button>
                     </div>
@@ -208,14 +208,14 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
             allTags={stats.allTags}
             onCreateNew={() => setShowCreateForm(true)}
             createNewLabel="Nuevo alumno"
-            warningMessage="Algunos alumnos ya tienen un plan activo. Al confirmar, su rutina será reemplazada por esta."
+            warningMessage="Algunos alumnos ya tienen rutinas activas. Al confirmar, será reemplazada por esta."
             renderItem={(s, isSelected) => (
                 <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col">
                         <p className={`text-sm font-black tracking-tight uppercase truncate ${isSelected ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
                             {s.name}
                         </p>
-                        <p className="text-[9px] font-bold text-zinc-300 dark:text-zinc-600 truncate lowercase">
+                        <p className="industrial-metadata truncate lowercase">
                             {s.email || "Sin email"}
                         </p>
                     </div>
@@ -223,7 +223,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                         {s.plan_id === currentPlanId && <CheckCircle2 className="w-4 h-4 text-lime-500" />}
                         {s.plan_id && s.plan_id !== currentPlanId && (
                             <div className="px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center gap-1">
-                                <span className="text-[8px] font-black uppercase text-amber-600 tracking-tighter">En otro plan</span>
+                                <span className="text-[8px] font-black uppercase text-amber-600 tracking-tighter">En otra planificación</span>
                             </div>
                         )}
                     </div>

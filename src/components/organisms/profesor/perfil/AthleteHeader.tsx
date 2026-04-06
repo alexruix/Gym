@@ -99,96 +99,96 @@ export function AthleteHeader({ alumno, planName }: Props) {
               </div>
             </div>
             
-            <div className="space-y-2">
-              <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none">
-                {alumno.nombre}
-              </h1>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-[10px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-400/10 px-3 py-1 rounded-lg border border-lime-400/20 flex items-center gap-1.5">
-                  {planName || header.status.noPlan}
-                  <ExternalLink className="w-3 h-3" />
-                </span>
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 dark:bg-zinc-900 p-1 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                  {alumno.email}
-                </span>
-              </div>
+          <div className="space-y-2 text-left">
+            <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none">
+              {alumno.nombre}
+            </h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[9px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-400/10 px-3 py-1 rounded-lg border border-lime-400/20 flex items-center gap-1.5 leading-none">
+                {planName || header.status.noPlan}
+                <ExternalLink className="w-2.5 h-2.5" />
+              </span>
+              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 dark:bg-zinc-900 p-1 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 leading-none">
+                {alumno.email}
+              </span>
             </div>
           </div>
-
-          {/* Core Industrial Actions */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button 
-                variant="outline" 
-                onClick={() => {
-                  if (!alumno.telefono) {
-                    window.location.assign(`/profesor/alumnos/${alumno.id}/edit`);
-                    return;
-                  }
-                  openWhatsApp(alumno.nombre, alumno.telefono, { type: 'general' });
-                }}
-                className={cn(
-                    "flex-1 md:flex-none h-14 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl font-black gap-2 px-6 transition-all active:scale-95 uppercase tracking-widest text-[10px]",
-                    !alumno.telefono ? "border-dashed text-zinc-400" : ""
-                )}
-            >
-                <WhatsappLogoIcon 
-                    size={20} 
-                    weight="light" 
-                    className={cn(!alumno.telefono ? "text-zinc-400" : "text-emerald-500")} 
-                />
-                {!alumno.telefono ? "Agregar WhatsApp" : "WhatsApp"}
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline"
-                  className="flex-1 md:flex-none h-14 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl font-black gap-2 px-6 transition-all active:scale-95 uppercase tracking-widest text-[10px]"
-                >
-                  <Zap className="w-5 h-5 text-lime-500" />
-                  ACCESO
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 shadow-2xl">
-                <DropdownMenuItem onClick={() => copyGuestLink(alumno.id)} className="rounded-xl py-3 font-black text-[10px] uppercase tracking-[0.15em] gap-3 cursor-pointer">
-                  <Copy className="w-4 h-4 text-zinc-400" />
-                  Copiar Magic Link
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Button 
-              onClick={() => setPaymentSheetOpen(true)}
-              className="flex-1 md:flex-none h-14 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 hover:opacity-90 rounded-2xl font-black text-[10px] uppercase tracking-widest gap-2 px-8 transition-all active:scale-95 shadow-xl"
-            >
-              <CreditCard className="w-5 h-5" />
-              Cobrar cuota
-            </Button>
-          </div>
         </div>
 
-        {/* Telemetry Metrics Grid */}
-        <div className="grid grid-cols-3 border-t border-zinc-100 dark:border-zinc-900 pt-0 bg-zinc-50/50 dark:bg-zinc-900/20 -mx-10 -mb-10">
-          <PlanMetric 
-            icon={PaymentIcon} 
-            label={header.metrics.payDay} 
-            value={`Día ${alumno.dia_pago || 15}`} 
-            className="sm:border-r border-zinc-100 dark:border-zinc-900" 
-          />
-          <PlanMetric 
-            icon={Calendar} 
-            label={header.metrics.startDate} 
-            value={startDateText} 
-            className="border-t sm:border-t-0 sm:border-r border-zinc-100 dark:border-zinc-900" 
-          />
-          <PlanMetric 
-            icon={Clock} 
-            label={header.metrics.lastSession} 
-            value={lastSessionText} 
-            accent={lastSessionText === header.metrics.today || lastSessionText === header.metrics.yesterday}
-            className="border-t sm:border-t-0 border-zinc-100 dark:border-zinc-900" 
-          />
+        {/* Core Industrial Actions */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button 
+              variant="outline" 
+              onClick={() => {
+                if (!alumno.telefono) {
+                  window.location.assign(`/profesor/alumnos/${alumno.id}/edit`);
+                  return;
+                }
+                openWhatsApp(alumno.nombre, alumno.telefono, { type: 'general' });
+              }}
+              className={cn(
+                  "flex-1 md:flex-none h-14 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl font-black gap-2 px-6 transition-all active:scale-95 uppercase tracking-widest text-[10px]",
+                  !alumno.telefono ? "border-dashed text-zinc-400" : ""
+              )}
+          >
+              <WhatsappLogoIcon 
+                  size={20} 
+                  weight="light" 
+                  className={cn(!alumno.telefono ? "text-zinc-400" : "text-emerald-500")} 
+              />
+              {!alumno.telefono ? "Agregar WhatsApp" : "WhatsApp"}
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline"
+                className="flex-1 md:flex-none h-14 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl font-black gap-2 px-6 transition-all active:scale-95 uppercase tracking-widest text-[10px]"
+              >
+                <Zap className="w-5 h-5 text-lime-500" />
+                ACCESO
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 shadow-2xl">
+              <DropdownMenuItem onClick={() => copyGuestLink(alumno.id)} className="rounded-xl py-3 font-black text-[10px] uppercase tracking-[0.15em] gap-3 cursor-pointer">
+                <Copy className="w-4 h-4 text-zinc-400" />
+                Copiar Magic Link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button 
+            onClick={() => setPaymentSheetOpen(true)}
+            className="flex-1 md:flex-none h-14 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 hover:opacity-90 rounded-2xl font-black text-[10px] uppercase tracking-widest gap-2 px-8 transition-all active:scale-95 shadow-xl"
+          >
+            <CreditCard className="w-5 h-5" />
+            Cobrar cuota
+          </Button>
         </div>
+      </div>
+
+      {/* Telemetry Metrics Grid (Refactored for mobile vertical stack) */}
+      <div className="flex flex-col md:flex-row border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20 -mx-8 sm:-mx-10 -mb-10 divide-y md:divide-y-0 md:divide-x divide-zinc-100 dark:divide-zinc-900">
+        <PlanMetric 
+          icon={PaymentIcon} 
+          label={header.metrics.payDay} 
+          value={`Día ${alumno.dia_pago || 15}`} 
+          className="flex-1"
+        />
+        <PlanMetric 
+          icon={Calendar} 
+          label={header.metrics.startDate} 
+          value={startDateText} 
+          className="flex-1" 
+        />
+        <PlanMetric 
+          icon={Clock} 
+          label={header.metrics.lastSession} 
+          value={lastSessionText} 
+          accent={lastSessionText === header.metrics.today || lastSessionText === header.metrics.yesterday}
+          className="flex-1" 
+        />
+      </div>
       </div>
 
       <StudentPaymentSheet 
@@ -196,13 +196,19 @@ export function AthleteHeader({ alumno, planName }: Props) {
           onOpenChange={setPaymentSheetOpen}
           alumno={{
               ...alumno,
+              name: alumno.nombre, // Map to required 'name' field
               pago_activo: localPagoActivo,
-              historial_pagos: alumno.historial_pagos || [],
+              historial: alumno.historial_pagos || [], // Map to 'historial'
               monto: localMonto ?? null,
-              dia_pago: alumno.dia_pago || null
-          }}
+              dia_pago: alumno.dia_pago || null,
+              ultimo_recordatorio_pago_at: alumno.pago_activo?.ultimo_recordatorio_at || null,
+              is_moroso: alumno.pago_activo?.estado === 'vencido',
+              monto_personalizado: !!alumno.monto
+          } as any}
           onPaymentSuccess={setLocalPagoActivo}
-          onMontoUpdate={setLocalMonto}
+          onStudentUpdate={(upd) => {
+            if (upd.monto !== undefined) setLocalMonto(upd.monto);
+          }}
       />
     </div>
   );

@@ -22,10 +22,17 @@ import { cn } from "@/lib/utils";
 import { useResourceDashboard } from "@/hooks/useResourceDashboard";
 import type { BaseEntity, SortOption } from "@/types/core";
 
+export interface DashboardControllers {
+    addTag: (tag: string) => void;
+    removeTag: (tag: string) => void;
+    setSearch: (search: string) => void;
+    clearFilters: () => void;
+}
+
 interface DashboardConsoleProps<T extends BaseEntity> {
     items: T[];
-    renderGrid: (items: T[]) => React.ReactNode;
-    renderTable: (items: T[]) => React.ReactNode;
+    renderGrid: (items: T[], controllers: DashboardControllers) => React.ReactNode;
+    renderTable: (items: T[], controllers: DashboardControllers) => React.ReactNode;
     searchPlaceholder?: string;
     itemLabel: string;
     storageKey: string;
@@ -280,13 +287,15 @@ export function DashboardConsole<T extends BaseEntity>({
                                 {emptyTitle || `Sin ${itemLabel} encontrados`}
                             </h3>
                             <p className="text-sm text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed px-6">
-                                {emptyDescription || "TodavÃ­a no hay datos cargados en esta secciÃ³n."}
+                                {emptyDescription || "Todavía no hay datos cargados en esta sección."}
                             </p>
                         </div>
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
-                        {viewMode === "grid" ? renderGrid(filteredItems) : renderTable(filteredItems)}
+                        {viewMode === "grid" 
+                            ? renderGrid(filteredItems, { addTag, removeTag, setSearch, clearFilters }) 
+                            : renderTable(filteredItems, { addTag, removeTag, setSearch, clearFilters })}
                     </div>
                 )}
             </div>

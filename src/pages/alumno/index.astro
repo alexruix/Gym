@@ -198,13 +198,13 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
         <button 
           id="copyLinkBtn"
           data-email={user.email}
-          class="p-3.5 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-full transition-all text-zinc-400 hover:text-lime-400 hover:scale-105 active:scale-95 group/copy"
+          class="industrial-button-muted group/copy"
           title="Copiar mi link de acceso"
         >
           <Zap className="w-4 h-4 group-hover/copy:animate-pulse" />
         </button>
         <form action="/api/auth/signout" method="POST">
-          <button type="submit" class="p-3.5 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-full transition-all text-zinc-400 hover:text-white hover:scale-105 active:scale-95">
+          <button type="submit" class="industrial-button-muted">
             <LogOut className="w-4 h-4" />
           </button>
         </form>
@@ -217,14 +217,14 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
       <section class="w-full bg-zinc-900/50 border border-zinc-800/70 rounded-3xl p-5 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <p class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em]">Tu progreso semanal</p>
+            <p class="industrial-label text-zinc-600">Tu progreso semanal</p>
             <p class="text-sm font-black text-white capitalize mt-0.5">{fechaHumana}</p>
           </div>
           <div class="text-right">
-            <p class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em]">Semana</p>
+            <p class="industrial-label text-zinc-600">Semana</p>
             <p class="text-2xl font-black text-lime-400 leading-none">
               {semanaActual} 
-              {cycleNumber > 1 && <span class="text-[10px] text-zinc-500 ml-1">(C{cycleNumber}•R{relativeWeek})</span>}
+              {cycleNumber > 1 && <span class="industrial-metadata ml-1">(C{cycleNumber}•R{relativeWeek})</span>}
             </p>
           </div>
         </div>
@@ -237,18 +237,18 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
       </section>
 
       <!-- ===== TARJETA HOY (Premium) ===== -->
-      <section class="w-full bg-zinc-900/60 border border-zinc-800/80 rounded-[2.5rem] p-8 backdrop-blur-2xl shadow-2xl overflow-hidden relative group">
+      <section class="industrial-card-glass group p-8">
         <div class="absolute -top-10 -right-10 w-40 h-40 bg-lime-500/10 blur-[60px] pointer-events-none group-hover:bg-lime-500/15 transition-all duration-700"></div>
         
         <div class="flex items-center justify-between mb-8">
           <div>
-            <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Día {diaAbsoluto} · Hoy</p>
+            <p class="industrial-label text-zinc-500">Día {diaAbsoluto} · Hoy</p>
             <h2 class="text-2xl font-black text-white tracking-tight mt-1 uppercase">
               {sesionDeHoy?.nombre_dia || 'Sin sesión instanciada'}
             </h2>
           </div>
           {sesionCompletada && (
-            <span class="text-[10px] font-black text-lime-400 bg-lime-500/10 border border-lime-500/20 px-4 py-2 rounded-full uppercase tracking-widest flex items-center gap-2">
+            <span class="industrial-label text-lime-400 bg-lime-500/10 border border-lime-500/20 px-4 py-2 rounded-full flex items-center gap-2">
               ✓ Completada
             </span>
           )}
@@ -265,7 +265,7 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
                   <p class={`font-black text-base tracking-tight truncate ${ej.completado ? 'text-zinc-500 line-through' : 'text-white'}`}>
                     {(ej.biblioteca_ejercicios as any)?.nombre || 'Ejercicio'}
                   </p>
-                  <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-0.5">{ej.series_plan} series × {ej.reps_plan}</p>
+                  <p class="industrial-label text-zinc-600 mt-0.5">{ej.series_plan} series × {ej.reps_plan}</p>
                 </div>
               </div>
             ))}
@@ -274,16 +274,16 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
 
         <!-- BOTÓN START PREMIUM -->
         {sesionCompletada ? (
-          <a href="/alumno/sesion/hoy" class="w-full h-16 rounded-2xl border border-zinc-800 flex items-center justify-center gap-3 text-zinc-400 text-[10px] font-black uppercase tracking-[0.25em] hover:text-white hover:bg-zinc-800/50 hover:border-zinc-700 transition-all active:scale-95">
+          <a href="/alumno/sesion/hoy" class="w-full h-16 rounded-2xl border border-zinc-800 flex items-center justify-center gap-3 text-zinc-400 industrial-label hover:text-white hover:bg-zinc-800/50 hover:border-zinc-700 transition-all active:scale-95">
             Ver resumen del día <TrendingUp className="w-4 h-4 ml-1 opacity-50" />
           </a>
         ) : (
           <a
             href="/alumno/sesion/hoy"
-            class="group/btn relative inline-flex items-center justify-center p-[2px] w-full overflow-hidden rounded-[2rem] transition-all hover:scale-[1.02] active:scale-95"
+            class="industrial-button-premium group/btn"
           >
             <span class="absolute w-full h-full bg-gradient-to-br from-lime-400 via-lime-500 to-lime-600 group-hover/btn:animate-[spin_2s_linear_infinite] blur-sm opacity-90"></span>
-            <span class="relative w-full py-6 transition-all ease-in duration-75 rounded-[1.9rem] bg-zinc-950/90 flex items-center justify-center gap-4">
+            <span class="industrial-button-premium-inner bg-zinc-950/90">
               <Zap className="w-6 h-6 text-lime-400 fill-lime-400 animate-pulse" />
               <span class="uppercase tracking-[0.25em] text-lime-400 font-black text-lg drop-shadow-[0_0_10px_rgba(163,230,53,0.3)]">
                 {sesionDeHoy ? 'Continuar sesión' : 'Empezar a entrenar'}

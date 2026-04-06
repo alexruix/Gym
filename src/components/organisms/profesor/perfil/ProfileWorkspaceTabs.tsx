@@ -43,7 +43,7 @@ export function ProfileWorkspaceTabs({
         onValueChange={onTabChange}
         className="w-full"
       >
-        <div className="p-6 md:p-10 min-h-[400px]">
+        <div className="p-4 md:p-10 min-h-[400px]">
           <TabsPrimitive.Content 
             value="plan" 
             className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-top-1 duration-500"

@@ -40,11 +40,11 @@ export function AgendaStudentCard({ student, session, onViewRoutine, onChangeTur
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">
             {isCompleted ? t.completed : t.inProgress}
           </p>
-          <h3 className="font-extrabold text-lg text-zinc-900 truncate leading-tight">
+          <h3 className="font-black text-xl text-zinc-900 dark:text-zinc-50 truncate tracking-tighter leading-none">
             {student.nombre}
           </h3>
         </div>
@@ -53,16 +53,16 @@ export function AgendaStudentCard({ student, session, onViewRoutine, onChangeTur
       </div>
 
       {session?.coreExercise && (
-        <div className="mt-4 pt-4 border-t border-zinc-100 space-y-2">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+        <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-900 space-y-2">
+          <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-400">
             <Dumbbell className="w-3 h-3" />
             {t.coreLift}
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-sm font-semibold text-zinc-600">
+            <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 truncate mr-2">
               {session.coreExercise.nombre}
             </span>
-            <span className="text-xl font-black text-lime-600">
+            <span className="text-xl font-black text-lime-600 dark:text-lime-400 shrink-0">
               {session.coreExercise.peso_real || session.coreExercise.peso_target || "0"}
               <span className="text-[10px] ml-0.5 text-zinc-400">KG</span>
             </span>
@@ -70,12 +70,12 @@ export function AgendaStudentCard({ student, session, onViewRoutine, onChangeTur
         </div>
       )}
 
-      {/* Acciones Rápidas (Overlay/Reveal) */}
-      <div className="mt-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0 duration-300">
+      {/* Acciones Rápidas (Always visible on mobile to avoid friction) */}
+      <div className="mt-6 flex gap-2 sm:opacity-0 group-hover:opacity-100 transition-all sm:translate-y-1 group-hover:translate-y-0 duration-300">
         <Button 
           variant="outline" 
           size="sm" 
-          className="flex-1 h-8 rounded-xl bg-white border-zinc-200 text-[10px] font-black uppercase tracking-wider hover:bg-lime-400 hover:text-zinc-950 hover:border-lime-400 shadow-sm transition-all"
+          className="flex-1 h-10 rounded-xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase tracking-wider hover:bg-lime-400 hover:text-zinc-950 hover:border-lime-400 shadow-sm transition-all"
           onClick={() => onViewRoutine(student.id)}
         >
           {t.actions.viewRoutine}
@@ -83,7 +83,7 @@ export function AgendaStudentCard({ student, session, onViewRoutine, onChangeTur
         <Button 
           variant="outline" 
           size="icon" 
-          className="h-8 w-8 rounded-xl bg-white border-zinc-200 text-zinc-400 hover:text-zinc-900 transition-all"
+          className="h-10 w-10 rounded-xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:text-zinc-900 transition-all shrink-0"
           onClick={() => onChangeTurno(student.id)}
         >
           <MoveHorizontal className="w-4 h-4" />

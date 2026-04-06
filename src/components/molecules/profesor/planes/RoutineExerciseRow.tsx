@@ -185,7 +185,7 @@ export function RoutineExerciseRow({
       {(!readOnly && onDelete) && (
         <button 
           onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-          className="opacity-0 group-hover/ej:opacity-100 p-2.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-300 ml-2"
+          className="sm:opacity-0 group-hover/ej:opacity-100 p-2.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-300 ml-2"
           title="Eliminar de la rutina"
         >
           <Trash2 className="w-4 h-4" />

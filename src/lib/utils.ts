@@ -29,6 +29,31 @@ export function formatDateLong(date: Date | string | undefined | null): string {
 }
 
 /**
+ * Retorna tiempo relativo (Ej: "hace 5 min", "hace 1h")
+ */
+export function formatRelativeTime(date: Date | string | undefined | null): string {
+  if (!date) return "";
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return "Ahora";
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `Hace ${diffInMinutes}m`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `Hace ${diffInHours}h`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `Hace ${diffInDays}d`;
+  
+  return d.toLocaleDateString("es-AR", { day: 'numeric', month: 'short' });
+}
+
+/**
  * COPIA ROBUSTA AL PORTAPAPELES
  * Funciona en contextos seguros (HTTPS) y no seguros (HTTP/IP) mediante fallback.
  */
@@ -64,4 +89,85 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     console.error('Fallback copyToClipboard falló:', err);
     return false;
   }
+}
+
+/**
+ * Calcula la edad a partir de una fecha de nacimiento
+ */
+export function calculateAge(birthDate: Date | string | undefined | null): number | null {
+  if (!birthDate) return null;
+  const birth = typeof birthDate === 'string' ? new Date(birthDate) : birthDate;
+  if (isNaN(birth.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  
+  return age;
+}
+
+/**
+ * FORMATEADOR PARA INPUT DATE (YYYY-MM-DD)
+ * Convierte una fecha a string compatible con <input type="date" />.
+ */
+export function toInputDate(date: Date | string | undefined | null): string {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '';
+  
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * FORMATEADOR PARA INPUT TIME (HH:mm)
+ * Extrae la hora en formato 24hs para <input type="time" />.
+ */
+export function toInputTime(date: Date | string | undefined | null): string {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '';
+  
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  
+  return `${hours}:${minutes}`;
+}
+
+/**
+ * FORMATEADOR DE FECHAS LATAM (es-AR)
+ * Evita el bug de zona horaria y devuelve un string legible.
+ */
+export function formatDateLatam(dateString: string | Date | undefined | null, style: 'short' | 'long' | 'full' = 'long'): string {
+  if (!dateString) return "";
+  
+  // 1. Normalizar entrada a string YYYY-MM-DD para evitar el bug de zona horaria de JS
+  let dateToProcess = "";
+  if (dateString instanceof Date) {
+    dateToProcess = dateString.toISOString().split('T')[0];
+  } else {
+    dateToProcess = dateString.split('T')[0];
+  }
+
+  const parts = dateToProcess.split("-").map(Number);
+  if (parts.length < 3) return "";
+
+  const [year, month, day] = parts;
+  const localDate = new Date(year, month - 1, day);
+
+  // 2. Formateador nativo para Argentina
+  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: style === 'short' ? 'short' : 'long' };
+  
+  if (style === 'full') {
+      options.year = 'numeric'; // "12 de marzo de 2026"
+  }
+
+  return new Intl.DateTimeFormat('es-AR', options).format(localDate);
 }

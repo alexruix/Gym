@@ -49,7 +49,7 @@ export function IndustrialTabs({
                 key={tab.value}
                 value={tab.value}
                 className={cn(
-                  "relative px-6 py-4 text-[10px] font-black uppercase tracking-[0.15em] transition-all outline-none group",
+                  "relative px-6 py-4 industrial-label tracking-[0.15em] transition-all outline-none group",
                   isActive 
                     ? "text-zinc-950 dark:text-white" 
                     : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"

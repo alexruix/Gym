@@ -84,7 +84,8 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
       }
     }, {
       loadingMsg: values.id ? "Guardando cambios..." : "Creando ejercicio...",
-      successMsg: values.id ? "Cambios guardados correctamente" : copy.messages.success,
+      // Si el action devuelve un mensaje, useAsyncAction suele mostrarlo. 
+      // Si no, usamos estos por defecto.
       successHref: successHref
     });
   };
@@ -133,6 +134,21 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
   return (
     <Form {...(form as any)}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {/* Warning de Forking para Ejercicios Base de Sistema */}
+        {initialValues?.id && (initialValues as any).profesor_id === null && (
+          <div className="p-4 rounded-2xl bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-500 shadow-xl border border-white/10">
+            <div className="mt-1 bg-lime-400 p-1.5 rounded-lg shrink-0">
+               <ArrowLeft className="w-4 h-4 text-zinc-900 rotate-90" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-black uppercase tracking-widest leading-none">Ejercicio de sistema</p>
+              <p className="text-[13px] font-medium opacity-80 leading-snug">
+                Este ejercicio pertenece a la biblioteca MiGym. Al guardarlo, se creará una **copia privada** en tu lista para que puedas personalizarlo sin afectar el original.
+              </p>
+            </div>
+          </div>
+        )}
+
         <FormField
           control={form.control as any}
           name="nombre"

@@ -29,40 +29,40 @@ if (alumno?.plan_id) {
     <div class="absolute top-1/2 -right-32 w-[600px] h-[600px] bg-fuchsia-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
     <header class="flex justify-between items-center mb-12 relative z-10 w-full max-w-lg mx-auto">
-      <div>
-        <h1 class="text-3xl font-black tracking-tighter">
-          HOLA, <span class="text-lime-500 uppercase">{alumno?.nombre?.split(' ')[0] || 'Alumno'}</span>
+      <div class="flex flex-col">
+        <h1 class="industrial-title-xl">
+          HOLA, <span class="text-lime-500">{alumno?.nombre?.split(' ')[0] || 'Alumno'}</span>
         </h1>
       </div>
       
       <form action="/api/auth/signout" method="POST">
-        <button type="submit" class="p-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-full transition-all text-zinc-400 hover:text-white group">
-          <LogOut className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+        <button type="submit" class="industrial-button-muted">
+          <LogOut className="w-5 h-5" />
         </button>
       </form>
     </header>
 
     <main class="flex-1 flex flex-col items-center justify-center w-full max-w-lg mx-auto relative z-10">
       
-      <div class="w-24 h-24 bg-zinc-900 border border-zinc-800 rounded-[2rem] flex items-center justify-center mb-8 relative animate-pulse">
-        <div class="absolute inset-0 border-2 border-lime-500/50 rounded-[2rem] animate-[spin_4s_linear_infinite]"></div>
+      <div class="industrial-card w-24 h-24 bg-zinc-900 border-zinc-800 flex items-center justify-center p-0 mb-8 relative animate-pulse group">
+        <div class="absolute inset-0 border-2 border-lime-500/50 rounded-[2.5rem] animate-[spin_4s_linear_infinite]"></div>
         <Clock className="w-10 h-10 text-lime-400 opacity-80" />
       </div>
 
-      <h2 class="text-4xl font-black text-center mb-4 tracking-tighter">
+      <h2 class="industrial-title-xl text-center mb-4">
         SALA DE ESPERA
       </h2>
       
-      <p class="text-zinc-400 text-center mb-12 font-medium max-w-[280px] leading-relaxed">
+      <p class="industrial-description text-center mb-12 max-w-[280px]">
         Tu profesor está armando los hierros. Aún no tienes una rutina asignada para destrozar.
       </p>
 
-      <button onclick="window.location.reload();" class="w-full bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors active:scale-95">
+      <button onclick="window.location.reload();" class="w-full bg-white hover:bg-zinc-200 text-black industrial-label py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors active:scale-95 text-base">
         <Dumbbell className="w-5 h-5" />
         Consultar de nuevo
       </button>
 
-      <p class="text-xs text-zinc-600 font-bold uppercase tracking-widest mt-8 text-center">
+      <p class="industrial-metadata mt-8 text-center px-4">
         Avisale a tu profe por WhatsApp que ya bajaste la web
       </p>
 

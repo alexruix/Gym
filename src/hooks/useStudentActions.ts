@@ -98,24 +98,25 @@ export function useStudentActions() {
     const archiveStudent = async (studentId: string, options?: ArchiveOptions) => {
         setIsArchiving(true);
         try {
-            const { error } = await actions.profesor.deleteStudent({ id: studentId });
+            const { data, error } = await actions.profesor.deleteStudent({ id: studentId });
             
             if (error) {
-                toast.error("No pudimos archivar al alumno, intentá de nuevo");
+                toast.error(error.message || "No pudimos procesar la solicitud, intentá de nuevo");
                 if (options?.onError) options.onError(error);
                 return { success: false };
             }
             
             if (options?.onSuccess) options.onSuccess();
-            return { success: true };
+            return { success: true, data };
         } catch (error) {
-            toast.error("Error de conexión al archivar");
+            toast.error("Error de conexión al procesar");
             if (options?.onError) options.onError(error);
             return { success: false };
         } finally {
             setIsArchiving(false);
         }
     };
+
 
     return {
         isArchiving,

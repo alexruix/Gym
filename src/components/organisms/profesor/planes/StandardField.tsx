@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
 
@@ -20,10 +20,10 @@ export function StandardField({
   return (
     <FormItem className={cn("space-y-3 animate-in fade-in slide-in-from-left-4 duration-500", className)}>
       <div className="flex items-center justify-between px-1">
-        <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+        <FormLabel className="industrial-label">
           {label} {required && <span className="text-red-500">*</span>}
         </FormLabel>
-        <FormMessage className="text-[9px] font-black uppercase text-red-500 animate-pulse m-0" />
+        <FormMessage className="industrial-metadata text-red-500 animate-pulse m-0" />
       </div>
       <div className={cn(
         "relative transition-all duration-300",

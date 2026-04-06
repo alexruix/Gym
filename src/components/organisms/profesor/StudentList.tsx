@@ -6,7 +6,7 @@ import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge
 import { toast } from "sonner";
 import { actions } from "astro:actions";
 import { StandardTable, type TableColumn } from "@/components/organisms/StandardTable";
-import { copyToClipboard } from "@/lib/utils";
+import { copyToClipboard, calculateAge } from "@/lib/utils";
 import { DashboardConsole } from "@/components/molecules/profesor/DashboardConsole";
 import { StudentCompactCard } from "@/components/molecules/profesor/planes/StudentCompactCard";
 import { ResourceActionMenu } from "@/components/molecules/profesor/core/ResourceActionMenu";
@@ -22,6 +22,7 @@ export interface Student {
   email: string;
   telefono?: string;
   notas?: string;
+  fecha_nacimiento?: string;
 }
 
 interface Props {
@@ -78,7 +79,14 @@ export function StudentList({ students }: Props) {
           <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center font-black text-zinc-500 dark:text-zinc-400 text-xs shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-all duration-300 transform group-hover:rotate-3 shadow-sm">
             {s.name.charAt(0).toUpperCase()}
           </div>
-          <span className="group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">{s.name}</span>
+          <div className="flex flex-col">
+            <span className="group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">{s.name}</span>
+            {s.fecha_nacimiento && (
+                <span className="text-[10px] text-zinc-400 font-medium">
+                    {calculateAge(s.fecha_nacimiento)} años
+                </span>
+            )}
+          </div>
         </div>
       ),
     },
@@ -165,7 +173,8 @@ export function StudentList({ students }: Props) {
                             estado: s.status,
                             telefono: s.telefono,
                             planName: s.planName,
-                            notas: s.notas
+                            notas: s.notas,
+                            fecha_nacimiento: s.fecha_nacimiento
                         }} 
                         href={`/profesor/alumnos/${s.id}`} 
                         customActions={getActions(s)}
@@ -191,14 +200,18 @@ export function StudentList({ students }: Props) {
             if (!deletingStudent) return;
             const studentId = deletingStudent.id;
             
-            await archiveStudent(studentId, {
+            const result = await archiveStudent(studentId, {
                 onSuccess: () => {
                     // Borrado Optimista (SPA reflex) tras éxito en db
                     setLocalStudents(prev => prev.filter(s => s.id !== studentId));
                     setDeletingStudent(null);
-                    toast.success("Alumno archivado");
                 }
             });
+
+            if (result?.success && result.data?.mensaje) {
+                toast.success(result.data.mensaje);
+            }
+
         }}
         title="Archivar"
         description={<>¿Estás seguro que querés archivar a <strong>{deletingStudent?.name}</strong>?</>}

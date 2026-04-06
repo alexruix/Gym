@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { MoveLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ export function BackButton({ href, label = "Volver", className }: BackButtonProp
     <a 
       href={href} 
       className={cn(
-        "inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-lime-500 transition-all group select-none",
+        "industrial-nav-link group select-none",
         className
       )}
     >

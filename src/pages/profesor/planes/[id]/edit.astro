@@ -50,12 +50,10 @@ if (error || !plan) {
   return Astro.redirect("/profesor/planes?error=not-found");
 }
 
-// 3. Fetch exercise library for the form
-const { data: exercises } = await supabase
-  .from("biblioteca_ejercicios")
-  .select("id, nombre, media_url, parent_id, is_template_base")
-  .eq("profesor_id", user.id)
-  .order("nombre", { ascending: true });
+import { actions } from "astro:actions";
+
+// 3. Fetch exercise library unificada (Personales + MiGym)
+const { data: exercises } = await Astro.callAction(actions.profesor.getExercises, {});
 
 // 4. Map DB data to Form Schema and Ensure 7 days
 const rutinasMap = new Map(plan.rutinas_diarias.map((r: any) => [r.dia_numero, r]));

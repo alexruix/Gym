@@ -20,7 +20,7 @@ const { data: exercise, error } = await supabase
   .from("biblioteca_ejercicios")
   .select("*")
   .eq("id", id)
-  .eq("profesor_id", userId)
+  .or(`profesor_id.eq.${userId},profesor_id.is.null`)
   .single();
 
 if (error || !exercise) {
@@ -35,7 +35,7 @@ if (!exercise.parent_id) {
     .from("biblioteca_ejercicios")
     .select("id, nombre")
     .eq("parent_id", exercise.id)
-    .eq("profesor_id", userId);
+    .or(`profesor_id.eq.${userId},profesor_id.is.null`);
   
   existingVariants = variants || [];
 }

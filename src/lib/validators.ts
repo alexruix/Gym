@@ -19,6 +19,8 @@ export const planSchema = z.object({
           position: z.number().int().min(0).optional().default(0),
           notas: z.string().optional(),
           peso_target: z.string().optional().default(""),
+          grupo_bloque_id: z.string().uuid().optional().nullable(),
+          grupo_nombre: z.string().optional().nullable(),
         })
       )
     })
@@ -54,6 +56,25 @@ export type ExerciseLibraryFormData = z.infer<typeof exerciseLibrarySchema> & {
   existing_variants?: { id: string, nombre: string }[];
 };
 
+// Block validation (Reusable groups of exercises)
+export const blockSchema = z.object({
+  id: z.string().uuid().optional(),
+  nombre: z.string().min(2, "Mínimo 2 caracteres").max(100, "Máximo 100 caracteres"),
+  tags: z.array(z.string()),
+  ejercicios: z.array(
+    z.object({
+      ejercicio_id: z.string().uuid(),
+      orden: z.number().int().min(0),
+      series: z.number().int().min(1),
+      reps_target: z.string().min(1),
+      descanso_seg: z.number().int().min(0),
+      notas: z.string().optional(),
+    })
+  ).min(1, "El bloque debe tener al menos 1 ejercicio"),
+});
+
+export type BlockFormData = z.infer<typeof blockSchema>;
+
 export const studentSchema = z.object({
   nombre: z.string().min(1, "Nombre requerido"),
   email: z.string().email("Email inválido"),
@@ -63,6 +84,7 @@ export const studentSchema = z.object({
   dias_asistencia: z.array(z.string()).default([]),
   fecha_inicio: z.coerce.date().default(() => new Date()),
   dia_pago: z.number().min(1).max(31).default(1),
+  fecha_nacimiento: z.coerce.date().optional().nullable(),
 });
 
 export const turnoSchema = z.object({
@@ -90,6 +112,7 @@ export const updateStudentSchema = z.object({
   notas: z.string().max(500).optional().nullable(),
   turno_id: z.string().uuid().optional().nullable(),
   dias_asistencia: z.array(z.string()).optional(),
+  fecha_nacimiento: z.coerce.date().optional().nullable(),
 });
 
 export const personalizeExerciseSchema = z.object({
@@ -160,6 +183,17 @@ export const inviteStudentSchema = z.object({
   cobrarPrimerMes: z
     .boolean()
     .default(false),
+  
+  fecha_nacimiento: z
+    .coerce.date()
+    .optional()
+    .nullable()
+    .refine((date) => {
+      if (!date) return true;
+      const minDate = new Date("1900-01-01");
+      const today = new Date();
+      return date >= minDate && date <= today;
+    }, "Fecha de nacimiento inválida"),
 });
 
 export type StudentFormData = z.infer<typeof studentSchema>;

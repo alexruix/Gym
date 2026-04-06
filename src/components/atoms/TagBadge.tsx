@@ -1,16 +1,21 @@
-﻿import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface TagBadgeProps {
   children: React.ReactNode;
   className?: string;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
-export function TagBadge({ children, className }: TagBadgeProps) {
+export function TagBadge({ children, className, onClick }: TagBadgeProps) {
   return (
-    <span className={cn(
-      "px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-[10px] font-black uppercase tracking-widest text-zinc-500 border border-zinc-200/50 dark:border-zinc-800/50 transition-colors",
-      className
-    )}>
+    <span 
+      onClick={onClick}
+      className={cn(
+        "industrial-tag-badge",
+        onClick && "cursor-pointer hover:bg-lime-400 hover:text-zinc-950 hover:border-lime-400 active:scale-95 shadow-sm",
+        className
+      )}
+    >
       {children}
     </span>
   );

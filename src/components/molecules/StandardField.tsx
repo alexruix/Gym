@@ -34,7 +34,7 @@ export function StandardField({
         <Label 
           htmlFor={id}
           className={cn(
-            "text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 select-none",
+            "industrial-label select-none",
             error && "text-red-500"
           )}
         >
@@ -42,7 +42,7 @@ export function StandardField({
         </Label>
         
         {hint && !error && (
-          <span className="text-[10px] font-bold text-zinc-400/60 uppercase tracking-wider">
+          <span className="industrial-metadata">
             {hint}
           </span>
         )}
@@ -54,7 +54,7 @@ export function StandardField({
 
       {error && (
         <p 
-          className="text-[10px] font-bold text-red-500 uppercase tracking-widest px-1 animate-in fade-in slide-in-from-top-1 duration-200"
+          className="industrial-metadata text-red-500 px-1 animate-in fade-in slide-in-from-top-1 duration-200"
           role="alert"
         >
           {error}

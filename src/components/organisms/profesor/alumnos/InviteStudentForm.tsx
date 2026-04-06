@@ -6,7 +6,7 @@ import { inviteStudentSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { inviteStudentCopy } from "@/data/es/profesor/alumnos";
 import { toast } from "sonner";
-import { Copy, ArrowRight, CircleCheck, Calendar, Phone, Plus, UserCircle2, Briefcase, Info, Loader2 } from "lucide-react";
+import { Copy, ArrowRight, CircleCheck, Calendar as CalendarIcon, Phone, Plus, UserCircle2, Briefcase, Info, Loader2 } from "lucide-react";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useStudentActions } from "@/hooks/useStudentActions";
@@ -37,9 +37,10 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 
+import { cn, toInputDate, formatDateLatam } from "@/lib/utils";
 import { StandardField } from "@/components/molecules/StandardField";
 import { QuickOptionsGroup } from "@/components/molecules/QuickOptionsGroup";
-import { cn, formatDateLong } from "@/lib/utils";
+import { DatePicker } from "@/components/molecules/profesor/core/DatePicker";
 
 import { DaySelector } from "@/components/atoms/profesor/DaySelector";
 import { Clock } from "lucide-react";
@@ -114,7 +115,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                     id: result.student_id,
                     email: data.email,
                     name: data.nombre.split(" ")[0] || data.nombre,
-                    date: formatDateLong(data.fecha_inicio),
+                    date: formatDateLatam(data.fecha_inicio),
                     phone: data.telefono
                 });
             }
@@ -155,14 +156,14 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                 >
                     {/* GRUPO 1: IDENTIDAD */}
                     <div className="space-y-6">
-                        <div className="flex items-center gap-2 px-1 text-zinc-400">
+                        <div className="industrial-section-header">
                             <UserCircle2 className="w-4 h-4" />
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">
+                            <h3 className="industrial-label">
                                 {inviteStudentCopy.sections.basicInfo}
                             </h3>
                         </div>
 
-                        <div className="bg-zinc-50/50 dark:bg-zinc-900/20 p-6 sm:p-8 rounded-[2rem] border border-zinc-100 dark:border-zinc-900/50 space-y-6 transition-all hover:bg-white dark:hover:bg-zinc-900/40 hover:shadow-xl hover:shadow-zinc-100/50 dark:hover:shadow-none duration-500">
+                        <div className="industrial-section-container space-y-6">
                             <div className="grid gap-6 sm:grid-cols-2">
                                 <FormField
                                     control={form.control}
@@ -214,20 +215,42 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                         </StandardField>
                                     )}
                                 />
+
+                                <FormField
+                                    control={form.control}
+                                    name="fecha_nacimiento"
+                                    render={({ field, fieldState }) => (
+                                            <StandardField
+                                                label={inviteStudentCopy.labels.fechaNacimiento}
+                                                error={fieldState.error?.message}
+                                                hint={inviteStudentCopy.hints.fechaNacimiento}
+                                            >
+                                                <FormControl>
+                                                    <DatePicker 
+                                                        date={field.value}
+                                                        setDate={field.onChange}
+                                                        label={inviteStudentCopy.labels.fechaNacimiento}
+                                                        placeholder="Opcional"
+                                                        error={!!fieldState.error}
+                                                    />
+                                                </FormControl>
+                                            </StandardField>
+                                    )}
+                                />
                             </div>
                         </div>
                     </div>
 
                     {/* GRUPO 2: NEGOCIO */}
                     <div className="space-y-6">
-                        <div className="flex items-center gap-2 px-1 text-zinc-400">
+                        <div className="industrial-section-header">
                             <Briefcase className="w-4 h-4" />
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">
+                            <h3 className="industrial-label">
                                 {inviteStudentCopy.sections.planAndDates}
                             </h3>
                         </div>
 
-                        <div className="bg-zinc-50/50 dark:bg-zinc-900/20 p-6 sm:p-8 rounded-[2rem] border border-zinc-100 dark:border-zinc-900/50 space-y-10 transition-all hover:bg-white dark:hover:bg-zinc-900/40 hover:shadow-xl hover:shadow-zinc-100/50 dark:hover:shadow-none duration-500">
+                        <div className="industrial-section-container">
                             <FormField
                                 control={form.control}
                                 name="plan_id"
@@ -239,9 +262,9 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                         required
                                     >
                                         <div className="space-y-4">
-                                            <Select onValueChange={field.onChange} value={field.value} key={plans.length}>
+                                    <Select onValueChange={field.onChange} value={field.value} key={plans.length}>
                                                 <FormControl>
-                                                    <SelectTrigger className="h-14 rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 font-bold">
+                                                    <SelectTrigger className="industrial-select-trigger">
                                                         <SelectValue placeholder={inviteStudentCopy.placeholders.plan} />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -254,14 +277,14 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                                         ))
                                                     ) : (
                                                         <div className="p-6 text-center space-y-4">
-                                                            <p className="text-xs font-bold text-zinc-500">No encontramos planes configurados</p>
+                                                            <p className="text-xs font-bold text-zinc-500">No encontramos planificaciones configuradas</p>
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
                                                                 className="w-full rounded-xl font-black uppercase text-[9px] tracking-widest border-zinc-200"
                                                                 onClick={() => window.location.assign("/profesor/planes/new")}
                                                             >
-                                                                Crear primer plan
+                                                                Crear primera planificación
                                                             </Button>
                                                         </div>
                                                     )}
@@ -283,7 +306,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                 )}
                             />
 
-                            <div className="grid gap-10 sm:grid-cols-2">
+                            <div className="grid gap-10 sm:grid-cols-1">
                                 <div className="grid gap-6">
                                     <FormField
                                         control={form.control}
@@ -295,31 +318,23 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                                 hint={inviteStudentCopy.hints.fechaInicio}
                                                 required
                                             >
-                                                <div className="flex gap-2">
+                                                <div className="flex gap-3">
                                                     <FormControl>
-                                                        <div className="relative flex-1 group/date">
-                                                            <input
-                                                                type="date"
-                                                                {...field}
-                                                                value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : (field.value || '')}
-                                                                onChange={(e) => field.onChange(new Date(e.target.value))}
-                                                                className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer"
-                                                            />
-                                                            <div className={cn(
-                                                                "h-14 w-full rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 flex items-center px-4 font-bold text-zinc-950 dark:text-zinc-50 group-hover/date:border-zinc-300 transition-all",
-                                                                fieldState.error && "border-red-500"
-                                                            )}>
-                                                                {field.value ? formatDateLong(field.value) : "Seleccioná fecha"}
-                                                            </div>
-                                                        </div>
+                                                        <DatePicker 
+                                                            date={field.value}
+                                                            setDate={field.onChange}
+                                                            label={inviteStudentCopy.labels.fechaInicio}
+                                                            error={!!fieldState.error}
+                                                            required
+                                                        />
                                                     </FormControl>
                                                     <Button
                                                         type="button"
                                                         variant="outline"
-                                                        className="h-14 px-4 rounded-2xl font-black uppercase text-[9px] tracking-widest text-zinc-400 hover:text-lime-600 hover:border-lime-500 transition-all active:scale-95"
-                                                        onClick={() => form.setValue("fecha_inicio", new Date(), { shouldValidate: true })}
+                                                        className="h-14 px-5 rounded-2xl font-black uppercase text-[9px] tracking-widest text-zinc-400 hover:text-lime-600 hover:border-lime-500 transition-all active:scale-95 shrink-0"
+                                                        onClick={() => field.onChange(new Date())}
                                                     >
-                                                        <Calendar className="w-4 h-4 mr-2" /> Hoy
+                                                        <CalendarIcon className="w-4 h-4 mr-2" /> {inviteStudentCopy.actions.today || "Hoy"}
                                                     </Button>
                                                 </div>
                                             </StandardField>
@@ -382,12 +397,12 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                             name="notas"
                             render={({ field, fieldState }) => (
                                 <StandardField
-                                    label={inviteStudentCopy.labels.notas}
+                                    label=""
                                     error={fieldState.error?.message}
                                 >
                                     <FormControl>
                                         <Input
-                                            placeholder="Aclaraciones internas o médicas..."
+                                            placeholder="Aclaraciones internas, médicas u objetivos del alumno..."
                                             {...field}
                                             className="h-14 rounded-2xl bg-zinc-50/30 border-zinc-100 dark:bg-zinc-900/10 focus:bg-white dark:focus:bg-zinc-950 transition-all"
                                         />

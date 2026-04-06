@@ -1,10 +1,11 @@
-﻿---
+---
 import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import { PlanForm } from "@/components/organisms/profesor/planes/PlanForm.tsx";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 
-const supabase = createSupabaseServerClient(Astro);
+import { actions } from "astro:actions";
+
 const user = Astro.locals.user;
 const userId = user?.id;
 
@@ -12,12 +13,8 @@ if (!userId) {
   return Astro.redirect("/login");
 }
 
-// Fetch exercise library
-const { data: exercises, error } = await supabase
-  .from("biblioteca_ejercicios")
-  .select("id, nombre, media_url, parent_id, is_template_base")
-  .eq("profesor_id", userId)
-  .order("nombre", { ascending: true });
+// Fetch exercise library unificada (Personales + MiGym)
+const { data: exercises, error } = await Astro.callAction(actions.profesor.getExercises, {});
 
 if (error) {
   console.error("Error cargando ejercicios:", error);

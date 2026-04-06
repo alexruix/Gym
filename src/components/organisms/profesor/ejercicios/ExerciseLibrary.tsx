@@ -11,8 +11,10 @@ import { cn } from "@/lib/utils";
 import { useDeleteWithConfirm } from "@/hooks/useDeleteWithConfirm";
 import { useUniqueTags } from "@/hooks/useUniqueTags";
 import { SplitActionButton } from "@/components/molecules/profesor/core/SplitActionButton";
+import { FilterSelect } from "@/components/molecules/FilterSelect";
 import { ImportExercisesModal } from "@/components/organisms/profesor/ejercicios/ImportExercisesModal";
 import { exerciseLibraryCopy as copy } from "@/data/es/profesor/ejercicios";
+import { Library, User } from "lucide-react";
 
 interface Exercise {
   id: string;
@@ -23,6 +25,7 @@ interface Exercise {
   tags?: string[];
   parent_id?: string | null;
   is_template_base?: boolean;
+  profesor_id?: string | null;
   created_at: string;
 }
 
@@ -33,6 +36,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
   );
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState("todos"); // 'todos' | 'migym' | 'personal'
 
   const sortOptions = [
     { label: "Categorias", value: "etiqueta-asc" },
@@ -42,6 +46,14 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
 
   const hasTagsOrCategories = useMemo(() => exercises.some(ex => ex.tags && ex.tags.length > 0), [exercises]);
   const defaultSort = hasTagsOrCategories ? "etiqueta-asc" : "nombre-asc";
+
+  // Filtrado por Origen (Pre-DashboardConsole)
+  const sourceFilteredExercises = useMemo(() => {
+    if (sourceFilter === "todos") return exercises;
+    if (sourceFilter === "migym") return exercises.filter(ex => ex.profesor_id === null);
+    if (sourceFilter === "personal") return exercises.filter(ex => ex.profesor_id !== null);
+    return exercises;
+  }, [exercises, sourceFilter]);
 
   const toggleParent = (parentId: string) => {
     const newExpanded = new Set(expandedParents);
@@ -120,7 +132,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     };
   };
 
-  const GridRenderer = ({ filtered }: { filtered: Exercise[] }) => {
+  const GridRenderer = ({ filtered, onTagClick }: { filtered: Exercise[], onTagClick?: (tag: string) => void }) => {
     const { displayParents, variantsMap } = useMemo(
         () => getGroupedExercises(filtered),
         [filtered, exercises]
@@ -134,6 +146,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
                         <div className="flex-1">
                             <ExerciseCard 
                                 exercise={parent} 
+                                onTagClick={onTagClick}
                                 onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, name: ex.nombre })}
                             />
                         </div>
@@ -157,6 +170,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
                                 <ExerciseCard 
                                     key={variant.id} 
                                     exercise={variant} 
+                                    onTagClick={onTagClick}
                                     onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, name: ex.nombre })}
                                 />
                             ))}
@@ -178,7 +192,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         }}
       />
       <DashboardConsole 
-        items={exercises}
+        items={sourceFilteredExercises}
         itemLabel="Ejercicios"
         storageKey="ejercicios"
         initialSort={defaultSort}
@@ -186,6 +200,19 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         allTags={uniqueTags}
         sortOptions={sortOptions}
         onSort={handleSort}
+        searchSuffix={
+          <FilterSelect 
+            value={sourceFilter}
+            onChange={setSourceFilter}
+            placeholder="Origen: Todos"
+            icon={Library}
+            containerClassName="w-full md:w-56"
+            options={[
+              { label: "Biblioteca MiGym", value: "migym" },
+              { label: "Mis Ejercicios", value: "personal" }
+            ]}
+          />
+        }
         renderCreateAction={() => (
           <SplitActionButton 
               createLabel={copy.list.action}
@@ -196,8 +223,13 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
           />
         )}
         emptyIcon={<Dumbbell className="w-12 h-12" />}
-        renderGrid={(filtered) => <GridRenderer filtered={filtered as Exercise[]} />}
-        renderTable={(filtered) => (
+        renderGrid={(filtered, controllers) => (
+            <GridRenderer 
+                filtered={filtered as Exercise[]} 
+                onTagClick={controllers.addTag} 
+            />
+        )}
+        renderTable={(filtered, controllers) => (
             <div className="text-center py-20 text-zinc-400 font-medium italic bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border-2 border-dashed border-zinc-100 dark:border-zinc-800">
                 La vista de tabla para ejercicios llegará pronto. <br/> Por ahora, usá la vista de grilla para gestionar tus variantes.
             </div>

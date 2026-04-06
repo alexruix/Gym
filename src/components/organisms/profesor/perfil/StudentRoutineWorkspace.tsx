@@ -661,26 +661,26 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
 
           {/* 2. MASTER PLAN BANNER (READ-ONLY) */}
           {isReadOnlyTemplate && (
-            <div className="bg-zinc-950 border border-white/5 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-8 mb-10 animate-in slide-in-from-top-4 duration-500 shadow-2xl relative overflow-hidden group">
+            <div className="bg-zinc-950 border border-white/5 rounded-[2.5rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 mb-10 animate-in slide-in-from-top-4 duration-500 shadow-2xl relative overflow-hidden group">
                <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.03] pointer-events-none" />
                <div className="flex items-center gap-6 relative z-10 text-center md:text-left flex-col md:flex-row">
-                  <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-lg shadow-zinc-950/50 shrink-0">
-                    <AlertTriangle className="w-8 h-8 text-lime-400" />
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-lg shadow-zinc-950/50 shrink-0">
+                    <AlertTriangle className="w-7 h-7 md:w-8 md:h-8 text-lime-400" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-black text-white uppercase tracking-tighter mb-1">
+                    <h4 className="text-lg md:text-xl font-black text-white uppercase tracking-tighter mb-1">
                       {workspace.routine.masterPlan.bannerTitle}
                     </h4>
-                    <p className="text-zinc-400 text-sm max-w-xl font-medium leading-relaxed">
+                    <p className="text-zinc-400 text-xs md:text-sm max-w-xl font-medium leading-relaxed">
                       {workspace.routine.masterPlan.bannerDesc}
                     </p>
                   </div>
                </div>
-               <div className="flex items-center gap-3 relative z-10 w-full md:w-auto">
+               <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10 w-full md:w-auto">
                   <Button
                     onClick={() => window.location.href = `/profesor/planes/${planData?.id}`}
                     variant="outline"
-                    className="h-12 px-6 rounded-xl border-white/10 hover:bg-white/5 text-white font-black uppercase text-[10px] tracking-widest flex-1 md:flex-none"
+                    className="h-12 px-6 rounded-xl border-white/10 hover:bg-white/5 text-white font-black uppercase text-[10px] tracking-widest w-full md:w-auto"
                   >
                     <ExternalLink className="w-3.5 h-3.5 mr-2" />
                     {workspace.routine.masterPlan.editMasterBtn}
@@ -690,7 +690,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                       const newId = await handleAutoFork();
                       if (newId) window.location.reload();
                     }}
-                    className="h-12 px-8 rounded-xl bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase text-[10px] tracking-widest flex-1 md:flex-none shadow-xl shadow-lime-500/20"
+                    className="h-12 px-8 rounded-xl bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase text-[10px] tracking-widest w-full md:w-auto shadow-xl shadow-lime-500/20"
                   >
                     {workspace.routine.masterPlan.personalizeBtn}
                   </Button>
@@ -702,44 +702,44 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
           {(planData && ((!planData.is_template || showPromotion) && !isPromotionDismissed && !isReadOnlyTemplate)) && (
             <div className="p-1 min-h-16 rounded-[2rem] bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group animate-in slide-in-from-bottom-4 duration-500">
               <div className="absolute inset-0 bg-lime-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="flex items-center gap-6 px-8 relative z-10 w-full md:w-auto">
-                <div className="w-10 h-10 rounded-2xl bg-lime-400 flex items-center justify-center shadow-lg shadow-lime-500/20 rotate-3">
+              <div className="flex items-center gap-4 md:gap-6 px-6 md:px-8 relative z-10 w-full md:w-auto text-center md:text-left flex-col md:flex-row py-4 md:py-0">
+                <div className="w-10 h-10 rounded-2xl bg-lime-400 flex items-center justify-center shadow-lg shadow-lime-500/20 rotate-3 shrink-0">
                   <Sparkles className="w-5 h-5 text-zinc-950" />
                 </div>
                 <div>
                   <p className="text-sm font-black text-white uppercase tracking-tight">
                     {planData.is_template ? "Cambios estructurales" : "Modificaste la rutina"}
                   </p>
-                  <p className="text-[10px] font-bold text-zinc-400 max-w-[280px]">
+                  <p className="text-[10px] font-bold text-zinc-400 max-w-[280px] mx-auto md:mx-0">
                     {planData.is_template 
                       ? "Para guardar estos cambios debés crear una versión personalizada para el alumno."
                       : "¿Querés guardarla como una nueva planificación para usar con otros?"}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-8 relative z-10 w-full md:w-auto">
+              <div className="flex flex-col sm:flex-row items-center gap-2 px-6 md:px-8 pb-6 md:pb-0 relative z-10 w-full md:w-auto">
                 <Button
                   variant="industrial"
                   onClick={async () => {
                     const newId = await handleAutoFork();
-                if (newId) window.location.reload();
-              }}
-              disabled={isPending}
-              className="h-10 px-8 rounded-xl bg-lime-400 hover:bg-lime-500 text-zinc-950 flex-1 md:flex-none uppercase text-[10px] font-black"
-            >
-              Guardar como nuevo plan
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsPromotionDismissed(true)}
-              disabled={isPending}
-              className="h-10 px-6 rounded-xl border-white/10 hover:bg-white/5 text-white flex-1 md:flex-none uppercase text-[10px] font-black"
-            >
-              Cancelar
-            </Button>
-          </div>
-        </div>
-      )}
+                    if (newId) window.location.reload();
+                  }}
+                  disabled={isPending}
+                  className="h-10 px-8 rounded-xl bg-lime-400 hover:bg-lime-500 text-zinc-950 w-full md:w-auto uppercase text-[10px] font-black"
+                >
+                  Guardar como nuevo plan
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPromotionDismissed(true)}
+                  disabled={isPending}
+                  className="h-10 px-6 rounded-xl border-white/10 hover:bg-white/5 text-white w-full md:w-auto uppercase text-[10px] font-black"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
 
       {/* Accordion List (PlanDetail Style) */}
       <div className="space-y-4">
@@ -777,15 +777,15 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 md:gap-6">
                   {!isReadOnlyTemplate && (
-                    <>
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
                         disabled={isPending}
                         onClick={(e) => { e.stopPropagation(); handleDuplicateDay(rutina.id); }}
-                        className="h-9 w-9 rounded-xl text-zinc-300 hover:text-lime-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 opacity-0 group-hover:opacity-100 transition-all"
+                        className="h-9 w-9 rounded-xl text-zinc-400 hover:text-lime-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all sm:opacity-0 group-hover:opacity-100"
                         title="Duplicar día"
                       >
                         <CopyIcon className="w-4 h-4" />
@@ -795,15 +795,15 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                         size="icon"
                         disabled={isPending}
                         onClick={(e) => { e.stopPropagation(); handleDeleteDay(rutina.id); }}
-                        className="h-9 w-9 rounded-xl text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-all"
+                        className="h-9 w-9 rounded-xl text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all sm:opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
-                    </>
+                    </div>
                   )}
                   <div className={cn(
-                    "w-8 h-8 rounded-lg bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all",
-                    isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
+                    "w-8 h-8 rounded-lg bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all shrink-0",
+                    isOpen ? "rotate-180 bg-zinc-950 text-white dark:bg-lime-400 dark:text-zinc-950" : "group-hover:bg-zinc-100"
                   )}>
                     <ChevronDown className="w-4 h-4" />
                   </div>

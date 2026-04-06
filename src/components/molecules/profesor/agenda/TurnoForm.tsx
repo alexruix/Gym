@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Save, Loader2, X } from "lucide-react";
 import { DaySelector } from "@/components/atoms/profesor/DaySelector";
 import { cn } from "@/lib/utils";
+import { TimeInput } from "@/components/molecules/profesor/core/TimeInput";
 
 interface TurnoFormProps {
   initialData?: {
@@ -61,22 +62,20 @@ export function TurnoForm({
           <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 px-1">
             Hora Inicio
           </Label>
-          <Input 
-            type="time"
+          <TimeInput 
             value={formData.hora_inicio} 
-            onChange={e => setFormData({...formData, hora_inicio: e.target.value})}
-            className="h-12 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl font-black text-xs"
+            onChange={val => setFormData({...formData, hora_inicio: val})}
+            className="h-12"
           />
         </div>
         <div className="space-y-3">
           <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 px-1">
             Hora Fin
           </Label>
-          <Input 
-            type="time"
+          <TimeInput 
             value={formData.hora_fin} 
-            onChange={e => setFormData({...formData, hora_fin: e.target.value})}
-            className="h-12 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl font-black text-xs"
+            onChange={val => setFormData({...formData, hora_fin: val})}
+            className="h-12"
           />
         </div>
       </div>

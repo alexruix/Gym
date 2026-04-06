@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Trash2, ChevronUp, ChevronDown, Info, Dumbbell, Layers } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown, Info, Dumbbell, Layers, Box } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ExerciseCardProps {
@@ -49,9 +49,7 @@ export function ExerciseCard({
   return (
     <Card 
       className={cn(
-          "p-6 rounded-[2rem] border-zinc-100 shadow-sm relative group bg-white dark:bg-zinc-950 dark:border-zinc-800 transition-all duration-500",
-          "hover:border-zinc-950 dark:hover:border-lime-400 hover:shadow-2xl hover:shadow-zinc-950/5",
-          "animate-in fade-in slide-in-from-bottom-2",
+          "industrial-card-md group",
           rotationActive && "border-lime-500/30 bg-lime-500/[0.02]"
       )}
     >
@@ -60,7 +58,7 @@ export function ExerciseCard({
         <button 
             type="button"
             onClick={() => removeExercise(routineIdx, exerciseIdx)} 
-            className="absolute -top-3 -right-3 p-3 bg-white dark:bg-zinc-950 text-red-500 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-red-500/10 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 z-20"
+            className="absolute -top-3 -right-3 p-3 bg-white dark:bg-zinc-950 text-red-500 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-red-500/10 hover:bg-red-500 hover:text-white transition-all sm:opacity-0 group-hover:opacity-100 z-20"
             title="Quitar ejercicio"
         >
             <Trash2 className="w-4 h-4" />
@@ -70,18 +68,18 @@ export function ExerciseCard({
       <div className="flex items-center gap-6">
         {/* Reordering Controls (Only if onMove exists & NOT readOnly) */}
         {(onMove && !readOnly) && (
-          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex flex-col gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
             <button 
               disabled={isFirst}
               onClick={() => onMove("up")}
-              className="p-1.5 text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors"
+              className="p-1.5 text-ui-muted hover:text-lime-500 disabled:opacity-0 transition-colors"
             >
               <ChevronUp className="w-4 h-4" />
             </button>
             <button 
               disabled={isLast}
               onClick={() => onMove("down")}
-              className="p-1.5 text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors"
+              className="p-1.5 text-ui-muted hover:text-lime-500 disabled:opacity-0 transition-colors"
             >
               <ChevronDown className="w-4 h-4" />
             </button>
@@ -107,6 +105,11 @@ export function ExerciseCard({
               <h5 className="font-black text-xl text-zinc-950 dark:text-zinc-50 tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate">
                 {getExerciseName(ejId)}
               </h5>
+              {ex.grupo_nombre && (
+                <span className="industrial-label mt-1 flex items-center gap-1.5 opacity-70">
+                  <Box className="w-3 h-3 text-lime-500" /> {ex.grupo_nombre}
+                </span>
+              )}
               
               {rotationActive && (
                 <span className="flex items-center gap-1.5 px-3 py-1 bg-lime-400/10 text-lime-600 dark:text-lime-400 text-[8px] font-black uppercase tracking-widest rounded-full border border-lime-400/20">
@@ -121,7 +124,7 @@ export function ExerciseCard({
                 <button 
                   type="button"
                   onClick={onSwap}
-                  className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+                  className="flex items-center gap-2 industrial-label text-[9px] hover:text-lime-500 transition-colors"
                 >
                   <Info className="w-3 h-3" />
                   Intercambiar Variación
@@ -132,7 +135,7 @@ export function ExerciseCard({
                 <button 
                   type="button"
                   onClick={() => onEditRotation(routineIdx, exerciseIdx)}
-                  className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+                  className="flex items-center gap-2 industrial-label text-[9px] hover:text-lime-500 transition-colors"
                 >
                   <Layers className="w-3 h-3" />
                   {rotationActive ? "Gestionar Rotación" : "Añadir Rotación"}

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
 import { planSchema } from "@/lib/validators";
 import { planesCopy } from "@/data/es/profesor/planes";
+import { blocksCopy } from "@/data/es/profesor/ejercicios";
 import { toast } from "sonner";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 
@@ -13,6 +14,7 @@ interface Exercise {
     media_url: string | null;
     parent_id?: string | null;
     is_template_base?: boolean;
+    profesor_id?: string | null;
 }
 
 interface UsePlanFormProps {
@@ -27,6 +29,8 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
     const [rotationEditing, setRotationEditing] = useState<{ routineIdx: number; exerciseIdx: number } | null>(null);
     const [currentWeek, setCurrentWeek] = useState(1);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isBlockSearchOpen, setIsBlockSearchOpen] = useState(false);
+    const [isAddElementOpen, setIsAddElementOpen] = useState(false);
     const [isBulkOpen, setIsBulkOpen] = useState(false);
     
     // Undo Support
@@ -129,7 +133,7 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         const routineIdx = activeDiaAbsoluto - 1;
         const currentExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`) || [];
         
-        // FIX CRÍTICO: Usamos un entero de 9 dígitos para evitar el Integer Overflow en la DB (Límite 2.1B)
+        // FIX CRÃ TICO: Usamos un entero de 9 dÃgitos para evitar el Integer Overflow en la DB (LÃmite 2.1B)
         const position = Math.floor(Math.random() * 1000000000);
         
         const newExercise = {
@@ -145,6 +149,60 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         
         form.setValue(`rutinas.${routineIdx}.ejercicios`, [...currentExercises, newExercise]);
         setIsSearchOpen(false);
+    };
+
+    const addBlockToRoutine = (block: any) => {
+        const routineIdx = activeDiaAbsoluto - 1;
+        const currentExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`) || [];
+        
+        const newExercises = (block.bloques_ejercicios || []).map((item: any, idx: number) => ({
+            ejercicio_id: item.ejercicio_id,
+            series: item.series,
+            reps_target: item.reps_target,
+            descanso_seg: item.descanso_seg,
+            orden: currentExercises.length + idx,
+            exercise_type: "base" as const,
+            position: Math.floor(Math.random() * 1000000000),
+            peso_target: "",
+            grupo_bloque_id: block.id,
+            grupo_nombre: block.nombre
+        }));
+        
+        form.setValue(`rutinas.${routineIdx}.ejercicios`, [...currentExercises, ...newExercises]);
+        setIsBlockSearchOpen(false);
+        toast.success(`Bloque "${block.nombre}" importado`);
+    };
+
+    const saveDayAsBlock = async () => {
+        const routineIdx = activeDiaAbsoluto - 1;
+        const routineExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`) || [];
+        
+        if (routineExercises.length === 0) {
+            toast.error("El día no tiene ejercicios para guardar");
+            return;
+        }
+
+        const blockName = window.prompt("Nombre del bloque:", `Bloque Día ${activeDiaAbsoluto}`);
+        if (!blockName) return;
+
+        await execute(async () => {
+            const payload = {
+                nombre: blockName,
+                ejercicios: routineExercises.map((ex: any, idx: number) => ({
+                    ejercicio_id: ex.ejercicio_id,
+                    orden: idx,
+                    series: ex.series,
+                    reps_target: ex.reps_target,
+                    descanso_seg: ex.descanso_seg,
+                    notas: ex.notas
+                }))
+            };
+
+            const { data, error } = await actions.profesor.createBlock(payload);
+            if (error) throw error;
+        }, {
+            successMsg: blocksCopy.form.messages.success
+        });
     };
 
     const removeExercise = (ri: number, ei: number) => {
@@ -182,7 +240,13 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
     };
 
     const handleExerciseCreated = (newEx: any) => {
-        setLocalLibrary(prev => [{ id: newEx.id, nombre: newEx.nombre, media_url: newEx.media_url || null }, ...prev]); 
+        // Al crearse inline, el profesor_id será el del usuario actual (no null)
+        setLocalLibrary(prev => [{ 
+            id: newEx.id, 
+            nombre: newEx.nombre, 
+            media_url: newEx.media_url || null,
+            profesor_id: "user_owned" // Marcamos como propio para que el filtro "Míos" lo capture
+        }, ...prev]); 
         addExercise(newEx.id); 
     };
 
@@ -227,6 +291,10 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         localLibrary,
         isSearchOpen,
         setIsSearchOpen,
+        isBlockSearchOpen,
+        setIsBlockSearchOpen,
+        isAddElementOpen,
+        setIsAddElementOpen,
         isBulkOpen,
         setIsBulkOpen,
         rotationEditing,
@@ -234,6 +302,8 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         actions: {
             onSubmit: form.handleSubmit(onSubmit),
             addExercise,
+            addBlockToRoutine,
+            saveDayAsBlock,
             removeExercise,
             handleDuplicateMulti,
             handleExerciseCreated,

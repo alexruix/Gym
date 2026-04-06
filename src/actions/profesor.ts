@@ -2,7 +2,8 @@ import { z } from "zod";
 import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { planSchema, studentSchema, updateStudentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema, turnoSchema, bulkAssignSchema } from "@/lib/validators";
+import { planSchema, studentSchema, updateStudentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema, turnoSchema, bulkAssignSchema, blockSchema } from "@/lib/validators";
+import { baseExercises } from "@/data/es/profesor/biblioteca-base";
 
 export const profesorActions = {
   createExercise: defineAction({
@@ -68,18 +69,52 @@ export const profesorActions = {
 
       const normalizedTags = Array.from(new Set((input.tags || []).map(t => t.toLowerCase().trim()))).slice(0, 6);
 
+      // 1. Verificar propiedad y si es un ejercicio base
+      const { data: existing } = await supabase
+        .from("biblioteca_ejercicios")
+        .select("profesor_id, is_template_base")
+        .eq("id", input.id)
+        .single();
+
+      if (!existing) throw new Error("Ejercicio no encontrado");
+
+      // LOGICA DE FORKING: Si no es el dueño, CREAR COPIA (INSERT)
+      if (existing.profesor_id !== user.id) {
+        const { data: fork, error: forkError } = await supabase
+          .from("biblioteca_ejercicios")
+          .insert({
+            profesor_id: user.id,
+            parent_id: input.id, // Vinculamos al original
+            nombre: input.nombre,
+            descripcion: input.descripcion || null,
+            media_url: input.media_url || null,
+            tags: normalizedTags,
+            is_template_base: false, // Las copias ya no son base de sistema
+          })
+          .select()
+          .single();
+
+        if (forkError || !fork) throw new Error(`Error al crear copia personal: ${forkError?.message}`);
+        
+        return {
+          success: true,
+          exercise_id: fork.id,
+          mensaje: `✅ Se creó una copia privada de "${input.nombre}"`,
+        };
+      }
+
+      // Si es el dueño, UPDATE normal
       const { data: exercise, error } = await supabase
         .from("biblioteca_ejercicios")
         .update({
-          parent_id: input.parent_id || null,
           nombre: input.nombre,
           descripcion: input.descripcion || null,
           media_url: input.media_url || null,
           tags: normalizedTags,
-          is_template_base: !input.parent_id, // Recalcular jerarquía al editar
+          is_template_base: !input.parent_id, 
         })
         .eq("id", input.id)
-        .eq("profesor_id", user.id) // Seguridad: solo el dueño puede editar
+        .eq("profesor_id", user.id)
         .select()
         .single();
 
@@ -113,6 +148,142 @@ export const profesorActions = {
         mensaje: "✅ Ejercicio eliminado correctamente",
       };
     },
+  }),
+
+  getBlocks: defineAction({
+    accept: "json",
+    handler: async (_, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { data, error } = await supabase
+        .from("bloques")
+        .select(`
+          *,
+          bloques_ejercicios (
+            *,
+            biblioteca_ejercicios (
+              nombre,
+              media_url
+            )
+          )
+        `)
+        .eq("profesor_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw new Error(`Error al obtener bloques: ${error.message}`);
+      return data || [];
+    }
+  }),
+
+  createBlock: defineAction({
+    accept: "json",
+    input: blockSchema,
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+
+      try {
+        // Fetch exercise tags to improve auto-tagging
+        const { data: exerciseTags, error: tagFetchError } = await supabase
+          .from("biblioteca_ejercicios")
+          .select("tags")
+          .in("id", input.ejercicios.map(e => e.ejercicio_id));
+
+        if (tagFetchError) console.warn("[createBlock] Error fetching tags:", tagFetchError);
+
+        const allExerciseTags = (exerciseTags?.flatMap(et => et.tags || []) || []).map(t => t.toLowerCase());
+
+        // Auto-tagging logic
+        const autoTags = new Set<string>(input.tags || []);
+        const lowerNombre = input.nombre.toLowerCase();
+        
+        const containsWarmupKeywords = lowerNombre.includes("calentamiento") || lowerNombre.includes("entrada") || lowerNombre.includes("movilidad") || allExerciseTags.some(t => t.includes("entrada") || t.includes("movilidad") || t.includes("warmup"));
+        if (containsWarmupKeywords) autoTags.add("Warmup");
+
+        const containsFuerzaKeywords = lowerNombre.includes("fuerza") || lowerNombre.includes("hipertrofia") || allExerciseTags.some(t => t.includes("fuerza") || t.includes("hipertrofia"));
+        if (containsFuerzaKeywords) autoTags.add("Fuerza");
+
+        const containsFinisherKeywords = lowerNombre.includes("finisher") || lowerNombre.includes("quemador") || allExerciseTags.some(t => t.includes("finisher"));
+        if (containsFinisherKeywords) autoTags.add("Finisher");
+
+        const { data: block, error: blockError } = await supabase
+          .from("bloques")
+          .insert({
+            profesor_id: user.id,
+            nombre: input.nombre,
+            tags: Array.from(autoTags),
+          })
+          .select()
+          .single();
+
+        if (blockError || !block) {
+          console.error("[createBlock] Block Insert Error:", blockError);
+          throw new ActionError({ 
+            code: "BAD_REQUEST", 
+            message: `Error al crear bloque: ${blockError?.message || "Registro fallido"}` 
+          });
+        }
+
+        const items = input.ejercicios.map((e, idx) => ({
+          bloque_id: block.id,
+          ejercicio_id: e.ejercicio_id,
+          orden: e.orden ?? idx,
+          series: e.series,
+          reps_target: e.reps_target,
+          descanso_seg: e.descanso_seg,
+          notas: e.notas || null
+        }));
+
+        const { error: itemsError } = await supabase
+          .from("bloques_ejercicios")
+          .insert(items);
+
+        if (itemsError) {
+          console.error("[createBlock] Items Insert Error:", itemsError);
+          // Rollback block if items fail
+          await supabase.from("bloques").delete().eq("id", block.id);
+          throw new ActionError({ 
+            code: "BAD_REQUEST", 
+            message: `Error al guardar ejercicios del bloque: ${itemsError.message}` 
+          });
+        }
+
+        return {
+          success: true,
+          block_id: block.id,
+          mensaje: `✅ Bloque "${block.nombre}" creado exitosamente`,
+        };
+      } catch (e: any) {
+        if (e instanceof ActionError) throw e;
+        console.error("[createBlock] Unexpected Error:", e);
+        throw new ActionError({ 
+          code: "INTERNAL_SERVER_ERROR", 
+          message: e.message || "Ocurrió un error inesperado al procesar el bloque." 
+        });
+      }
+    }
+  }),
+
+  deleteBlock: defineAction({
+    accept: "json",
+    input: z.object({ id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { error } = await supabase
+        .from("bloques")
+        .delete()
+        .eq("id", input.id)
+        .eq("profesor_id", user.id);
+
+      if (error) throw new Error(`Error al eliminar bloque: ${error.message}`);
+      return { success: true, mensaje: "✅ Bloque eliminado correctamente" };
+    }
   }),
   createPlan: defineAction({
     accept: "json",
@@ -339,29 +510,63 @@ export const profesorActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { error } = await supabase
+      // 1. Verificar si el alumno tiene plan (rutina activa)
+      const { data: student, error: fetchError } = await supabase
         .from("alumnos")
-        .update({ 
-            deleted_at: new Date().toISOString(),
-            estado: 'archivado'
-        })
+        .select("id, plan_id")
         .eq("id", input.id)
-        .eq("profesor_id", user.id);
+        .eq("profesor_id", user.id)
+        .single();
 
-      if (error) {
-        console.error("[Action: deleteStudent] Error:", error);
-        throw new ActionError({ 
-            code: "INTERNAL_SERVER_ERROR", 
-            message: `Error al archivar alumno: ${error.message}` 
-        });
+      if (fetchError || !student) {
+        console.error("[Action: deleteStudent] Fetch Error:", fetchError);
+        throw new ActionError({ code: "NOT_FOUND", message: "Alumno no encontrado" });
       }
 
-      return {
-        success: true,
-        mensaje: "Alumno archivado",
-      };
+      // 2. Ejecutar borrado o archivado
+      if (!student.plan_id) {
+        // CASO A: Sin rutina activa -> Borrado físico (Hard Delete)
+        const { error: deleteError } = await supabase
+          .from("alumnos")
+          .delete()
+          .eq("id", input.id)
+          .eq("profesor_id", user.id);
+
+        if (deleteError) {
+          console.error("[Action: deleteStudent] Hard Delete Error:", deleteError);
+          throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: `Error al eliminar alumno: ${deleteError.message}` });
+        }
+
+        return {
+          success: true,
+          mensaje: "Alumno eliminado por completo",
+          type: 'deleted'
+        };
+      } else {
+        // CASO B: Con rutina activa -> Archivada (Soft Delete)
+        const { error: archiveError } = await supabase
+          .from("alumnos")
+          .update({ 
+            deleted_at: new Date().toISOString(),
+            estado: 'archivado'
+          })
+          .eq("id", input.id)
+          .eq("profesor_id", user.id);
+
+        if (archiveError) {
+          console.error("[Action: deleteStudent] Archive Error:", archiveError);
+          throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: `Error al archivar alumno: ${archiveError.message}` });
+        }
+
+        return {
+          success: true,
+          mensaje: "Alumno archivado",
+          type: 'archived'
+        };
+      }
     },
   }),
+
 
   getTurnos: defineAction({
     accept: "json",
@@ -534,6 +739,7 @@ export const profesorActions = {
             monto: input.monto || null,
             notas: input.notas || null,
             dias_asistencia: input.dias_asistencia || [],
+            fecha_nacimiento: input.fecha_nacimiento ? input.fecha_nacimiento.toISOString().split('T')[0] : null,
             estado: 'activo'
           })
           .select()
@@ -735,6 +941,7 @@ export const profesorActions = {
       if (input.notas !== undefined) updateData.notas = input.notas;
       if (input.turno_id !== undefined) updateData.turno_id = input.turno_id;
       if (input.dias_asistencia !== undefined) updateData.dias_asistencia = input.dias_asistencia;
+      if (input.fecha_nacimiento !== undefined) updateData.fecha_nacimiento = input.fecha_nacimiento ? input.fecha_nacimiento.toISOString().split('T')[0] : null;
 
       const { data: student, error } = await supabase
         .from("alumnos")
@@ -904,8 +1111,128 @@ export const profesorActions = {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
-      const { data } = await supabase.from("biblioteca_ejercicios").select("id, nombre, media_url").eq("profesor_id", user.id).order("nombre");
-      return data;
+
+      // SILENT SEEDING & SMART SYNC (Sincronización Inteligente)
+      // Mantenemos el archivo TS como Single Source of Truth
+      const { data: systemItems, error: fetchError } = await supabaseAdmin
+        .from("biblioteca_ejercicios")
+        .select("*")
+        .is("profesor_id", null);
+
+      if (fetchError) console.error("[Smart Sync: Fetch Error]", fetchError.message);
+
+      const dbMap = new Map((systemItems || []).map(item => [item.nombre, item]));
+      let needsSync = false;
+
+      // Determinamos si hay cambios reales para evitar escrituras innecesarias
+      for (const ex of baseExercises) {
+        const dbEx = dbMap.get(ex.nombre);
+        if (!dbEx) { needsSync = true; break; }
+        
+        // Comparación de campos básicos
+        if (
+          dbEx.descripcion !== (ex.descripcion || null) ||
+          dbEx.media_url !== (ex.media_url || null) ||
+          JSON.stringify(dbEx.tags?.sort()) !== JSON.stringify([...(ex as any).tags || []].sort())
+        ) {
+          needsSync = true;
+          break;
+        }
+
+        // Si es padre, verificamos si sus hijos en DB coinciden con los del archivo
+        if (dbEx.is_template_base && (ex as any).variants) {
+          const dbVariantsCount = (systemItems || []).filter(v => v.parent_id === dbEx.id).length;
+          if (dbVariantsCount !== (ex as any).variants.length) {
+            needsSync = true;
+            break;
+          }
+        }
+      }
+
+      if (needsSync || (systemItems || []).length === 0) {
+        console.log("[Smart Sync] Sincronizando biblioteca base de MiGym...");
+        
+        for (const ex of baseExercises) {
+           const { variants, ...parentData } = (ex as any);
+           const dbEx = dbMap.get(ex.nombre);
+
+           let parentId = dbEx?.id;
+
+           // INSERT O UPDATE DEL PADRE
+           if (!dbEx) {
+             const { data: newP, error: pError } = await supabaseAdmin
+               .from("biblioteca_ejercicios")
+               .insert({ ...parentData, profesor_id: null, is_template_base: true })
+               .select("id")
+               .single();
+             if (pError) { console.error(`[Sync] Error insertando "${ex.nombre}":`, pError.message); continue; }
+             parentId = newP.id;
+           } else {
+             // Update si hay cambios detectados
+             const { error: upError } = await supabaseAdmin
+               .from("biblioteca_ejercicios")
+               .update({ ...parentData })
+               .eq("id", dbEx.id);
+             if (upError) console.error(`[Sync] Error actualizando "${ex.nombre}":`, upError.message);
+           }
+
+           // SINCRONIZACIÓN DE VARIANTES (Hijos)
+           if (variants && variants.length > 0 && parentId) {
+             // Obtenemos variantes actuales en DB para este padre
+             const currentVariants = (systemItems || []).filter(v => v.parent_id === parentId);
+             const variantNames = new Set(variants as string[]);
+
+             // Insertar nuevas variantes
+             const toInsert = (variants as string[]).filter(vName => !currentVariants.some(cv => cv.nombre === vName));
+             if (toInsert.length > 0) {
+               await supabaseAdmin.from("biblioteca_ejercicios").insert(
+                 toInsert.map(vName => ({
+                   nombre: vName,
+                   parent_id: parentId,
+                   profesor_id: null,
+                   is_template_base: false,
+                   tags: parentData.tags || []
+                 }))
+               );
+             }
+
+             // Limpieza opcional: si una variante ya no está en el archivo, se podría borrar
+             // (pero por seguridad y para evitar IDs rotos en planes, no borramos automáticamente aquí)
+           }
+        }
+        console.log("[Smart Sync] ¡Biblioteca base sincronizada!");
+      }
+
+      // FETCH UNIFICADO: Propios + Base
+      const { data: rawData, error } = await supabase
+        .from("biblioteca_ejercicios")
+        .select("*")
+        .or(`profesor_id.eq.${user.id},profesor_id.is.null`) // Cambiado para incluir variantes públicas
+        .order("nombre", { ascending: true });
+
+      if (error) throw new Error(`Error al obtener ejercicios: ${error.message}`);
+      if (!rawData) return [];
+
+      // Filtro de integridad: Mantenemos solo los ejercicios públicos que coinciden con el archivo actual
+      // (Prevenimos mostrar "Zombies" de ejercicios renombrados)
+      const validSystemNames = new Set(baseExercises.map(ex => ex.nombre));
+      
+      const filteredData = rawData.filter(item => {
+        // Los ejercicios del usuario siempre se muestran
+        if (item.profesor_id !== null) return true;
+        
+        // Para ítems públicos (null):
+        if (!item.parent_id) {
+          // Si es un padre, debe existir en el archivo biblioteca-base.ts
+          return validSystemNames.has(item.nombre);
+        } else {
+          // Si es un hijo, su padre debe tener un nombre válido en el archivo
+          const parent = rawData.find(p => p.id === item.parent_id);
+          return parent && validSystemNames.has(parent.nombre);
+        }
+      });
+
+      return filteredData;
     },
   }),
 
@@ -1358,6 +1685,71 @@ export const profesorActions = {
         success: true,
         mensaje: "¡Listo! Ya sumaste a los chicos al turno correspondiente.",
       };
+    },
+  }),
+
+  // =============================================
+  // NOTIFICACIONES
+  // =============================================
+
+  getNotifications: defineAction({
+    accept: "json",
+    handler: async (_, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { data, error } = await supabase
+        .from("notificaciones")
+        .select("*")
+        .eq("profesor_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw new Error(`Error al obtener notificaciones: ${error.message}`);
+      
+      // Sanitización básica para asegurar que todos tengan el campo 'leido'
+      return (data || []).map(n => ({
+        ...n,
+        leido: !!n.leido
+      }));
+    },
+  }),
+
+  markNotificationAsRead: defineAction({
+    accept: "json",
+    input: z.object({ id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { error } = await supabase
+        .from("notificaciones")
+        .update({ leido: true })
+        .eq("id", input.id)
+        .eq("profesor_id", user.id);
+
+      if (error) throw new Error(`Error al marcar como leída: ${error.message}`);
+      return { success: true };
+    },
+  }),
+
+  markAllNotificationsAsRead: defineAction({
+    accept: "json",
+    handler: async (_, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { error } = await supabase
+        .from("notificaciones")
+        .update({ leido: true })
+        .eq("profesor_id", user.id)
+        .eq("leido", false);
+
+      if (error) throw new Error(`Error al marcar todas como leídas: ${error.message}`);
+      return { success: true };
     },
   }),
 };

@@ -101,7 +101,7 @@ export const planesCopy = {
       title: "Agregar ejercicios",
       titleCreate: "Crear nuevo ejercicio",
       searchPlaceholder: "Buscar en tu biblioteca...",
-      empty: "No encontraste lo que buscabas?",
+      empty: "Parece que no tenés ejercicios en tu biblioteca.",
       emptyAction: "Crealo acá mismo.",
       addBtn: "Agregar",
       closeBtn: "Cerrar",

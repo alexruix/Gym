@@ -55,3 +55,56 @@ export const exerciseLibraryCopy = {
     empty: "No se encontraron datos válidos en el archivo.",
   }
 } as const;
+
+export const blocksCopy = {
+  header: {
+    title: "Bloques",
+    subtitle: "Agrupá ejercicios que siempre van juntos para armar planes más rápido.",
+  },
+  list: {
+    searchPlaceholder: "Buscar bloques...",
+    action: "Crear bloque",
+    noResults: "No tenés bloques guardados con ese nombre.",
+    empty: "Aún no tenés bloques. Creá uno desde aquí o desde el creador de planes.",
+  },
+  form: {
+    title: "Nuevo bloque",
+    saveAsBlock: "Guardar como bloque",
+    labels: {
+      nombre: "Nombre del bloque",
+      ejercicios: "Ejercicios incluidos",
+    },
+    placeholders: {
+      nombre: "Ej: Movilidad Inicial, Circuito Core...",
+    },
+    messages: {
+      success: "Bloque guardado y disponible para tus planes",
+      error: "No se pudo guardar el bloque.",
+    }
+  },
+  search: {
+    title: "Mis Bloques",
+    description: "Seleccioná un bloque para insertarlo en la rutina actual.",
+    hoverPreview: "Ejercicios en este bloque:",
+    quickFilters: {
+      warmup: "Warmup",
+      fuerza: "Fuerza",
+      finisher: "Finisher",
+    }
+  }
+} as const;
+
+export const addElementCopy = {
+  title: "Añadir elemento",
+  description: "Seleccionar item a integrar.",
+  options: {
+    exercise: {
+      title: "Ejercicio",
+      description: "Ejercicios de fuerza, técnicos o accesorios con series y repeticiones.",
+    },
+    block: {
+      title: "Bloque",
+      description: "Secuencias de ejercicios que se realizan en orden (Superseries, circuitos).",
+    }
+  }
+} as const;

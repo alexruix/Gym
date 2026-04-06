@@ -18,6 +18,7 @@ interface Exercise {
   media_url: string | null;
   parent_id?: string | null;
   is_template_base?: boolean;
+  profesor_id?: string | null;
 }
 
 interface ExerciseSearchDialogProps {
@@ -38,6 +39,7 @@ export function ExerciseSearchDialog({
   onlyBase = false
 }: ExerciseSearchDialogProps) {
   const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "mine" | "migym">("all");
   const [isCreatingInline, setIsCreatingInline] = useState(false);
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
 
@@ -46,14 +48,21 @@ export function ExerciseSearchDialog({
     const vMap: Record<string, Exercise[]> = {};
     const parents: (Exercise & { variantCount: number })[] = [];
 
-    library.forEach(ex => {
+    // Pre-filtrado por origen
+    const filteredBySource = library.filter(ex => {
+      if (sourceFilter === "mine") return ex.profesor_id !== null;
+      if (sourceFilter === "migym") return ex.profesor_id === null;
+      return true;
+    });
+
+    filteredBySource.forEach(ex => {
       if (ex.parent_id) {
         if (!vMap[ex.parent_id]) vMap[ex.parent_id] = [];
         vMap[ex.parent_id].push(ex);
       }
     });
 
-    library.forEach(ex => {
+    filteredBySource.forEach(ex => {
       // Si onlyBase es true, ignoramos cualquier ejercicio que tenga padre
       if (onlyBase && ex.parent_id) return;
 
@@ -72,7 +81,7 @@ export function ExerciseSearchDialog({
         displayLibrary: parents.sort((a, b) => a.nombre.localeCompare(b.nombre)), 
         variantsMap: vMap 
     };
-  }, [library, search]);
+  }, [library, search, sourceFilter, onlyBase]);
 
   const toggleParent = (parentId: string) => {
     const newExpanded = new Set(expandedParents);
@@ -95,7 +104,7 @@ export function ExerciseSearchDialog({
             Busca y selecciona ejercicios de tu biblioteca para aÃ±adirlos a la rutina.
           </DialogDescription>
           
-          <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
+          <div className="p-8 border-b border-zinc-100 dark:border-zinc-900 bg-ui-soft/50 dark:bg-zinc-900/20">
             <div className="flex items-center justify-between gap-4 mb-6">
                 <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 tracking-tight">
                     {isCreatingInline ? planesCopy.form.exerciseModal.titleCreate : planesCopy.form.exerciseModal.title}
@@ -114,7 +123,7 @@ export function ExerciseSearchDialog({
                         variant="ghost" 
                         size="sm" 
                         onClick={() => setIsCreatingInline(false)}
-                        className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest hover:text-zinc-950"
+                        className="text-ui-muted font-bold text-[10px] uppercase tracking-widest hover:text-zinc-950"
                     >
                         <ArrowLeft className="w-3 h-3 mr-2" /> {planesCopy.form.exerciseModal.backBtn}
                     </Button>
@@ -122,20 +131,44 @@ export function ExerciseSearchDialog({
             </div>
 
             {!isCreatingInline && (
-                <div className="flex gap-3">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
-                        <Input 
-                            autoFocus
-                            placeholder={planesCopy.form.exerciseModal.searchPlaceholder}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-12 h-14 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold shadow-sm"
-                        />
+                <div className="space-y-4">
+                    <div className="flex gap-3">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-ui-muted" />
+                            <Input 
+                                autoFocus
+                                placeholder={planesCopy.form.exerciseModal.searchPlaceholder}
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-12 h-14 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold shadow-sm"
+                            />
+                        </div>
+                        <Button variant="outline" className="h-14 w-14 rounded-2xl border-zinc-200 dark:border-zinc-800 shrink-0">
+                            <Filter className="w-5 h-5 text-ui-muted" />
+                        </Button>
                     </div>
-                    <Button variant="outline" className="h-14 w-14 rounded-2xl border-zinc-200 dark:border-zinc-800 shrink-0">
-                        <Filter className="w-5 h-5 text-zinc-400" />
-                    </Button>
+
+                    <div className="flex gap-1.5 p-1 bg-ui-soft dark:bg-zinc-900 rounded-xl w-fit">
+                        {[
+                          { id: "all", label: "Todos" },
+                          { id: "mine", label: "Míos" },
+                          { id: "migym", label: "MiGym" }
+                        ].map((tab) => (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setSourceFilter(tab.id as any)}
+                            className={cn(
+                              "px-4 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all",
+                              sourceFilter === tab.id 
+                                ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm" 
+                                : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                            )}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                    </div>
                 </div>
             )}
           </div>
@@ -165,14 +198,27 @@ export function ExerciseSearchDialog({
                                 <button
                                     type="button"
                                     onClick={() => onSelect(parent.id)}
-                                    className="w-full text-left p-5 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-zinc-950 dark:hover:bg-lime-400 group transition-all duration-300 flex items-center justify-between border border-zinc-100 dark:border-zinc-800 hover:border-zinc-950 dark:hover:border-lime-400 shadow-sm"
+                                    className="w-full text-left industrial-card-sm group"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-950 flex items-center justify-center transition-colors group-hover:bg-white/10">
-                                            <Dumbbell className="w-5 h-5 text-zinc-500 group-hover:text-white dark:group-hover:text-zinc-950" />
+                                        <div className={cn(
+                                            "industrial-icon-box-sm",
+                                            parent.profesor_id === null ? "bg-lime-400/10 dark:bg-lime-400/5" : "bg-white dark:bg-zinc-950"
+                                        )}>
+                                            <Dumbbell className={cn(
+                                                "w-5 h-5 transition-colors group-hover:text-white dark:group-hover:text-zinc-950",
+                                                parent.profesor_id === null ? "text-lime-600 dark:text-lime-400" : "text-zinc-500"
+                                            )} />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="font-black text-zinc-950 dark:text-zinc-50 group-hover:text-white dark:group-hover:text-zinc-950 transition-colors">{parent.nombre}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-black text-zinc-950 dark:text-zinc-50 group-hover:text-white dark:group-hover:text-zinc-950 transition-colors">
+                                                    {parent.nombre}
+                                                </span>
+                                                {parent.profesor_id === null && (
+                                                    <span className="px-1.5 py-0.5 bg-lime-400 text-zinc-950 text-[7px] font-black uppercase rounded-[4px] tracking-tighter">MiGym</span>
+                                                )}
+                                            </div>
                                             {parent.is_template_base && (
                                                 <span className="text-[8px] font-black uppercase text-lime-600 dark:text-lime-400 group-hover:text-white/70">Patrón base</span>
                                             )}
