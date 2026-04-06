@@ -1,5 +1,6 @@
-﻿import React from "react";
-import { AlertTriangle, DollarSign, Frown, MessageCircle, FilePlus } from "lucide-react";
+import React from "react";
+import { AlertTriangle, DollarSign, Frown, FilePlus } from "lucide-react";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
 import {
   Accordion,
@@ -61,7 +62,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
                     {alert.phone && (
                       <Button size="sm" variant="outline" className="rounded-xl border-red-200 text-red-700 hover:bg-red-100 active:scale-95 transition-transform" asChild>
                         <a href={`https://wa.me/${alert.phone}?text=Hola%20${alert.studentName},%20te%20escribo%20por%20la%20cuota`} target="_blank" rel="noreferrer">
-                          <MessageCircle className="w-4 h-4 mr-2" aria-hidden="true" />
+                          <WhatsappLogoIcon size={18} weight="light" className="mr-2" aria-hidden="true" />
                           <span className="hidden sm:inline">{c.types.payment.action}</span>
                           <span className="sm:hidden">Avisar</span>
                         </a>
@@ -93,7 +94,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
                     {alert.phone && (
                       <Button size="sm" variant="outline" className="rounded-xl border-orange-200 text-orange-700 hover:bg-orange-100 active:scale-95 transition-transform" asChild>
                         <a href={`https://wa.me/${alert.phone}?text=Hola%20${alert.studentName},%20hace%20${alert.daysInactive}%20días%20que%20no%20entrenás.%20¿Pasó%20algo?`} target="_blank" rel="noreferrer">
-                          <MessageCircle className="w-4 h-4 mr-2" aria-hidden="true" />
+                          <WhatsappLogo size={18} weight="light" className="mr-2" aria-hidden="true" />
                           <span className="hidden sm:inline">{c.types.risk.action}</span>
                           <span className="sm:hidden">Motivar</span>
                         </a>

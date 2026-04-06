@@ -57,14 +57,14 @@ const initialSessions = (rawSessions || []).map(s => {
   const total = exercises.length;
   const completed = exercises.filter((e: any) => e.completado).length;
   
-  // Buscar ejercicio "Core" para la telemetría (base type)
-  const core = exercises.find((e: any) => e.exercise_type === 'base');
+  // Buscar ejercicio "Core" para la telemetría (base type o primero de la lista)
+  const core = exercises.find((e: any) => e.exercise_type === 'base') || exercises[0];
 
   return {
     alumno_id: s.alumno_id,
     progress: total > 0 ? (completed / total) * 100 : 0,
     coreExercise: core ? {
-      nombre: (core as any).biblioteca_ejercicios?.nombre || "Ejercicio",
+      nombre: (core as any).biblioteca_ejercicios?.nombre || "Sin ejercicio",
       peso_target: (core as any).peso_target?.toString(),
       peso_real: (core as any).peso_real?.toString()
     } : undefined

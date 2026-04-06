@@ -25,6 +25,7 @@ interface RoutineExerciseRowProps {
   onSwap?: () => void;
   onMove?: (direction: "up" | "down") => void;
   hideMetrics?: boolean;
+  readOnly?: boolean;
 }
 
 /**
@@ -41,7 +42,8 @@ export function RoutineExerciseRow({
   onChange,
   onSwap,
   onMove,
-  hideMetrics = false
+  hideMetrics = false,
+  readOnly = false
 }: RoutineExerciseRowProps) {
   const ej = exercise.biblioteca_ejercicios;
 
@@ -56,25 +58,33 @@ export function RoutineExerciseRow({
     )}>
       {/* 1. INFO BASE + REORDER */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className="flex flex-col items-center gap-1 shrink-0">
-          <button 
-            disabled={isFirst}
-            onClick={() => onMove?.("up")}
-            className="text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors pt-1"
-          >
-            <ChevronUp className="w-3 h-3" />
-          </button>
-          <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-500 shadow-inner group-hover/ej:bg-zinc-950 group-hover/ej:text-white transition-colors">
+        {(!readOnly && onMove) && (
+          <div className="flex flex-col items-center gap-1 shrink-0">
+            <button 
+              disabled={isFirst}
+              onClick={() => onMove?.("up")}
+              className="text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors pt-1"
+            >
+              <ChevronUp className="w-3 h-3" />
+            </button>
+            <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-500 shadow-inner group-hover/ej:bg-zinc-950 group-hover/ej:text-white transition-colors">
+              {index + 1}
+            </div>
+            <button 
+              disabled={isLast}
+              onClick={() => onMove?.("down")}
+              className="text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors pb-1"
+            >
+              <ChevronDown className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+
+        {readOnly && (
+          <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-500 shadow-inner shrink-0 leading-none">
             {index + 1}
           </div>
-          <button 
-            disabled={isLast}
-            onClick={() => onMove?.("down")}
-            className="text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors pb-1"
-          >
-            <ChevronDown className="w-3 h-3" />
-          </button>
-        </div>
+        )}
 
         <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0 flex items-center justify-center border border-zinc-100 dark:border-zinc-800">
           {ej?.media_url ? (
@@ -88,13 +98,15 @@ export function RoutineExerciseRow({
           <h4 className="font-black text-zinc-950 dark:text-white text-sm uppercase tracking-tight truncate leading-tight">
             {ej?.nombre || "Ejercicio"}
           </h4>
-          <button 
-            onClick={onSwap}
-            className="flex items-center gap-1.5 mt-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
-          >
-            <Info className="w-3 h-3" />
-            Variaciones disponibles
-          </button>
+          {(!readOnly && onSwap) && (
+            <button 
+              onClick={onSwap}
+              className="flex items-center gap-1.5 mt-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+            >
+              <Info className="w-3 h-3" />
+              Variaciones disponibles
+            </button>
+          )}
         </div>
       </div>
 
@@ -108,7 +120,12 @@ export function RoutineExerciseRow({
               type="number"
               defaultValue={exercise.series}
               onBlur={(e) => handleMetricChange("series", parseInt(e.target.value) || 0)}
-              className="w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors"
+              readOnly={readOnly}
+              disabled={readOnly}
+              className={cn(
+                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
+                readOnly && "cursor-not-allowed opacity-60"
+              )}
             />
           </div>
 
@@ -120,7 +137,12 @@ export function RoutineExerciseRow({
               defaultValue={exercise.reps_target}
               onBlur={(e) => handleMetricChange("reps_target", e.target.value)}
               placeholder="12"
-              className="w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors"
+              readOnly={readOnly}
+              disabled={readOnly}
+              className={cn(
+                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
+                readOnly && "cursor-not-allowed opacity-60"
+              )}
             />
           </div>
 
@@ -132,7 +154,12 @@ export function RoutineExerciseRow({
               defaultValue={exercise.peso_target || ""}
               onBlur={(e) => handleMetricChange("peso_target", e.target.value)}
               placeholder="80kg"
-              className="w-full sm:w-20 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors"
+              readOnly={readOnly}
+              disabled={readOnly}
+              className={cn(
+                "w-full sm:w-20 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
+                readOnly && "cursor-not-allowed opacity-60"
+              )}
             />
           </div>
 
@@ -143,20 +170,27 @@ export function RoutineExerciseRow({
               type="number"
               defaultValue={exercise.descanso_seg}
               onBlur={(e) => handleMetricChange("descanso_seg", parseInt(e.target.value) || 0)}
-              className="w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors"
+              readOnly={readOnly}
+              disabled={readOnly}
+              className={cn(
+                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
+                readOnly && "cursor-not-allowed opacity-60"
+              )}
             />
           </div>
         </div>
       )}
 
       {/* 3. ACCIONES */}
-      <button 
-        onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-        className="opacity-0 group-hover/ej:opacity-100 p-2.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-300 ml-2"
-        title="Eliminar de la rutina"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
+      {(!readOnly && onDelete) && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+          className="opacity-0 group-hover/ej:opacity-100 p-2.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-300 ml-2"
+          title="Eliminar de la rutina"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }

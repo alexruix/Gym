@@ -8,16 +8,20 @@ export const dashboardCopy = {
   },
   metrics: {
     activeStudents: {
-      label: "Alumnos activos", // Alumnos activos
-      tooltip: "Alumnos siguiendo un plan activamente",
+      label: "Cantidad de alumnos",
+      tooltip: "Alumnos activos",
     },
     pendingRoutines: {
-      label: "Rutinas pendientes",
-      tooltip: "Alumnos que necesitan que les asignes un plan",
+      label: "Alumnos sin rutina",
+      tooltip: "Alumnos que necesitan que les asignes una rutina",
     },
     adherenceRate: {
-      label: "Planes al día", // Tasa de Adherencia %
-      tooltip: "Porcentaje de alumnos que completaron sus sesiones esta semana",
+      label: "Entrenaron esta semana",
+      tooltip: "% de alumnos activos que registraron al menos 1 sesión en los últimos 7 días",
+    },
+    monthlyRevenue: {
+      label: "Cobrado este mes",
+      tooltip: "Total de pagos confirmados en el mes actual",
     }
   },
   alerts: {
@@ -34,7 +38,7 @@ export const dashboardCopy = {
       },
       noPlan: {
         title: "Sin rutina asignada",
-        action: "Armar plan",
+        action: "Asignar planificación",
       }
     }
   },
@@ -76,7 +80,7 @@ export const dashboardCopy = {
   onboarding: {
     title: "Empezá por acá",
     description: "Tu cuenta está lista. Completá estos 3 pasos rápidos para sacarle todo el jugo a MiGym.",
-    progressText: "1 de 3 completados",
+    progressText: "{n} de 3 completados",
     steps: {
       profile: {
         title: "Crear tu perfil",

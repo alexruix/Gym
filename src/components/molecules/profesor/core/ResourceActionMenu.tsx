@@ -4,7 +4,6 @@ import {
     UserIcon, 
     Dumbbell, 
     Zap, 
-    MessageCircle, 
     Archive, 
     Trash2, 
     Copy,
@@ -55,9 +54,9 @@ export function ResourceActionMenu({ type, id, name, actions: customActions = []
     if (type === "alumno") {
         defaultActions.push(
             { 
-                label: "Ver perfil", 
+                label: "Editar perfil", 
                 icon: <UserIcon className="w-4 h-4" />, 
-                onClick: () => window.location.href = `/profesor/alumnos/${id}` 
+                onClick: () => window.location.href = `/profesor/alumnos/${id}/edit` 
             },
             { 
                 label: "Editar rutina", 
@@ -70,7 +69,7 @@ export function ResourceActionMenu({ type, id, name, actions: customActions = []
     if (type === "plan") {
         defaultActions.push(
             { 
-                label: "Editar plan", 
+                label: "Editar planificación", 
                 icon: <Copy className="w-4 h-4" />, 
                 onClick: () => window.location.href = `/profesor/planes/${id}/edit` 
             }
@@ -97,9 +96,6 @@ export function ResourceActionMenu({ type, id, name, actions: customActions = []
                     align="end" 
                     className="w-56 rounded-3xl shadow-2xl border-zinc-100 dark:border-zinc-800 p-2 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl animate-in zoom-in-95 duration-200"
                 >
-                    <div className="px-3 py-2 border-b border-zinc-50 dark:border-zinc-900 mb-1">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 truncate">Acciones: {name}</p>
-                    </div>
 
                     {allActions.map((action, idx) => (
                         <DropdownMenuItem 

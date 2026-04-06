@@ -8,7 +8,7 @@ export const globalCopy = {
     profesorNav: {
       dashboard: "Dashboard",
       agenda: "Agenda",
-      planes: "Planes",
+      planes: "Planificaciones",
       alumnos: "Alumnos",
       ejercicios: "Ejercicios",
       pagos: "Pagos",

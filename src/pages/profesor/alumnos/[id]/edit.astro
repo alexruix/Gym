@@ -34,15 +34,24 @@ if (turnosError) {
   console.error("Error cargando turnos:", turnosError);
 }
 
+const { data: subscriptions } = await supabase
+  .from("suscripciones")
+  .select("id, nombre, monto, cantidad_dias")
+  .eq("profesor_id", user.id)
+  .order("cantidad_dias", { ascending: true });
+
 const athleteData = {
     id: alumno.id,
     nombre: alumno.nombre,
-    email: alumno.email,
-    telefono: alumno.telefono,
-    fecha_inicio: alumno.fecha_inicio,
-    dia_pago: alumno.dia_pago,
-    notas: alumno.notas,
-    turno_id: alumno.turno_id,
+    email: alumno.email || "",
+    telefono: alumno.telefono || "",
+    fecha_inicio: alumno.fecha_inicio || new Date().toISOString(),
+    dia_pago: alumno.dia_pago || 1,
+    monto: alumno.monto || 0,
+    suscripcion_id: alumno.suscripcion_id || null,
+    monto_personalizado: !!alumno.monto_personalizado,
+    notas: alumno.notas || "",
+    turno_id: alumno.turno_id || null,
     dias_asistencia: alumno.dias_asistencia || [],
 };
 
@@ -59,11 +68,12 @@ const title = `Editar ${alumno.nombre} | MiGym`;
       backLabel="Volver al perfil"
     />
 
-    <FormContainer size="md">
+    <FormContainer size="lg">
         <StudentEditForm 
             client:load 
             alumno={athleteData} 
             turnos={turnos || []}
+            subscriptions={subscriptions || []}
         />
     </FormContainer>
 

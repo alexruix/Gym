@@ -50,8 +50,7 @@ export function useResourceDashboard<T extends BaseEntity>({
     // Filtrado Avanzado (Búsqueda + Hashtags AND)
     const filteredItems = useMemo(() => {
         let result = items.filter(item => {
-            const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
-            
+            const matchesSearch = (item.name || "").toLowerCase().includes(search.toLowerCase());            
             if (activeTags.length === 0) return matchesSearch;
             
             // Lógica AND: El item debe tener TODAS las etiquetas activas

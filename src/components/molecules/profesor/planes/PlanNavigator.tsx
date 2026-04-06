@@ -108,9 +108,6 @@ export function PlanNavigator({
                             {hasExercises && !isActive && (
                                 <div className="absolute top-0 right-1/4 w-1 h-1 rounded-full bg-lime-500" />
                             )}
-                            {isActive && hasExercises && (
-                                <CheckCircle2 className="w-2 h-2 absolute -bottom-1 left-1/2 -translate-x-1/2 animate-in fade-in zoom-in duration-500" />
-                            )}
                         </button>
                     );
                 })}

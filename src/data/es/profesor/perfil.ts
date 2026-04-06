@@ -57,6 +57,15 @@ export const athleteProfileCopy = {
         changeBtn: "Cambiar de plan",
         promoteBtn: "Promover a maestro"
       },
+      masterPlan: {
+        bannerTitle: "Planificación (Lectura)",
+        bannerDesc: "Los cambios en esta planificación afectarán a todos los alumnos vinculados.",
+        editMasterBtn: "Editar planificación",
+        personalizeBtn: "Personalizar para este alumno",
+        restrictedAction: "Acción restringida",
+        restrictedDesc: "Para modificar la estructura, primero debés personalizar el plan para este alumno.",
+        hideSwap: "Las variaciones solo se editan en la Planificación o en una versión personalizada."
+      },
       dayLabel: "Día",
       restLabel: "Descanso",
       targetLabel: "Target",
@@ -72,19 +81,19 @@ export const athleteProfileCopy = {
         promote: "Subir a Maestro",
       },
       metricsTab: {
-        title: "Centro de Carga Semanal",
+        title: "Centro de carga semanal",
         subtitle: "Ajustá las métricas sobre la base del plan activo.",
         helper: "Cargá las métricas para esta semana sobre la base del plan",
         lastWeights: "Ver últimos pesos"
       },
       assignmentDialog: {
-        title: "Asignar Rutina Maestra",
-        description: "Elegí una plantilla de tu biblioteca para este alumno.",
-        confirmBtn: "Asignar Plan",
-        warning: "Al asignar este plan, se reemplazará la rutina actual del alumno (si tiene una).",
-        success: "Rutina asignada correctamente",
-        error: "No se pudieron cargar los planes",
-        saveError: "Error al asignar el plan"
+        title: "Asignar planificación",
+        description: "Elegí una planificación de tu biblioteca para este alumno.",
+        confirmBtn: "Asignar planificación",
+        warning: "Al asignar esta planificación, se reemplazará la rutina actual del alumno (si tiene una).",
+        success: "Planificación asignada correctamente",
+        error: "No se pudieron cargar las planificaciones",
+        saveError: "Error al asignar la planificación"
       }
     },
     calendar: {
@@ -105,8 +114,8 @@ export const athleteProfileCopy = {
         },
         structural: {
           tag: "Cambios estructurales detectados",
-          title: "¿Querés guardar esta nueva estructura como un Plan Base?",
-          action: "Guardar como nuevo plan"
+          title: "¿Querés guardar esta nueva estructura como una planificación?",
+          action: "Guardar como nueva planificación"
         }
       },
       actions: {

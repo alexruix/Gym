@@ -1,5 +1,6 @@
 import React from "react";
-import { User as UserIcon, MessageCircle, Archive, Zap } from "lucide-react";
+import { User as UserIcon, Archive, Zap } from "lucide-react";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { alumnosListCopy } from "@/data/es/profesor/alumnos";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
 import { toast } from "sonner";
@@ -104,7 +105,7 @@ export function StudentList({ students }: Props) {
     },
     {
         label: cMenu.sendWhatsApp,
-        icon: <MessageCircle className="w-4 h-4" />,
+        icon: <WhatsappLogoIcon size={16} weight="light" />,
         className: "text-emerald-600",
         onClick: () => openWhatsApp(s.name, s.telefono, { type: 'general' })
     },

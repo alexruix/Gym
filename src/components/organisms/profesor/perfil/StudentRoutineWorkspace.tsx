@@ -14,7 +14,9 @@ import {
   Library,
   Search,
   Copy as CopyIcon,
-  Sparkles
+  Sparkles,
+  AlertTriangle,
+  ExternalLink
 } from "lucide-react";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { Button } from "@/components/ui/button";
@@ -98,6 +100,8 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
   const { isOpen: isRutinaOpen, toggleItem: toggleRutina } = useAccordion(
     planData?.rutinas_diarias?.slice(0, 1).map((r) => r.id) || []
   );
+
+  const isReadOnlyTemplate = mode === "plan" && planData?.is_template;
 
   /**
    * handleAutoFork: Lógica central para "desprender" un plan si es plantilla.
@@ -189,8 +193,8 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
 
     if (planData.is_template) {
        setShowPromotion(true);
-       toast.info("Para añadir ejercicios nuevos, debés crear una copia de este plan maestro.", { 
-         description: "Presioná 'Guardar como nuevo plan' abajo para continuar.",
+       toast.info("Para añadir ejercicios nuevos, debés crear una copia de esta planificación.", { 
+         description: "Presioná 'Guardar como nueva planificación' para continuar.",
          duration: 5000 
        });
        setIsSearchOpen(false);
@@ -608,8 +612,8 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
         </div>
       ) : (
         <>
-          {/* Header Operational */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+          {/* 1. Header Operational */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mb-8">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-zinc-950 flex items-center justify-center border border-zinc-800 shadow-lg">
                 <Layers className="w-6 h-6 text-lime-400" />
@@ -630,7 +634,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
             </div>
 
             <div className="flex items-center gap-3">
-              {planData && !planData.is_template && (
+              {(!isReadOnlyTemplate && planData && !planData.is_template) && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -655,8 +659,47 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
             </div>
           </div>
 
-          {/* Smart Promotion Banner (Bifurcación/Promoción) */}
-          {(planData && ((!planData.is_template || showPromotion) && !isPromotionDismissed)) && (
+          {/* 2. MASTER PLAN BANNER (READ-ONLY) */}
+          {isReadOnlyTemplate && (
+            <div className="bg-zinc-950 border border-white/5 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-8 mb-10 animate-in slide-in-from-top-4 duration-500 shadow-2xl relative overflow-hidden group">
+               <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.03] pointer-events-none" />
+               <div className="flex items-center gap-6 relative z-10 text-center md:text-left flex-col md:flex-row">
+                  <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-lg shadow-zinc-950/50 shrink-0">
+                    <AlertTriangle className="w-8 h-8 text-lime-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black text-white uppercase tracking-tighter mb-1">
+                      {workspace.routine.masterPlan.bannerTitle}
+                    </h4>
+                    <p className="text-zinc-400 text-sm max-w-xl font-medium leading-relaxed">
+                      {workspace.routine.masterPlan.bannerDesc}
+                    </p>
+                  </div>
+               </div>
+               <div className="flex items-center gap-3 relative z-10 w-full md:w-auto">
+                  <Button
+                    onClick={() => window.location.href = `/profesor/planes/${planData?.id}`}
+                    variant="outline"
+                    className="h-12 px-6 rounded-xl border-white/10 hover:bg-white/5 text-white font-black uppercase text-[10px] tracking-widest flex-1 md:flex-none"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 mr-2" />
+                    {workspace.routine.masterPlan.editMasterBtn}
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const newId = await handleAutoFork();
+                      if (newId) window.location.reload();
+                    }}
+                    className="h-12 px-8 rounded-xl bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase text-[10px] tracking-widest flex-1 md:flex-none shadow-xl shadow-lime-500/20"
+                  >
+                    {workspace.routine.masterPlan.personalizeBtn}
+                  </Button>
+               </div>
+            </div>
+          )}
+
+          {/* 3. Smart Promotion Banner (Bifurcación/Promoción) */}
+          {(planData && ((!planData.is_template || showPromotion) && !isPromotionDismissed && !isReadOnlyTemplate)) && (
             <div className="p-1 min-h-16 rounded-[2rem] bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group animate-in slide-in-from-bottom-4 duration-500">
               <div className="absolute inset-0 bg-lime-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-center gap-6 px-8 relative z-10 w-full md:w-auto">
@@ -670,7 +713,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                   <p className="text-[10px] font-bold text-zinc-400 max-w-[280px]">
                     {planData.is_template 
                       ? "Para guardar estos cambios debés crear una versión personalizada para el alumno."
-                      : "¿Querés guardarla como un nuevo Plan Maestro para usar con otros?"}
+                      : "¿Querés guardarla como una nueva planificación para usar con otros?"}
                   </p>
                 </div>
               </div>
@@ -735,25 +778,29 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={isPending}
-                    onClick={(e) => { e.stopPropagation(); handleDuplicateDay(rutina.id); }}
-                    className="h-9 w-9 rounded-xl text-zinc-300 hover:text-lime-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 opacity-0 group-hover:opacity-100 transition-all"
-                    title="Duplicar día"
-                  >
-                    <CopyIcon className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={isPending}
-                    onClick={(e) => { e.stopPropagation(); handleDeleteDay(rutina.id); }}
-                    className="h-9 w-9 rounded-xl text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-all"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  {!isReadOnlyTemplate && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={isPending}
+                        onClick={(e) => { e.stopPropagation(); handleDuplicateDay(rutina.id); }}
+                        className="h-9 w-9 rounded-xl text-zinc-300 hover:text-lime-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 opacity-0 group-hover:opacity-100 transition-all"
+                        title="Duplicar día"
+                      >
+                        <CopyIcon className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={isPending}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteDay(rutina.id); }}
+                        className="h-9 w-9 rounded-xl text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
                   <div className={cn(
                     "w-8 h-8 rounded-lg bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all",
                     isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
@@ -786,6 +833,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                               getExerciseName={(id) => library.find(l => l.id === id)?.nombre || "Ejercicio"}
                               isFirst={idx === 0}
                               isLast={idx === ejs.length - 1}
+                              readOnly={isReadOnlyTemplate}
                               removeExercise={() => handleDeleteExercise(ej.id)}
                               onMove={(dir) => handleMoveExercise(ej.id, dir)}
                               onSwap={() => {
@@ -823,6 +871,7 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                             }}
                             index={idx}
                             hideMetrics={mode === ("plan" as string)}
+                            readOnly={isReadOnlyTemplate}
                             isFirst={idx === 0}
                             isLast={idx === ejs.length - 1}
                             onDelete={() => handleDeleteExercise(ej.id)}
@@ -842,14 +891,24 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
                   <div className="p-4 bg-zinc-50/10 dark:bg-zinc-900/20">
                     <Button
                       variant="ghost"
-                      className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-400/5 text-zinc-400 hover:text-lime-500 transition-all gap-3 font-black uppercase text-[10px] tracking-widest"
+                      className={cn(
+                        "w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-400/5 transition-all gap-3 font-black uppercase text-[10px] tracking-widest",
+                        isReadOnlyTemplate ? "opacity-40 cursor-not-allowed hover:bg-transparent hover:border-zinc-100 dark:hover:border-zinc-800 text-zinc-400" : "text-zinc-400 hover:text-lime-500"
+                      )}
                       onClick={() => {
+                        if (isReadOnlyTemplate) {
+                          toast.error(workspace.routine.masterPlan.restrictedAction, {
+                            description: workspace.routine.masterPlan.restrictedDesc,
+                            icon: "🔒"
+                          });
+                          return;
+                        }
                         setActiveRoutineTarget(rutina.id);
                         setIsSearchOpen(true);
                       }}
                     >
                       <Plus className="w-4 h-4" />
-                      Añadir ejercicio al {rutina.nombre_dia || `Día ${rutina.dia_numero}`}
+                      {isReadOnlyTemplate ? "Añadir ejercicio (Restringido)" : `Añadir ejercicio al ${rutina.nombre_dia || `Día ${rutina.dia_numero}`}`}
                     </Button>
                   </div>
                 </div>
@@ -858,8 +917,32 @@ export function StudentRoutineWorkspace({ alumnoId, planData, library, mode = "r
           );
         })}
       </div>
-    </>
-  )}
+          {/* Botón Añadir Día */}
+          <div className="mt-8 px-2">
+            <Button
+              variant="outline"
+              size="lg"
+              className={cn(
+                "w-full h-16 rounded-[2rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-400/5 transition-all gap-3 font-black uppercase text-xs tracking-widest",
+                isReadOnlyTemplate ? "opacity-40 cursor-not-allowed hover:bg-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-zinc-400" : "text-zinc-400 hover:text-lime-500 shadow-sm"
+              )}
+              onClick={() => {
+                if (isReadOnlyTemplate) {
+                  toast.error(workspace.routine.masterPlan.restrictedAction, {
+                    description: workspace.routine.masterPlan.restrictedDesc,
+                    icon: "🔒"
+                  });
+                  return;
+                }
+                handleAddEmptyDay();
+              }}
+            >
+              <Plus className="w-5 h-5" />
+              {isReadOnlyTemplate ? "Añadir nuevo día (Restringido)" : "Añadir nuevo día de entrenamiento"}
+            </Button>
+          </div>
+        </>
+      )}
 
       <MasterPlanAssignmentDialog
         open={isAssignDialogOpen}

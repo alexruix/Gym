@@ -138,13 +138,13 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
             {isCopied && <Check className="w-4 h-4 text-lime-500" />}
           </DropdownMenuItem>
 
-          <div className="flex items-center justify-between px-3 py-2.5 rounded-xl">
+          {/* <div className="flex items-center justify-between px-3 py-2.5 rounded-xl">
             <div className="flex items-center gap-3">
               <Moon className="w-4 h-4 text-zinc-500" />
               <span className="text-sm font-bold">Modo Oscuro</span>
             </div>
             <Switch checked={isDark} onCheckedChange={toggleTheme} />
-          </div>
+          </div> */}
         </div>
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />

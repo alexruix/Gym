@@ -1,7 +1,9 @@
-﻿import * as React from "react"
+"use client"
+
+import * as React from "react"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { FormItem } from "@/components/ui/form"
+import { FormItem } from "../ui/form"
 
 interface StandardFieldProps {
   label: string;

@@ -19,6 +19,7 @@ interface ExerciseCardProps {
   hasRotation?: (position: number) => boolean;
   getRotationForPosition?: (position: number) => any;
   removeRotationExercise?: (position: number, exerciseId: string) => void;
+  readOnly?: boolean;
 }
 
 /**
@@ -38,7 +39,8 @@ export function ExerciseCard({
   onEditRotation,
   hasRotation,
   getRotationForPosition,
-  removeRotationExercise
+  removeRotationExercise,
+  readOnly = false
 }: ExerciseCardProps) {
   const ejId = ex.ejercicio_id || ex.ejercicio_plan?.ejercicio_id || ex.biblioteca_ejercicios?.id;
   const rotationActive = hasRotation?.(ex.position);
@@ -54,18 +56,20 @@ export function ExerciseCard({
       )}
     >
       {/* Botón Eliminar (Contextual) */}
-      <button 
-          type="button"
-          onClick={() => removeExercise(routineIdx, exerciseIdx)} 
-          className="absolute -top-3 -right-3 p-3 bg-white dark:bg-zinc-950 text-red-500 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-red-500/10 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 z-20"
-          title="Quitar ejercicio"
-      >
-          <Trash2 className="w-4 h-4" />
-      </button>
+      {!readOnly && (
+        <button 
+            type="button"
+            onClick={() => removeExercise(routineIdx, exerciseIdx)} 
+            className="absolute -top-3 -right-3 p-3 bg-white dark:bg-zinc-950 text-red-500 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-red-500/10 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 z-20"
+            title="Quitar ejercicio"
+        >
+            <Trash2 className="w-4 h-4" />
+        </button>
+      )}
       
       <div className="flex items-center gap-6">
-        {/* Reordering Controls (Only if onMove exists) */}
-        {onMove && (
+        {/* Reordering Controls (Only if onMove exists & NOT readOnly) */}
+        {(onMove && !readOnly) && (
           <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button 
               disabled={isFirst}
@@ -113,7 +117,7 @@ export function ExerciseCard({
             </div>
             
             <div className="flex gap-4 items-center">
-              {onSwap && (
+              {(onSwap && !readOnly) && (
                 <button 
                   type="button"
                   onClick={onSwap}
@@ -124,7 +128,7 @@ export function ExerciseCard({
                 </button>
               )}
 
-              {onEditRotation && (
+              {(onEditRotation && !readOnly) && (
                 <button 
                   type="button"
                   onClick={() => onEditRotation(routineIdx, exerciseIdx)}

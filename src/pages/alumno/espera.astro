@@ -31,13 +31,13 @@ if (alumno?.plan_id) {
     <header class="flex justify-between items-center mb-12 relative z-10 w-full max-w-lg mx-auto">
       <div>
         <h1 class="text-3xl font-black tracking-tighter">
-          HOLA, <span class="text-lime-500 uppercase">{alumno?.nombre?.split(' ')[0] || 'ATLETA'}</span>
+          HOLA, <span class="text-lime-500 uppercase">{alumno?.nombre?.split(' ')[0] || 'Alumno'}</span>
         </h1>
       </div>
       
       <form action="/api/auth/signout" method="POST">
         <button type="submit" class="p-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-full transition-all text-zinc-400 hover:text-white group">
-          <LogOut class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+          <LogOut className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
         </button>
       </form>
     </header>
@@ -46,7 +46,7 @@ if (alumno?.plan_id) {
       
       <div class="w-24 h-24 bg-zinc-900 border border-zinc-800 rounded-[2rem] flex items-center justify-center mb-8 relative animate-pulse">
         <div class="absolute inset-0 border-2 border-lime-500/50 rounded-[2rem] animate-[spin_4s_linear_infinite]"></div>
-        <Clock class="w-10 h-10 text-lime-400 opacity-80" />
+        <Clock className="w-10 h-10 text-lime-400 opacity-80" />
       </div>
 
       <h2 class="text-4xl font-black text-center mb-4 tracking-tighter">
@@ -57,8 +57,8 @@ if (alumno?.plan_id) {
         Tu profesor está armando los hierros. Aún no tienes una rutina asignada para destrozar.
       </p>
 
-      <button onClick="window.location.reload();" class="w-full bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors active:scale-95">
-        <Dumbbell class="w-5 h-5" />
+      <button onclick="window.location.reload();" class="w-full bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-3 transition-colors active:scale-95">
+        <Dumbbell className="w-5 h-5" />
         Consultar de nuevo
       </button>
 

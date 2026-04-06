@@ -13,6 +13,7 @@ import {
   Check,
   X,
   RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -29,31 +30,14 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 
-export type PagoActivo = {
-  id: string;
-  monto: number;
-  fecha_vencimiento: string;
-  estado: 'pendiente' | 'pagado' | 'vencido' | 'por_vencer';
-  fecha_pago: string | null;
-  isVirtual?: boolean;
-};
+import { type AlumnoPago, type PagoActivo } from '@/types/pagos';
 
 export interface StudentPaymentSheetProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  alumno: {
-    id: string;
-    nombre: string;
-    monto: number | null;
-    dia_pago: number | null;
-    pago_activo: PagoActivo | null;
-    is_moroso?: boolean;
-    historial_pagos: PagoActivo[];
-    telefono?: string;
-    ultimo_recordatorio_pago_at?: string | null;
-  };
+  alumno: AlumnoPago;
   onPaymentSuccess?: (updatedPago: PagoActivo) => void;
-  onMontoUpdate?: (newMonto: number) => void;
+  onStudentUpdate?: (updatedAlumno: Partial<AlumnoPago>) => void;
 }
 
 const isRecentlyNotified = (dateString: string | null | undefined) => {
@@ -64,7 +48,7 @@ const isRecentlyNotified = (dateString: string | null | undefined) => {
   return diffInHours < 24;
 };
 
-export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuccess, onMontoUpdate }: StudentPaymentSheetProps) {
+export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuccess, onStudentUpdate }: StudentPaymentSheetProps) {
   const [isCharging, setIsCharging] = useState(false);
   const [isEditingMonto, setIsEditingMonto] = useState(false);
   const [tempMonto, setTempMonto] = useState(alumno.monto?.toString() || "0");
@@ -106,7 +90,8 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
     try {
       const { data, error } = await actions.profesor.updateStudent({ 
         id: alumno.id, 
-        monto: newMonto 
+        monto: newMonto,
+        monto_personalizado: true
       });
       
       if (error) {
@@ -116,7 +101,7 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
 
       if (data?.success) {
         toast.success("Monto actualizado");
-        if (onMontoUpdate) onMontoUpdate(newMonto);
+        if (onStudentUpdate) onStudentUpdate({ monto: newMonto, monto_personalizado: true });
         setIsEditingMonto(false);
       }
     } catch {
@@ -159,13 +144,30 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
                     <SheetTitle className="text-2xl font-black tracking-tighter text-zinc-950 dark:text-zinc-50 uppercase">{alumno.nombre}</SheetTitle>
                     <SheetDescription className="font-bold text-zinc-500 uppercase tracking-widest text-[10px] flex items-center gap-2">
                         <Calendar className="w-3 h-3" />
-                        Día de pago: {alumno.dia_pago || 15} del mes
+                        {alumno.dia_pago ? `Día de pago: ${alumno.dia_pago} del mes` : "Día de pago no definido"}
                     </SheetDescription>
                     </div>
                 </div>
                 </SheetHeader>
 
                 <div className="p-8 space-y-8 flex-1">
+                {/* Error/Warning de día de pago */}
+                {!alumno.dia_pago && (
+                  <div 
+                    onClick={() => window.location.href = `/profesor/alumnos/${alumno.id}/edit`}
+                    className="p-4 bg-amber-50 border border-amber-200 rounded-3xl flex items-center gap-3 cursor-pointer group hover:bg-amber-100 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 group-hover:scale-110 transition-transform">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-800">Día de pago no definido</p>
+                      <p className="text-[10px] text-amber-600 font-medium">Configurarlo para habilitar telemetría financiera.</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-amber-400" />
+                  </div>
+                )}
+
                 {/* Estado Actual */}
                 <div className="space-y-4">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Estado actual</h3>
@@ -219,7 +221,14 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
                                 setIsEditingMonto(true);
                               }}
                             >
-                              <p className="text-3xl font-black text-zinc-950 dark:text-zinc-50">${alumno.monto?.toLocaleString('es-AR') || 0}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-3xl font-black text-zinc-950 dark:text-zinc-50">${alumno.monto?.toLocaleString('es-AR') || 0}</p>
+                                {alumno.monto_personalizado && (
+                                  <div className="bg-amber-100 dark:bg-amber-950/40 text-amber-600 p-1 rounded-lg" title="Monto personalizado (Blindado)">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                  </div>
+                                )}
+                              </div>
                               <Pencil className="w-4 h-4 text-zinc-300 opacity-0 group-hover/val:opacity-100 transition-opacity" />
                             </div>
                           )}
@@ -231,7 +240,7 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
                         <div>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Vencimiento</p>
                             <p className="font-bold text-zinc-700 dark:text-zinc-300 text-sm">
-                                {alumno.pago_activo?.fecha_vencimiento ? new Date(alumno.pago_activo.fecha_vencimiento).toLocaleDateString("es-AR", { day: 'numeric', month: 'long' }) : "—"}
+                                {alumno.pago_activo?.fecha_vencimiento ? new Date(alumno.pago_activo.fecha_vencimiento).toLocaleDateString("es-AR", { day: 'numeric', month: 'long' }) : "â€”"}
                             </p>
                         </div>
                         <div>
@@ -244,7 +253,7 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
                     </Card>
                 </div>
 
-                {/* Acciones Rápidas */}
+                {/* Acciones RÃ¡pidas */}
                 <div className="grid grid-cols-2 gap-3">
                     <Button
                     className="h-14 font-black uppercase tracking-widest text-[10px] gap-2 rounded-2xl shadow-xl shadow-zinc-950/10 active:scale-95 transition-all bg-zinc-950 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"
@@ -286,7 +295,7 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
                 <div className="space-y-4">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Historial reciente</h3>
                     <div className="space-y-3">
-                    {alumno.historial_pagos.slice(1, 5).map((pago: any) => (
+                    {(alumno.historial || []).slice(1, 5).map((pago: any) => (
                         <div key={pago.id} className="flex items-center justify-between p-4 bg-white dark:bg-zinc-950/80 rounded-2xl border border-zinc-100 dark:border-zinc-900 shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", pago.estado === 'pagado' ? "bg-lime-400/10 text-lime-600" : "bg-red-400/10 text-red-600")}>
@@ -300,23 +309,20 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
                         <span className="font-extrabold text-zinc-950 dark:text-zinc-50 text-sm">${pago.monto?.toLocaleString('es-AR')}</span>
                         </div>
                     ))}
-                    {alumno.historial_pagos.length <= 1 && (
+                    {(!alumno.historial || alumno.historial.length <= 1) && (
                         <p className="text-center py-6 text-zinc-400 text-[10px] uppercase font-black tracking-widest">No hay historial</p>
                     )}
                     </div>
                 </div>
 
                 <Separator className="bg-zinc-200/50 dark:bg-zinc-800/50" />
-                <Button
-                    variant="ghost"
-                    className="w-full h-12 justify-between font-black uppercase tracking-widest text-[10px] text-zinc-400 hover:text-lime-600 group"
-                    onClick={() => {
-                        onOpenChange(false);
-                    }}
+                <a
+                    href={`/profesor/alumnos/${alumno.id}`}
+                    className="w-full h-12 flex items-center justify-between px-4 rounded-2xl font-black uppercase tracking-widest text-[10px] text-zinc-400 hover:text-lime-600 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all group"
                 >
-                    Volver a la ficha
-                    <ChevronRight className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                </Button>
+                    Ver perfil completo
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </a>
                 </div>
             </div>
         </SheetContent>

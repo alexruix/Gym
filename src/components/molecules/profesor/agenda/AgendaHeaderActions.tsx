@@ -70,14 +70,14 @@ export function AgendaHeaderActions({ presentCount, turnos, students }: AgendaHe
           {logCopy.trigger}
         </Button>
 
-        <Button
+        {/* <Button
           variant="outline"
           onClick={() => setIsImportOpen(true)}
           className="flex-1 sm:flex-none rounded-xl border-zinc-200 bg-white text-[10px] font-black uppercase tracking-widest h-12 px-6 hover:bg-zinc-50 group shadow-sm transition-all active:scale-95"
         >
           <FileSpreadsheet className="w-4 h-4 mr-2 text-zinc-400 group-hover:text-lime-600 transition-colors" />
           Importar Excel
-        </Button>
+        </Button> */}
 
         <Button
           variant="outline"

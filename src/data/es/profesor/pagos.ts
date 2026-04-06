@@ -1,6 +1,10 @@
 export const pagosCopy = {
   title: "Control de pagos",
-  description: "Gestioná los vencimientos de tus alumnos. Renová mensualidades automáticamente y notificá morosos en 1 clic.",
+  description: "Gestioná los pagos de tus alumnos y los planes mensuales.",
+  tabs: {
+    history: "Control de cuotas",
+    subscriptions: "Planes mensuales",
+  },
   metrics: {
     totalStudents: "Total Activos",
     collected: {

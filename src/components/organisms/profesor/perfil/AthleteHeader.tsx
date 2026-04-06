@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { actions } from "astro:actions";
-import { MessageCircle, Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, RefreshCw, Copy, ChevronRight } from "lucide-react";
+import { Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, RefreshCw, Copy, ChevronRight } from "lucide-react";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import {
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { cn } from "@/lib/utils";
 import { PlanMetric } from "@/components/atoms/profesor/planes/PlanMetric";
+import { SubscriptionBadge } from "@/components/atoms/SubscriptionBadge";
 import { StudentPaymentSheet } from "@/components/organisms/profesor/pagos/StudentPaymentSheet";
 import { useStudentActions } from "@/hooks/useStudentActions";
 
@@ -29,6 +31,10 @@ interface Props {
     ultima_sesion?: string | null;
     pago_activo?: any;
     historial_pagos?: any[];
+    suscripcion?: {
+      nombre: string;
+      cantidad_dias: number;
+    } | null;
   };
   planName?: string | null;
 }
@@ -82,8 +88,14 @@ export function AthleteHeader({ alumno, planName }: Props) {
               <div className="w-20 h-20 rounded-3xl bg-zinc-950 flex items-center justify-center text-3xl font-black text-lime-400 shadow-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500 border border-zinc-800">
                 {alumno.nombre.substring(0, 2).toUpperCase()}
               </div>
-              <div className="absolute -bottom-2 -right-2">
+              <div className="absolute -bottom-2 -right-2 flex flex-col gap-1 items-end">
                  <StatusBadge status={currentStatus as StatusType} />
+                 {alumno.suscripcion && (
+                   <SubscriptionBadge 
+                    status="ok" 
+                    label={alumno.suscripcion.nombre} 
+                   />
+                 )}
               </div>
             </div>
             
@@ -119,7 +131,11 @@ export function AthleteHeader({ alumno, planName }: Props) {
                     !alumno.telefono ? "border-dashed text-zinc-400" : ""
                 )}
             >
-                <MessageCircle className={cn("w-5 h-5", !alumno.telefono ? "text-zinc-400" : "text-emerald-500")} />
+                <WhatsappLogoIcon 
+                    size={20} 
+                    weight="light" 
+                    className={cn(!alumno.telefono ? "text-zinc-400" : "text-emerald-500")} 
+                />
                 {!alumno.telefono ? "Agregar WhatsApp" : "WhatsApp"}
             </Button>
             

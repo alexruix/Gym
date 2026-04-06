@@ -144,7 +144,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     </DialogDescription>
                 </DialogHeader>
 
-                {/* ðŸ” Buscador Universal */}
+                {/* Buscador Universal */}
                 <div className="p-4 border-b border-zinc-100 dark:border-zinc-900 relative group">
                     <Search className={cn(
                         "absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
@@ -152,7 +152,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     )} />
                     <Input 
                         ref={searchInputRef}
-                        placeholder="Buscá o filtrá por #etiqueta..." 
+                        placeholder="Buscar por nombre..." 
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-12 h-12 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-sm font-bold placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-lime-400/20"
@@ -191,7 +191,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     </div>
                 )}
 
-                {/* ðŸ“œ Listado de Items o Content Slot */}
+                {/* Listado de Items o Content Slot */}
                 <div className="max-h-[450px] overflow-y-auto no-scrollbar">
                     {children ? (
                         children
@@ -266,7 +266,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     )}
                 </div>
 
-                {/* ðŸ› ï¸ Footer Industrial (Solo si no hay children manejando el form) */}
+                {/* ooter Industrial (Solo si no hay children manejando el form) */}
                 {!children && (
                     <DialogFooter className="p-6 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/10">
                         <div className="flex flex-col w-full gap-4">

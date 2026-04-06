@@ -10,10 +10,11 @@ import {
 import { AgendaStudentCard } from "./AgendaStudentCard";
 import { TurnoSelectorDialog } from "@/components/molecules/profesor/agenda/TurnoSelectorDialog";
 import { TurnoManagementSheet } from "./TurnoManagementSheet";
-import { TurnoTemplatePicker } from "@/components/molecules/profesor/agenda/TurnoTemplatePicker";
 import { LogisticsPanel } from "./LogisticsPanel";
 import { ImportStudentsModal } from "@/components/organisms/profesor/alumnos/ImportStudentsModal";
 import { DashboardConsole } from "@/components/molecules/profesor/DashboardConsole";
+import { DaySelector } from "@/components/molecules/profesor/agenda/DaySelector";
+import { TurnoBlock } from "./TurnoBlock";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { agendaCopy } from "@/data/es/profesor/agenda";
@@ -59,27 +60,13 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
   const realTodayName = dayNames[new Date().getDay()];
   const [activeDay, setActiveDay] = useState(realTodayName);
 
-  // FILTRADO INTELIGENTE POR DÍA (Contexto Temporal)
-  const studentsFilteredByDay = React.useMemo(() => {
-    return students.filter(s => {
-      if (!s.dias_asistencia || s.dias_asistencia.length === 0) return true;
-      return s.dias_asistencia.includes(activeDay);
-    });
-  }, [students, activeDay]);
-
-  const turnosFilteredByDay = React.useMemo(() => {
-    return turnos.filter(t => {
-      if (!t.dias_asistencia || t.dias_asistencia.length === 0) return true;
-      return t.dias_asistencia.includes(activeDay);
-    });
-  }, [turnos, activeDay]);
-
+  // FILTRADO INTELIGENTE POR DÍA (Contexto Temporal) - Moviendo a renderGrid para mantener listado global
   const { 
     sessions, 
     activeTurnoId, 
     studentsByTurno, 
     refreshStudentProgress 
-  } = useAgenda(turnosFilteredByDay, studentsFilteredByDay, initialSessions);
+  } = useAgenda(turnos, students, initialSessions);
 
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
@@ -100,46 +87,21 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
   }, [activeTurnoId, activeDay, realTodayName]);
 
   const dashboardItems = React.useMemo(() => 
-    studentsFilteredByDay.map(s => ({ ...s, name: s.nombre })), 
-    [studentsFilteredByDay]
-  );
-
-  // Selector de Día (Industrial Horizontal Scroll)
-  const renderDaySelector = () => (
-    <div className="bg-zinc-50/50 border-b border-zinc-100 -mx-6 mb-8 overflow-hidden">
-        <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar px-6 py-4 gap-3 items-center">
-            {dayNames.map((day) => {
-                const isActive = activeDay === day;
-                const isRealToday = day === realTodayName;
-                
-                return (
-                    <button
-                        key={day}
-                        onClick={() => setActiveDay(day)}
-                        className={cn(
-                            "flex-none snap-center min-w-[100px] h-12 rounded-full font-black uppercase text-[10px] tracking-widest transition-all relative border",
-                            isActive 
-                                ? "bg-zinc-900 text-white border-zinc-900 shadow-lg shadow-zinc-900/10" 
-                                : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300 hover:text-zinc-600"
-                        )}
-                    >
-                        {day}
-                        {isRealToday && (
-                            <span className={cn(
-                                "absolute top-2 right-3 w-1.5 h-1.5 rounded-full",
-                                isActive ? "bg-lime-400" : "bg-lime-500"
-                            )} />
-                        )}
-                    </button>
-                );
-            })}
-        </div>
-    </div>
+    students.map(s => ({ ...s, name: s.nombre })), 
+    [students]
   );
 
   const renderBlocks = (filteredBySearch: Student[]) => {
+    // 1. Filtrar por el día activo DENTRO de la grilla para que funcione SSOT con la tabla global
+    const gridStudents = filteredBySearch.filter(s => 
+      !s.dias_asistencia || s.dias_asistencia.length === 0 || s.dias_asistencia.includes(activeDay)
+    );
+    const gridTurnos = turnos.filter(t => 
+      !t.dias_asistencia || t.dias_asistencia.length === 0 || t.dias_asistencia.includes(activeDay)
+    );
+
     const groupedByTurno: Record<string, Student[]> = {};
-    filteredBySearch.forEach(s => {
+    gridStudents.forEach(s => {
       if (s.turno_id) {
         if (!groupedByTurno[s.turno_id]) groupedByTurno[s.turno_id] = [];
         groupedByTurno[s.turno_id].push(s);
@@ -148,72 +110,54 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
 
     return (
       <div className="space-y-12 pb-32" ref={scrollRef}>
-        {renderDaySelector()}
+        {turnos.length > 0 && (
+            <DaySelector 
+                activeDay={activeDay}
+                setActiveDay={setActiveDay}
+                realTodayName={realTodayName}
+            />
+        )}
         
-        {turnosFilteredByDay.length > 0 ? (
-          turnosFilteredByDay.map((turno) => {
+        {turnos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 animate-in fade-in duration-700">
+              <div className="p-8 rounded-[3rem] bg-zinc-50 border border-zinc-100 dark:bg-zinc-900 dark:border-zinc-800 mb-2">
+                  <Settings className="w-12 h-12 text-zinc-300 dark:text-zinc-600" />
+              </div>
+              <div>
+                  <h3 className="text-3xl font-black text-zinc-900 dark:text-zinc-50 uppercase tracking-tighter mb-2">Aún no hay turnos</h3>
+                  <p className="text-sm font-medium text-zinc-400 max-w-md mx-auto leading-relaxed">{t.noBlocks}</p>
+              </div>
+              <Button 
+                onClick={() => setIsManagementOpen(true)}
+                className="h-14 px-8 mt-2 rounded-[2rem] bg-lime-400 text-zinc-950 hover:bg-lime-500 shadow-lg shadow-lime-400/20 font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 group"
+              >
+                <Settings className="w-4 h-4 mr-2 text-zinc-600 group-hover:text-zinc-950 transition-colors" />
+                Configurar tu primer turno
+              </Button>
+          </div>
+        ) : gridTurnos.length > 0 ? (
+          gridTurnos.map((turno) => {
             const isActive = turno.id === activeTurnoId && activeDay === realTodayName;
             const turnoStudents = groupedByTurno[turno.id] || [];
-            const isFull = turnoStudents.length >= turno.capacidad_max;
 
-            if (filteredBySearch.length !== studentsFilteredByDay.length && turnoStudents.length === 0) return null;
+            if (filteredBySearch.length !== students.length && turnoStudents.length === 0) return null;
 
             return (
-              <div 
-                key={turno.id} 
-                ref={isActive ? activeBlockRef : null}
-                className={cn(
-                  "relative pl-6 transition-all duration-500",
-                  isActive ? "opacity-100" : (activeDay !== realTodayName ? "opacity-100" : "opacity-60 grayscale-[0.5]")
-                )}
-              >
-                <div className={cn(
-                  "absolute left-0 top-0 bottom-0 w-1 rounded-full",
-                  isActive ? "bg-lime-400" : "bg-zinc-100"
-                )} />
-
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-baseline gap-3">
-                        <span className="text-3xl font-black text-zinc-900 uppercase tracking-tighter">
-                            {turno.hora_inicio.substring(0, 5)}
-                        </span>
-                        <div className="flex flex-col">
-                            <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest leading-none">
-                                {turno.nombre}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className={cn(
-                        "flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
-                        isFull ? "bg-white border-red-200 text-red-500" : "bg-white border-zinc-100 text-zinc-400"
-                      )}>
-                        <Users className="w-3 h-3" />
-                        <span>{turnoStudents.length} / {turno.capacidad_max}</span>
-                      </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {turnoStudents.length > 0 ? (
-                        turnoStudents.map(student => (
-                            <AgendaStudentCard
-                                key={student.id}
-                                student={student}
-                                session={sessions.find(s => s.alumno_id === student.id)}
-                                onViewRoutine={(id) => window.location.assign(`/profesor/alumnos/${id}`)}
-                                onChangeTurno={(id) => {
-                                    setSelectedStudent({ id, nombre: student.nombre, currentTurnoId: student.turno_id });
-                                    setIsSelectorOpen(true);
-                                }}
-                                active={isActive}
-                            />
-                        ))
-                    ) : (
-                        <p className="text-xs font-medium text-zinc-600 italic py-4">{t.empty}</p>
-                    )}
-                </div>
-              </div>
+              <TurnoBlock 
+                key={turno.id}
+                turno={turno}
+                isActive={isActive}
+                activeDay={activeDay}
+                realTodayName={realTodayName}
+                turnoStudents={turnoStudents}
+                sessions={sessions}
+                onViewRoutine={(id) => window.location.assign(`/profesor/alumnos/${id}`)}
+                onChangeTurno={(id, nombre, currentTurnoId) => {
+                    setSelectedStudent({ id, nombre, currentTurnoId });
+                    setIsSelectorOpen(true);
+                }}
+                innerRef={isActive ? activeBlockRef : null}
+              />
             )
           })
         ) : (
@@ -233,8 +177,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
 
   const renderList = (filteredBySearch: Student[]) => {
     return (
-      <div className="space-y-6">
-        {renderDaySelector()}
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="bg-white border border-zinc-100 rounded-[2rem] overflow-hidden shadow-xl shadow-zinc-900/5">
           <div className="overflow-x-auto">
             <table className="w-auto sm:w-full min-w-[600px]">
@@ -291,7 +234,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
 
   return (
     <>
-      <DashboardConsole
+        <DashboardConsole
         items={dashboardItems}
         itemLabel="Alumnos"
         storageKey="agenda-v2"
@@ -304,10 +247,10 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
             <Users className="w-4 h-4 text-lime-600" />
             <div className="flex flex-col">
                 <span className="text-[9px] font-black uppercase tracking-widest text-lime-600 leading-none">
-                    {activeDay === realTodayName ? "Alumnos hoy" : `Alumnos ${activeDay}`}
+                    Alumnos
                 </span>
                 <span className="text-sm font-black text-zinc-900 leading-none mt-1">
-                    {activeDay === realTodayName ? presentCount : studentsFilteredByDay.length}
+                    {students.length}
                 </span>
             </div>
           </div>
@@ -364,6 +307,10 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
         onOpenChange={setIsLogisticsOpen}
         students={students}
         turnos={turnos}
+        onEditStudent={(student) => {
+            setSelectedStudent({ id: student.id, nombre: student.nombre, currentTurnoId: student.turno_id });
+            setIsSelectorOpen(true);
+        }}
       />
 
       <ImportStudentsModal 

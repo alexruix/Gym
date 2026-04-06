@@ -730,6 +730,8 @@ export const profesorActions = {
       if (input.fecha_inicio) updateData.fecha_inicio = input.fecha_inicio.toISOString().split('T')[0];
       if (input.dia_pago) updateData.dia_pago = input.dia_pago;
       if (input.monto !== undefined) updateData.monto = input.monto;
+      if (input.suscripcion_id !== undefined) updateData.suscripcion_id = input.suscripcion_id;
+      if (input.monto_personalizado !== undefined) updateData.monto_personalizado = input.monto_personalizado;
       if (input.notas !== undefined) updateData.notas = input.notas;
       if (input.turno_id !== undefined) updateData.turno_id = input.turno_id;
       if (input.dias_asistencia !== undefined) updateData.dias_asistencia = input.dias_asistencia;

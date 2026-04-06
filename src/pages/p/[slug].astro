@@ -3,7 +3,8 @@ import Layout from "@/layouts/Layout.astro";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Instagram, Youtube, Twitter, MessageCircle, Share2, Award } from "lucide-react";
+import { Instagram, Youtube, Twitter, Share2, Award } from "lucide-react";
+import { TiktokLogo } from "@phosphor-icons/react";
 
 const { slug } = Astro.params;
 
@@ -40,7 +41,7 @@ const socialLinks = [
   { icon: Youtube, url: professor.youtube, color: "text-red-500" },
   { icon: Twitter, url: professor.x_twitter, color: "text-blue-400" },
   // TikTok icon usually needs a custom SVG or different lib, using Share2 for now or generic
-  { icon: MessageCircle, url: professor.tiktok, color: "text-zinc-900" }, 
+  { icon: TiktokLogo, url: professor.tiktok, color: "text-zinc-900" }, 
 ].filter(link => link.url);
 
 const title = `${professor.nombre} | MiGym`;

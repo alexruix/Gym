@@ -1,5 +1,6 @@
 import React from "react";
-import { User, Mail, Phone, ChevronRight, MessageCircle, Zap, Activity, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, ChevronRight, Zap, Activity, AlertCircle } from "lucide-react";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
 import { cn, copyToClipboard } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
@@ -91,11 +92,10 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                         {student.nombre}
                     </h4>
                     <span className="block text-[10px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400 opacity-80">
-                        {student.planName || "Sin plan activo"}
-                    </span>
+                        {student.planName || "Sin rutina"}                    </span>
                 </div>
             </div>
-            <StatusBadge status={student.estado as StatusType} />
+            {/* <StatusBadge status={student.estado as StatusType} /> */}
         </div>
 
         {/* Row 2: Health Alert (If exists) - High Priority */}
@@ -131,7 +131,7 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                       title="Enviar WhatsApp"
                       className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
                     >
-                        <MessageCircle className="w-4 h-4" />
+                        <WhatsappLogoIcon size={18} weight="light" />
                     </button>
                 )}
 

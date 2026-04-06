@@ -35,9 +35,13 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
   const [isImportOpen, setIsImportOpen] = useState(false);
 
   const sortOptions = [
+    { label: "Categorias", value: "etiqueta-asc" },
     { label: "Nombre A-Z", value: "nombre-asc" },
-    { label: "Más Recientes", value: "fecha-desc" },
+    { label: "Más recientes", value: "fecha-desc" },
   ];
+
+  const hasTagsOrCategories = useMemo(() => exercises.some(ex => ex.tags && ex.tags.length > 0), [exercises]);
+  const defaultSort = hasTagsOrCategories ? "etiqueta-asc" : "nombre-asc";
 
   const toggleParent = (parentId: string) => {
     const newExpanded = new Set(expandedParents);
@@ -62,16 +66,24 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     successMsg: "Ejercicio eliminado",
   });
 
-  // Lógica de ordenamiento inyectada al DashboardConsole
-  const handleSort = (items: Exercise[], order: string) =>
-    [...items].sort((a, b) => {
+  const baseSortLogic = (a: Exercise, b: Exercise, order: string) => {
+      if (order === "etiqueta-asc") {
+          const tagA = (a.tags && a.tags.length > 0) ? a.tags[0].toLowerCase() : "zzzz";
+          const tagB = (b.tags && b.tags.length > 0) ? b.tags[0].toLowerCase() : "zzzz";
+          if (tagA !== tagB) return tagA.localeCompare(tagB);
+          return a.nombre.localeCompare(b.nombre);
+      }
       if (order === "nombre-asc") return a.nombre.localeCompare(b.nombre);
       if (order === "fecha-desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       return 0;
-    });
+  };
 
-  // Helper agrupador de variantes: respeta la lista filtrada actual
-  const getGroupedExercises = (filteredList: Exercise[], sortOrder: string) => {
+  // Lógica de ordenamiento inyectada al DashboardConsole
+  const handleSort = (items: Exercise[], order: string) =>
+    [...items].sort((a, b) => baseSortLogic(a, b, order));
+
+  // Helper agrupador de variantes: infiere el orden directamente de la lista filtrada
+  const getGroupedExercises = (filteredList: Exercise[]) => {
     const vMap: Record<string, Exercise[]> = {};
     const displayParents: (Exercise & { variantCount: number })[] = [];
 
@@ -83,39 +95,34 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
       }
     });
 
-    // Strategy: Show a parent if IT matches OR if ANY of its children match
-    const matchingIds = new Set(filteredList.map(ex => ex.id));
-    
-    // Identificamos qué padres deben mostrarse
-    const parentsToShow = new Set<string>();
-    exercises.forEach(ex => {
-        if (!ex.parent_id && matchingIds.has(ex.id)) {
-            parentsToShow.add(ex.id);
-        } else if (ex.parent_id && matchingIds.has(ex.id)) {
-            parentsToShow.add(ex.parent_id);
+    // Como filteredList YA VIENE ORDENADA por DashboardConsole, 
+    // insertamos los padres en el orden exacto en que aparecen sus hijos o ellos mismos.
+    const parentsAdded = new Set<string>();
+
+    filteredList.forEach(ex => {
+        const parentId = ex.parent_id || ex.id;
+        if (!parentsAdded.has(parentId)) {
+            parentsAdded.add(parentId);
+            
+            const parentOb = exercises.find(e => e.id === parentId && !e.parent_id);
+            if (parentOb) {
+                displayParents.push({
+                    ...parentOb,
+                    variantCount: vMap[parentOb.id]?.length || 0
+                });
+            }
         }
     });
 
-    exercises.filter(ex => !ex.parent_id && parentsToShow.has(ex.id)).forEach(parent => {
-        displayParents.push({
-            ...parent,
-            variantCount: vMap[parent.id]?.length || 0
-        });
-    });
-
     return {
-        displayParents: displayParents.sort((a, b) => {
-            if (sortOrder === "nombre-asc") return a.nombre.localeCompare(b.nombre);
-            if (sortOrder === "fecha-desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            return 0;
-        }),
+        displayParents, // Hereda el orden natural del sort activo
         variantsMap: vMap
     };
   };
 
   const GridRenderer = ({ filtered }: { filtered: Exercise[] }) => {
     const { displayParents, variantsMap } = useMemo(
-        () => getGroupedExercises(filtered, "nombre-asc"),
+        () => getGroupedExercises(filtered),
         [filtered, exercises]
     );
 
@@ -174,7 +181,8 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         items={exercises}
         itemLabel="Ejercicios"
         storageKey="ejercicios"
-        searchPlaceholder="Buscar por nombre o #tag..."
+        initialSort={defaultSort}
+        searchPlaceholder="Buscar por nombre o categoría..."
         allTags={uniqueTags}
         sortOptions={sortOptions}
         onSort={handleSort}

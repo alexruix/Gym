@@ -52,6 +52,7 @@ interface LogisticsPanelProps {
   onOpenChange: (open: boolean) => void;
   students: Student[];
   turnos: Turno[];
+  onEditStudent?: (student: Student) => void;
 }
 
 /** 
@@ -65,7 +66,8 @@ export function LogisticsPanel({
   isOpen, 
   onOpenChange, 
   students, 
-  turnos 
+  turnos,
+  onEditStudent
 }: LogisticsPanelProps) {
   const { execute, isPending } = useAsyncAction();
   const [search, setSearch] = useState("");
@@ -193,14 +195,13 @@ export function LogisticsPanel({
                     return (
                         <div 
                             key={student.id}
-                            onClick={() => toggleStudent(student.id)}
                             className={cn(
-                                "flex items-center justify-between p-3 rounded-2xl cursor-pointer transition-all border border-transparent",
+                                "flex items-center justify-between p-3 rounded-2xl transition-all border border-transparent group/row",
                                 isSelected ? "bg-zinc-50 border-lime-400/20" : "hover:bg-zinc-50/50",
-                                student.turno_id && !isSelected && "opacity-60"
+                                student.turno_id && !isSelected && "opacity-60 hover:opacity-100"
                             )}
                         >
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 flex-1 cursor-pointer" onClick={() => toggleStudent(student.id)}>
                                 <Checkbox 
                                     checked={isSelected}
                                     onCheckedChange={() => toggleStudent(student.id)}
@@ -221,6 +222,20 @@ export function LogisticsPanel({
                                     </div>
                                 </div>
                             </div>
+
+                            {onEditStudent && (
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEditStudent(student);
+                                    }}
+                                    className="opacity-0 group-hover/row:opacity-100 transition-opacity h-8 px-4 rounded-xl border border-zinc-200 hover:border-lime-400 hover:bg-lime-50 text-[10px] font-black uppercase tracking-widest text-zinc-600 hover:text-lime-600 focus:opacity-100"
+                                >
+                                    Editar
+                                </Button>
+                            )}
                         </div>
                     );
                 })}

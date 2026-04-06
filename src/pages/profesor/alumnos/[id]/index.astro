@@ -3,6 +3,7 @@ import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
 import { AthleteHeader } from '@/components/organisms/profesor/perfil/AthleteHeader';
 import { HealthAlert } from '@/components/molecules/profesor/perfil/HealthAlert.tsx';
 import { StudentProfileManager } from '@/components/organisms/profesor/perfil/StudentProfileManager.tsx';
+import { InconsistencyAlert } from '@/components/molecules/InconsistencyAlert';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 
 const { id } = Astro.params;
@@ -17,6 +18,7 @@ const { data: alumno, error } = await supabase
   .from("alumnos")
   .select(`
     *,
+    suscripciones (*),
     pagos (
       id,
       monto,
@@ -67,14 +69,35 @@ if (error || !alumno) {
   return Astro.redirect("/profesor/alumnos?error=not-found");
 }
 
+// 2.3 Fetch todas las suscripciones para alertar inconsistencias
+const { data: allSubscriptions } = await supabase
+  .from("suscripciones")
+  .select("*")
+  .eq("profesor_id", user.id)
+  .order("cantidad_dias", { ascending: true });
+
+// 2.4 Calculamos inconsistencia
+const actualDays = (alumno.dias_asistencia || []).length;
+const currentSub = alumno.suscripciones;
+const planDays = currentSub?.cantidad_dias || 0;
+const isInconsistent = !alumno.monto_personalizado && actualDays > planDays;
+
+let targetPlan = null;
+if (isInconsistent && allSubscriptions) {
+  // Buscamos el plan más cercano que cubra sus días (o el de mayor días)
+  targetPlan = allSubscriptions.find(s => s.cantidad_dias >= actualDays) || allSubscriptions[allSubscriptions.length - 1];
+  // Si encontramos el mismo plan, no hay target
+  if (targetPlan?.id === currentSub?.id) targetPlan = null;
+}
+
 // 2.5 Fetch biblioteca completa para búsqueda rápida
+// ... rest remains same but I'll return the full set of variables
 const { data: exercises } = await supabase
   .from("biblioteca_ejercicios")
   .select("id, nombre, media_url, parent_id, is_template_base, tags")
   .eq("profesor_id", user.id)
   .order("nombre", { ascending: true });
 
-// 2.6 Fetch última sesión instanciada para telemetría
 const { data: ultimaSesion } = await supabase
   .from("sesiones_instanciadas")
   .select("updated_at, completed_at")
@@ -99,7 +122,8 @@ const studentData = {
   monto: alumno.monto || null,
   ultima_sesion: ultimaSesion?.completed_at || ultimaSesion?.updated_at || null,
   pago_activo,
-  historial_pagos: sortedPagos
+  historial_pagos: sortedPagos,
+  suscripcion: alumno.suscripciones
 };
 
 const assignedPlan = Array.isArray(alumno.planes) ? alumno.planes[0] : alumno.planes;
@@ -122,7 +146,19 @@ const sidebarProps = {
   <div class="px-5 py-6 md:py-12 md:px-10 max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
     
     {/* 1. CABECERA */}
-    <section class="animate-in slide-in-from-top-4 duration-500">
+    <section class="animate-in slide-in-from-top-4 duration-500 space-y-6">
+      {targetPlan && (
+        <InconsistencyAlert
+          client:load
+          alumnoId={alumno.id}
+          actualDays={actualDays}
+          planDays={planDays}
+          targetPlanId={targetPlan.id}
+          targetPlanName={targetPlan.nombre}
+          targetPlanMonto={targetPlan.monto}
+          onSolved={() => Astro.redirect(`/profesor/alumnos/${alumno.id}`)}
+        />
+      )}
       <AthleteHeader client:load alumno={studentData} planName={planName} />
     </section>
 

@@ -1,4 +1,4 @@
-﻿---
+---
 import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import PageHeader from "@/components/molecules/PageHeader.astro";
 import { TablaPagos } from "@/components/organisms/TablaPagos";
@@ -15,10 +15,30 @@ if (!userId) {
 }
 
 let alumnosPagos = [];
+let subscriptions = [];
 try {
   alumnosPagos = await getAlumnosConPagoActivo(supabase, userId);
+  
+  const { data: subs } = await supabase
+    .from("suscripciones")
+    .select("*")
+    .eq("profesor_id", userId)
+    .order("cantidad_dias", { ascending: true });
+    
+  subscriptions = subs || [];
+  
+  // Si no hay suscripciones, inicializamos las de defecto
+  if (subscriptions.length === 0) {
+    await supabase.rpc('inicializar_suscripciones_profesor', { p_profesor_id: userId });
+    const { data: subsRetry } = await supabase
+      .from("suscripciones")
+      .select("*")
+      .eq("profesor_id", userId)
+      .order("cantidad_dias", { ascending: true });
+    subscriptions = subsRetry || [];
+  }
 } catch (e) {
-  console.error("Error cargando alumnos para pagos:", e);
+  console.error("Error cargando datos para pagos:", e);
 }
 ---
 
@@ -34,7 +54,7 @@ try {
     />
 
     <div class="bg-transparent rounded-2xl">
-      <TablaPagos client:load initialAlumnos={alumnosPagos} />
+      <TablaPagos client:load initialAlumnos={alumnosPagos} initialSubscriptions={subscriptions} />
     </div>
   </div>
 </ProfesorLayout>

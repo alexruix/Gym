@@ -40,8 +40,8 @@ export const agendaCopy = {
       unassigned: "Sin turno",
       alreadyIn: "Ya está en: {{time}}",
       submitInitial: "Seleccioná alumnos",
-      submitActive: "Sumar {{count}} alumnos a las {{hora}}",
-      success: "¡Listo! Ya sumaste a los chicos al turno de las {{hora}}.",
+      submitActive: "Sumar {{count}} alumnos al turno de las {{hora}}",
+      success: "¡Listo! Ya sumaste a los alumnos al turno de las {{hora}}.",
     }
   }
 };

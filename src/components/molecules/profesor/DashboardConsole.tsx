@@ -37,6 +37,7 @@ interface DashboardConsoleProps<T extends BaseEntity> {
     /** Opcional: Proporcionar lógica de ordenamiento personalizada */
     onSort?: (items: T[], order: string) => T[];
     sortOptions?: SortOption[];
+    initialSort?: string;
     emptyIcon?: React.ReactNode;
     emptyTitle?: string;
     emptyDescription?: string;
@@ -61,6 +62,7 @@ export function DashboardConsole<T extends BaseEntity>({
     createLabel = "Nuevo",
     onSort,
     sortOptions = [],
+    initialSort,
     renderCreateAction,
     emptyIcon,
     emptyTitle,
@@ -70,7 +72,7 @@ export function DashboardConsole<T extends BaseEntity>({
 }: DashboardConsoleProps<T>) {
     const [isSticky, setIsSticky] = useState(false);
 
-    // Integración del Cerebro Core ðŸ§ 
+    // Integración del Cerebro Core 
     const {
         viewMode,
         toggleView,
@@ -86,6 +88,7 @@ export function DashboardConsole<T extends BaseEntity>({
     } = useResourceDashboard({
         items,
         storageKey,
+        initialSort: initialSort as any,
         onSort
     });
 
@@ -100,7 +103,7 @@ export function DashboardConsole<T extends BaseEntity>({
 
     return (
         <div className="relative">
-            {/* ðŸ› ï¸ NAVIGATION & SEARCH CONSOLE (STICKY) ðŸ› ï¸ */}
+            {/* NAVIGATION & SEARCH CONSOLE (STICKY) */}
             <div className={cn(
                 "w-full transition-all duration-500 py-4 px-2 mb-8 z-40",
                 isSticky 
@@ -127,7 +130,7 @@ export function DashboardConsole<T extends BaseEntity>({
                         {/* TAG SUGGESTIONS */}
                         {search.startsWith("#") && search.length > 1 && (
                             <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 p-2">Sugerencias de etiquetas</p>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 p-2">Sugerencias de categorías</p>
                                 <div className="flex flex-wrap gap-2 p-2">
                                     {allTags.filter(t => t.toLowerCase().includes(search.slice(1).toLowerCase())).map(t => (
                                         <button 

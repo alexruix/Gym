@@ -653,7 +653,7 @@ export const alumnoActions = {
                 series_real: null, reps_real: null, peso_real: null, completado: false, is_variation: false 
             }).eq("ejercicio_plan_id", ejPlanId).in("sesion_id", ids);
         }
-        return { success: true, mensaje: `Sustitución de "${nombreEj}" aplicada permanentemente al Plan Base.` };
+        return { success: true, mensaje: `Sustitución de "${nombreEj}" aplicada permanentemente a la planificación.` };
       } else {
         await supabase.from("sesion_ejercicios_instanciados").update({ 
             ejercicio_id: input.nuevo_biblioteca_id, 
@@ -824,7 +824,7 @@ export const alumnoActions = {
           }));
           await supabase.from("sesion_ejercicios_instanciados").insert(instancias);
         }
-        return { success: true, mensaje: `✅ Ejercicio "${nombreEj}" añadido permanentemente al Plan Base.` };
+        return { success: true, mensaje: `✅ Ejercicio "${nombreEj}" añadido permanentemente.` };
       } else {
         const { data: countRes } = await supabase.from("sesion_ejercicios_instanciados").select("orden").eq("sesion_id", input.sesion_id).order("orden", { ascending: false }).limit(1);
         const nextOrder = (countRes?.[0]?.orden ?? 0) + 1;
@@ -883,7 +883,7 @@ export const alumnoActions = {
           const ids = futuras.map(s => s.id);
           await supabase.from("sesion_ejercicios_instanciados").delete().eq("ejercicio_plan_id", ejPlanId).is("completado", false).in("sesion_id", ids);
         }
-        return { success: true, mensaje: "✅ Ejercicio eliminado permanentemente del Plan Base." };
+        return { success: true, mensaje: "✅ Ejercicio eliminado permanentemente." };
       } else {
         await supabase.from("sesion_ejercicios_instanciados").delete().eq("id", input.ejercicio_id);
         return { success: true, mensaje: "✅ Ejercicio eliminado solo hoy." };

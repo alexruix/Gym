@@ -12,6 +12,7 @@ interface WhatsAppOptions {
     type: 'general' | 'welcome' | 'payment' | 'custom';
     message?: string;
     studentId?: string; // Used to fetch the guest link if type === 'welcome'
+    amount?: number;    // Used for payment reminders
 }
 
 /**
@@ -71,7 +72,9 @@ export function useStudentActions() {
             finalMessage = `¡Hola ${firstName}! Ya te sumé a MiGym. Este es tu link para ver el plan: ${link}`;
             if (toastId) toast.dismiss(toastId);
         } else if (options.type === 'payment') {
-            finalMessage = `Hola ${firstName}, ¿cómo va? Te escribo de MiGym para recordarte el pago de la cuota mensualmente.`;
+            finalMessage = options.message || (options.amount 
+                ? `Hola ${firstName}, ¿cómo va? Te escribo de MiGym para recordarte el vencimiento de tu cuota mensual ($${options.amount.toLocaleString('es-AR')}).`
+                : `Hola ${firstName}, ¿cómo va? Te escribo de MiGym para recordarte el pago de la cuota mensualmente.`);
         } else if (options.type === 'general') {
             finalMessage = `¡Hola ${firstName}! Te escribo de MiGym.`;
         }

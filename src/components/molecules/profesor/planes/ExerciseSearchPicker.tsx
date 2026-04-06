@@ -94,7 +94,7 @@ export function ExerciseSearchPicker({ existingIds, onSelect, trigger }: Exercis
             <input
               autoFocus
               type="text"
-              placeholder="Filtra por nombre o etiqueta (ej. piernas, pecho)..."
+              placeholder="Busca por nombre o categoria (ej. piernas, pecho)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="w-full bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 focus:border-lime-400 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold placeholder:text-zinc-400 outline-none transition-all"

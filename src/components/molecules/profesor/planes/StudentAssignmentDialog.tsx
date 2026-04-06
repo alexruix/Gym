@@ -196,8 +196,8 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
         <EntitySelectorDialog 
             open={open}
             onOpenChange={onOpenChange}
-            title="Asignar Alumnos"
-            description="Gestioná quién entrena con este plan."
+            title="Asignar alumnos"
+            description="Gestioná quién entrena con esta planificación."
             items={students}
             multiple={true}
             initialSelectedIds={selectedIds}
@@ -208,7 +208,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
             allTags={stats.allTags}
             onCreateNew={() => setShowCreateForm(true)}
             createNewLabel="Nuevo alumno"
-            warningMessage="âš ï¸ Algunos alumnos ya tienen un plan activo. Al confirmar, su rutina será reemplazada por esta."
+            warningMessage="Algunos alumnos ya tienen un plan activo. Al confirmar, su rutina será reemplazada por esta."
             renderItem={(s, isSelected) => (
                 <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col">

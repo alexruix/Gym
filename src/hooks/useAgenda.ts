@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { actions } from "astro:actions";
 
@@ -33,6 +33,9 @@ const DAYS_OF_WEEK = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Vie
 export function useAgenda(initialTurnos: Turno[], initialStudents: Student[], initialSessions: Session[]) {
   const [sessions, setSessions] = useState<Session[]>(initialSessions);
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  const pendingRefreshes = useRef<Set<string>>(new Set());
+  const refreshTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // 1. Tick del Reloj (cada 60 segundos para refrescar bloque activo)
   useEffect(() => {
@@ -60,7 +63,7 @@ export function useAgenda(initialTurnos: Turno[], initialStudents: Student[], in
             .single();
 
           if (sessionData?.alumno_id) {
-            refreshStudentProgress(sessionData.alumno_id);
+            queueRefresh(sessionData.alumno_id);
           }
         }
       )
@@ -68,8 +71,20 @@ export function useAgenda(initialTurnos: Turno[], initialStudents: Student[], in
 
     return () => {
       supabase.removeChannel(channel);
+      if (refreshTimeout.current) clearTimeout(refreshTimeout.current);
     };
   }, []);
+
+  const queueRefresh = (alumno_id: string) => {
+    pendingRefreshes.current.add(alumno_id);
+    if (refreshTimeout.current) clearTimeout(refreshTimeout.current);
+    
+    refreshTimeout.current = setTimeout(() => {
+      const idsToRefresh = Array.from(pendingRefreshes.current);
+      pendingRefreshes.current.clear();
+      idsToRefresh.forEach(id => refreshStudentProgress(id));
+    }, 1000); // 1s cooldown
+  };
 
   // Helper para refrescar solo un alumno
   const refreshStudentProgress = async (alumno_id: string) => {

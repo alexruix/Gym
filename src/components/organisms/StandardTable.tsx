@@ -28,6 +28,7 @@ interface StandardTableProps<T> {
   entityName?: string;
   hideSearch?: boolean;
   className?: string;
+  responsiveMode?: "stack" | "scroll";
 }
 
 /**
@@ -49,6 +50,7 @@ export function StandardTable<T extends { id: string | number }>({
   entityName = "Resultados",
   hideSearch,
   className,
+  responsiveMode = "stack",
 }: StandardTableProps<T>) {
   
   const hasData = data.length > 0;
@@ -83,9 +85,13 @@ export function StandardTable<T extends { id: string | number }>({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead className="bg-zinc-50/50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-900 text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-black">
+          <div className={cn(responsiveMode === "scroll" ? "overflow-x-auto" : "")}>
+            <table className={cn("w-full text-sm text-left border-collapse", responsiveMode === "stack" ? "block md:table" : "")}>
+              <thead className={cn(
+                  "bg-zinc-50/50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-900 text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-black",
+                  responsiveMode === "stack" ? "hidden md:table-header-group" : ""
+                )}
+              >
                 <tr>
                   {columns.map((col, idx) => (
                     <th 
@@ -102,12 +108,13 @@ export function StandardTable<T extends { id: string | number }>({
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-50 dark:divide-zinc-900">
+              <tbody className={cn("divide-y divide-zinc-50 dark:divide-zinc-900", responsiveMode === "stack" ? "block md:table-row-group" : "")}>
                 {data.map((item) => (
                   <tr 
                     key={item.id} 
                     className={cn(
                       "group transition-colors relative",
+                      responsiveMode === "stack" ? "block md:table-row border-b-8 border-zinc-50/50 dark:border-zinc-900/20 md:border-b-0 last:border-b-0" : "",
                       (onRowClick || rowHref) && "hover:bg-zinc-50/80 dark:hover:bg-lime-400/[0.02]"
                     )}
                     onClick={(e) => {
@@ -119,23 +126,33 @@ export function StandardTable<T extends { id: string | number }>({
                         }
                     }}
                   >
-                    {/* Native Link Overlay for Multitasking */}
-                    {rowHref && (
-                        <td className="p-0 border-0 m-0 absolute inset-0 z-0">
-                             <a href={rowHref(item)} className="block w-full h-full opacity-0" aria-label="Ver detalle" />
-                        </td>
-                    )}
                     {columns.map((col, idx) => (
                       <td 
                         key={idx} 
                         className={cn(
-                          "px-6 py-4 relative z-10", 
-                          col.align === "center" && "text-center", 
-                          col.align === "right" && "text-right",
+                          "relative z-10", 
+                          responsiveMode === "scroll" ? [
+                             "px-6 py-4",
+                             col.align === "center" && "text-center", 
+                             col.align === "right" && "text-right"
+                          ] : [
+                             "flex sm:flex-row items-center justify-between p-4 px-5 border-b border-zinc-100/50 dark:border-zinc-800/10 last:border-0 md:table-cell md:border-0 md:px-6 md:py-4 gap-4",
+                             col.align === "center" && "md:text-center", 
+                             col.align === "right" && "md:text-right"
+                          ],
                           col.className
                         )}
                       >
-                        <div className={cn("inline-flex w-full", col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "")}>
+                        {responsiveMode === "stack" && (
+                            <span className="md:hidden text-[9px] uppercase tracking-widest text-zinc-400 font-bold w-1/3 shrink-0">
+                                {col.header}
+                            </span>
+                        )}
+                        <div className={cn(
+                            "inline-flex", 
+                            responsiveMode === "stack" ? "flex-1 w-full sm:w-auto overflow-hidden" : "w-full",
+                            col.align === "right" ? "justify-end" : col.align === "center" ? "justify-start md:justify-center" : ""
+                        )}>
                             {col.render(item)}
                         </div>
                       </td>

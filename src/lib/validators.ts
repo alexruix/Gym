@@ -85,6 +85,8 @@ export const updateStudentSchema = z.object({
   fecha_inicio: z.coerce.date().optional(),
   dia_pago: z.number().min(1).max(31).optional(),
   monto: z.number().min(0).optional().nullable(),
+  suscripcion_id: z.string().uuid().optional().nullable(),
+  monto_personalizado: z.boolean().optional().default(false),
   notas: z.string().max(500).optional().nullable(),
   turno_id: z.string().uuid().optional().nullable(),
   dias_asistencia: z.array(z.string()).optional(),
@@ -330,4 +332,27 @@ export const bulkAssignSchema = z.object({
 });
 
 export type BulkAssignData = z.infer<typeof bulkAssignSchema>;
+
+// Subscription validation
+export const subscriptionSchema = z.object({
+  id: z.string().uuid().optional(),
+  nombre: z.string().min(2, "Mínimo 2 caracteres").max(100),
+  monto: z.number().min(0, "Monto inválido"),
+  cantidad_dias: z.number().int().min(0).max(7), // 0 = Libre
+});
+
+export type SubscriptionFormData = z.infer<typeof subscriptionSchema>;
+
+export const linkSubscriptionSchema = z.object({
+  alumno_id: z.string().uuid(),
+  suscripcion_id: z.string().uuid().nullable(),
+  monto_personalizado: z.boolean().default(false),
+  monto: z.number().optional(), // Si es personalizado
+});
+
+export const updateMassivePricesSchema = z.object({
+  suscripcion_id: z.string().uuid(),
+  nuevo_monto: z.number().min(0),
+  nuevo_nombre: z.string().min(2).optional(),
+});
 

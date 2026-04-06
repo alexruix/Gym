@@ -1,9 +1,10 @@
-﻿---
+---
 import ProfesorLayout from "../../layouts/ProfesorLayout.astro";
 import PageHeader from "@/components/molecules/PageHeader.astro";
 import ActionLink from "@/components/atoms/ActionLink.astro";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { Plus } from "lucide-react";
 
 // Organismos
 import { DashboardMetrics } from "@/components/organisms/profesor/dashboard/DashboardMetrics";
@@ -22,14 +23,21 @@ import {
 import { QuickActionFab } from "@/components/organisms/profesor/dashboard/QuickActionFab";
 import { DashboardOnboarding } from "@/components/organisms/profesor/dashboard/DashboardOnboarding";
 
-// Contexto SSR (usuario actual)
+// ─── Autenticación ────────────────────────────────────────────────────────────
 const supabase = createSupabaseServerClient(Astro);
 const { data: userAuth } = await supabase.auth.getUser();
 const user = userAuth?.user;
-
 if (!user) return Astro.redirect("/login");
 
-// 1. Fetch de Alumnos (Todos para métricas principales)
+// ─── Nombre del profesor (para el saludo personalizado) ───────────────────────
+const { data: profesor } = await supabase
+  .from("profesores")
+  .select("nombre")
+  .eq("id", user.id)
+  .maybeSingle();
+const profesorNombre = profesor?.nombre?.split(" ")[0] ?? "profe";
+
+// ─── 1. Alumnos (query extendido con todos los campos necesarios) ──────────────
 const { data: allStudents, error: studentsError } = await supabase
   .from("alumnos")
   .select(
@@ -38,59 +46,152 @@ const { data: allStudents, error: studentsError } = await supabase
     nombre,
     estado,
     email,
+    telefono,
+    dia_pago,
+    monto,
     planes ( id, nombre )
-  `,
+  `
   )
   .eq("profesor_id", user.id)
   .is("deleted_at", null)
   .order("created_at", { ascending: false });
 
 if (studentsError) {
-  console.error("Error cargando dashboard data:", studentsError);
+  console.error("[Dashboard] Error cargando alumnos:", studentsError);
 }
 
 const students = allStudents || [];
+const studentIds = students.map((s) => s.id);
 
-// 2. Cálculo de Métricas
-const activeStudentsCount = students.filter(
-  (s) => s.estado === "activo",
-).length;
-const studentsWithPlan = students.filter((s) => s.planes !== null).length;
+// ─── 1.5 Fetch Últimas Sesiones (para riesgo y adherencia) ─────────────────────
+const { data: allLastSessions } = studentIds.length > 0
+  ? await supabase
+      .from("sesiones_instanciadas")
+      .select("alumno_id, completed_at, updated_at")
+      .in("alumno_id", studentIds)
+      .eq("estado", "completada")
+      .order("completed_at", { ascending: false })
+  : { data: [] };
+
+const studentLastSessionMap = new Map<string, string>();
+(allLastSessions || []).forEach(s => {
+  if (!studentLastSessionMap.has(s.alumno_id)) {
+    studentLastSessionMap.set(s.alumno_id, s.completed_at || s.updated_at);
+  }
+});
 const totalStudents = students.length;
-const adherenceRate =
-  totalStudents > 0 ? Math.round((studentsWithPlan / totalStudents) * 100) : 0;
+const activeStudents = students.filter((s) => s.estado === "activo");
+const activeStudentsCount = activeStudents.length;
 
-// 2.5 Verificar si tiene planes y alumnos para el Onboarding
-const { count: planesCount, error: planesError } = await supabase
+// ─── 2. Onboarding ────────────────────────────────────────────────────────────
+const { count: planesCount } = await supabase
   .from("planes")
   .select("id", { count: "exact", head: true })
   .eq("profesor_id", user.id);
 
-if (planesError) {
-  console.error("Error cargando planes para onboarding:", planesError);
-}
-
 const hasPlans = (planesCount || 0) > 0;
 const hasStudents = totalStudents > 0;
 
-// 3. Preparación de Alertas
+// ─── 3. Métricas reales ───────────────────────────────────────────────────────
+
+// Alumnos sin plan asignado
 const noPlanStudents: AlertData[] = students
   .filter((s) => s.planes === null)
   .map((s) => ({ id: s.id, studentName: s.nombre }));
 
-// Por ahora mockeamos pagos morosos hasta tener tabla de pagos real
-const mockPayments: AlertData[] = students
-  .filter((s) => s.estado === "moroso")
-  .map((s) => ({
-    id: s.id,
-    studentName: s.nombre,
-    daysLate: 2,
-    phone: "5491112345678",
-  }));
+// Alumnos en riesgo de abandono: activos con última sesión > 7 días (o sin sesión)
+const sevenDaysAgo = new Date();
+sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-const hasAlerts = noPlanStudents.length > 0 || mockPayments.length > 0;
+const atRiskStudents: AlertData[] = activeStudents
+  .filter((s) => {
+    const lastSession = studentLastSessionMap.get(s.id);
+    if (!lastSession) return true; // Nunca entrenó
+    return new Date(lastSession) < sevenDaysAgo;
+  })
+  .filter((s) => s.planes !== null) // Solo los que SÍ tienen plan (esperaban entrenar)
+  .map((s) => {
+    const lastSession = studentLastSessionMap.get(s.id);
+    const daysInactive = lastSession
+      ? Math.floor(
+          (Date.now() - new Date(lastSession).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : undefined;
+    return {
+      id: s.id,
+      studentName: s.nombre,
+      phone: s.telefono ?? undefined,
+      daysInactive,
+    };
+  });
 
-// 4. Mapeo para Tabla Reciente (Top 5)
+// Adherencia real: % de activos que entrenaron en los últimos 7 días
+const trainedRecently = activeStudents.filter((s) => {
+  const lastSession = studentLastSessionMap.get(s.id);
+  return lastSession && new Date(lastSession) >= sevenDaysAgo;
+});
+const adherenceRate =
+  activeStudentsCount > 0
+    ? Math.round((trainedRecently.length / activeStudentsCount) * 100)
+    : 0;
+
+// ─── 4. Pagos (query a tabla real) ───────────────────────────────────────────
+const { data: pagosData } = studentIds.length > 0
+  ? await supabase
+      .from("pagos")
+      .select("alumno_id, monto, fecha_vencimiento, fecha_pago, estado")
+      .in("alumno_id", studentIds)
+  : { data: [] };
+
+const pagos = pagosData || [];
+
+// Cuotas vencidas / pendientes
+const expiringPayments: AlertData[] = pagos
+  .filter((p) => p.estado === "pendiente" || p.estado === "vencido")
+  .flatMap((p) => {
+    const student = students.find((s) => s.id === p.alumno_id);
+    if (!student) return [];
+    const daysLate = p.fecha_vencimiento
+      ? Math.max(
+          0,
+          Math.floor(
+            (Date.now() - new Date(p.fecha_vencimiento).getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
+        )
+      : 0;
+    return [
+      {
+        id: student.id,
+        studentName: student.nombre,
+        phone: student.telefono ?? undefined,
+        daysLate,
+      },
+    ];
+  });
+
+// Cobros del mes actual
+const startOfMonth = new Date();
+startOfMonth.setDate(1);
+startOfMonth.setHours(0, 0, 0, 0);
+
+const monthlyRevenue = pagos
+  .filter(
+    (p) =>
+      p.estado === "pagado" &&
+      p.fecha_pago &&
+      new Date(p.fecha_pago) >= startOfMonth
+  )
+  .reduce((sum, p) => sum + (p.monto || 0), 0);
+
+// ─── 5. Alertas combinadas ────────────────────────────────────────────────────
+const hasAlerts =
+  expiringPayments.length > 0 ||
+  atRiskStudents.length > 0 ||
+  noPlanStudents.length > 0;
+
+// ─── 6. Top 5 alumnos para tabla ─────────────────────────────────────────────
 const recentStudents: Student[] = students.slice(0, 5).map((s) => ({
   id: s.id,
   name: s.nombre,
@@ -101,31 +202,46 @@ const recentStudents: Student[] = students.slice(0, 5).map((s) => ({
   status: s.estado as any,
 }));
 
-// 5. Feed de Actividad (Mock por ahora)
-const mockActivities: ActivityLog[] = [
-  {
-    id: "a1",
-    type: "session_completed",
-    studentName: "Micaela Díaz",
-    timeAgo: "Hace 2 horas",
-  },
-  {
-    id: "a2",
-    type: "weight_logged",
-    studentName: "Lucas Castro",
-    details: "80kg en Sentadilla",
-    timeAgo: "Hace 5 horas",
-  },
-];
+// ─── 7. Activity Feed — Sesiones reales ──────────────────────────────────────
+const { data: recentSessions } = studentIds.length > 0
+  ? await supabase
+      .from("sesiones_instanciadas")
+      .select("id, fecha_real, alumno_id, alumnos ( nombre )")
+      .in("alumno_id", studentIds)
+      .order("fecha_real", { ascending: false })
+      .limit(10)
+  : { data: [] };
+
+const now = new Date();
+const activities: ActivityLog[] = (recentSessions || []).map((s: any) => {
+  const sessionDate = new Date(s.fecha_real);
+  const diffDays = Math.floor(
+    (now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  const timeAgo =
+    diffDays === 0
+      ? "Hoy"
+      : diffDays === 1
+        ? "Ayer"
+        : `Hace ${diffDays} días`;
+  return {
+    id: s.id,
+    type: "session_completed" as const,
+    studentName: s.alumnos?.nombre ?? "Alumno",
+    timeAgo,
+  };
+});
 
 const c = dashboardCopy.header;
 ---
 
 <ProfesorLayout title={`${c.title} - MiGym`}>
   <div class="p-6 max-w-7xl mx-auto space-y-8 pb-32 md:pb-6">
+
+    <!-- Header personalizado -->
     <PageHeader
-      title={c.title}
-      subtitle="Bienvenido de nuevo, preparate para una gran semana."
+      title={`Hola, ${profesorNombre}`}
+      subtitle="Tu panel de control. Todo lo que necesitás de un vistazo."
       hideActionsOnMobile={true}
       breadcrumbs={[{ label: "Inicio" }]}
     >
@@ -133,54 +249,42 @@ const c = dashboardCopy.header;
         {c.actions.newStudent}
       </ActionLink>
       <ActionLink href="/profesor/planes/new" variant="primary" uppercase>
-        <svg
-          xmlns="http://www.w3.org/2000/round"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          ><path d="M5 12h14"></path><path d="M12 5v14"></path></svg
-        >
+        <Plus className="w-4 h-4" client:load />
         {c.actions.createPlan}
       </ActionLink>
     </PageHeader>
 
+    <!-- Onboarding (solo si aplica) -->
     <DashboardOnboarding
       client:load
       hasPlans={hasPlans}
       hasStudents={hasStudents}
     />
 
+    <!-- Métricas — 4 cards en grid -->
     <DashboardMetrics
       activeStudents={activeStudentsCount}
       pendingRoutines={noPlanStudents.length}
       adherenceRate={adherenceRate}
+      monthlyRevenue={monthlyRevenue}
     />
 
+    <!-- AlertCenter — PRIMERO (urgencia > no urgente) -->
+    {hasAlerts && (
+      <AlertCenter
+        client:load
+        expiringPayments={expiringPayments}
+        atRiskStudents={atRiskStudents}
+        noPlanStudents={noPlanStudents}
+      />
+    )}
+
+    <!-- Lista de alumnos recientes -->
     <StudentList client:load students={recentStudents} isDashboard={true} />
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {hasAlerts && (
-        <div class="lg:col-span-2 space-y-6">
-          <AlertCenter
-            client:load
-            expiringPayments={mockPayments}
-            atRiskStudents={[]}
-            noPlanStudents={noPlanStudents}
-          />
-        </div>
-      )}
-      
-      <div
-        class={`lg:col-span-1 ${!hasAlerts ? 'lg:col-span-3' : ''} border-t lg:border-t-0 pt-6 lg:pt-0 border-zinc-100 dark:border-zinc-800`}
-      >
-        <ActivityFeed activities={mockActivities} />
-      </div>
-    </div>
+
+    <!-- Activity Feed -->
+    <ActivityFeed activities={activities} />
+
   </div>
 
   <QuickActionFab client:load />

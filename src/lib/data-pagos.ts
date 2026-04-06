@@ -9,6 +9,7 @@ export async function getAlumnosConPagoActivo(supabase: any, profesorId: string)
       telefono, 
       monto, 
       dia_pago,
+      monto_personalizado,
       ultimo_recordatorio_pago_at,
       pagos (
         id, 
@@ -61,26 +62,35 @@ export async function getAlumnosConPagoActivo(supabase: any, profesorId: string)
     }
 
     if (needsVirtual) {
-       const virtualDate = new Date(currentYear, currentMonth, alumno.dia_pago || 15);
+       // Si no hay dia_pago, no podemos "inventar" el vencimiento.
+       const virtualDate = alumno.dia_pago ? new Date(currentYear, currentMonth, alumno.dia_pago) : null;
        pagoActivo = {
           id: `virtual-${alumno.id}`,
           monto: alumno.monto || 0,
-          fecha_vencimiento: virtualDate.toISOString().split('T')[0],
+          fecha_vencimiento: virtualDate ? virtualDate.toISOString().split('T')[0] : null,
           estado: 'pendiente',
           fecha_pago: null,
           isVirtual: true
        };
     }
 
-    // Calcular si está vencido exactamente
+    // Calcular si está vencido exactamente (Telemetría Industrial)
     let isVencido = false;
     if (pagoActivo && pagoActivo.estado !== 'pagado') {
-        const vencimiento = new Date(pagoActivo.fecha_vencimiento);
-        vencimiento.setHours(0,0,0,0);
-        
-        if (vencimiento < today) {
-            isVencido = true;
-            pagoActivo.estado = 'vencido';
+        if (pagoActivo.fecha_vencimiento) {
+            const vencimiento = new Date(pagoActivo.fecha_vencimiento);
+            vencimiento.setHours(0,0,0,0);
+            
+            if (vencimiento < today) {
+                isVencido = true;
+                pagoActivo.estado = 'vencido';
+            }
+        } else if (alumno.dia_pago) {
+            // Si no hay fecha de vencimiento explícita (raro en virtual) pero hay día de pago
+            if (today.getDate() > alumno.dia_pago) {
+                isVencido = true;
+                pagoActivo.estado = 'vencido';
+            }
         }
     }
 
@@ -89,6 +99,7 @@ export async function getAlumnosConPagoActivo(supabase: any, profesorId: string)
 
     return {
       ...alumnoRaw,
+      name: alumno.nombre, // Alias for DashboardConsole/Search
       pago_activo: pagoActivo,
       is_moroso: isVencido,
       historial: historial

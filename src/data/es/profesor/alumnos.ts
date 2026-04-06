@@ -62,7 +62,7 @@ export const inviteStudentCopy = {
 export const alumnosListCopy = {
   header: {
     title: "Alumnos",
-    subtitle: "Gestioná a tus alumnos, sus planes y seguimientos.",
+    subtitle: "Gestioná a tus alumnos, sus rutinas y seguimientos.",
     actions: {
       import: "Importar Excel",
       new: "Nuevo alumno",

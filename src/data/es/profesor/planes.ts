@@ -5,12 +5,12 @@ export const planesCopy = {
   },
   list: {
     header: {
-      title: "Planes",
-      subtitle: "Diseña plantillas reutilizables de varios días para asignar a tus alumnos.",
-      newBtn: "Crear plan"
+      title: "Planificaciones",
+      subtitle: "Diseña tus planificaciones base que luego podes asignar y editar individualmente a tus alumnos.",
+      newBtn: "Crear planificación"
     },
     table: {
-      title: "Todos los planes",
+      title: "Todas las planificaciones",
       searchPlaceholder: "Buscar por nombre...",
       empty: "Todavía no tenés planes creados.",
       emptySearch: "No encontramos planes con ese nombre.",
@@ -22,7 +22,7 @@ export const planesCopy = {
       dropdownMenu: {
         triggerAria: "Opciones del plan",
         viewDetails: "Ver detalle",
-        editPlan: "Editar plan",
+        editPlan: "Editar planificación",
         duplicatePlan: "Duplicar plan",
         deletePlan: "Eliminar"
       }
@@ -69,14 +69,14 @@ export const planesCopy = {
       assignBtn: "Asignar Alumno",
     },
     actions: {
-      edit: "Editar Plan",
+      edit: "Editar planificación",
       duplicate: "Duplicar",
-      back: "Volvé a Planes",
+      back: "Volver",
     }
   },
   form: {
     basic: {
-      title: "Info del Plan",
+      title: "Información",
       nameOptions: ["Hipertrofia", "Fuerza", "Resistencia", "Pérdida de peso", "Rehabilitación"],
       labels: {
         nombre: "Nombre o enfoque del plan",
@@ -110,12 +110,12 @@ export const planesCopy = {
       backBtn: "Volver al buscador",
     },
     submit: {
-      btn: "Guardar plan completo",
+      btn: "Guardar",
       loading: "Guardando...",
     },
     messages: {
-      success: "¡Plan creado exitosamente!",
-      error: "Hubo un error al crear el plan.",
+      success: "¡Planificación creada exitosamente!",
+      error: "Hubo un error al crear la planificación.",
     }
   }
 } as const;

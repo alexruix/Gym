@@ -72,7 +72,7 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
                         <DropdownMenuItem asChild>
                             <a href={`/profesor/planes/${plan.id}/edit`} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
                                 <Pencil className="h-4 w-4 text-zinc-400" />
-                                <span>Editar plan</span>
+                                <span>Editar planificación</span>
                             </a>
                         </DropdownMenuItem>
                         <DropdownMenuItem 

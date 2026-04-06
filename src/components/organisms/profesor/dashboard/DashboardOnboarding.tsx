@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { CheckCircle2, Circle, X, BookOpen, UserPlus, ClipboardList } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
 import { DashboardCard } from "@/components/molecules/DashboardCard";
@@ -42,7 +42,7 @@ export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
           <div className="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden">
             <div className="bg-lime-400 h-full transition-all duration-500 rounded-full" style={{ width: `${(completedSteps / 3) * 100}%` }} />
           </div>
-          <p className="text-xs text-zinc-500 mt-2 font-bold uppercase tracking-widest">{c.progressText}</p>
+          <p className="text-xs text-zinc-500 mt-2 font-bold uppercase tracking-widest">{c.progressText.replace("{n}", String(completedSteps))}</p>
         </div>
 
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
