@@ -1,19 +1,20 @@
-﻿---
+---
 import '../styles/global.css';
 import { Toaster } from '@/components/ui/sonner';
 
 interface Props {
 	title: string;
+	description?: string;
 }
 
-const { title } = Astro.props;
+const { title, description = 'Gestioná tu gimnasio sin hojas de cálculo. Planes, alumnos y cobros en un solo lugar.' } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="es">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content={title === 'MiGym' ? 'Gestioná tu gimnasio sin hojas de cálculo' : title} />
+		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		

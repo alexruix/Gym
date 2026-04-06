@@ -1,24 +1,25 @@
-﻿---
+---
 import { landingCopy } from '../../../data/es/landing';
+import LandingSectionBadge from '../../atoms/landing/LandingSectionBadge.astro';
 
 const { socialProof } = landingCopy;
 ---
 
-<section class="py-14 border-y border-zinc-100 bg-zinc-50">
+<section class="py-14 border-y border-zinc-100 bg-zinc-50" aria-label="Quiénes lo usan">
     <div class="max-w-6xl mx-auto px-5 md:px-8">
         <div class="flex flex-col md:flex-row items-center justify-between gap-8">
 
             <!-- Texto ancla -->
-            <div class="flex flex-col gap-1 text-center md:text-left">
-                <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">{socialProof.badge}</span>
+            <div class="flex flex-col gap-2 text-center md:text-left">
+                <LandingSectionBadge text={socialProof.badge} variant="light" />
                 <p class="text-base font-bold text-zinc-600 max-w-sm">{socialProof.text}</p>
             </div>
 
             <!-- Logos (avatares de marca con nombres) -->
-            <div class="flex flex-wrap items-center justify-center gap-3">
+            <div class="flex flex-wrap items-center justify-center gap-3" aria-label="Gimnasios que usan MiGym">
                 {socialProof.logos.map((logo) => (
                     <div class="flex items-center gap-2.5 px-4 py-2.5 bg-white rounded-full border border-zinc-200 shadow-sm hover:shadow-md hover:border-lime-200 transition-all duration-200 group">
-                        <div class="w-7 h-7 rounded-full bg-zinc-950 flex items-center justify-center text-[10px] font-black text-lime-400 shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-colors">
+                        <div class="w-7 h-7 rounded-full bg-zinc-950 flex items-center justify-center text-[10px] font-black text-lime-400 shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-colors" aria-hidden="true">
                             {logo.abbr}
                         </div>
                         <span class="text-sm font-bold text-zinc-700 whitespace-nowrap">{logo.name}</span>

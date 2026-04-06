@@ -1,24 +1,23 @@
-﻿---
+---
 import { landingCopy } from '../../../data/es/landing';
+import LandingSectionBadge from '../../atoms/landing/LandingSectionBadge.astro';
 
 const { testimonials } = landingCopy;
 ---
 
-<section class="py-24 px-5 md:px-8 bg-zinc-950 text-white relative overflow-hidden">
+<section class="py-24 px-5 md:px-8 bg-zinc-950 text-white relative overflow-hidden" aria-label="Testimonios de profesores">
     <!-- Decoraciones de fondo -->
-    <div class="absolute -top-40 right-0 w-[600px] h-[600px] bg-lime-500/5 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-20 left-0 w-[400px] h-[400px] bg-lime-500/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -top-40 right-0 w-[600px] h-[600px] bg-lime-500/5 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute -bottom-20 left-0 w-[400px] h-[400px] bg-lime-500/5 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
     <!-- Grid decorativo de fondo -->
-    <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" aria-hidden="true"></div>
 
     <div class="max-w-6xl mx-auto relative z-10">
 
         <!-- Header -->
         <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 animate-in fade-in duration-500">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 border border-white/10 text-lime-400 font-black text-[10px] uppercase tracking-widest">
-                {testimonials.badge}
-            </span>
+            <LandingSectionBadge text={testimonials.badge} variant="dark" />
             <h2 class="text-4xl md:text-5xl font-black tracking-tighter leading-tight">
                 {testimonials.title}<br/>
                 <span class="text-lime-400 italic">{testimonials.titleHighlight}</span>
@@ -28,14 +27,15 @@ const { testimonials } = landingCopy;
         <!-- Grid de testimonios: 3 columnas en desktop, 1 en mobile -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.items.map((testimonial, index) => (
-                <div class={`relative p-7 rounded-3xl border transition-all duration-300 hover:-translate-y-1 group ${
-                    index === 1
-                        ? 'bg-lime-400 border-lime-300 md:scale-105 shadow-2xl shadow-lime-500/20'
-                        : 'bg-zinc-900 border-zinc-800 hover:border-lime-400/30 hover:bg-zinc-800/80'
-                }`}>
-
+                <blockquote
+                    class={`relative p-7 rounded-3xl border transition-all duration-300 hover:-translate-y-1 group flex flex-col ${
+                        index === 1
+                            ? 'bg-lime-400 border-lime-300 md:scale-105 shadow-2xl shadow-lime-500/20'
+                            : 'bg-zinc-900 border-zinc-800 hover:border-lime-400/30 hover:bg-zinc-800/80'
+                    }`}
+                >
                     <!-- Estrellas -->
-                    <div class="flex gap-1 mb-5">
+                    <div class="flex gap-1 mb-5" aria-label={`${testimonial.stars} estrellas`}>
                         {Array.from({ length: testimonial.stars }).map(() => (
                             <svg class={`w-4 h-4 fill-current ${index === 1 ? 'text-zinc-950' : 'text-lime-400'}`} viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -44,19 +44,22 @@ const { testimonials } = landingCopy;
                     </div>
 
                     <!-- Quote -->
-                    <p class={`text-lg font-semibold leading-relaxed mb-7 ${
+                    <p class={`text-lg font-semibold leading-relaxed mb-7 flex-1 ${
                         index === 1 ? 'text-zinc-950' : 'text-zinc-300'
                     }`}>
                         "{testimonial.quote}"
                     </p>
 
                     <!-- Autor -->
-                    <div class="flex items-center gap-3 mt-auto">
-                        <div class={`w-11 h-11 rounded-full flex items-center justify-center font-black text-lg shrink-0 ${
-                            index === 1
-                                ? 'bg-zinc-950 text-lime-400'
-                                : 'bg-lime-400 text-zinc-950'
-                        }`}>
+                    <footer class="flex items-center gap-3">
+                        <div
+                            class={`w-11 h-11 rounded-full flex items-center justify-center font-black text-lg shrink-0 ${
+                                index === 1
+                                    ? 'bg-zinc-950 text-lime-400'
+                                    : 'bg-lime-400 text-zinc-950'
+                            }`}
+                            aria-hidden="true"
+                        >
                             {testimonial.author.charAt(0)}
                         </div>
                         <div>
@@ -67,8 +70,8 @@ const { testimonials } = landingCopy;
                                 index === 1 ? 'text-zinc-700' : 'text-lime-500'
                             }`}>{testimonial.role}</p>
                         </div>
-                    </div>
-                </div>
+                    </footer>
+                </blockquote>
             ))}
         </div>
     </div>

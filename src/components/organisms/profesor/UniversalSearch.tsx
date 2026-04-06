@@ -177,8 +177,8 @@ export function UniversalSearch() {
                   </button>
               ) : (
                 <>
-                  <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">âŒ˜</kbd>
-                  <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">K</kbd>
+                  {/* <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">âŒ˜</kbd>
+                  <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">K</kbd> */}
                 </>
               )}
             </div>
@@ -255,7 +255,7 @@ export function UniversalSearch() {
           </div>
           
           {/* Footer del Buscador - Industrial Tech */}
-          <div className="px-6 py-3 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800">
+          {/* <div className="px-6 py-3 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800">
              <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-400">
                     <kbd className="h-4 px-1 rounded bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500">â†µ</kbd>
@@ -269,7 +269,7 @@ export function UniversalSearch() {
              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-lime-500 hidden xs:block">
                 Gym Intelligence
              </div>
-          </div>
+          </div> */}
         </div>
       )}
     </div>

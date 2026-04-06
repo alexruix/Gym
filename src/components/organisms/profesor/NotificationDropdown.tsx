@@ -25,7 +25,7 @@ export function NotificationDropdown() {
       
       <DropdownMenuContent align="end" className="w-[320px] p-0 rounded-2xl shadow-2xl border-zinc-200 dark:border-zinc-800 overflow-hidden">
         <DropdownMenuLabel className="px-5 py-4 font-black uppercase tracking-widest text-[10px] text-zinc-400 border-b bg-zinc-50/50 dark:bg-zinc-900/50">
-          Notificaciones Recientes
+          Notificaciones recientes
         </DropdownMenuLabel>
         
         <div className="py-12 flex flex-col items-center justify-center text-center px-6">
@@ -33,7 +33,7 @@ export function NotificationDropdown() {
             <Bell className="w-6 h-6 text-zinc-300 dark:text-zinc-700" />
           </div>
           <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">¡Todo en orden!</h4>
-          <p className="text-xs text-zinc-500 mt-1 leading-relaxed"> No tenés nuevas alertas. Te avisaremos cuando tus alumnos completen sesiones o venzan cuotas.</p>
+          <p className="text-xs text-zinc-500 mt-1 leading-relaxed"> No tenés nuevas alertas.</p>
         </div>
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
@@ -42,7 +42,7 @@ export function NotificationDropdown() {
           className="p-4 flex justify-center text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary transition-colors cursor-pointer"
           onClick={() => window.location.href = '/profesor/configuracion#notificaciones'}
         >
-          Configurar Alertas <Settings className="ml-2 w-3 h-3" />
+          Configurar notificaciones <Settings className="ml-2 w-3 h-3" />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

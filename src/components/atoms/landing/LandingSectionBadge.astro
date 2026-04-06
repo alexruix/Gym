@@ -1,0 +1,25 @@
+---
+/**
+ * Atom: LandingSectionBadge
+ * Pill badge reutilizable para encabezados de sección en la landing.
+ * Variante 'light': fondo lime sobre blanco/gris.
+ * Variante 'dark': fondo semitransparente sobre zinc-950.
+ */
+interface Props {
+  text: string;
+  variant?: 'light' | 'dark';
+  class?: string;
+}
+
+const { text, variant = 'light', class: className = '' } = Astro.props;
+
+const base = 'inline-block px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest';
+const variants = {
+  light: 'bg-lime-50 border border-lime-200 text-lime-700',
+  dark:  'bg-white/10 border border-white/10 text-lime-400',
+};
+---
+
+<span class={`${base} ${variants[variant]} ${className}`}>
+  {text}
+</span>

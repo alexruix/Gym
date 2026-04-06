@@ -1,30 +1,37 @@
-﻿---
+---
 import Layout from '../layouts/Layout.astro';
-import { authContent } from '../data/authContent';
+import { landingCopy } from '../data/es/landing';
+import LandingNavbar from '../components/molecules/landing/LandingNavbar.astro';
 import Hero from '../components/organisms/landing/Hero.astro';
 import SocialProof from '../components/organisms/landing/SocialProof.astro';
 import Features from '../components/organisms/landing/Features.astro';
 import Testimonials from '../components/organisms/landing/Testimonials.astro';
 import Pricing from '../components/organisms/landing/Pricing.astro';
 import CtaFinal from '../components/organisms/landing/CtaFinal.astro';
+
+const { meta, footer } = landingCopy;
 ---
 
-<Layout title={authContent.title}>
+<Layout title={meta.title} description={meta.description}>
 	<main class="min-h-screen bg-white text-zinc-950 selection:bg-lime-200 lg:overflow-x-hidden">
+
+		<LandingNavbar />
+
 		<Hero />
 		<SocialProof />
 		<Features />
 		<Testimonials />
 		<Pricing />
 		<CtaFinal />
-		
+
 		<footer class="py-12 border-t border-zinc-900 text-center bg-zinc-950 text-white relative z-10">
-			<div class="font-black text-xl tracking-tighter mb-4">
-				MI<span class="text-lime-500">GYM</span>
+			<div class="font-black text-xl tracking-tighter mb-4" aria-label="MiGym">
+				{footer.logoPrefix}<span class="text-lime-500">{footer.logoSuffix}</span>
 			</div>
 			<p class="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-				{authContent.footer.copy}
+				{footer.copy}
 			</p>
 		</footer>
+
 	</main>
 </Layout>
