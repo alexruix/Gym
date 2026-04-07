@@ -28,24 +28,27 @@ if (error || !exercise) {
   return Astro.redirect("/profesor/ejercicios");
 }
 
+// Cast para evitar 'never' del tipado inferido por Supabase en selects con .single()
+const exerciseData = exercise as any;
+
 // Fetch existing variants if it's a base exercise
 let existingVariants = [];
-if (!exercise.parent_id) {
+if (!exerciseData.parent_id) {
   const { data: variants } = await supabase
     .from("biblioteca_ejercicios")
     .select("id, nombre")
-    .eq("parent_id", exercise.id)
+    .eq("parent_id", exerciseData.id)
     .or(`profesor_id.eq.${userId},profesor_id.is.null`);
   
   existingVariants = variants || [];
 }
 
 const initialValues = {
-  ...exercise,
+  ...exerciseData,
   existing_variants: existingVariants
 };
 
-const title = `Editar ${exercise.nombre} | MiGym`;
+const title = `Editar ${exerciseData.nombre} | MiGym`;
 ---
 
 <ProfesorLayout title={title}>

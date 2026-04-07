@@ -50,29 +50,32 @@ if (error || !plan) {
   return Astro.redirect("/profesor/planes?error=not-found");
 }
 
+// Cast para evitar 'never' del tipado inferido por Supabase en selects complejos
+const planData = plan as any;
+
 import { actions } from "astro:actions";
 
 // 3. Fetch exercise library unificada (Personales + MiGym)
 const { data: exercises } = await Astro.callAction(actions.profesor.getExercises, {});
 
 // 4. Map DB data to Form Schema and Ensure 7 days
-const rutinasMap = new Map(plan.rutinas_diarias.map((r: any) => [r.dia_numero, r]));
+const rutinasMap = new Map(planData.rutinas_diarias.map((r: any) => [r.dia_numero, r]));
 
 const initialValues = {
-    id: plan.id,
-    nombre: plan.nombre,
-    duracion_semanas: plan.duracion_semanas,
-    frecuencia_semanal: plan.frecuencia_semanal,
+    id: planData.id,
+    nombre: planData.nombre,
+    duracion_semanas: planData.duracion_semanas,
+    frecuencia_semanal: planData.frecuencia_semanal,
     rutinas: Array.from({ length: 7 }, (_, i) => {
         const diaNum = i + 1;
-        const existing = rutinasMap.get(diaNum);
+        const existing = rutinasMap.get(diaNum) as any;
         return {
             dia_numero: diaNum,
             nombre_dia: existing?.nombre_dia || `${planesCopy.form.routines.selectDayTitle} ${diaNum}`,
             ejercicios: existing?.ejercicios_plan ? existing.ejercicios_plan.sort((a: any, b: any) => a.orden - b.orden) : []
         };
     }),
-    rotaciones: plan.plan_rotaciones || []
+    rotaciones: planData.plan_rotaciones || []
 };
 
 // Ensure we have 7 days in the form even if some are empty (to match defaultValues logic if needed)
@@ -80,14 +83,14 @@ const initialValues = {
 // For now, let's stick to the active ones + padding if necessary.
 // PlanForm creates 7 days by default if rutinas is missing. If we provide it, it uses it.
 
-const title = `Editar ${plan.nombre} | MiGym`;
+const title = `Editar ${planData.nombre} | MiGym`;
 ---
 
 <ProfesorLayout title={title}>
   <div class="px-4 py-8 md:py-12 max-w-7xl mx-auto space-y-12">
     <CreationHeader 
       title="Editar plan"
-      subtitle={`Modificá la estructura, rutinas y rotaciones de ${plan.nombre}.`}
+      subtitle={`Modificá la estructura, rutinas y rotaciones de ${planData.nombre}.`}
       backHref={`/profesor/planes/${id}`}
       backLabel="Volver al detalle"
     />

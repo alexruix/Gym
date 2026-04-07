@@ -9,11 +9,13 @@ const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
 
 // 1. Verificar que el alumno tiene plan asignado
-const { data: alumno } = await supabase
+const { data: _alumnoRaw } = await supabase
   .from('alumnos')
-  .select('id, nombre, fecha_inicio, plan_id')
+  .select('id, nombre, fecha_inicio, plan_id, planes(id, nombre)')
   .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
+
+const alumno = _alumnoRaw as any;
 
 if (!alumno || !alumno.plan_id) {
   return Astro.redirect('/alumno/espera');
@@ -27,9 +29,11 @@ const diaAbsoluto = getDayNumber(fechaInicio, hoy);
 
 // 3. Instanciar la sesión de hoy (obtener si existe, crear si no)
 // Llamamos directamente a la acción en el servidor para SSR
-const { data: instanciado, error: errorInst } = await actions.alumno.instanciarSesion({
+const { data: _instanciadoRaw, error: errorInst } = await actions.alumno.instanciarSesion({
   fecha_real: getTodayISO(),
 });
+
+const instanciado = _instanciadoRaw as any;
 
 if (errorInst || !instanciado?.sesion) {
   return Astro.redirect('/alumno/espera');

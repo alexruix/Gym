@@ -23,13 +23,15 @@ if (!user) return Astro.redirect("/login");
 
 const supabase = getAuthenticatedClient(Astro);
 
-const { data: alumno } = await supabase
+const { data: _alumnoRaw } = await supabase
   .from("alumnos")
   .select(
     "id, nombre, fecha_inicio, plan_id, planes(id, nombre, duracion_semanas, frecuencia_semanal)",
   )
   .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
+
+const alumno = _alumnoRaw as any;
 
 const rawPlanes = alumno?.planes;
 const assignedPlan = Array.isArray(rawPlanes) ? rawPlanes[0] : rawPlanes;
@@ -56,7 +58,7 @@ const fechaHumana = formatFechaHumana(hoy);
 const fechaHoyISO = getTodayISO();
 
 // Sesión de hoy
-const { data: sesionDeHoy } = await supabase
+const { data: _sesionDeHoyRaw } = await supabase
   .from("sesiones_instanciadas")
   .select(
     `
@@ -70,6 +72,9 @@ const { data: sesionDeHoy } = await supabase
   .eq("alumno_id", alumno.id)
   .eq("fecha_real", fechaHoyISO)
   .single();
+
+// Cast para evitar 'never' del tipado inferido por Supabase en selects complejos
+const sesionDeHoy = _sesionDeHoyRaw as any;
 
 const ejerciciosHoy =
   sesionDeHoy?.sesion_ejercicios_instanciados
@@ -168,9 +173,9 @@ let upcomingSession: UpcomingSessionData | null = null;
 
 if (rutinasDiarias && rutinasDiarias.length > 0) {
   const diaCicicoManana = getCyclicDayNumber(diaManana, rutinasDiarias.length);
-  const rutinaManana = rutinasDiarias.find(
+  const rutinaManana = (rutinasDiarias || []).find(
     (r: any) => r.dia_numero === diaCicicoManana,
-  );
+  ) as any;
 
   if (rutinaManana) {
     const { data: ejerciciosManana } = await supabase
@@ -243,7 +248,7 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
           HOLA, <span
             class="text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-lime-600"
             >{
-              alumno?.nombre
+              alumno.nombre
                 ? alumno.nombre.charAt(0).toUpperCase() +
                   alumno.nombre.slice(1).toLowerCase()
                 : "Alumno"

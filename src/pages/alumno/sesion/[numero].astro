@@ -14,11 +14,13 @@ const { numero } = Astro.params;
 const sessionOffsetIndex = parseInt(numero || '1') - 1; 
 
 // 1. Obtener alumno, vinculando a la identidad User_ID
-const { data: alumno } = await supabase
+const { data: _alumnoRaw } = await supabase
   .from('alumnos')
   .select('id, nombre, fecha_inicio, plan_id, planes(id, nombre)')
   .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
+
+const alumno = _alumnoRaw as any;
 
 
 
@@ -30,11 +32,13 @@ if (!alumno || !alumno.plan_id) {
 const currentWeek = PlanGenerator.getCurrentWeek(alumno.fecha_inicio || new Date());
 
 // 3. Buscar la Rutina Diaria que corresponde a este index
-const { data: rutinasDiarias } = await supabase
+const { data: _rutinasRaw } = await supabase
   .from('rutinas_diarias')
   .select('*')
   .eq('plan_id', alumno.plan_id)
   .order('orden', { ascending: true });
+
+const rutinasDiarias = (_rutinasRaw || []) as any[];
 
 
 
@@ -79,7 +83,7 @@ let sessionId = 'virtual-session-' + Date.now(); // Fallback temporal
 
 // Buscar si ya tiene una sesión abierta HOY. Si no la tiene, la creamos al vuelo.
 const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
-const { data: sesionActual } = await supabase
+const { data: _sesionActualRaw } = await supabase
   .from('sesiones')
   .select('id, completada')
   .eq('alumno_id', alumno.id)
@@ -88,18 +92,22 @@ const { data: sesionActual } = await supabase
   .limit(1)
   .single();
 
+const sesionActual = _sesionActualRaw as any;
+
 if (sesionActual) {
   sessionId = sesionActual.id;
 } else {
   // Crear la cabecera de la sesión del día para amarrar los logs.
-  const { data: nuevaSesion } = await supabase
-    .from('sesiones')
+  const { data: _nuevaRaw } = await (supabase
+    .from('sesiones') as any)
     .insert({
       alumno_id: alumno.id,
       fecha: new Date().toISOString(),
     })
     .select('id')
     .single();
+    
+  const nuevaSesion = _nuevaRaw as any;
     
   if (nuevaSesion) sessionId = nuevaSesion.id;
 }

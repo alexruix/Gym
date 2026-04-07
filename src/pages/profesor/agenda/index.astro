@@ -26,7 +26,7 @@ const { data: rawStudents } = await supabase
   .is("deleted_at", null);
 
 // Mapeo a BaseEntity (name <-> nombre) para que DashboardConsole funcione SSOT
-const students = (rawStudents || []).map(s => ({
+const students = ((rawStudents || []) as any[]).map(s => ({
   ...s,
   name: s.nombre
 }));
@@ -52,7 +52,7 @@ const { data: rawSessions } = await supabase
   .in("alumno_id", (students || []).map(s => s.id));
 
 // 4. Mapear sesiones a formato simplificado para el componente
-const initialSessions = (rawSessions || []).map(s => {
+const initialSessions = ((rawSessions || []) as any[]).map(s => {
   const exercises = s.sesion_ejercicios_instanciados || [];
   const total = exercises.length;
   const completed = exercises.filter((e: any) => e.completado).length;

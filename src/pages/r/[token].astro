@@ -28,6 +28,9 @@ if (error || !student) {
   return Astro.redirect("/login?error=link_expired");
 }
 
+// Cast para template: supabaseAdmin también infiere 'never' en selects simples
+const studentData = student as any;
+
 // 2. Establecer la cookie de acceso (gym_access)
 // Seteamos la cookie con una duración de 1 año
 Astro.cookies.set("gym_access", token, {
@@ -42,7 +45,7 @@ Astro.cookies.set("gym_access", token, {
 return Astro.redirect("/alumno");
 ---
 
-<Layout title={`Entrando como ${student.nombre} - MiGym`}>
+<Layout title={`Entrando como ${studentData.nombre} - MiGym`}>
   <head>
     <meta name="robots" content="noindex, nofollow" />
   </head>
@@ -57,7 +60,7 @@ return Astro.redirect("/alumno");
         Acceso <br /> Permanente
       </h1>
       <p class="industrial-label text-zinc-400 text-center">
-        Hola {student.nombre}, preparando tu rutina...
+        Hola {studentData.nombre}, preparando tu rutina...
       </p>
     </div>
 

@@ -34,19 +34,22 @@ const { data: professor, error } = await supabase
   .single();
 
 // 404 if not found or if profile is not public
-if (error || !professor || !professor.perfil_publico) {
+if (error || !professor || !(professor as any).perfil_publico) {
   return Astro.redirect("/404");
 }
 
+// Cast para evitar 'never' del tipado inferido por Supabase en selects complejos
+const prof = professor as any;
+
 const socialLinks = [
-  { icon: Instagram, url: professor.instagram, color: "text-pink-500" },
-  { icon: Youtube, url: professor.youtube, color: "text-red-500" },
-  { icon: Twitter, url: professor.x_twitter, color: "text-blue-400" },
+  { icon: Instagram, url: prof.instagram, color: "text-pink-500" },
+  { icon: Youtube, url: prof.youtube, color: "text-red-500" },
+  { icon: Twitter, url: prof.x_twitter, color: "text-blue-400" },
   // TikTok icon usually needs a custom SVG or different lib, using Share2 for now or generic
-  { icon: TiktokLogo, url: professor.tiktok, color: "text-zinc-900" },
+  { icon: TiktokLogo, url: prof.tiktok, color: "text-zinc-900" },
 ].filter((link) => link.url);
 
-const title = `${professor.nombre} | MiGym`;
+const title = `${prof.nombre} | MiGym`;
 ---
 
 <Layout title={title}>
@@ -65,16 +68,16 @@ const title = `${professor.nombre} | MiGym`;
             class="relative w-32 h-32 rounded-full border-4 border-white dark:border-zinc-900 overflow-hidden shadow-xl bg-zinc-200 dark:bg-zinc-800"
           >
             {
-              professor.foto_url ? (
+              prof.foto_url ? (
                 <img
-                  src={professor.foto_url}
-                  alt={professor.nombre}
+                  src={prof.foto_url}
+                  alt={prof.nombre}
                   class="w-full h-full object-cover"
                 />
               ) : (
                 <div class="w-full h-full flex items-center justify-center text-zinc-400">
                   <span class="text-4xl font-bold">
-                    {professor.nombre?.[0]}
+                    {prof.nombre?.[0]}
                   </span>
                 </div>
               )
@@ -86,12 +89,12 @@ const title = `${professor.nombre} | MiGym`;
           <h1
             class="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 uppercase italic"
           >
-            {professor.nombre}
+            {prof.nombre}
           </h1>
           {
-            professor.bio && (
+            prof.bio && (
               <p class="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-lg mx-auto">
-                {professor.bio}
+                {prof.bio}
               </p>
             )
           }
@@ -117,13 +120,13 @@ const title = `${professor.nombre} | MiGym`;
 
       <!-- Especialidades -->
       {
-        professor.especialidades && professor.especialidades.length > 0 && (
+        prof.especialidades && prof.especialidades.length > 0 && (
           <section class="space-y-4">
             <h2 class="text-sm font-bold uppercase tracking-widest text-zinc-400 text-center flex items-center justify-center gap-2">
               <Award className="w-4 h-4" /> Especialidades
             </h2>
             <div class="flex flex-wrap justify-center gap-2">
-              {professor.especialidades.map((esp: string) => (
+              {prof.especialidades.map((esp: string) => (
                 <Badge
                   variant="secondary"
                   className="px-4 py-1.5 text-sm font-semibold rounded-full bg-zinc-200/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700"
