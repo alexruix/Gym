@@ -11,22 +11,22 @@ interface Props {
 export function StatusBadge({ status, size = 'md', className }: Props) {
   const configs = {
     activo: {
-      label: "ACTIVO",
+      label: "Activo",
       icon: Check,
       colors: "bg-primary text-primary-foreground border-primary shadow-primary/20",
     },
     moroso: {
-      label: "MOROSO",
+      label: "Deudor",
       icon: AlertCircle,
       colors: "bg-destructive text-destructive-foreground border-destructive shadow-destructive/20",
     },
     inactivo: {
-      label: "SIN PLAN",
+      label: "Sin Plan",
       icon: Clock,
       colors: "bg-muted text-muted-foreground border-border shadow-sm",
     },
     pendiente: {
-      label: "PENDIENTE",
+      label: "Pendiente",
       icon: Clock,
       colors: "bg-secondary text-secondary-foreground border-secondary border shadow-sm",
     }

@@ -275,7 +275,7 @@
      ══════════════════════════════════════════════════════════════════════════ */
 
   .industrial-input {
-    @apply h-14 bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl px-5 text-sm font-bold placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950 dark:focus:ring-lime-400/50 transition-all outline-none;
+    @apply font-bold text-sm h-14 bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl px-5 placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950 dark:focus:ring-lime-400/50 transition-all outline-none;
   }
 
   .industrial-search {

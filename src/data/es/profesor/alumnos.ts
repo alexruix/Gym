@@ -48,11 +48,12 @@ export const inviteStudentCopy = {
   messages: {
     helper: "Toma 2 minutos",
     successModal: {
-      title: "¡{name} ya es parte de MiGym! 🎉",
-      description1: "Invitación enviada con éxito.",
-      description2: "Ya le enviamos su link de acceso por email.",
-      btnWhatsapp: "Copiar link para WhatsApp",
-      btnProfile: "Ir a su ficha",
+      title: "¡{name} ya está en el equipo! 🎉",
+      description: "Invitación enviada. Ya le mandamos un mail con su link de acceso.",
+      btnAgenda: "Asignar turno en agenda",
+      btnWhatsApp: "Enviar bienvenida por WhatsApp",
+      btnGuestLink: "Copiar link de acceso",
+      btnProfile: "Ir al perfil del alumno",
       linkCopied: "Link copiado al portapapeles"
     },
     error: "No se pudo invitar. Probá de nuevo o contactá a soporte.",

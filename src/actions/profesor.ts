@@ -1442,6 +1442,8 @@ export const profesorActions = {
             email,
             estado,
             plan_id,
+            dias_asistencia,
+            turno_id,
             planes (
                 id,
                 nombre
@@ -1461,6 +1463,8 @@ export const profesorActions = {
             email: a.email,
             estado: a.estado,
             plan_id: a.plan_id,
+            dias_asistencia: a.dias_asistencia || [],
+            turno_id: a.turno_id,
             nombre_plan: (Array.isArray(a.planes) ? a.planes[0]?.nombre : (a.planes as any)?.nombre) || null
         }))
       };

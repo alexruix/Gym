@@ -31,6 +31,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { type AlumnoPago, type PagoActivo } from '@/types/pagos';
+import { WhatsappLogoIcon } from '@phosphor-icons/react';
 
 export interface StudentPaymentSheetProps {
   isOpen: boolean;
@@ -272,7 +273,7 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
                       className="h-14 font-bold uppercase tracking-widest text-[10px] gap-2 rounded-2xl border-zinc-200 border-dashed text-zinc-400 hover:text-lime-600 hover:border-lime-400 dark:border-zinc-800 bg-white dark:bg-zinc-950"
                       onClick={enviarWhatsApp}
                     >
-                      <Phone className="w-4 h-4" />
+                      <WhatsappLogoIcon className="w-4 h-4" />
                       Añadir WhatsApp
                     </Button>
                   );
@@ -284,7 +285,7 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
                     disabled={isRecentlyNotifiedVal}
                     onClick={enviarWhatsApp}
                   >
-                    <Phone className="w-4 h-4" />
+                    <WhatsappLogoIcon className="w-4 h-4" />
                     {isRecentlyNotifiedVal ? "Enviado" : "Notificar"}
                   </Button>
                 );

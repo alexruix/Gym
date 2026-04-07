@@ -71,7 +71,7 @@ export const dashboardCopy = {
       editProfile: "Editar Perfil",
       editRoutine: "Editar Rutina",
       registerPayment: "Registrar Pago",
-      copyMagicLink: "Copiar Magic Link",
+      copyMagicLink: "Copiar Link de acceso",
       sendWhatsApp: "Enviar WhatsApp",
       archive: "Archivar",
       triggerAria: "Abrir menú de acciones",

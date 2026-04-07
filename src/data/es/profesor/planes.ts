@@ -67,6 +67,26 @@ export const planesCopy = {
     students: {
       empty: "Ningún alumno está usando este plan.",
       assignBtn: "Asignar Alumno",
+      assignDialog: {
+        title: "Asignar alumnos",
+        description: "Gestioná quién entrena con esta planificación.",
+        sections: {
+          mismatched: "Frecuencia diferente al plan",
+          withPlan: "Alumnos con rutinas activas",
+          available: "Alumnos disponibles"
+        },
+        createForm: {
+          title: "Invitación rápida",
+          description: "Cargá los datos básicos para invitar a un nuevo alumno ahora.",
+          nameLabel: "Nombre Completo",
+          emailLabel: "Correo Electrónico",
+          submit: "Crear y Asignar",
+          back: "Atrás"
+        },
+        warning: "Algunos alumnos ya tienen rutinas activas. Al confirmar, será reemplazada por esta.",
+        success: "Alumnos asignados correctamente",
+        error: "Error al asignar"
+      }
     },
     actions: {
       edit: "Editar planificación",

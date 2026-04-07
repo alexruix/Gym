@@ -152,7 +152,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
               <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 shadow-2xl">
                 <DropdownMenuItem onClick={() => copyGuestLink(alumno.id)} className="rounded-xl py-3 font-bold text-[10px] uppercase tracking-[0.15em] gap-3 cursor-pointer">
                   <Copy className="w-4 h-4 text-zinc-400" />
-                  Copiar Magic Link
+                  Copiar link de acceso
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

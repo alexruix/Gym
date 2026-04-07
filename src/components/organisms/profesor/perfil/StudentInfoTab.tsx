@@ -3,6 +3,7 @@ import { User, Mail, Phone, Calendar, CreditCard, Activity, Pencil, MapPin, Badg
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 
 interface StudentInfoTabProps {
   student: {
@@ -57,10 +58,10 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
             </div>
           </div>
 
-          {/* Phone Card */}
+          {/* Whatsapp Card */}
           <div className="bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800 flex items-start gap-4 hover:border-lime-400/30 transition-colors group">
             <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-lime-500 transition-colors">
-              <Phone className="w-5 h-5" />
+              <WhatsappLogoIcon className="w-5 h-5" />
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-widest leading-none text-emerald-600">Teléfono (WhatsApp)</p>

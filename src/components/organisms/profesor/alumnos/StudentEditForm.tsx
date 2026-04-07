@@ -35,6 +35,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 import { DaySelector } from "@/components/atoms/profesor/DaySelector";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 
 
 type FormValues = z.infer<typeof updateStudentSchema>;
@@ -183,7 +184,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                             >
                                 <FormControl>
                                     <div className="relative group/phone">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within/phone:text-lime-500 transition-colors" />
+                                        <WhatsappLogoIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within/phone:text-lime-500 transition-colors" />
                                         <Input type="tel" placeholder="+54 9..." {...field} value={field.value || ""} className="pl-11" />
                                     </div>
                                 </FormControl>
@@ -294,7 +295,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                         </h3>
                     </div>
 
-                    <div className="industrial-card group bg-ui-soft/30 p-6 sm:p-8 space-y-10">
+                    <div className="rounded-3xl bg-ui-soft/30 border border-zinc-100 dark:border-zinc-800 p-6 sm:p-8 space-y-10">
                         <FormField
                             control={form.control}
                             name="turno_id"
@@ -390,7 +391,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                         </h3>
                     </div>
 
-                    <div className="industrial-card group bg-ui-soft/30 p-6 sm:p-8 space-y-8">
+                    <div className="rounded-3xl bg-ui-soft/30 border border-zinc-100 dark:border-zinc-800 p-6 sm:p-8 space-y-8">
                         <div className="grid gap-8 sm:grid-cols-2">
                             <FormField
                                 control={form.control}
@@ -459,7 +460,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                             name="monto_personalizado"
                             render={({ field }) => (
                                 <FormItem className="space-y-0">
-                                    <div className="industrial-card-sm bg-ui-soft/50 border-zinc-200/50">
+                                    <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 flex items-center justify-between shadow-sm">
                                         <div className="space-y-0.5">
                                             <Label className="industrial-label text-zinc-900 dark:text-zinc-50">Monto personalizado</Label>
                                             <p className="industrial-description">Activalo para ignorar aumentos masivos de este plan</p>
@@ -482,12 +483,12 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                     name="notas"
                     render={({ field, fieldState }) => (
                         <StandardField
-                            label="Notas Médicas"
+                            label="Notas"
                             error={fieldState.error?.message}
                         >
                             <FormControl>
                                 <Input
-                                    placeholder="Aclaraciones sobre lesiones o cuidado especial..."
+                                    placeholder="Aclaraciones sobre lesiones, objetivos o cuidado especial..."
                                     {...field}
                                     value={field.value || ""}
                                     className="industrial-input h-14"
@@ -503,9 +504,9 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                         variant="outline"
                         size="sm"
                         onClick={() => setIsArchiveDialogOpen(true)}
-                        className="rounded-xl industrial-label text-[9px] h-11 px-4 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+                        className="rounded-xl industrial-label h-11 px-4 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
                     >
-                        <Archive className="w-4 h-4 mr-2" /> Archivar Alumno
+                        <Archive className="w-4 h-4 mr-2" /> Archivar alumno
                     </Button>
 
                     <div className="flex gap-3 items-center">

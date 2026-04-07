@@ -28,6 +28,7 @@ import { Loader2 } from "lucide-react";
     import { supabase } from "@/lib/supabase";
 
     async function handleAuth() {
+      const urlParams = new URLSearchParams(window.location.search);
       // 1. Esperamos un momento para que el cliente de Supabase procese el hash de la URL
       // (Supabase hace esto automáticamente al inicializarse si detectSessionInUrl es true)
       let { data: { session }, error } = await supabase.auth.getSession();
@@ -47,7 +48,6 @@ import { Loader2 } from "lucide-react";
 
       if (session) {
         console.log("Sesión detectada, redirigiendo...");
-        const urlParams = new URLSearchParams(window.location.search);
         const next = urlParams.get('next') || '/alumno';
         
         // Delay visual para que el usuario sienta el "proceso"

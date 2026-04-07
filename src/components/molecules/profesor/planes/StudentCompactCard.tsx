@@ -148,7 +148,7 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                             id={student.id}
                             name={student.nombre}
                             actions={customActions}
-                            className="ml-1"
+                            className="flex items-center gap-2"
                         />
                     </div>
                 </div>

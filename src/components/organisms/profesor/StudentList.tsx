@@ -29,6 +29,7 @@ interface Props {
   students: Student[];
   title?: string;
   hideAction?: boolean;
+  isDashboard?: boolean;
 }
 
 /**

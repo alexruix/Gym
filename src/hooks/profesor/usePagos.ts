@@ -16,7 +16,7 @@ export function usePagos(initialAlumnos: AlumnoPago[]) {
         initialAlumnos.map(a => ({
             ...a,
             tags: [
-                a.is_moroso ? "Moroso" :
+                a.is_moroso ? "Deudor" :
                 a.pago_activo?.estado === 'pagado' ? "Pagado" :
                 a.pago_activo?.estado === 'por_vencer' ? "Por vencer" :
                 "Pendiente"

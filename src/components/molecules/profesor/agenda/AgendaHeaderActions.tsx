@@ -21,6 +21,7 @@ interface Turno {
   hora_fin: string;
   capacidad_max: number;
   color_tag?: string;
+  dias_asistencia: string[];
 }
 
 interface Student {

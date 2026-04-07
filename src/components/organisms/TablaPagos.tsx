@@ -1,4 +1,5 @@
 import React from 'react';
+import { WhatsappLogoIcon } from '@phosphor-icons/react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -133,7 +134,7 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
               disabled={isNotified}
               onClick={() => enviarRecordatorio(alumno)}
             >
-              <Phone className="w-3.5 h-3.5" />
+              <WhatsappLogoIcon className="w-3.5 h-3.5" />
             </Button>
           )}
           {isPaid && (
@@ -196,7 +197,7 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
                 disabled={isNotified}
                 onClick={() => enviarRecordatorio(alumno)}
               >
-                <Phone className="w-3.5 h-3.5 mr-2" />
+                <WhatsappLogoIcon className="w-3.5 h-3.5 mr-2" />
                 {isNotified ? "Notificado" : pagosCopy.table.notify}
               </Button>
             )}
@@ -274,7 +275,7 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
                         disabled={isNotified}
                         onClick={e => { e.stopPropagation(); enviarRecordatorio(moroso); }}
                       >
-                        <Phone className="w-4 h-4" />
+                        <WhatsappLogoIcon className="w-4 h-4" />
                         {isNotified ? "Enviado" : "Recordar"}
                       </Button>
                     </Card>

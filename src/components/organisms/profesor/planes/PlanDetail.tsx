@@ -268,7 +268,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
     },
     {
       header: "Correo",
-      render: (s) => <span className="text-zinc-500 font-medium">{s.email || "â€”"}</span>
+      render: (s) => <span className="text-zinc-500 font-medium">{s.email || "sin email"}</span>
     },
     {
       header: "Estado",
@@ -557,6 +557,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
         open={isAssignDialogOpen}
         onOpenChange={setIsAssignDialogOpen}
         currentPlanId={localPlan.id}
+        planFrequency={localPlan.frecuencia_semanal}
         onSuccess={handleAssignmentSuccess}
       />
 

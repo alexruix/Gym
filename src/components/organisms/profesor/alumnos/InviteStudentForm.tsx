@@ -44,6 +44,7 @@ import { DatePicker } from "@/components/molecules/profesor/core/DatePicker";
 
 import { DaySelector } from "@/components/atoms/profesor/DaySelector";
 import { Clock } from "lucide-react";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 
 type FormValues = z.infer<typeof inviteStudentSchema>;
 
@@ -208,7 +209,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                         >
                                             <FormControl>
                                                 <div className="relative group/phone">
-                                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within/phone:text-lime-500 transition-colors" />
+                                                    <WhatsappLogoIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within/phone:text-lime-500 transition-colors" />
                                                     <Input type="tel" placeholder={inviteStudentCopy.placeholders.telefono} {...field} className="pl-11 h-14 rounded-2xl bg-white dark:bg-zinc-950" />
                                                 </div>
                                             </FormControl>
@@ -451,35 +452,40 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                         <DialogTitle className="text-3xl font-bold tracking-tighter text-center text-zinc-950 dark:text-zinc-50 leading-tight">
                             {successData ? inviteStudentCopy.messages.successModal.title.replace('{name}', successData.name) : ''}
                         </DialogTitle>
-                        <div className="text-sm font-medium text-zinc-400 text-center leading-relaxed max-w-[280px] mx-auto pt-2">
-                            {successData ? inviteStudentCopy.messages.successModal.description1.replace('{name}', successData.name) : ''}
-                            <div className="mt-8 relative group">
-                                <div className="absolute -inset-1 bg-lime-500/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
-                                <span className="relative block px-4 py-4 bg-zinc-100 dark:bg-zinc-900 rounded-2xl text-zinc-950 dark:text-lime-400 font-bold tracking-widest text-lg border border-zinc-200 dark:border-zinc-800">
-                                    {successData ? inviteStudentCopy.messages.successModal.description2.replace('{date}', successData.date) : ''}
-                                </span>
-                            </div>
-                        </div>
+                        <p className="text-sm font-medium text-zinc-400 text-center leading-relaxed max-w-[280px] mx-auto pt-2">
+                            {inviteStudentCopy.messages.successModal.description}
+                        </p>
                     </div>
 
                     <DialogFooter className="flex-col sm:flex-col gap-3 w-full px-2 pt-4">
                         {successData?.phone && (
                             <Button onClick={shareWhatsApp} variant="industrial" size="xl" className="w-full bg-[#25D366] hover:bg-[#20ba59] border-[#25D366] text-white shadow-lg shadow-[#25D366]/20 py-8 text-sm group">
                                 <Plus className="w-5 h-5 mr-3 group-hover:rotate-90 transition-transform" />
-                                ENVIAR BIENVENIDA (WHATSAPP)
+                                {inviteStudentCopy.messages.successModal.btnWhatsApp}
                             </Button>
                         )}
-                        <Button onClick={copyLink} variant="outline" size="xl" className="w-full border-zinc-100 dark:border-zinc-800 font-bold uppercase text-[10px] tracking-[0.2em] text-zinc-400 h-14">
+                        {turnos.length > 0 && (
+                            <Button
+                                onClick={() => window.location.assign("/profesor/agenda")}
+                                variant="outline"
+                                size="xl"
+                                className="w-full border-lime-200 dark:border-lime-900/30 bg-lime-50/30 dark:bg-lime-900/10 text-lime-700 dark:text-lime-400 font-bold h-14 hover:bg-lime-50 hover:border-lime-300 transition-all text-sm"
+                            >
+                                <CalendarIcon className="w-4 h-4 mr-2" />
+                                {inviteStudentCopy.messages.successModal.btnAgenda}
+                            </Button>
+                        )}
+                        <Button onClick={copyLink} variant="outline" size="xl" className="w-full border-zinc-100 dark:border-zinc-800 font-bold text-[10px] tracking-[0.2em] text-zinc-400 h-14 uppercase">
                             <Copy className="w-4 h-4 mr-2" />
-                            COPIAR LINK DE INVITADO
+                            {inviteStudentCopy.messages.successModal.btnGuestLink}
                         </Button>
                         <Button
                             onClick={() => window.location.assign(`/profesor/alumnos/${successData?.id}`)}
                             variant="ghost"
                             size="lg"
-                            className="w-full h-14 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] text-zinc-400 hover:text-zinc-950 transition-all"
+                            className="w-full h-14 rounded-2xl font-bold text-[10px] tracking-[0.2em] text-zinc-400 hover:text-zinc-950 transition-all uppercase"
                         >
-                            IR AL PERFIL DEL ALUMNO
+                            {inviteStudentCopy.messages.successModal.btnProfile}
                             <ArrowRight className="w-4 h-4 ml-2 animate-pulse" />
                         </Button>
                     </DialogFooter>
