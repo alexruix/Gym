@@ -2,9 +2,10 @@
 import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
 import PageHeader from '@/components/molecules/PageHeader.astro';
 import ActionLink from '@/components/atoms/ActionLink.astro';
-import { StudentList, type Student } from '@/components/organisms/profesor/StudentList';
+import { StudentList } from '@/components/organisms/profesor/StudentList';
 import { alumnosListCopy } from '@/data/es/profesor/alumnos';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { type StatusType } from '@/components/molecules/StatusBadge';
 
 const supabase = createSupabaseServerClient(Astro);
 const { data: userAuth } = await supabase.auth.getUser();
@@ -35,11 +36,11 @@ if (error) {
 }
 
 // Map to the component's expected interface
-const mappedStudents: Student[] = (alumnos || []).map(a => ({
+const mappedStudents = (alumnos || []).map(a => ({
   id: a.id,
   name: a.nombre,
   planName: Array.isArray(a.planes) ? a.planes[0]?.nombre || null : (a.planes as any)?.nombre || null,
-  status: a.estado as any,
+  status: a.estado as StatusType,
   email: a.email,
   telefono: a.telefono || undefined,
   notas: a.notas || undefined,
@@ -50,7 +51,7 @@ const c = alumnosListCopy;
 ---
 
 <ProfesorLayout title={`${c.header.title} - MiGym`}>
-  <div class="px-4 py-6 md:py-10 max-w-7xl mx-auto space-y-8">
+  <div class="px-4 py-4 md:py-10 max-w-7xl mx-auto space-y-8">
     <PageHeader 
       title={c.header.title} 
       subtitle={c.header.subtitle}
@@ -67,6 +68,6 @@ const c = alumnosListCopy;
       </ActionLink>
     </PageHeader>
 
-    <StudentList client:load students={mappedStudents} />
+    <StudentList client:visible students={mappedStudents} />
   </div>
 </ProfesorLayout>

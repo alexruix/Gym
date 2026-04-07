@@ -49,8 +49,8 @@ export const inviteStudentCopy = {
     helper: "Toma 2 minutos",
     successModal: {
       title: "¡{name} ya es parte de MiGym! 🎉",
-      description1: "Ya le enviamos su link de acceso por email.",
-      description2: "Su primer vencimiento es el {date}.",
+      description1: "Invitación enviada con éxito.",
+      description2: "Ya le enviamos su link de acceso por email.",
       btnWhatsapp: "Copiar link para WhatsApp",
       btnProfile: "Ir a su ficha",
       linkCopied: "Link copiado al portapapeles"
@@ -72,7 +72,7 @@ export const alumnosListCopy = {
   },
   list: {
     title: "Todos los alumnos",
-    empty: "Aún no tenés alumnos cargados.",
+    empty: "Aún no tenés alumnos cargados. ¡Sumá el primero para empezar!",
     emptySearch: "No encontramos alumnos que coincidan con tu búsqueda.",
     action: "Ver todos",
     columns: {

@@ -201,7 +201,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                 hint="Para cálculo de edad"
                             >
                                 <FormControl>
-                                    <DatePicker 
+                                    <DatePicker
                                         date={field.value}
                                         setDate={field.onChange}
                                         label="Fecha de nacimiento"
@@ -227,7 +227,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                 </div>
                                 <div className="flex gap-3">
                                     <FormControl>
-                                        <DatePicker 
+                                        <DatePicker
                                             date={field.value}
                                             setDate={field.onChange}
                                             label="Fecha de Inicio"
@@ -436,7 +436,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                     >
                                         <FormControl>
                                             <div className="relative">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-zinc-400">$</span>
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-400">$</span>
                                                 <Input
                                                     type="number"
                                                     {...field}
@@ -458,18 +458,20 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                             control={form.control}
                             name="monto_personalizado"
                             render={({ field }) => (
-                                <div className="industrial-card-sm bg-ui-soft/50 border-zinc-200/50">
-                                    <div className="space-y-0.5">
-                                        <Label className="industrial-label text-zinc-900 dark:text-zinc-50">Monto personalizado</Label>
-                                        <p className="industrial-description">Activalo para ignorar aumentos masivos de este plan</p>
+                                <FormItem className="space-y-0">
+                                    <div className="industrial-card-sm bg-ui-soft/50 border-zinc-200/50">
+                                        <div className="space-y-0.5">
+                                            <Label className="industrial-label text-zinc-900 dark:text-zinc-50">Monto personalizado</Label>
+                                            <p className="industrial-description">Activalo para ignorar aumentos masivos de este plan</p>
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
                                     </div>
-                                    <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                </div>
+                                </FormItem>
                             )}
                         />
                     </div>

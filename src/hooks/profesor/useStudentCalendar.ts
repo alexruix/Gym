@@ -43,7 +43,12 @@ const DIAS_SEMANA_CORTO = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 // Hook Principal
 // =============================================
 
-export function useStudentCalendar(alumnoId: string, fechaInicio: string | null, planData: any) {
+export function useStudentCalendar(
+  alumnoId: string, 
+  fechaInicio: string | null, 
+  planData: any,
+  diasAsistencia: number[] = []
+) {
   const [loading, setLoading] = useState(true);
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -121,8 +126,8 @@ export function useStudentCalendar(alumnoId: string, fechaInicio: string | null,
         const esFuturo = fechaISO > todayISO;
         const sesion = sesionesMap[fechaISO];
 
-        const numeroDia = sesion?.numero_dia_plan ?? (sesion?.numeroDiaPlan ?? getDayNumber(ancla, new Date(cur)));
-        const semana = sesion?.semana_numero ?? getWeekNumber(ancla, new Date(cur));
+        const numeroDia = sesion?.numero_dia_plan ?? (sesion?.numeroDiaPlan ?? getDayNumber(ancla, new Date(cur), diasAsistencia));
+        const semana = sesion?.semana_numero ?? getWeekNumber(ancla, new Date(cur), diasAsistencia);
 
         const status = sesion?.status as DayStatus || (esFuturo && !esHoy ? "futura" : "pendiente");
 
@@ -159,7 +164,7 @@ export function useStudentCalendar(alumnoId: string, fechaInicio: string | null,
     } finally {
       setLoading(false);
     }
-  }, [alumnoId, ancla, selectedDay, hoyISO, fechaInicio, planData]);
+  }, [alumnoId, ancla, selectedDay, hoyISO, fechaInicio, planData, diasAsistencia]);
 
   // 2. Cargar Detalle de Sesión
   const loadSesionDetalle = useCallback(async (sesionId: string, dia: CalendarDay) => {
@@ -215,8 +220,13 @@ export function useStudentCalendar(alumnoId: string, fechaInicio: string | null,
   // 3. Preview desde Plan
   const buildPreviewFromPlan = useCallback((fecha: string, dia: CalendarDay): SesionDetalle | null => {
     if (!planData || !planData.rutinas_diarias?.length) return null;
-    const totalWeeks = planData.duracion_semanas || 1;
-    const diaEstructural = getStructuralDay(ancla, new Date(fecha + "T12:00:00"), totalWeeks);
+    
+    const availableDiaNumeros = (planData.rutinas_diarias as any[])
+      .map(r => r.dia_numero)
+      .sort((a,b) => a-b);
+    
+    const diaEstructural = getStructuralDay(ancla, new Date(fecha + "T12:00:00"), availableDiaNumeros, diasAsistencia);
+    if (diaEstructural === 0) return null; // Día de descanso
     const rutina = planData.rutinas_diarias.find((r: any) => r.dia_numero === diaEstructural);
     if (!rutina) return null;
 

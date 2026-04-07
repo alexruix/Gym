@@ -7,11 +7,11 @@ interface QuickOptionsGroupProps {
   className?: string;
 }
 
-export function QuickOptionsGroup({ 
-    options, 
-    selectedOptions = [], 
-    onToggle,
-    className 
+export function QuickOptionsGroup({
+  options,
+  selectedOptions = [],
+  onToggle,
+  className
 }: QuickOptionsGroupProps) {
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
@@ -21,10 +21,10 @@ export function QuickOptionsGroup({
           type="button"
           onClick={() => onToggle(option)}
           className={cn(
-            "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+            "px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all",
             "border border-dashed",
             selectedOptions.includes(option)
-              ? "bg-zinc-950 text-white border-zinc-950 dark:bg-lime-400 dark:text-zinc-950 dark:border-lime-400 shadow-lg"
+              ? "bg-zinc-950 text-white border-zinc-950 dark:bg-lime-500 dark:text-zinc-950 dark:border-lime-400 shadow-lg"
               : "bg-zinc-50 dark:bg-zinc-900 text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
           )}
         >

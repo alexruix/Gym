@@ -68,11 +68,11 @@ export function UpcomingSessionPreview({ sesion, className }: UpcomingSessionPre
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5">
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5">
             <CalendarDays className="w-3 h-3" />
             {sesion.fechaHumana}
           </p>
-          <h3 className="text-lg font-black text-white tracking-tight">{sesion.nombreDia}</h3>
+          <h3 className="text-lg font-bold text-white tracking-tight">{sesion.nombreDia}</h3>
           <p className="text-xs font-medium text-zinc-500 mt-0.5">
             Día {sesion.numeroDiaPlan} · Semana {sesion.semana}
             {sesion.cycleNumber && sesion.cycleNumber > 1 && (
@@ -94,7 +94,7 @@ export function UpcomingSessionPreview({ sesion, className }: UpcomingSessionPre
       <div className="space-y-2">
         {sesion.ejercicios.slice(0, 3).map((ej, idx) => (
           <div key={idx} className="flex items-center gap-3">
-            <span className="w-5 h-5 flex items-center justify-center bg-zinc-800 rounded-md text-zinc-500 font-black text-[9px]">
+            <span className="w-5 h-5 flex items-center justify-center bg-zinc-800 rounded-md text-zinc-500 font-bold text-[9px]">
               {idx + 1}
             </span>
             <p className="text-sm font-bold text-zinc-300 flex-1 truncate">{ej.nombre}</p>
@@ -114,7 +114,7 @@ export function UpcomingSessionPreview({ sesion, className }: UpcomingSessionPre
       {/* Footer */}
       <div className="mt-5 pt-4 border-t border-zinc-800/50 flex items-center gap-2">
         <Dumbbell className="w-3 h-3 text-zinc-600" />
-        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">
+        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
           Preparado automáticamente
         </span>
       </div>

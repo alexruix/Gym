@@ -24,18 +24,18 @@ interface IndustrialTabsProps {
  * tipografía densa y soporte para contenido dinámico a la derecha.
  * Utiliza Radix UI para máxima accesibilidad.
  */
-export function IndustrialTabs({ 
-  tabs, 
-  value, 
-  onValueChange, 
-  rightContent, 
+export function IndustrialTabs({
+  tabs,
+  value,
+  onValueChange,
+  rightContent,
   children,
-  className 
+  className
 }: IndustrialTabsProps) {
   return (
-    <TabsPrimitive.Root 
-      value={value} 
-      onValueChange={onValueChange} 
+    <TabsPrimitive.Root
+      value={value}
+      onValueChange={onValueChange}
       className={cn("w-full", className)}
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 dark:border-zinc-800 pb-0.5">
@@ -50,8 +50,8 @@ export function IndustrialTabs({
                 value={tab.value}
                 className={cn(
                   "relative px-6 py-4 industrial-label tracking-[0.15em] transition-all outline-none group",
-                  isActive 
-                    ? "text-zinc-950 dark:text-white" 
+                  isActive
+                    ? "text-zinc-950 dark:text-white"
                     : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
                 )}
               >
@@ -64,10 +64,10 @@ export function IndustrialTabs({
                   )}
                   {tab.label}
                 </div>
-                
+
                 {/* Indicador Industrial (Underline) */}
                 {isActive && (
-                  <div className="absolute bottom-0 left-0 w-full h-[3px] bg-lime-400 rounded-full animate-in fade-in slide-in-from-bottom-2 duration-300" />
+                  <div className="absolute bottom-0 left-0 w-full h-[3px] bg-lime-500 rounded-full animate-in fade-in slide-in-from-bottom-2 duration-300" />
                 )}
               </TabsPrimitive.Trigger>
             );

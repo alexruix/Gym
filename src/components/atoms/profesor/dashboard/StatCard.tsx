@@ -21,7 +21,7 @@ const variantStyles: Record<Variant, string> = {
   default:
     "bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 hover:shadow-xl hover:shadow-zinc-900/5",
   accent:
-    "bg-lime-400 border-lime-500/20 shadow-lg shadow-lime-500/20 hover:shadow-2xl hover:shadow-lime-500/30",
+    "bg-lime-500 border-lime-500/20 shadow-lg shadow-lime-500/20 hover:shadow-2xl hover:shadow-lime-500/30",
   alert:
     "bg-white dark:bg-zinc-950 border-red-200 dark:border-red-800/50 hover:shadow-xl hover:shadow-red-900/5",
 };
@@ -83,7 +83,7 @@ export function StatCard({
           </div>
           <h3
             className={cn(
-              "text-[10px] font-black uppercase tracking-widest leading-tight",
+              "text-[10px] font-bold uppercase tracking-widest leading-tight",
               labelStyles[variant]
             )}
           >
@@ -95,7 +95,7 @@ export function StatCard({
         <div className="flex items-baseline gap-1.5">
           <p
             className={cn(
-              "text-4xl font-black tracking-tight leading-none",
+              "text-4xl font-bold tracking-tight leading-none",
               valueStyles[variant]
             )}
           >

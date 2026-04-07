@@ -79,15 +79,15 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
   });
 
   const baseSortLogic = (a: Exercise, b: Exercise, order: string) => {
-      if (order === "etiqueta-asc") {
-          const tagA = (a.tags && a.tags.length > 0) ? a.tags[0].toLowerCase() : "zzzz";
-          const tagB = (b.tags && b.tags.length > 0) ? b.tags[0].toLowerCase() : "zzzz";
-          if (tagA !== tagB) return tagA.localeCompare(tagB);
-          return a.nombre.localeCompare(b.nombre);
-      }
-      if (order === "nombre-asc") return a.nombre.localeCompare(b.nombre);
-      if (order === "fecha-desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      return 0;
+    if (order === "etiqueta-asc") {
+      const tagA = (a.tags && a.tags.length > 0) ? a.tags[0].toLowerCase() : "zzzz";
+      const tagB = (b.tags && b.tags.length > 0) ? b.tags[0].toLowerCase() : "zzzz";
+      if (tagA !== tagB) return tagA.localeCompare(tagB);
+      return a.nombre.localeCompare(b.nombre);
+    }
+    if (order === "nombre-asc") return a.nombre.localeCompare(b.nombre);
+    if (order === "fecha-desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return 0;
   };
 
   // Lógica de ordenamiento inyectada al DashboardConsole
@@ -112,86 +112,86 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     const parentsAdded = new Set<string>();
 
     filteredList.forEach(ex => {
-        const parentId = ex.parent_id || ex.id;
-        if (!parentsAdded.has(parentId)) {
-            parentsAdded.add(parentId);
-            
-            const parentOb = exercises.find(e => e.id === parentId && !e.parent_id);
-            if (parentOb) {
-                displayParents.push({
-                    ...parentOb,
-                    variantCount: vMap[parentOb.id]?.length || 0
-                });
-            }
+      const parentId = ex.parent_id || ex.id;
+      if (!parentsAdded.has(parentId)) {
+        parentsAdded.add(parentId);
+
+        const parentOb = exercises.find(e => e.id === parentId && !e.parent_id);
+        if (parentOb) {
+          displayParents.push({
+            ...parentOb,
+            variantCount: vMap[parentOb.id]?.length || 0
+          });
         }
+      }
     });
 
     return {
-        displayParents, // Hereda el orden natural del sort activo
-        variantsMap: vMap
+      displayParents, // Hereda el orden natural del sort activo
+      variantsMap: vMap
     };
   };
 
   const GridRenderer = ({ filtered, onTagClick }: { filtered: Exercise[], onTagClick?: (tag: string) => void }) => {
     const { displayParents, variantsMap } = useMemo(
-        () => getGroupedExercises(filtered),
-        [filtered, exercises]
+      () => getGroupedExercises(filtered),
+      [filtered, exercises]
     );
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayParents.map((parent) => (
-                <div key={parent.id} className="space-y-4">
-                    <div className="flex items-start gap-4">
-                        <div className="flex-1">
-                            <ExerciseCard 
-                                exercise={parent} 
-                                onTagClick={onTagClick}
-                                onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, name: ex.nombre })}
-                            />
-                        </div>
-                        {parent.variantCount > 0 && (
-                            <Button 
-                                variant="ghost" 
-                                size="icon"
-                                className={cn(
-                                    "mt-6 h-12 w-12 rounded-2xl border border-zinc-100 dark:border-zinc-800 transition-all",
-                                    expandedParents.has(parent.id) ? "bg-lime-400 text-zinc-900 border-lime-500" : "bg-white dark:bg-zinc-900 text-zinc-400"
-                                )}
-                                onClick={() => toggleParent(parent.id)}
-                            >
-                                {expandedParents.has(parent.id) ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                            </Button>
-                        )}
-                    </div>
-                    {expandedParents.has(parent.id) && variantsMap[parent.id] && (
-                        <div className="pl-6 md:pl-10 border-l-2 border-zinc-100 dark:border-zinc-800 py-2 space-y-4 animate-in slide-in-from-top-2 duration-300">
-                            {variantsMap[parent.id].map(variant => (
-                                <ExerciseCard 
-                                    key={variant.id} 
-                                    exercise={variant} 
-                                    onTagClick={onTagClick}
-                                    onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, name: ex.nombre })}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            ))}
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {displayParents.map((parent) => (
+          <div key={parent.id} className="space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <ExerciseCard
+                  exercise={parent}
+                  onTagClick={onTagClick}
+                  onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, name: ex.nombre })}
+                />
+              </div>
+              {parent.variantCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "mt-6 h-12 w-12 rounded-2xl border border-zinc-100 dark:border-zinc-800 transition-all",
+                    expandedParents.has(parent.id) ? "bg-lime-500 text-zinc-900 border-lime-500" : "bg-white dark:bg-zinc-900 text-zinc-400"
+                  )}
+                  onClick={() => toggleParent(parent.id)}
+                >
+                  {expandedParents.has(parent.id) ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </Button>
+              )}
+            </div>
+            {expandedParents.has(parent.id) && variantsMap[parent.id] && (
+              <div className="pl-6 md:pl-10 border-l-2 border-zinc-100 dark:border-zinc-800 py-2 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                {variantsMap[parent.id].map(variant => (
+                  <ExerciseCard
+                    key={variant.id}
+                    exercise={variant}
+                    onTagClick={onTagClick}
+                    onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, name: ex.nombre })}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     );
   };
 
   return (
     <>
-      <ImportExercisesModal 
+      <ImportExercisesModal
         isOpen={isImportOpen}
         onOpenChange={setIsImportOpen}
         onSuccess={() => {
           window.location.reload();
         }}
       />
-      <DashboardConsole 
+      <DashboardConsole
         items={sourceFilteredExercises}
         itemLabel="Ejercicios"
         storageKey="ejercicios"
@@ -201,7 +201,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
         sortOptions={sortOptions}
         onSort={handleSort}
         searchSuffix={
-          <FilterSelect 
+          <FilterSelect
             value={sourceFilter}
             onChange={setSourceFilter}
             placeholder="Origen: Todos"
@@ -214,38 +214,38 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
           />
         }
         renderCreateAction={() => (
-          <SplitActionButton 
-              createLabel={copy.list.action}
-              importLabel="Subir desde Excel"
-              createHref="/profesor/ejercicios/new"
-              onImportClick={() => setIsImportOpen(true)}
-              className="flex-1 md:flex-none h-12 md:h-14"
+          <SplitActionButton
+            createLabel={copy.list.action}
+            importLabel="Subir desde Excel"
+            createHref="/profesor/ejercicios/new"
+            onImportClick={() => setIsImportOpen(true)}
+            className="flex-1 md:flex-none h-12 md:h-14"
           />
         )}
         emptyIcon={<Dumbbell className="w-12 h-12" />}
         renderGrid={(filtered, controllers) => (
-            <GridRenderer 
-                filtered={filtered as Exercise[]} 
-                onTagClick={controllers.addTag} 
-            />
+          <GridRenderer
+            filtered={filtered as Exercise[]}
+            onTagClick={controllers.addTag}
+          />
         )}
         renderTable={(filtered, controllers) => (
-            <div className="text-center py-20 text-zinc-400 font-medium italic bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border-2 border-dashed border-zinc-100 dark:border-zinc-800">
-                La vista de tabla para ejercicios llegará pronto. <br/> Por ahora, usá la vista de grilla para gestionar tus variantes.
-            </div>
+          <div className="text-center py-20 text-zinc-400 font-medium italic bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border-2 border-dashed border-zinc-100 dark:border-zinc-800">
+            La vista de tabla para ejercicios llegará pronto. <br /> Por ahora, usá la vista de grilla para gestionar tus variantes.
+          </div>
         )}
       />
 
-      <DeleteConfirmDialog 
+      <DeleteConfirmDialog
         isOpen={!!deleteFlow.itemToDelete}
         onOpenChange={(open) => !open && deleteFlow.clearItem()}
         onConfirm={deleteFlow.handleConfirm}
         isDeleting={deleteFlow.isPending}
         title="Eliminar ejercicio"
         description={
-            <>
-                ¿Estás seguro de que querés eliminar <span className="font-bold text-zinc-900 dark:text-zinc-100">"{deleteFlow.itemToDelete?.nombre}"</span>? Esta acción no se puede deshacer.
-            </>
+          <>
+            ¿Estás seguro de que querés eliminar <span className="font-bold text-zinc-900 dark:text-zinc-100">"{deleteFlow.itemToDelete?.nombre}"</span>? Esta acción no se puede deshacer.
+          </>
         }
       />
     </>

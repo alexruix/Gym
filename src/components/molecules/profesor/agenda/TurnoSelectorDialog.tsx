@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
-  DialogFooter 
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Clock, Check, Loader2 } from "lucide-react";
@@ -28,12 +28,12 @@ interface TurnoSelectorDialogProps {
   onSuccess?: () => void;
 }
 
-export function TurnoSelectorDialog({ 
-  isOpen, 
-  onOpenChange, 
-  student, 
-  turnos, 
-  onSuccess 
+export function TurnoSelectorDialog({
+  isOpen,
+  onOpenChange,
+  student,
+  turnos,
+  onSuccess
 }: TurnoSelectorDialogProps) {
   const [selectedId, setSelectedId] = useState<string | null>(student?.currentTurnoId || null);
   const { execute, isPending } = useAsyncAction();
@@ -41,23 +41,23 @@ export function TurnoSelectorDialog({
 
   const handleUpdate = () => {
     if (!student || !selectedId) return;
-    
+
     execute(
-        async () => {
-            const { error } = await actions.profesor.updateStudent({
-                id: student.id,
-                turno_id: selectedId
-            });
-            if (error) throw error;
-        },
-        { 
-            loadingMsg: "Actualizando turno...", 
-            successMsg: t.success, 
-            onSuccess: () => {
-                onSuccess?.();
-                onOpenChange(false);
-            }
-        } as any // useAsyncAction might need a small fix for onSuccess or use external handling
+      async () => {
+        const { error } = await actions.profesor.updateStudent({
+          id: student.id,
+          turno_id: selectedId
+        });
+        if (error) throw error;
+      },
+      {
+        loadingMsg: "Actualizando turno...",
+        successMsg: t.success,
+        onSuccess: () => {
+          onSuccess?.();
+          onOpenChange(false);
+        }
+      } as any // useAsyncAction might need a small fix for onSuccess or use external handling
     );
   };
 
@@ -84,8 +84,8 @@ export function TurnoSelectorDialog({
                 onClick={() => setSelectedId(turno.id)}
                 className={cn(
                   "flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 text-left group",
-                  isSelected 
-                    ? "bg-lime-400 border-lime-400 text-zinc-950" 
+                  isSelected
+                    ? "bg-lime-500 border-lime-400 text-zinc-950"
                     : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800/50"
                 )}
               >
@@ -93,8 +93,8 @@ export function TurnoSelectorDialog({
                   <Clock className={cn("w-4 h-4", isSelected ? "text-zinc-950" : "text-zinc-600")} />
                   <div>
                     <p className="font-bold text-sm uppercase tracking-tight">{turno.hora_inicio.substring(0, 5)}hs</p>
-                    <p className={cn("text-[10px] font-black uppercase tracking-widest leading-none mt-0.5", isSelected ? "text-zinc-950/70" : "text-zinc-500")}>
-                        {turno.nombre}
+                    <p className={cn("text-[10px] font-bold uppercase tracking-widest leading-none mt-0.5", isSelected ? "text-zinc-950/70" : "text-zinc-500")}>
+                      {turno.nombre}
                     </p>
                   </div>
                 </div>
@@ -105,17 +105,17 @@ export function TurnoSelectorDialog({
         </div>
 
         <DialogFooter className="mt-4 gap-2">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => onOpenChange(false)}
             className="rounded-2xl font-bold uppercase text-[10px] tracking-widest text-zinc-500"
           >
             Cancelar
           </Button>
-          <Button 
+          <Button
             onClick={handleUpdate}
             disabled={isPending || !selectedId}
-            className="flex-1 rounded-2xl bg-lime-400 text-zinc-950 hover:bg-lime-500 font-bold uppercase text-xs tracking-tighter"
+            className="flex-1 rounded-2xl bg-lime-500 text-zinc-950 hover:bg-lime-500 font-bold uppercase text-xs tracking-tighter"
           >
             {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t.submit}
           </Button>

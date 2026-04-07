@@ -82,11 +82,11 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
       >
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center font-black text-zinc-500 text-xs shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-all transform group-hover:rotate-2">
+            <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center font-bold text-zinc-500 text-xs shrink-0 group-hover:bg-lime-500 group-hover:text-zinc-950 transition-all transform group-hover:rotate-2">
               {alumno.nombre.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="font-black text-zinc-950 dark:text-zinc-50 uppercase tracking-tight text-sm group-hover:text-lime-600 transition-colors">{alumno.nombre}</p>
+              <p className="font-bold text-zinc-950 dark:text-zinc-50 uppercase tracking-tight text-sm group-hover:text-lime-600 transition-colors">{alumno.nombre}</p>
               {alumno.telefono && <p className="industrial-description">{alumno.telefono}</p>}
             </div>
           </div>
@@ -96,14 +96,14 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
         <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-900 pt-3">
           <div>
             <p className="industrial-metadata">Cuota</p>
-            <p className="text-lg font-black text-zinc-950 dark:text-zinc-50 tracking-tighter leading-tight">
+            <p className="text-lg font-bold text-zinc-950 dark:text-zinc-50 tracking-tighter leading-tight">
               ${(alumno.pago_activo?.monto || alumno.monto || 0).toLocaleString('es-AR')}
             </p>
           </div>
           <div className="text-right">
             <p className="industrial-metadata">Vence</p>
             <p className="text-sm font-bold text-zinc-600 dark:text-zinc-400">
-              {alumno.pago_activo?.fecha_vencimiento 
+              {alumno.pago_activo?.fecha_vencimiento
                 ? new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' }).format(new Date(alumno.pago_activo.fecha_vencimiento))
                 : "--"}
             </p>
@@ -152,11 +152,11 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
       header: pagosCopy.table.headers.student,
       render: (alumno) => (
         <div className="flex items-center gap-3 font-bold text-zinc-950 dark:text-zinc-100">
-          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center font-black text-zinc-500 text-xs shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-all transform group-hover:rotate-2">
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center font-bold text-zinc-500 text-xs shrink-0 group-hover:bg-lime-500 group-hover:text-zinc-950 transition-all transform group-hover:rotate-2">
             {alumno.nombre.charAt(0).toUpperCase()}
           </div>
           <div className="flex flex-col">
-            <span className="group-hover:text-lime-600 transition-colors uppercase tracking-tight font-black">{alumno.nombre}</span>
+            <span className="group-hover:text-lime-600 transition-colors uppercase tracking-tight font-bold">{alumno.nombre}</span>
             {alumno.telefono && <span className="industrial-description">{alumno.telefono}</span>}
           </div>
         </div>
@@ -192,7 +192,7 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
             {alumno.is_moroso && alumno.telefono && (
               <Button
                 variant="outline" size="sm"
-                className={cn("h-10 px-4 border-zinc-200 text-zinc-600 shadow-sm font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all", isNotified ? "opacity-50 grayscale cursor-not-allowed" : "hover:text-green-600 hover:border-green-300 hover:bg-green-50")}
+                className={cn("h-10 px-4 border-zinc-200 text-zinc-600 shadow-sm font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all", isNotified ? "opacity-50 grayscale cursor-not-allowed" : "hover:text-green-600 hover:border-green-300 hover:bg-green-50")}
                 disabled={isNotified}
                 onClick={() => enviarRecordatorio(alumno)}
               >
@@ -202,7 +202,7 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
             )}
             {(alumno.is_moroso || isPending) && alumno.pago_activo && (
               <Button
-                className="h-10 px-5 bg-zinc-950 hover:bg-zinc-800 text-white shadow-xl shadow-zinc-200 dark:shadow-none font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                className="h-10 px-5 bg-zinc-950 hover:bg-zinc-800 text-white shadow-xl shadow-zinc-200 dark:shadow-none font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all"
                 disabled={isSavingPago}
                 onClick={() => registrarCobro(alumno.id, alumno.pago_activo!.id)}
               >
@@ -225,13 +225,13 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
     <div className="space-y-10">
       <Tabs defaultValue="history" className="w-full space-y-10">
         <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-[1.2rem] w-fit h-auto">
-          <TabsTrigger 
+          <TabsTrigger
             value="history"
             className="industrial-tab-trigger"
           >
             {pagosCopy.tabs.history}
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="subscriptions"
             className="industrial-tab-trigger"
           >
@@ -252,7 +252,7 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
             <section className="animate-in fade-in slide-in-from-top-4 duration-700">
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
-                <h2 className="text-sm font-black tracking-[.2em] text-zinc-900 dark:text-zinc-100 uppercase">
+                <h2 className="text-sm font-bold tracking-[.2em] text-zinc-900 dark:text-zinc-100 uppercase">
                   Acción requerida hoy
                 </h2>
               </div>
@@ -263,7 +263,7 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
                     <Card key={moroso.id} className="p-5 border-l-4 border-l-red-500 shadow-xl shadow-red-900/5 hover:shadow-red-900/10 transition-all flex justify-between items-center bg-white dark:bg-zinc-950/40 group cursor-pointer rounded-[2rem]" onClick={() => setSelectedAlumno(moroso)}>
                       <div className="flex flex-col">
                         <span className="industrial-metadata text-red-600">Moroso</span>
-                        <span className="font-black text-zinc-900 dark:text-zinc-100 group-hover:text-red-600 transition-colors uppercase tracking-tight">{moroso.nombre}</span>
+                        <span className="font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-red-600 transition-colors uppercase tracking-tight">{moroso.nombre}</span>
                         <span className="industrial-metadata mt-0.5">
                           Vencido hace {moroso.pago_activo?.fecha_vencimiento ? Math.floor((new Date().getTime() - new Date(moroso.pago_activo.fecha_vencimiento).getTime()) / (1000 * 3600 * 24)) : "?"} días
                         </span>
@@ -307,18 +307,18 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
               </div>
             )}
             renderTable={(items) => (
-                <StandardTable
-                  data={items as AlumnoPago[]}
-                  columns={columns}
-                  searchTerm=""
-                  onSearchChange={() => {}}
-                  entityName="Alumnos"
-                  onRowClick={alumno => setSelectedAlumno(alumno)}
-                  emptyMessage={pagosCopy.table.emptySearchMessage}
-                  emptySearchMessage={pagosCopy.table.emptySearchMessage}
-                  EmptyIcon={UserIcon}
-                  hideSearch={true}
-                />
+              <StandardTable
+                data={items as AlumnoPago[]}
+                columns={columns}
+                searchTerm=""
+                onSearchChange={() => { }}
+                entityName="Alumnos"
+                onRowClick={alumno => setSelectedAlumno(alumno)}
+                emptyMessage={pagosCopy.table.emptySearchMessage}
+                emptySearchMessage={pagosCopy.table.emptySearchMessage}
+                EmptyIcon={UserIcon}
+                hideSearch={true}
+              />
             )}
           />
         </TabsContent>
@@ -330,15 +330,15 @@ export const TablaPagos = ({ initialAlumnos, initialSubscriptions }: { initialAl
 
       {/* Student Detail Sheet (SSOT) */}
       {selectedAlumno && (
-        <StudentPaymentSheet 
-          isOpen={!!selectedAlumno} 
+        <StudentPaymentSheet
+          isOpen={!!selectedAlumno}
           onOpenChange={(open) => !open && setSelectedAlumno(null)}
           alumno={selectedAlumno}
           onPaymentSuccess={(updatedPago) => {
-            syncStudent(selectedAlumno.id, { 
-                pago_activo: updatedPago, 
-                is_moroso: false, 
-                tags: ["Pagado"] 
+            syncStudent(selectedAlumno.id, {
+              pago_activo: updatedPago,
+              is_moroso: false,
+              tags: ["Pagado"]
             });
           }}
           onStudentUpdate={(updates) => {

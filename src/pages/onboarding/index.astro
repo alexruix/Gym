@@ -1,29 +1,39 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { OnboardingFlow } from '../../components/organisms/auth/OnboardingFlow';
-import { getAuthenticatedClient } from '@/lib/supabase-ssr';
+import Layout from "../../layouts/Layout.astro";
+import { OnboardingFlow } from "../../components/organisms/auth/OnboardingFlow";
+import { getAuthenticatedClient } from "@/lib/supabase-ssr";
 
 const user = Astro.locals.user;
-if (!user) return Astro.redirect('/login');
+if (!user) return Astro.redirect("/login");
 
 const supabase = getAuthenticatedClient(Astro);
 // Si ya es profesor con nombre, mandarlo al dashboard
-const { data: prof } = await supabase.from('profesores').select('nombre').eq('id', user.id).maybeSingle();
-if (prof?.nombre) return Astro.redirect('/profesor');
+const { data: prof } = await supabase
+  .from("profesores")
+  .select("nombre")
+  .eq("id", user.id)
+  .maybeSingle();
+if (prof?.nombre) return Astro.redirect("/profesor");
 ---
 
 <Layout title="Bienvenido a MiGym">
-  <main class="min-h-screen bg-zinc-50 relative flex flex-col justify-center items-center p-5 overflow-hidden">
-    
+  <main
+    class="min-h-screen bg-zinc-50 relative flex flex-col justify-center items-center p-5 overflow-hidden"
+  >
     <!-- Pattern de fondo -->
-    <div class="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none"></div>
-    
+    <div
+      class="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none"
+    >
+    </div>
+
     <!-- Glow central -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-lime-400/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-lime-500/10 rounded-full blur-[120px] pointer-events-none"
+    >
+    </div>
 
     <div class="w-full relative z-10">
       <OnboardingFlow client:load />
     </div>
-    
   </main>
 </Layout>

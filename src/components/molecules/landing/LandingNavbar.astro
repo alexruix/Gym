@@ -5,8 +5,8 @@
  * se torna sólido al hacer scroll (JS inline, sin dependencias extra).
  * Copy centralizado en landingCopy.navbar.
  */
-import { landingCopy } from '../../../data/es/landing';
-import { Zap } from 'lucide-react';
+import { landingCopy } from "../../../data/es/landing";
+import { Zap } from "lucide-react";
 
 const { navbar } = landingCopy;
 ---
@@ -17,9 +17,12 @@ const { navbar } = landingCopy;
   aria-label="Navegación principal"
 >
   <div class="max-w-7xl mx-auto flex items-center justify-between">
-
     <!-- Logo -->
-    <a href="/" class="font-black text-xl tracking-tighter text-zinc-950" aria-label="Ir al inicio de MiGym">
+    <a
+      href="/"
+      class="font-bold text-xl tracking-tighter text-zinc-950"
+      aria-label="Ir al inicio de MiGym"
+    >
       {navbar.logoPrefix}<span class="text-lime-500">{navbar.logoSuffix}</span>
     </a>
 
@@ -34,7 +37,7 @@ const { navbar } = landingCopy;
       <a
         href="/login"
         id="nav-cta"
-        class="inline-flex items-center gap-2 px-5 h-10 bg-zinc-950 text-white font-black text-sm rounded-xl transition-all hover:bg-zinc-800 active:scale-95 uppercase tracking-wide"
+        class="inline-flex items-center gap-2 px-5 h-10 bg-zinc-950 text-white font-bold text-sm rounded-xl transition-all hover:bg-zinc-800 active:scale-95 uppercase tracking-wide"
       >
         <Zap className="w-3.5 h-3.5 text-lime-400" aria-hidden="true" />
         {navbar.ctaPrimary}
@@ -48,22 +51,34 @@ const { navbar } = landingCopy;
 
 <script is:inline>
   (function () {
-    const nav = document.getElementById('landing-nav');
+    const nav = document.getElementById("landing-nav");
     if (!nav) return;
 
     function updateNav() {
       if (window.scrollY > 24) {
-        nav.classList.add('bg-white/95', 'backdrop-blur-sm', 'shadow-sm', 'border-b', 'border-zinc-100');
-        nav.classList.remove('py-4');
-        nav.classList.add('py-2.5');
+        nav.classList.add(
+          "bg-white/95",
+          "backdrop-blur-sm",
+          "shadow-sm",
+          "border-b",
+          "border-zinc-100",
+        );
+        nav.classList.remove("py-4");
+        nav.classList.add("py-2.5");
       } else {
-        nav.classList.remove('bg-white/95', 'backdrop-blur-sm', 'shadow-sm', 'border-b', 'border-zinc-100');
-        nav.classList.remove('py-2.5');
-        nav.classList.add('py-4');
+        nav.classList.remove(
+          "bg-white/95",
+          "backdrop-blur-sm",
+          "shadow-sm",
+          "border-b",
+          "border-zinc-100",
+        );
+        nav.classList.remove("py-2.5");
+        nav.classList.add("py-4");
       }
     }
 
-    window.addEventListener('scroll', updateNav, { passive: true });
+    window.addEventListener("scroll", updateNav, { passive: true });
     updateNav();
   })();
 </script>

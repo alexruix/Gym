@@ -1,9 +1,9 @@
 import * as React from "react";
-import { 
-  Search, 
-  Users, 
-  ClipboardList, 
-  Dumbbell, 
+import {
+  Search,
+  Users,
+  ClipboardList,
+  Dumbbell,
   ArrowRight,
   Loader2,
   X,
@@ -48,16 +48,16 @@ export function UniversalSearch() {
   }, []);
 
   const handleActivate = () => {
-      setIsExpanded(true);
-      setIsOpen(true);
-      setTimeout(() => inputRef.current?.focus(), 100);
+    setIsExpanded(true);
+    setIsOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const handleDeactivate = () => {
-      setIsExpanded(false);
-      setIsOpen(false);
-      setQuery("");
-      inputRef.current?.blur();
+    setIsExpanded(false);
+    setIsOpen(false);
+    setQuery("");
+    inputRef.current?.blur();
   };
 
   // Close search when clicking outside
@@ -65,10 +65,10 @@ export function UniversalSearch() {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         if (isExpanded && window.innerWidth < 768) {
-             // On mobile, only close if we are not typing
-             if (query.length === 0) handleDeactivate();
+          // On mobile, only close if we are not typing
+          if (query.length === 0) handleDeactivate();
         } else {
-             setIsOpen(false);
+          setIsOpen(false);
         }
       }
     };
@@ -122,66 +122,66 @@ export function UniversalSearch() {
   };
 
   return (
-    <div 
-        ref={containerRef} 
-        className={cn(
-            "relative z-50 transition-all duration-300 ease-in-out",
-            isExpanded ? "w-full md:max-w-md" : "w-10 md:w-full md:max-w-md"
-        )}
+    <div
+      ref={containerRef}
+      className={cn(
+        "relative z-50 transition-all duration-300 ease-in-out",
+        isExpanded ? "w-full md:max-w-md" : "w-10 md:w-full md:max-w-md"
+      )}
     >
       {/* Input de Búsqueda Industrial */}
       <div className="relative h-11 flex items-center">
-        
+
         {!isExpanded && (
-            <button 
-                onClick={handleActivate}
-                className="md:hidden flex items-center justify-center w-10 h-10 text-zinc-400 hover:text-zinc-950 transition-colors"
-            >
-                <Search className="w-5 h-5" />
-            </button>
+          <button
+            onClick={handleActivate}
+            className="md:hidden flex items-center justify-center w-10 h-10 text-zinc-400 hover:text-zinc-950 transition-colors"
+          >
+            <Search className="w-5 h-5" />
+          </button>
         )}
 
         <div className={cn(
-            "relative w-full h-full flex items-center transition-all duration-300",
-            !isExpanded && "hidden md:flex"
+          "relative w-full h-full flex items-center transition-all duration-300",
+          !isExpanded && "hidden md:flex"
         )}>
-            <Search className={cn(
-              "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200",
-              isOpen ? "text-lime-500" : "text-zinc-400"
-            )} />
-            
-            <input 
-              ref={inputRef}
-              type="text" 
-              placeholder={dashboardCopy.layout.globalSearch} 
-              className={cn(
-                "w-full h-full bg-zinc-100/50 hover:bg-zinc-100 border border-transparent focus:border-zinc-950 focus:bg-white rounded-2xl pl-11 pr-12 text-sm font-medium outline-none transition-all duration-200 shadow-sm sm:shadow-none",
-                isOpen && "bg-white border-zinc-950 shadow-xl"
-              )}
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setIsOpen(true);
-                setActiveItem(-1);
-              }}
-              onFocus={() => setIsOpen(true)}
-              onKeyDown={handleKeyDown}
-            />
+          <Search className={cn(
+            "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200",
+            isOpen ? "text-lime-500" : "text-zinc-400"
+          )} />
 
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-              {loading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" />
-              ) : query.length > 0 ? (
-                  <button onClick={handleDeactivate} className="p-1 hover:bg-zinc-100 rounded-full transition-colors">
-                      <X className="w-3 h-3 text-zinc-400" />
-                  </button>
-              ) : (
-                <>
-                  {/* <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">âŒ˜</kbd>
-                  <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">K</kbd> */}
-                </>
-              )}
-            </div>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder={dashboardCopy.layout.globalSearch}
+            className={cn(
+              "w-full h-full bg-zinc-100/50 hover:bg-zinc-100 border border-transparent focus:border-zinc-950 focus:bg-white rounded-2xl pl-11 pr-12 text-sm font-medium outline-none transition-all duration-200 shadow-sm sm:shadow-none",
+              isOpen && "bg-white border-zinc-950 shadow-xl"
+            )}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setIsOpen(true);
+              setActiveItem(-1);
+            }}
+            onFocus={() => setIsOpen(true)}
+            onKeyDown={handleKeyDown}
+          />
+
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+            {loading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" />
+            ) : query.length > 0 ? (
+              <button onClick={handleDeactivate} className="p-1 hover:bg-zinc-100 rounded-full transition-colors">
+                <X className="w-3 h-3 text-zinc-400" />
+              </button>
+            ) : (
+              <>
+                {/* <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">âŒ˜</kbd>
+                  <kbd className="hidden xl:inline-block bg-white dark:bg-zinc-900 text-zinc-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-800">K</kbd> */}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -206,7 +206,7 @@ export function UniversalSearch() {
                           const index = allItems.indexOf(item);
                           const active = activeItem === index;
                           return (
-                            <a 
+                            <a
                               key={item.id}
                               href={item.href}
                               className={cn(
@@ -240,33 +240,33 @@ export function UniversalSearch() {
               </div>
             ) : !loading && query.length >= 2 ? (
               <div className="px-6 py-10 text-center">
-                <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
+                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">
                   Sin resultados para "<span className="text-zinc-900 dark:text-zinc-100">{query}</span>"
                 </p>
               </div>
             ) : (
-                <div className="px-6 py-8 text-center">
-                    <CommandIcon className="w-8 h-8 text-zinc-200 dark:text-zinc-800 mx-auto mb-3" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        Escribí para buscar...
-                    </p>
-                </div>
+              <div className="px-6 py-8 text-center">
+                <CommandIcon className="w-8 h-8 text-zinc-200 dark:text-zinc-800 mx-auto mb-3" />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                  Escribí para buscar...
+                </p>
+              </div>
             )}
           </div>
-          
+
           {/* Footer del Buscador - Industrial Tech */}
           {/* <div className="px-6 py-3 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800">
              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-400">
+                <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
                     <kbd className="h-4 px-1 rounded bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500">â†µ</kbd>
                     Abrir
                 </span>
-                <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-400">
+                <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
                     <kbd className="h-4 px-1 rounded bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500">â†‘â†“</kbd>
                     Mover
                 </span>
              </div>
-             <div className="text-[9px] font-black uppercase tracking-[0.2em] text-lime-500 hidden xs:block">
+             <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-lime-500 hidden xs:block">
                 Gym Intelligence
              </div>
           </div> */}

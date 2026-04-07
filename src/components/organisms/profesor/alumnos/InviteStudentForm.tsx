@@ -142,7 +142,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
                 <Loader2 className="w-8 h-8 animate-spin text-zinc-300" />
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Cargando Formulario...</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-300">Cargando Formulario...</p>
             </div>
         );
     }
@@ -220,21 +220,21 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                     control={form.control}
                                     name="fecha_nacimiento"
                                     render={({ field, fieldState }) => (
-                                            <StandardField
-                                                label={inviteStudentCopy.labels.fechaNacimiento}
-                                                error={fieldState.error?.message}
-                                                hint={inviteStudentCopy.hints.fechaNacimiento}
-                                            >
-                                                <FormControl>
-                                                    <DatePicker 
-                                                        date={field.value}
-                                                        setDate={field.onChange}
-                                                        label={inviteStudentCopy.labels.fechaNacimiento}
-                                                        placeholder="Opcional"
-                                                        error={!!fieldState.error}
-                                                    />
-                                                </FormControl>
-                                            </StandardField>
+                                        <StandardField
+                                            label={inviteStudentCopy.labels.fechaNacimiento}
+                                            error={fieldState.error?.message}
+                                            hint={inviteStudentCopy.hints.fechaNacimiento}
+                                        >
+                                            <FormControl>
+                                                <DatePicker
+                                                    date={field.value}
+                                                    setDate={field.onChange}
+                                                    label={inviteStudentCopy.labels.fechaNacimiento}
+                                                    placeholder="Opcional"
+                                                    error={!!fieldState.error}
+                                                />
+                                            </FormControl>
+                                        </StandardField>
                                     )}
                                 />
                             </div>
@@ -262,7 +262,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                         required
                                     >
                                         <div className="space-y-4">
-                                    <Select onValueChange={field.onChange} value={field.value} key={plans.length}>
+                                            <Select onValueChange={field.onChange} value={field.value} key={plans.length}>
                                                 <FormControl>
                                                     <SelectTrigger className="industrial-select-trigger">
                                                         <SelectValue placeholder={inviteStudentCopy.placeholders.plan} />
@@ -281,7 +281,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
-                                                                className="w-full rounded-xl font-black uppercase text-[9px] tracking-widest border-zinc-200"
+                                                                className="w-full rounded-xl font-bold uppercase text-[9px] tracking-widest border-zinc-200"
                                                                 onClick={() => window.location.assign("/profesor/planes/new")}
                                                             >
                                                                 Crear primera planificación
@@ -320,7 +320,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                             >
                                                 <div className="flex gap-3">
                                                     <FormControl>
-                                                        <DatePicker 
+                                                        <DatePicker
                                                             date={field.value}
                                                             setDate={field.onChange}
                                                             label={inviteStudentCopy.labels.fechaInicio}
@@ -331,7 +331,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                                     <Button
                                                         type="button"
                                                         variant="outline"
-                                                        className="h-14 px-5 rounded-2xl font-black uppercase text-[9px] tracking-widest text-zinc-400 hover:text-lime-600 hover:border-lime-500 transition-all active:scale-95 shrink-0"
+                                                        className="h-14 px-5 rounded-2xl font-bold uppercase text-[9px] tracking-widest text-zinc-400 hover:text-lime-600 hover:border-lime-500 transition-all active:scale-95 shrink-0"
                                                         onClick={() => field.onChange(new Date())}
                                                     >
                                                         <CalendarIcon className="w-4 h-4 mr-2" /> {inviteStudentCopy.actions.today || "Hoy"}
@@ -382,13 +382,13 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                         </div>
                     </div>
 
-                    
+
 
                     {/* SECCIÓN ADICIONAL */}
                     <div className="space-y-4 pt-4">
                         <div className="flex items-center gap-2 px-1 text-zinc-400">
                             <Info className="w-3.5 h-3.5" />
-                            <h3 className="text-[9px] font-black uppercase tracking-[0.3em]">
+                            <h3 className="text-[9px] font-bold uppercase tracking-[0.3em]">
                                 {inviteStudentCopy.sections.optionalInfo}
                             </h3>
                         </div>
@@ -413,7 +413,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 pt-10 border-t border-zinc-100 dark:border-zinc-900 items-center justify-between">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 order-2 sm:order-1 text-center sm:text-left flex items-center gap-2">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 order-2 sm:order-1 text-center sm:text-left flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
                             Se generará un link permanente para compartir.
                         </p>
@@ -422,7 +422,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                 type="button"
                                 variant="outline"
                                 size="xl"
-                                className="w-full sm:w-auto px-10 h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] border-zinc-200 hover:bg-zinc-100 transition-all active:scale-95"
+                                className="w-full sm:w-auto px-10 h-14 rounded-2xl font-bold uppercase tracking-widest text-[10px] border-zinc-200 hover:bg-zinc-100 transition-all active:scale-95"
                                 onClick={() => window.history.back()}
                             >
                                 {inviteStudentCopy.actions.cancel}
@@ -443,20 +443,20 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
 
             <Dialog open={!!successData} onOpenChange={(open) => !open && window.location.assign(`/profesor/alumnos/${successData?.id}`)}>
                 <DialogContent className="sm:max-w-md text-center p-10 gap-8 border-none bg-white dark:bg-zinc-950 rounded-[3rem] shadow-2xl overflow-hidden scale-in-center">
-                    <div className="mx-auto bg-lime-400 text-zinc-950 p-4 rounded-2xl w-20 h-20 flex items-center justify-center shadow-lg shadow-lime-400/20 animate-bounce">
+                    <div className="mx-auto bg-lime-500 text-zinc-950 p-4 rounded-2xl w-20 h-20 flex items-center justify-center shadow-lg shadow-lime-400/20 animate-bounce">
                         <CircleCheck className="w-10 h-10" />
                     </div>
 
                     <div className="space-y-4">
-                        <DialogTitle className="text-4xl font-black uppercase tracking-tighter text-center text-zinc-950 dark:text-zinc-50 leading-[0.8]">
+                        <DialogTitle className="text-3xl font-bold tracking-tighter text-center text-zinc-950 dark:text-zinc-50 leading-tight">
                             {successData ? inviteStudentCopy.messages.successModal.title.replace('{name}', successData.name) : ''}
                         </DialogTitle>
                         <div className="text-sm font-medium text-zinc-400 text-center leading-relaxed max-w-[280px] mx-auto pt-2">
-                            Invitación enviada con éxito.
+                            {successData ? inviteStudentCopy.messages.successModal.description1.replace('{name}', successData.name) : ''}
                             <div className="mt-8 relative group">
                                 <div className="absolute -inset-1 bg-lime-500/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
-                                <span className="relative block px-4 py-4 bg-zinc-100 dark:bg-zinc-900 rounded-2xl text-zinc-950 dark:text-lime-400 font-black tracking-widest text-lg border border-zinc-200 dark:border-zinc-800">
-                                    PRÓXIMO PAGO: {successData ? successData.date : ''}
+                                <span className="relative block px-4 py-4 bg-zinc-100 dark:bg-zinc-900 rounded-2xl text-zinc-950 dark:text-lime-400 font-bold tracking-widest text-lg border border-zinc-200 dark:border-zinc-800">
+                                    {successData ? inviteStudentCopy.messages.successModal.description2.replace('{date}', successData.date) : ''}
                                 </span>
                             </div>
                         </div>
@@ -469,7 +469,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                 ENVIAR BIENVENIDA (WHATSAPP)
                             </Button>
                         )}
-                        <Button onClick={copyLink} variant="outline" size="xl" className="w-full border-zinc-100 dark:border-zinc-800 font-black uppercase text-[10px] tracking-[0.2em] text-zinc-400 h-14">
+                        <Button onClick={copyLink} variant="outline" size="xl" className="w-full border-zinc-100 dark:border-zinc-800 font-bold uppercase text-[10px] tracking-[0.2em] text-zinc-400 h-14">
                             <Copy className="w-4 h-4 mr-2" />
                             COPIAR LINK DE INVITADO
                         </Button>
@@ -477,7 +477,7 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                             onClick={() => window.location.assign(`/profesor/alumnos/${successData?.id}`)}
                             variant="ghost"
                             size="lg"
-                            className="w-full h-14 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] text-zinc-400 hover:text-zinc-950 transition-all"
+                            className="w-full h-14 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] text-zinc-400 hover:text-zinc-950 transition-all"
                         >
                             IR AL PERFIL DEL ALUMNO
                             <ArrowRight className="w-4 h-4 ml-2 animate-pulse" />

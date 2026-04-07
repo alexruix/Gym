@@ -259,7 +259,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
       header: "Alumno",
       render: (s) => (
         <div className="flex items-center gap-3 font-bold text-zinc-950 dark:text-zinc-100">
-          <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-black text-zinc-400 text-[10px]">
+          <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-zinc-400 text-[10px]">
             {s.nombre.charAt(0).toUpperCase()}
           </div>
           {s.nombre}
@@ -290,25 +290,25 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
           {syncStatus === "syncing" && (
             <div className="flex items-center gap-2 bg-zinc-950/10 dark:bg-zinc-50/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
               <RefreshCcw className="w-3 h-3 text-lime-500 animate-spin" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-300">Sincronizando...</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-300">Sincronizando...</span>
             </div>
           )}
           {syncStatus === "synced" && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full">
               <CheckCircle2 className="w-3 h-3 text-lime-500" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Guardado</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">Guardado</span>
             </div>
           )}
           {syncStatus === "retrying" && (
             <div className="flex items-center gap-2 bg-amber-400/10 px-3 py-1.5 rounded-full border border-amber-400/20">
               <RefreshCcw className="w-3 h-3 text-amber-500 animate-spin" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-amber-600">Reintentando sync... ({retryCount})</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-amber-600">Reintentando sync... ({retryCount})</span>
             </div>
           )}
           {syncStatus === "error" && (
             <div className="flex items-center gap-2 bg-red-400/10 px-3 py-1.5 rounded-full border border-red-400/20">
               <AlertCircle className="w-3 h-3 text-red-500" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-red-600">Error de conexión</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-red-600">Error de conexión</span>
             </div>
           )}
         </div>
@@ -320,17 +320,17 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                 <Dumbbell className="w-10 h-10 text-lime-400 group-hover:scale-110 transition-transform" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-black capitalize tracking-tighter text-zinc-950 dark:text-white leading-none mb-3">
+                <h1 className="text-3xl md:text-4xl font-bold capitalize tracking-tighter text-zinc-950 dark:text-white leading-none mb-3">
                   {localPlan.nombre}
                 </h1>
                 <div className="flex flex-wrap items-center gap-4">
                   <div className="flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                     <Calendar className="w-3.5 h-3.5 text-zinc-400" />
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">{c.meta.createdAt} {createdDate}</span>
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-center">{c.meta.createdAt} {createdDate}</span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-lime-400/10 rounded-lg border border-lime-400/20">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-lime-500/10 rounded-lg border border-lime-400/20">
                     <div className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
-                    <span className="text-[10px] font-black text-lime-600 uppercase tracking-widest">Planificación</span>
+                    <span className="text-[10px] font-bold text-lime-600 uppercase tracking-widest">Planificación</span>
                   </div>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
               <Button
                 variant="outline"
                 asChild
-                className="h-12 px-6 gap-2 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-95 flex-1 md:flex-none shadow-sm"
+                className="h-12 px-6 gap-2 font-bold text-[10px] uppercase tracking-[0.2em] rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-95 flex-1 md:flex-none shadow-sm"
               >
                 <a href={`/profesor/planes/${localPlan.id}/edit`}>
                   <Edit3 className="w-4 h-4" />
@@ -350,7 +350,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
               <Button
                 disabled={isDuplicating}
                 onClick={handleDuplicate}
-                className="h-12 px-6 gap-2 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10 active:scale-95 transition-all flex-1 md:flex-none disabled:opacity-50"
+                className="h-12 px-6 gap-2 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10 active:scale-95 transition-all flex-1 md:flex-none disabled:opacity-50"
               >
                 <Copy className="w-4 h-4" />
                 {isDuplicating ? "Copiando..." : "Duplicar"}
@@ -422,16 +422,16 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                     >
                       <div className="flex items-center gap-6">
                         <span className={cn(
-                          "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg transition-all duration-500",
-                          isOpen ? "bg-zinc-950 text-white dark:bg-lime-400 dark:text-zinc-950 rotate-6" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 group-hover:rotate-6"
+                          "w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-500",
+                          isOpen ? "bg-zinc-950 text-white dark:bg-lime-500 dark:text-zinc-950 rotate-6" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 group-hover:rotate-6"
                         )}>
                           {rutina.dia_numero}
                         </span>
                         <div className="text-left">
-                          <h4 className="font-black text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                          <h4 className="font-bold text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
                             {rutina.nombre_dia || `${c.routines.dayLabel} ${rutina.dia_numero}`}
                           </h4>
-                          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
                             <Layers className="w-3 h-3" />
                             {rutina.ejercicios_plan.length} ejercicios técnicos
                           </p>
@@ -460,7 +460,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                         <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
                           <Button
                             variant="ghost"
-                            className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-400/5 text-zinc-400 hover:text-lime-500 transition-all gap-3 font-black uppercase text-[10px] tracking-widest"
+                            className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-500/5 text-zinc-400 hover:text-lime-500 transition-all gap-3 font-bold uppercase text-[10px] tracking-widest"
                             onClick={() => {
                               setActiveRoutineTarget(rutina.id);
                               setIsSearchOpen(true);
@@ -486,12 +486,12 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                     <Users className="w-8 h-8 text-zinc-300" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="font-black text-xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin alumnos activos</h3>
+                    <h3 className="font-bold text-xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin alumnos activos</h3>
                     <p className="text-sm text-zinc-400 font-medium px-6">{studentSearch ? "No se encontraron coincidencias para tu búsqueda." : c.students.empty}</p>
                   </div>
                   <Button
                     onClick={() => setIsAssignDialogOpen(true)}
-                    className="bg-lime-400 text-zinc-950 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-lime-500 shadow-xl shadow-lime-500/10"
+                    className="bg-lime-500 text-zinc-950 px-6 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-lime-500 shadow-xl shadow-lime-500/10"
                   >
                     {c.students.assignBtn}
                   </Button>
@@ -511,12 +511,12 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                     ))}
                     <button
                       onClick={() => setIsAssignDialogOpen(true)}
-                      className="bg-zinc-50/50 dark:bg-zinc-900/10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 flex flex-col items-center justify-center gap-3 text-zinc-400 hover:text-lime-500 hover:border-lime-400 hover:bg-lime-400/5 transition-all duration-300 group min-h-[160px]"
+                      className="bg-zinc-50/50 dark:bg-zinc-900/10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 flex flex-col items-center justify-center gap-3 text-zinc-400 hover:text-lime-500 hover:border-lime-400 hover:bg-lime-500/5 transition-all duration-300 group min-h-[160px]"
                     >
                       <div className="p-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm group-hover:rotate-12 transition-transform">
                         <Plus className="w-6 h-6" />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest">Asignar alumno</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Asignar alumno</span>
                     </button>
                   </div>
                 ) : (
@@ -538,14 +538,14 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
           <div className="bg-red-500 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-4 border-2 border-red-400 animate-in slide-in-from-bottom-8">
             <AlertCircle className="w-6 h-6 animate-pulse" />
             <div className="text-left">
-              <p className="font-black uppercase tracking-tight text-sm">Error de sincronización persistente</p>
+              <p className="font-bold uppercase tracking-tight text-sm">Error de sincronización persistente</p>
               <p className="text-[10px] font-medium opacity-90">Los cambios que hagas ahora no se guardarán. Por favor, reintentá manualmente.</p>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => { setSyncStatus("synced"); setRetryCount(0); }}
-              className="bg-white/10 border-white/20 hover:bg-white/20 text-white rounded-xl text-[10px] uppercase font-black tracking-widest"
+              className="bg-white/10 border-white/20 hover:bg-white/20 text-white rounded-xl text-[10px] uppercase font-bold tracking-widest"
             >
               Reintentar ahora
             </Button>

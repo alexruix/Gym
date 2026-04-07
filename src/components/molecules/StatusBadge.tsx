@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
  * Fusiona la lógica de negocio de estados generales y estados de pago.
  */
 
-export type StatusType = 
-  | "activo" | "pausado" | "inactivo" 
+export type StatusType =
+  | "activo" | "pausado" | "inactivo"
   | "pagado" | "por_vencer" | "vencido" | "pendiente" | "moroso";
 
 interface StatusBadgeProps {
@@ -42,10 +42,10 @@ export const StatusBadge = ({ status, className, showIcon }: StatusBadgeProps) =
   const shouldShowIcon = showIcon !== undefined ? showIcon : config.isPayment;
 
   return (
-    <Badge 
-      variant={config.variant} 
+    <Badge
+      variant={config.variant}
       className={cn(
-        "uppercase tracking-widest font-black text-[10px] gap-1.5 py-0.5 px-3 rounded-full border-zinc-200/50 dark:border-zinc-800/10", 
+        "uppercase tracking-widest font-bold text-[10px] gap-1.5 py-0.5 px-3 rounded-full border-zinc-200/50 dark:border-zinc-800/10",
         config.isPayment && "shadow-sm",
         className
       )}

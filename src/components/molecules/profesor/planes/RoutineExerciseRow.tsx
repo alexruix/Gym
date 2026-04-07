@@ -32,13 +32,13 @@ interface RoutineExerciseRowProps {
  * RoutineExerciseRow: Molécula técnica que representa un ejercicio interactivo.
  * Permite editar métricas inline y reordenar la secuencia técnica.
  */
-export function RoutineExerciseRow({ 
-  exercise, 
-  index, 
+export function RoutineExerciseRow({
+  exercise,
+  index,
   isFirst,
   isLast,
-  className, 
-  onDelete, 
+  className,
+  onDelete,
   onChange,
   onSwap,
   onMove,
@@ -60,17 +60,17 @@ export function RoutineExerciseRow({
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {(!readOnly && onMove) && (
           <div className="flex flex-col items-center gap-1 shrink-0">
-            <button 
+            <button
               disabled={isFirst}
               onClick={() => onMove?.("up")}
               className="text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors pt-1"
             >
               <ChevronUp className="w-3 h-3" />
             </button>
-            <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-500 shadow-inner group-hover/ej:bg-zinc-950 group-hover/ej:text-white transition-colors">
+            <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-500 shadow-inner group-hover/ej:bg-zinc-950 group-hover/ej:text-white transition-colors">
               {index + 1}
             </div>
-            <button 
+            <button
               disabled={isLast}
               onClick={() => onMove?.("down")}
               className="text-zinc-300 hover:text-lime-500 disabled:opacity-0 transition-colors pb-1"
@@ -81,7 +81,7 @@ export function RoutineExerciseRow({
         )}
 
         {readOnly && (
-          <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-500 shadow-inner shrink-0 leading-none">
+          <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-500 shadow-inner shrink-0 leading-none">
             {index + 1}
           </div>
         )}
@@ -95,13 +95,13 @@ export function RoutineExerciseRow({
         </div>
 
         <div className="flex-1 min-w-0 pr-4">
-          <h4 className="font-black text-zinc-950 dark:text-white text-sm uppercase tracking-tight truncate leading-tight">
+          <h4 className="font-bold text-zinc-950 dark:text-white text-sm uppercase tracking-tight truncate leading-tight">
             {ej?.nombre || "Ejercicio"}
           </h4>
           {(!readOnly && onSwap) && (
-            <button 
+            <button
               onClick={onSwap}
-              className="flex items-center gap-1.5 mt-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+              className="flex items-center gap-1.5 mt-1 text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
             >
               <Info className="w-3 h-3" />
               Variaciones disponibles
@@ -115,15 +115,15 @@ export function RoutineExerciseRow({
         <div className="grid grid-cols-4 gap-2 sm:gap-4 shrink-0 sm:pr-4">
           {/* Series */}
           <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Series</label>
-            <input 
+            <label className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Series</label>
+            <input
               type="number"
               defaultValue={exercise.series}
               onBlur={(e) => handleMetricChange("series", parseInt(e.target.value) || 0)}
               readOnly={readOnly}
               disabled={readOnly}
               className={cn(
-                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
+                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
                 readOnly && "cursor-not-allowed opacity-60"
               )}
             />
@@ -131,8 +131,8 @@ export function RoutineExerciseRow({
 
           {/* Reps */}
           <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Reps</label>
-            <input 
+            <label className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Reps</label>
+            <input
               type="text"
               defaultValue={exercise.reps_target}
               onBlur={(e) => handleMetricChange("reps_target", e.target.value)}
@@ -140,7 +140,7 @@ export function RoutineExerciseRow({
               readOnly={readOnly}
               disabled={readOnly}
               className={cn(
-                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
+                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
                 readOnly && "cursor-not-allowed opacity-60"
               )}
             />
@@ -148,8 +148,8 @@ export function RoutineExerciseRow({
 
           {/* Peso Target */}
           <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Peso</label>
-            <input 
+            <label className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Peso</label>
+            <input
               type="text"
               defaultValue={exercise.peso_target || ""}
               onBlur={(e) => handleMetricChange("peso_target", e.target.value)}
@@ -157,7 +157,7 @@ export function RoutineExerciseRow({
               readOnly={readOnly}
               disabled={readOnly}
               className={cn(
-                "w-full sm:w-20 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
+                "w-full sm:w-20 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
                 readOnly && "cursor-not-allowed opacity-60"
               )}
             />
@@ -165,15 +165,15 @@ export function RoutineExerciseRow({
 
           {/* Descanso */}
           <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Desc.</label>
-            <input 
+            <label className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Desc.</label>
+            <input
               type="number"
               defaultValue={exercise.descanso_seg}
               onBlur={(e) => handleMetricChange("descanso_seg", parseInt(e.target.value) || 0)}
               readOnly={readOnly}
               disabled={readOnly}
               className={cn(
-                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-black text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
+                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
                 readOnly && "cursor-not-allowed opacity-60"
               )}
             />
@@ -183,7 +183,7 @@ export function RoutineExerciseRow({
 
       {/* 3. ACCIONES */}
       {(!readOnly && onDelete) && (
-        <button 
+        <button
           onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
           className="sm:opacity-0 group-hover/ej:opacity-100 p-2.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-300 ml-2"
           title="Eliminar de la rutina"

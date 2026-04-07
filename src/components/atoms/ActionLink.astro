@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * ActionLink: Componente para acciones principales y navegación.
- * 
+ *
  * DESIGN RULES (Industrial Minimalist):
  * - variant="industrial": Usar para la CALL TO ACTION principal (Lime + Black).
  * - variant="heavy": Acciones secundarias de alto contraste (Black + White).
@@ -11,25 +11,42 @@ import { cn } from "@/lib/utils";
  */
 interface Props {
   href: string;
-  variant?: 'industrial' | 'heavy' | 'secondary' | 'primary';
+  variant?: "industrial" | "heavy" | "secondary" | "primary";
   class?: string;
   uppercase?: boolean;
 }
 
-const { href, variant = 'industrial', class: className, uppercase = true } = Astro.props;
+const {
+  href,
+  variant = "industrial",
+  class: className,
+  uppercase = true,
+} = Astro.props;
 
-const baseClasses = "inline-flex items-center justify-center gap-2 px-8 h-14 rounded-2xl font-black transition-all active:scale-95 text-center transition-all duration-300";
+const baseClasses =
+  "inline-flex items-center justify-center gap-2 px-8 h-14 rounded-2xl font-bold transition-all active:scale-95 text-center transition-all duration-300";
 
 const variantClasses = {
-  industrial: "bg-lime-400 text-zinc-950 hover:bg-lime-500 shadow-sm",
+  industrial: "bg-lime-500 text-zinc-950 hover:bg-lime-500 shadow-sm",
   heavy: "bg-zinc-950 text-white hover:bg-zinc-900 shadow-sm",
-  primary: "bg-lime-400 text-zinc-950 hover:bg-lime-500 shadow-sm", // Alias for industrial
-  secondary: "bg-white border border-zinc-200 text-zinc-950 hover:border-zinc-950 hover:-translate-y-0.5 shadow-sm",
+  primary: "bg-lime-500 text-zinc-950 hover:bg-lime-500 shadow-sm", // Alias for industrial
+  secondary:
+    "bg-white border border-zinc-200 text-zinc-950 hover:border-zinc-950 hover:-translate-y-0.5 shadow-sm",
 };
 
-const textStyle = uppercase ? "uppercase tracking-[0.2em] text-[10px] md:text-xs" : "text-sm";
+const textStyle = uppercase
+  ? "uppercase tracking-[0.2em] text-[10px] md:text-xs"
+  : "text-sm";
 ---
 
-<a href={href} class={cn(baseClasses, variantClasses[variant as keyof typeof variantClasses], textStyle, className)}>
+<a
+  href={href}
+  class={cn(
+    baseClasses,
+    variantClasses[variant as keyof typeof variantClasses],
+    textStyle,
+    className,
+  )}
+>
   <slot />
 </a>

@@ -79,7 +79,7 @@ export const dashboardCopy = {
   },
   onboarding: {
     title: "Empezá por acá",
-    description: "Tu cuenta está lista. Completá estos 3 pasos rápidos para sacarle todo el jugo a MiGym.",
+    description: "Completá estos 3 pasos para empezar a usar la plataforma.",
     progressText: "{n} de 3 completados",
     steps: {
       profile: {

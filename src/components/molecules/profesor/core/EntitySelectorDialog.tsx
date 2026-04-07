@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { 
-    Dialog, 
-    DialogContent, 
-    DialogHeader, 
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
     DialogTitle,
     DialogDescription,
     DialogFooter
@@ -10,9 +10,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-    Search, 
-    Loader2, 
+import {
+    Search,
+    Loader2,
     Check,
     X,
     Tag,
@@ -55,10 +55,10 @@ interface Props<T extends BaseEntity> {
  * EntitySelectorDialog: El selector universal de MiGym (V2.2 Core).
  * Unifica la inteligencia de búsqueda, el filtrado por hashtags y la selección en un solo motor.
  */
-export function EntitySelectorDialog<T extends BaseEntity>({ 
-    open, 
-    onOpenChange, 
-    title, 
+export function EntitySelectorDialog<T extends BaseEntity>({
+    open,
+    onOpenChange,
+    title,
     description,
     items,
     isLoading = false,
@@ -93,12 +93,12 @@ export function EntitySelectorDialog<T extends BaseEntity>({
     const filteredItems = useMemo(() => {
         return items.filter(item => {
             const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
-            
+
             if (activeTags.length === 0) return matchesSearch;
-            
+
             const itemTags = (item.tags || []).map(t => t.toLowerCase());
             const matchesTags = activeTags.every(tag => itemTags.includes(tag.toLowerCase()));
-            
+
             return matchesSearch && matchesTags;
         });
     }, [items, search, activeTags]);
@@ -135,7 +135,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
             <DialogContent className="max-w-md p-0 overflow-hidden border-zinc-200 dark:border-zinc-800 rounded-[32px] bg-white dark:bg-zinc-950 shadow-2xl">
                 <DialogHeader className="p-6 pb-4 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/10">
                     <div className="flex items-center gap-3">
-                        <DialogTitle className="text-xl font-black uppercase tracking-tight shrink-0">
+                        <DialogTitle className="text-xl font-bold uppercase tracking-tight shrink-0">
                             {title}
                         </DialogTitle>
                     </div>
@@ -150,9 +150,9 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                         "absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
                         search ? "text-lime-500" : "text-zinc-400 group-focus-within:text-lime-500"
                     )} />
-                    <Input 
+                    <Input
                         ref={searchInputRef}
-                        placeholder="Buscar por nombre..." 
+                        placeholder="Buscar por nombre..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-12 h-12 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-sm font-bold placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-lime-400/20"
@@ -163,10 +163,10 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                         <div className="absolute top-full left-4 right-4 mt-2 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 z-50">
                             <div className="flex flex-wrap gap-2">
                                 {allTags.filter(t => t.toLowerCase().includes(search.slice(1).toLowerCase())).map(t => (
-                                    <button 
+                                    <button
                                         key={t}
                                         onClick={() => addTag(t)}
-                                        className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-lime-400 hover:text-zinc-950 transition-all"
+                                        className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-900 rounded-xl text-[9px] font-bold uppercase tracking-widest hover:bg-lime-500 hover:text-zinc-950 transition-all"
                                     >
                                         #{t}
                                     </button>
@@ -180,10 +180,10 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                 {activeTags.length > 0 && (
                     <div className="px-6 py-3 flex flex-wrap gap-2 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/10">
                         {activeTags.map(tag => (
-                            <div key={tag} className="flex items-center gap-2 bg-lime-400/10 border border-lime-400/20 px-2.5 py-1 rounded-xl">
+                            <div key={tag} className="flex items-center gap-2 bg-lime-500/10 border border-lime-400/20 px-2.5 py-1 rounded-xl">
                                 <Tag className="w-3 h-3 text-lime-500" />
-                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">#{tag}</span>
-                                <button onClick={() => removeTag(tag)} className="p-0.5 hover:bg-lime-400 hover:text-zinc-950 rounded-md transition-all">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100">#{tag}</span>
+                                <button onClick={() => removeTag(tag)} className="p-0.5 hover:bg-lime-500 hover:text-zinc-950 rounded-md transition-all">
                                     <X className="w-2.5 h-2.5" />
                                 </button>
                             </div>
@@ -198,16 +198,16 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                     ) : isLoading ? (
                         <div className="py-20 flex flex-col items-center gap-4">
                             <Loader2 className="w-8 h-8 text-lime-500 animate-spin" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-8 text-center italic">Sincronizando biblioteca core...</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-8 text-center italic">Sincronizando biblioteca core...</span>
                         </div>
                     ) : filteredItems.length === 0 ? (
                         <div className="py-20 flex flex-col items-center gap-4 text-center px-12">
                             <Ghost className="w-12 h-12 text-zinc-100 dark:text-zinc-900" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">No encontramos lo que buscás.</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">No encontramos lo que buscás.</p>
                             {onCreateNew && (
-                                <button 
+                                <button
                                     onClick={onCreateNew}
-                                    className="text-lime-500 font-black text-[10px] uppercase tracking-widest h-10"
+                                    className="text-lime-500 font-bold text-[10px] uppercase tracking-widest h-10"
                                 >
                                     <Plus className="w-3.5 h-3.5 mr-2" /> {createNewLabel}
                                 </button>
@@ -218,29 +218,29 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                             {filteredItems.map((item) => {
                                 const isSelected = selectedIds.has(item.id);
                                 return (
-                                    <div 
+                                    <div
                                         key={item.id}
                                         onClick={() => handleToggle(item.id)}
                                         className={cn(
                                             "group flex items-center gap-4 px-6 py-4 cursor-pointer transition-all",
-                                            isSelected ? "bg-lime-400/5" : "hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30"
+                                            isSelected ? "bg-lime-500/5" : "hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30"
                                         )}
                                     >
                                         {multiple && (
-                                            <Checkbox 
-                                                checked={isSelected} 
+                                            <Checkbox
+                                                checked={isSelected}
                                                 onCheckedChange={() => handleToggle(item.id)}
-                                                className="rounded-md border-2 border-zinc-200" 
+                                                className="rounded-md border-2 border-zinc-200"
                                             />
                                         )}
-                                        
+
                                         <div className="flex-1 min-w-0">
                                             {renderItem ? (
                                                 renderItem(item, isSelected)
                                             ) : (
                                                 <div className="flex flex-col">
                                                     <p className={cn(
-                                                        "text-sm font-black uppercase tracking-tight truncate",
+                                                        "text-sm font-bold uppercase tracking-tight truncate",
                                                         isSelected ? "text-zinc-950 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
                                                     )}>
                                                         {item.name}
@@ -255,7 +255,7 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                                         </div>
 
                                         {!multiple && isSelected && (
-                                            <div className="bg-lime-400 p-1 rounded-full shadow-lg">
+                                            <div className="bg-lime-500 p-1 rounded-full shadow-lg">
                                                 <Check className="w-3 h-3 text-zinc-950" strokeWidth={3} />
                                             </div>
                                         )}
@@ -279,17 +279,17 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                                 </div>
                             )}
                             <div className="flex gap-3">
-                                <Button 
-                                    variant="ghost" 
+                                <Button
+                                    variant="ghost"
                                     onClick={() => onOpenChange(false)}
-                                    className="flex-1 h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                                    className="flex-1 h-12 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-zinc-400"
                                 >
                                     Cancelar
                                 </Button>
-                                <Button 
+                                <Button
                                     disabled={isSaving || selectedIds.size === 0}
                                     onClick={handleConfirm}
-                                    className="flex-[2] h-12 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10"
+                                    className="flex-[2] h-12 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10"
                                 >
                                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmLabel}
                                 </Button>

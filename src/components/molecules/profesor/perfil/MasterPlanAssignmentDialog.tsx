@@ -54,16 +54,16 @@ export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuc
     const handleConfirm = async (selectedIds: string[]) => {
         const planId = selectedIds[0];
         if (!planId) return;
-        
+
         setIsSaving(true);
         try {
             const { error } = await actions.profesor.assignPlanToStudents({
                 plan_id: planId,
                 student_ids: [alumnoId]
             });
-            
+
             if (error) throw error;
-            
+
             toast.success(athleteProfileCopy.workspace.routine.assignmentDialog.success);
             onSuccess();
             onOpenChange(false);
@@ -75,7 +75,7 @@ export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuc
     };
 
     return (
-        <EntitySelectorDialog 
+        <EntitySelectorDialog
             open={open}
             onOpenChange={onOpenChange}
             title={athleteProfileCopy.workspace.routine.assignmentDialog.title}
@@ -89,12 +89,12 @@ export function MasterPlanAssignmentDialog({ open, onOpenChange, alumnoId, onSuc
             allTags={["Maestra"]}
             renderItem={(item, isSelected) => (
                 <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-[10px] transition-all ${isSelected ? 'bg-zinc-950 text-white' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400'}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-[10px] transition-all ${isSelected ? 'bg-zinc-950 text-white' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400'}`}>
                         PLN
                         <Layers className={`absolute -top-1 -right-1 w-3 h-3 ${isSelected ? 'text-lime-500' : 'text-zinc-300'}`} />
                     </div>
                     <div className="flex flex-col">
-                        <p className={`text-sm font-black uppercase tracking-tight ${isSelected ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                        <p className={`text-sm font-bold uppercase tracking-tight ${isSelected ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
                             {item.name}
                         </p>
                         <span className="text-[9px] font-bold text-zinc-300 dark:text-zinc-600">PLANTILLA MAESTRA</span>

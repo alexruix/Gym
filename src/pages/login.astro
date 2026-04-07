@@ -1,29 +1,41 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { AuthForm } from '../components/organisms/auth/AuthForm';
+import Layout from "../layouts/Layout.astro";
+import { AuthForm } from "../components/organisms/auth/AuthForm";
 ---
 
 <Layout title="Acceso - MiGym">
-    <main class="min-h-screen bg-zinc-50 relative overflow-hidden flex flex-col justify-center items-center p-5">
-        
-        <!-- Glows de fondo decorativos -->
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-lime-400/5 rounded-full blur-[100px] pointer-events-none"></div>
-        <div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-lime-500/5 rounded-full blur-[80px] pointer-events-none"></div>
-        
-        <!-- Grid pattern -->
-        <div class="absolute inset-0 bg-[linear-gradient(rgba(163,230,53,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(163,230,53,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
+  <main
+    class="min-h-screen bg-zinc-50 relative overflow-hidden flex flex-col justify-center items-center p-5"
+  >
+    <!-- Glows de fondo decorativos -->
+    <div
+      class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-lime-500/5 rounded-full blur-[100px] pointer-events-none"
+    >
+    </div>
+    <div
+      class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-lime-500/5 rounded-full blur-[80px] pointer-events-none"
+    >
+    </div>
 
-        <div class="w-full relative z-10 py-10">
-            <!-- AuthForm como React Island -->
-            <AuthForm client:load />
+    <!-- Grid pattern -->
+    <div
+      class="absolute inset-0 bg-[linear-gradient(rgba(163,230,53,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(163,230,53,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"
+    >
+    </div>
 
-            <!-- Link de retorno -->
-            <div class="text-center mt-8">
-                <a href="/" class="text-xs font-bold text-zinc-400 hover:text-zinc-600 uppercase tracking-widest transition-colors">
-                    &larr; Volver al inicio
-                </a>
-            </div>
-        </div>
+    <div class="w-full relative z-10 py-10">
+      <!-- AuthForm como React Island -->
+      <AuthForm client:load />
 
-    </main>
+      <!-- Link de retorno -->
+      <div class="text-center mt-8">
+        <a
+          href="/"
+          class="text-xs font-bold text-zinc-400 hover:text-zinc-600 uppercase tracking-widest transition-colors"
+        >
+          &larr; Volver al inicio
+        </a>
+      </div>
+    </div>
+  </main>
 </Layout>

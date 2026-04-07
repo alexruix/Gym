@@ -15,9 +15,8 @@ export function QuickActionFab() {
     <div className="fixed bottom-6 right-6 z-50 md:hidden flex flex-col items-end gap-3">
       {/* Opciones (slide in desde abajo) */}
       <div
-        className={`flex flex-col items-end gap-3 transition-all duration-300 origin-bottom-right ${
-          isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0 pointer-events-none"
-        }`}
+        className={`flex flex-col items-end gap-3 transition-all duration-300 origin-bottom-right ${isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0 pointer-events-none"
+          }`}
         aria-hidden={!isOpen}
       >
         <a
@@ -34,7 +33,7 @@ export function QuickActionFab() {
           href="/profesor/planes/new"
           className="flex items-center gap-3 bg-white dark:bg-zinc-950 pr-4 pl-3 py-3 rounded-full shadow-lg border border-zinc-100 dark:border-zinc-800 text-zinc-700 dark:text-zinc-200 font-bold active:scale-95 transition-transform"
         >
-          <div className="bg-lime-400 p-1.5 rounded-full text-zinc-950">
+          <div className="bg-lime-500 p-1.5 rounded-full text-zinc-950">
             <FilePlus className="w-4 h-4" />
           </div>
           {c.createPlan}
@@ -44,11 +43,10 @@ export function QuickActionFab() {
       {/* Botón principal FAB */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 active:scale-95 ${
-          isOpen
+        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 active:scale-95 ${isOpen
             ? "bg-zinc-900 text-white rotate-45 shadow-zinc-900/20"
-            : "bg-lime-400 text-zinc-950 shadow-lime-500/30"
-        }`}
+            : "bg-lime-500 text-zinc-950 shadow-lime-500/30"
+          }`}
         aria-label={isOpen ? "Cerrar menú de acciones" : "Abrir menú de acciones rápidas"}
         aria-expanded={isOpen}
       >

@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { actions } from "astro:actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-    UserPlus, 
-    Loader2, 
-    AlertTriangle, 
+import {
+    UserPlus,
+    Loader2,
+    AlertTriangle,
     CheckCircle2,
     Plus,
     ChevronLeft
@@ -38,7 +38,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
-    
+
     // Inline Creation State
     const [newName, setNewName] = useState("");
     const [newEmail, setNewEmail] = useState("");
@@ -57,7 +57,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
         try {
             const { data, error } = await actions.profesor.getProfessorStudentsWithPlans();
             if (error) throw error;
-            
+
             // Adaptación a BaseEntity
             setStudents((data.alumnos || []).map((s: any) => ({
                 ...s,
@@ -78,7 +78,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
     const stats = useMemo(() => {
         // En un wrapper, el estado de "overwrites" se calcula dinámicamente si el diálogo core nos devolviera la selección en tiempo real, 
         // pero aquí lo usaremos para el warningMessage del componente core basándonos en los items.
-        return { 
+        return {
             allTags: Array.from(new Set(students.flatMap(s => s.tags || [])))
         };
     }, [students]);
@@ -90,15 +90,15 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                 plan_id: currentPlanId,
                 student_ids: newSelectedIds
             });
-            
+
             if (error) throw error;
-            
+
             toast.success("Alumnos asignados correctamente");
-            
+
             const newAssigned = students
                 .filter(s => newSelectedIds.includes(s.id))
                 .map(s => ({ ...s, plan_id: currentPlanId }));
-            
+
             onSuccess(newAssigned);
             onOpenChange(false);
         } catch (err: any) {
@@ -111,7 +111,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
     const handleCreateAndAssign = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newName || !newEmail) return;
-        
+
         setIsSaving(true);
         try {
             const { data, error } = await actions.profesor.inviteStudent({
@@ -132,7 +132,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                 plan_id: currentPlanId,
                 nombre_plan: null,
                 estado: 'activo'
-            }]); 
+            }]);
             onOpenChange(false);
         } catch (err: any) {
             toast.error(err.message || "Error al crear alumno");
@@ -143,13 +143,13 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
 
     if (showCreateForm) {
         return (
-            <EntitySelectorDialog 
+            <EntitySelectorDialog
                 open={open}
                 onOpenChange={onOpenChange}
                 title="Invitación rápida"
                 description="Cargá los datos básicos para invitar a un nuevo alumno ahora."
                 items={[]}
-                onConfirm={() => {}}
+                onConfirm={() => { }}
                 renderItem={() => null}
             >
                 {/* 
@@ -160,9 +160,9 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                     <div className="p-8 space-y-6">
                         <div className="space-y-2">
                             <label className="industrial-label px-1">Nombre Completo</label>
-                            <Input 
+                            <Input
                                 autoFocus
-                                placeholder="Ej: Nacho Giménez" 
+                                placeholder="Ej: Nacho Giménez"
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
                                 className="industrial-input"
@@ -170,9 +170,9 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                         </div>
                         <div className="space-y-2">
                             <label className="industrial-label px-1">Correo Electrónico</label>
-                            <Input 
+                            <Input
                                 type="email"
-                                placeholder="ejemplo@email.com" 
+                                placeholder="ejemplo@email.com"
                                 value={newEmail}
                                 onChange={(e) => setNewEmail(e.target.value)}
                                 className="industrial-input"
@@ -183,7 +183,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                         <Button type="button" variant="ghost" onClick={() => setShowCreateForm(false)} className="flex-1 h-12 rounded-2xl industrial-label">
                             <ChevronLeft className="w-4 h-4 mr-2" /> Atrás
                         </Button>
-                        <Button type="submit" disabled={isSaving || !newName || !newEmail} className="flex-[2] h-12 rounded-2xl bg-lime-400 text-zinc-950 industrial-label text-base">
+                        <Button type="submit" disabled={isSaving || !newName || !newEmail} className="flex-[2] h-12 rounded-2xl bg-lime-500 text-zinc-950 industrial-label text-base">
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Crear y Asignar"}
                         </Button>
                     </div>
@@ -193,7 +193,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
     }
 
     return (
-        <EntitySelectorDialog 
+        <EntitySelectorDialog
             open={open}
             onOpenChange={onOpenChange}
             title="Asignar alumnos"
@@ -212,7 +212,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
             renderItem={(s, isSelected) => (
                 <div className="flex items-center justify-between w-full">
                     <div className="flex flex-col">
-                        <p className={`text-sm font-black tracking-tight uppercase truncate ${isSelected ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                        <p className={`text-sm font-bold tracking-tight uppercase truncate ${isSelected ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
                             {s.name}
                         </p>
                         <p className="industrial-metadata truncate lowercase">
@@ -223,7 +223,7 @@ export function StudentAssignmentDialog({ open, onOpenChange, currentPlanId, onS
                         {s.plan_id === currentPlanId && <CheckCircle2 className="w-4 h-4 text-lime-500" />}
                         {s.plan_id && s.plan_id !== currentPlanId && (
                             <div className="px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center gap-1">
-                                <span className="text-[8px] font-black uppercase text-amber-600 tracking-tighter">En otra planificación</span>
+                                <span className="text-[8px] font-bold uppercase text-amber-600 tracking-tighter">En otra planificación</span>
                             </div>
                         )}
                     </div>

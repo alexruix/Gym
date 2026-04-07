@@ -137,11 +137,11 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
         {/* Warning de Forking para Ejercicios Base de Sistema */}
         {initialValues?.id && (initialValues as any).profesor_id === null && (
           <div className="p-4 rounded-2xl bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-500 shadow-xl border border-white/10">
-            <div className="mt-1 bg-lime-400 p-1.5 rounded-lg shrink-0">
-               <ArrowLeft className="w-4 h-4 text-zinc-900 rotate-90" />
+            <div className="mt-1 bg-lime-500 p-1.5 rounded-lg shrink-0">
+              <ArrowLeft className="w-4 h-4 text-zinc-900 rotate-90" />
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-black uppercase tracking-widest leading-none">Ejercicio de sistema</p>
+              <p className="text-xs font-bold uppercase tracking-widest leading-none">Ejercicio de sistema</p>
               <p className="text-[13px] font-medium opacity-80 leading-snug">
                 Este ejercicio pertenece a la biblioteca MiGym. Al guardarlo, se creará una **copia privada** en tu lista para que puedas personalizarlo sin afectar el original.
               </p>
@@ -247,7 +247,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
                       {/* Nuevas por crear */}
                       {field.value.map(vName => (
                         <div key={vName} className="flex items-center gap-1.5 pl-3 pr-1 py-1.5 rounded-xl bg-lime-500/10 border border-lime-500/20 text-lime-600 dark:text-lime-400 group animate-in fade-in zoom-in duration-300">
-                          <span className="text-[10px] font-black uppercase tracking-tight">
+                          <span className="text-[10px] font-bold uppercase tracking-tight">
                             {vName}
                           </span>
                           <button
@@ -372,7 +372,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
                 if (onCancel) onCancel();
                 if (cancelHref) window.location.assign(cancelHref);
               }}
-              className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-8"
+              className="rounded-2xl font-bold uppercase tracking-widest text-[10px] h-14 px-8"
             >
               {copy.actions.cancel}
             </Button>
@@ -389,7 +389,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
             ) : (
               <div className="flex items-center">
                 <Save className="w-5 h-5 mr-3" />
-                <span className="text-sm font-black">
+                <span className="text-sm font-bold">
                   {initialValues?.id ? "Guardar cambios" : copy.actions.submit}
                 </span>
               </div>

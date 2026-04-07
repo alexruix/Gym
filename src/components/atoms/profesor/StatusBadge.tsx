@@ -42,9 +42,9 @@ export function StatusBadge({ status, size = 'md', className }: Props) {
   };
 
   return (
-    <div 
+    <div
       className={cn(
-        "inline-flex items-center font-black uppercase tracking-widest rounded-full border-2 shadow-lg transition-all hover:scale-105",
+        "inline-flex items-center font-bold uppercase tracking-widest rounded-full border-2 shadow-lg transition-all hover:scale-105",
         config.colors,
         sizeClasses[size],
         className
@@ -52,7 +52,7 @@ export function StatusBadge({ status, size = 'md', className }: Props) {
     >
       <Icon className={cn("shrink-0", size === 'lg' ? 'w-4 h-4' : 'w-3 h-3')} />
       <span>{config.label}</span>
-      
+
       {/* Glow Effect */}
       <div className="absolute inset-x-0 bottom-0 top-0 bg-white/10 rounded-full animate-pulse-slow pointer-events-none" />
     </div>

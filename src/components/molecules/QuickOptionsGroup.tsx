@@ -22,7 +22,7 @@ export function QuickOptionsGroup({
       {options.map((option) => {
         const lower = option.toLowerCase();
         const isSelected = selectedOptions.includes(lower);
-        
+
         return (
           <button
             key={option}
@@ -30,9 +30,9 @@ export function QuickOptionsGroup({
             disabled={isAtLimit && !isSelected}
             onClick={() => onToggle(lower)}
             className={cn(
-              "px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50",
+              "px-2.5 py-1.5 rounded-lg border text-[9px] font-bold uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50",
               isSelected
-                ? "bg-lime-400 border-lime-400 text-zinc-950 shadow-md shadow-lime-400/20"
+                ? "bg-lime-500 border-lime-400 text-zinc-950 shadow-md shadow-lime-400/20"
                 : "border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:border-lime-500 hover:text-lime-500 dark:hover:text-lime-400"
             )}
           >

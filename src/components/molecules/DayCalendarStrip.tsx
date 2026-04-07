@@ -39,10 +39,10 @@ function getStatusIcon(status: DayStatus, esHoy: boolean): string {
   if (esHoy && status !== 'completada') return '●';
   switch (status) {
     case 'completada': return '✓';
-    case 'omitida':    return '✕';
+    case 'omitida': return '✕';
     case 'en_progreso': return '▶';
-    case 'descanso':    return '○';
-    default:           return '';
+    case 'descanso': return '○';
+    default: return '';
   }
 }
 
@@ -55,61 +55,61 @@ function getStatusColors(status: DayStatus, esHoy: boolean, selected: boolean): 
 } {
   if (selected) {
     return {
-      dot:    'bg-lime-400',
-      num:    'text-black bg-lime-400',
-      label:  'text-lime-400',
-      bg:     'bg-lime-500/10',
+      dot: 'bg-lime-500',
+      num: 'text-black bg-lime-500',
+      label: 'text-lime-400',
+      bg: 'bg-lime-500/10',
       border: 'border-lime-500',
     };
   }
   if (esHoy) {
     return {
-      dot:    'bg-lime-400 animate-pulse',
-      num:    'text-lime-400 bg-lime-500/15 border border-lime-500/40',
-      label:  'text-lime-400',
-      bg:     'bg-lime-500/5',
+      dot: 'bg-lime-500 animate-pulse',
+      num: 'text-lime-400 bg-lime-500/15 border border-lime-500/40',
+      label: 'text-lime-400',
+      bg: 'bg-lime-500/5',
       border: 'border-lime-500/30',
     };
   }
   switch (status) {
     case 'completada':
       return {
-        dot:    'bg-lime-500',
-        num:    'text-white bg-zinc-800',
-        label:  'text-lime-500',
-        bg:     '',
+        dot: 'bg-lime-500',
+        num: 'text-white bg-zinc-800',
+        label: 'text-lime-500',
+        bg: '',
         border: 'border-zinc-800',
       };
     case 'omitida':
       return {
-        dot:    'bg-red-500/60',
-        num:    'text-zinc-600 bg-zinc-900',
-        label:  'text-red-500/60',
-        bg:     '',
+        dot: 'bg-red-500/60',
+        num: 'text-zinc-600 bg-zinc-900',
+        label: 'text-red-500/60',
+        bg: '',
         border: 'border-zinc-900',
       };
     case 'futura':
       return {
-        dot:    'bg-zinc-700',
-        num:    'text-zinc-600 bg-zinc-900',
-        label:  'text-zinc-600',
-        bg:     '',
+        dot: 'bg-zinc-700',
+        num: 'text-zinc-600 bg-zinc-900',
+        label: 'text-zinc-600',
+        bg: '',
         border: 'border-zinc-900',
       };
     case 'descanso':
       return {
-        dot:    'bg-zinc-800',
-        num:    'text-zinc-700 bg-transparent border-zinc-900',
-        label:  'text-zinc-800',
-        bg:     'opacity-40',
+        dot: 'bg-zinc-800',
+        num: 'text-zinc-700 bg-transparent border-zinc-900',
+        label: 'text-zinc-800',
+        bg: 'opacity-40',
         border: 'border-zinc-950',
       };
     default:
       return {
-        dot:    'bg-zinc-600',
-        num:    'text-zinc-400 bg-zinc-800',
-        label:  'text-zinc-400',
-        bg:     '',
+        dot: 'bg-zinc-600',
+        num: 'text-zinc-400 bg-zinc-800',
+        label: 'text-zinc-400',
+        bg: '',
         border: 'border-zinc-800',
       };
   }
@@ -135,10 +135,10 @@ export function DayCalendarStrip({
     const target = selectedRef.current || hoyRef.current;
     if (target) {
       setTimeout(() => {
-        target.scrollIntoView({ 
-          behavior: 'smooth', 
-          inline: 'center', 
-          block: 'nearest' 
+        target.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest'
         });
       }, 100);
     }
@@ -204,9 +204,9 @@ export function DayCalendarStrip({
           <ChevronLeft className="w-4 h-4" />
         </button>
 
-        <span 
-          key={currentMonth} 
-          className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em] animate-in fade-in slide-in-from-bottom-1 duration-500 min-w-[120px] text-center"
+        <span
+          key={currentMonth}
+          className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.2em] animate-in fade-in slide-in-from-bottom-1 duration-500 min-w-[120px] text-center"
         >
           {currentMonth}
         </span>
@@ -221,7 +221,7 @@ export function DayCalendarStrip({
       </div>
 
       {/* Grid Deslizable (Native UX) */}
-      <div 
+      <div
         ref={containerRef}
         className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-1.5 sm:gap-3 scroll-smooth py-2 px-1 scroll-p-10 sm:scroll-p-20"
       >
@@ -244,13 +244,13 @@ export function DayCalendarStrip({
               )}
             >
               {/* Día de semana */}
-              <span className={cn('text-[10px] font-black uppercase tracking-widest transition-colors', colors.label)}>
+              <span className={cn('text-[10px] font-bold uppercase tracking-widest transition-colors', colors.label)}>
                 {dia.diaSemana}
               </span>
 
               {/* Número del día del mes */}
               <span className={cn(
-                'w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl sm:rounded-[1rem] text-xs sm:text-sm font-black transition-all group-hover:scale-105',
+                'w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl sm:rounded-[1rem] text-xs sm:text-sm font-bold transition-all group-hover:scale-105',
                 colors.num,
               )}>
                 {dia.fechaDisplay}
@@ -262,11 +262,11 @@ export function DayCalendarStrip({
                   'w-1.5 h-1.5 rounded-full transition-all',
                   icon ? colors.dot : 'bg-transparent border border-zinc-800/50',
                 )} />
-                <span className="text-[8px] font-black text-zinc-500/70 uppercase tracking-tighter">
+                {/* <span className="text-[8px] font-bold text-zinc-500/70 uppercase tracking-tighter">
                   D{dia.numeroDiaPlan}
-                </span>
+                </span> */}
                 {dia.cycleNumber && dia.cycleNumber > 1 && (
-                  <span className="text-[7px] font-black text-lime-500/60 uppercase tracking-tighter leading-none mt-0.5">
+                  <span className="text-[7px] font-bold text-lime-500/60 uppercase tracking-tighter leading-none mt-0.5">
                     C{dia.cycleNumber}•S{dia.relativeWeek}
                   </span>
                 )}
@@ -280,13 +280,13 @@ export function DayCalendarStrip({
       <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
         {[
           { color: 'bg-lime-500', label: 'Completada' },
-          { color: 'bg-lime-400 animate-pulse', label: 'Hoy' },
+          { color: 'bg-lime-500 animate-pulse', label: 'Hoy' },
           { color: 'bg-red-500/60', label: 'Omitida' },
           { color: 'bg-zinc-800', label: 'Descanso' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className={cn('w-1.5 h-1.5 rounded-full', color)} />
-            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{label}</span>
+            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{label}</span>
           </div>
         ))}
       </div>

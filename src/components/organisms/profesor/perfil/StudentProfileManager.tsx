@@ -3,6 +3,7 @@ import { ProfileWorkspaceTabs } from "./ProfileWorkspaceTabs";
 import { StudentRoutineWorkspace } from "./StudentRoutineWorkspace";
 import { StudentCalendarTab } from "./StudentCalendarTab";
 import { StudentInfoTab } from "./StudentInfoTab";
+import { useStudentPlanEditor } from "@/hooks/profesor/useStudentPlanEditor";
 
 interface StudentProfileManagerProps {
   assignedPlan: any;
@@ -17,13 +18,30 @@ interface StudentProfileManagerProps {
  */
 export function StudentProfileManager({ assignedPlan, student, library }: StudentProfileManagerProps) {
   const [activeTab, setActiveTab] = useState<"plan" | "routine" | "info" | "history">("routine");
+  
+  // Lifted State & Logic
+  const { 
+    plan, 
+    updateExerciseMetrics, 
+    moveExercise, 
+    deleteExercise, 
+    addExercise,
+    promotePlan,
+    getGroupedExercises 
+  } = useStudentPlanEditor(student.id, assignedPlan);
 
   const planWorkspace = (
     <StudentRoutineWorkspace 
       alumnoId={student.id} 
-      planData={assignedPlan} 
+      planData={plan} 
       library={library} 
       mode="plan"
+      onUpdateMetrics={updateExerciseMetrics}
+      onMove={moveExercise}
+      onDelete={deleteExercise}
+      onAdd={addExercise}
+      promotePlan={promotePlan}
+      getGroupedExercises={getGroupedExercises}
     />
   );
 
@@ -32,7 +50,8 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
     <StudentCalendarTab
       alumnoId={student.id}
       fechaInicio={student.fecha_inicio || null}
-      planData={assignedPlan}
+      planData={plan} // Pass the synchronized plan here
+      diasAsistencia={student.dias_asistencia || []}
     />
   );
 

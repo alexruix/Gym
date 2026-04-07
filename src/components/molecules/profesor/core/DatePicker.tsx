@@ -74,12 +74,12 @@ export function DatePicker({
       )}
     >
       <CalendarIcon className={cn(
-          "mr-3 h-4 w-4 transition-colors",
-          isOpen ? "text-lime-500" : "text-zinc-400 group-hover/date-btn:text-lime-500"
+        "mr-3 h-4 w-4 transition-colors",
+        isOpen ? "text-lime-500" : "text-zinc-400 group-hover/date-btn:text-lime-500"
       )} />
       <span className="truncate">{displayValue}</span>
       {required && !date && (
-          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
+        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
       )}
     </Button>
   )
@@ -115,7 +115,7 @@ export function DatePicker({
       </SheetTrigger>
       <SheetContent side="bottom" className="rounded-t-[3rem] p-0 border-none bg-white dark:bg-zinc-950 overflow-hidden pb-10">
         <SheetHeader className="p-6 border-b border-zinc-100 dark:border-zinc-900 flex-row items-center justify-between space-y-0">
-          <SheetTitle className="text-xs font-black uppercase tracking-widest text-zinc-500">
+          <SheetTitle className="text-xs font-bold uppercase tracking-widest text-zinc-500">
             {label || "Seleccioná fecha"}
           </SheetTitle>
           <SheetClose className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
@@ -124,7 +124,7 @@ export function DatePicker({
         </SheetHeader>
         <div className="flex justify-center p-4">
           <div className="scale-110 sm:scale-100">
-             {calendarContent}
+            {calendarContent}
           </div>
         </div>
       </SheetContent>

@@ -1,21 +1,21 @@
 import React from "react";
-import { 
-    MoreHorizontal, 
-    UserIcon, 
-    Dumbbell, 
-    Zap, 
-    Archive, 
-    Trash2, 
+import {
+    MoreHorizontal,
+    UserIcon,
+    Dumbbell,
+    Zap,
+    Archive,
+    Trash2,
     Copy,
     Share2,
     CheckCircle2
 } from "lucide-react";
-import { 
-    DropdownMenu, 
-    DropdownMenuContent, 
-    DropdownMenuItem, 
-    DropdownMenuSeparator, 
-    DropdownMenuTrigger 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -47,31 +47,31 @@ interface Props {
  * Inyecta automáticamente acciones basadas en el tipo de entidad para mantener consistencia.
  */
 export function ResourceActionMenu({ type, id, name, actions: customActions = [], exclude = [], className }: Props) {
-    
+
     // Acciones Automáticas por Consistencia de Diseño
     const defaultActions: Action[] = [];
 
     if (type === "alumno") {
         defaultActions.push(
-            { 
-                label: "Editar perfil", 
-                icon: <UserIcon className="w-4 h-4" />, 
-                onClick: () => window.location.href = `/profesor/alumnos/${id}/edit` 
+            {
+                label: "Editar perfil",
+                icon: <UserIcon className="w-4 h-4" />,
+                onClick: () => window.location.href = `/profesor/alumnos/${id}/edit`
             },
-            { 
-                label: "Editar rutina", 
-                icon: <Dumbbell className="w-4 h-4 text-lime-500" />, 
-                onClick: () => window.location.href = `/profesor/alumnos/${id}#rutina` 
+            {
+                label: "Editar rutina",
+                icon: <Dumbbell className="w-4 h-4 text-lime-500" />,
+                onClick: () => window.location.href = `/profesor/alumnos/${id}#rutina`
             }
         );
     }
 
     if (type === "plan") {
         defaultActions.push(
-            { 
-                label: "Editar planificación", 
-                icon: <Copy className="w-4 h-4" />, 
-                onClick: () => window.location.href = `/profesor/planes/${id}/edit` 
+            {
+                label: "Editar planificación",
+                icon: <Copy className="w-4 h-4" />,
+                onClick: () => window.location.href = `/profesor/planes/${id}/edit`
             }
         );
     }
@@ -84,27 +84,27 @@ export function ResourceActionMenu({ type, id, name, actions: customActions = []
         <div className={cn("shrink-0", className)} onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-10 w-10 text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 hover:bg-white dark:hover:bg-zinc-900 rounded-2xl border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 transition-all shadow-sm hover:rotate-90 duration-300"
                     >
                         <MoreHorizontal className="w-5 h-5" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                    align="end" 
+                <DropdownMenuContent
+                    align="end"
                     className="w-56 rounded-3xl shadow-2xl border-zinc-100 dark:border-zinc-800 p-2 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl animate-in zoom-in-95 duration-200"
                 >
 
                     {allActions.map((action, idx) => (
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                             key={idx}
                             onClick={action.onClick}
                             className={cn(
-                                "rounded-xl cursor-pointer py-3 px-4 font-black text-[10px] uppercase tracking-widest gap-3 transition-all",
-                                action.variant === "destructive" 
-                                    ? "text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 focus:text-red-700" 
+                                "rounded-xl cursor-pointer py-3 px-4 font-bold text-[10px] uppercase tracking-widest gap-3 transition-all",
+                                action.variant === "destructive"
+                                    ? "text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 focus:text-red-700"
                                     : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-zinc-50",
                                 action.className
                             )}

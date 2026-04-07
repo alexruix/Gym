@@ -1,21 +1,21 @@
 import * as React from "react";
-import { 
+import {
   Menu,
-  LayoutDashboard, 
-  ClipboardList, 
-  Users, 
-  Dumbbell, 
-  CreditCard, 
+  LayoutDashboard,
+  ClipboardList,
+  Users,
+  Dumbbell,
+  CreditCard,
   Settings,
   Clock,
 } from "lucide-react";
 
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
 } from "@/components/ui/sheet";
 import { globalCopy } from "@/data/es/global";
 
@@ -44,7 +44,7 @@ export function MobileNav({ currentPath }: MobileNavProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button 
+        <button
           className="p-2 md:hidden text-zinc-500 hover:text-zinc-900 transition-colors"
           aria-label="Abrir menú"
         >
@@ -53,26 +53,25 @@ export function MobileNav({ currentPath }: MobileNavProps) {
       </SheetTrigger>
       <SheetContent side="left" className="p-0 border-r-0 w-[280px]">
         <SheetHeader className="p-6 border-b text-left">
-          <SheetTitle className="font-black text-2xl tracking-tighter">
+          <SheetTitle className="font-bold text-2xl tracking-tighter">
             {globalCopy.brand.nameLine1}<span className="text-lime-500">{globalCopy.brand.nameHighlight}</span>
           </SheetTitle>
         </SheetHeader>
-        
+
         <nav className="p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPath === item.href || (item.href !== '/profesor' && currentPath.startsWith(item.href));
-            
+
             return (
-              <a 
+              <a
                 key={item.href}
-                href={item.href} 
+                href={item.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-zinc-950 text-white shadow-lg shadow-zinc-200' 
+                className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${isActive
+                    ? 'bg-zinc-950 text-white shadow-lg shadow-zinc-200'
                     : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
-                }`}
+                  }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-lime-400' : ''}`} aria-hidden="true" />
                 <span className="text-sm font-bold uppercase tracking-wide">{item.name}</span>
@@ -82,8 +81,8 @@ export function MobileNav({ currentPath }: MobileNavProps) {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-100 bg-white">
-          <a 
-            href="/profesor/configuracion" 
+          <a
+            href="/profesor/configuracion"
             onClick={() => setOpen(false)}
             className="flex items-center gap-3 px-4 py-3 rounded-2xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all"
           >

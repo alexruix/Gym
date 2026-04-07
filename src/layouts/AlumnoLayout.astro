@@ -1,14 +1,9 @@
 ﻿---
-import Layout from './Layout.astro';
-import { 
-  Home, 
-  Dumbbell, 
-  TrendingUp, 
-  User 
-} from 'lucide-react';
-import { globalCopy } from '../data/es/global';
+import Layout from "./Layout.astro";
+import { Home, Dumbbell, TrendingUp, User } from "lucide-react";
+import { globalCopy } from "../data/es/global";
 
-import { getAuthenticatedClient } from '../lib/supabase-ssr';
+import { getAuthenticatedClient } from "../lib/supabase-ssr";
 
 interface Props {
   title: string;
@@ -29,7 +24,8 @@ const supabase = getAuthenticatedClient(Astro);
 // Para invitados, el ID es el del registro. Para auth, es el user_id.
 const { data: alumno } = await supabase
   .from("alumnos")
-  .select(`
+  .select(
+    `
     id, 
     nombre, 
     profesor_id, 
@@ -37,7 +33,8 @@ const { data: alumno } = await supabase
       nombre, 
       telefono
     )
-  `)
+  `,
+  )
   .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
 
@@ -53,27 +50,42 @@ const waLink = profTel ? `https://wa.me/${profTel}` : "#";
 
 <Layout title={title}>
   <div class="min-h-screen bg-zinc-50/30 pb-24 md:pb-0">
-    
     <!-- BANNER DE INVITADO (Aesthetics Industrial) -->
-    {isGuest && (
-      <div class="bg-zinc-950 text-white px-4 py-2 flex items-center justify-between gap-4 border-b border-white/10 sticky top-0 z-50 overflow-hidden">
-        <div class="absolute inset-0 bg-lime-400/5 mix-blend-overlay pointer-events-none" />
-        <div class="flex items-center gap-2 relative z-10">
-          <div class="w-2 h-2 rounded-full bg-lime-400 animate-pulse" />
-          <span class="text-[9px] font-black uppercase tracking-[0.2em]">Modo Invitado Activo</span>
+    {
+      isGuest && (
+        <div class="bg-zinc-950 text-white px-4 py-2 flex items-center justify-between gap-4 border-b border-white/10 sticky top-0 z-50 overflow-hidden">
+          <div class="absolute inset-0 bg-lime-500/5 mix-blend-overlay pointer-events-none" />
+          <div class="flex items-center gap-2 relative z-10">
+            <div class="w-2 h-2 rounded-full bg-lime-500 animate-pulse" />
+            <span class="text-[9px] font-bold uppercase tracking-[0.2em]">
+              Modo Invitado Activo
+            </span>
+          </div>
+          <a
+            href="/login"
+            class="relative z-10 bg-lime-500 text-zinc-950 px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-[0_0_15px_rgba(163,230,53,0.3)]"
+          >
+            Asegurar Historial
+          </a>
         </div>
-        <a href="/login" class="relative z-10 bg-lime-400 text-zinc-950 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-[0_0_15px_rgba(163,230,53,0.3)]">
-          Asegurar Historial
-        </a>
-      </div>
-    )}
+      )
+    }
 
     <!-- Header Alumno (Mobile) -->
-    <header class={`bg-white/80 backdrop-blur-md border-b border-zinc-100 p-4 sticky ${isGuest ? 'top-10' : 'top-0'} z-10 flex justify-between items-center md:px-8`}>
+    <header
+      class={`bg-white/80 backdrop-blur-md border-b border-zinc-100 p-4 sticky ${isGuest ? "top-10" : "top-0"} z-10 flex justify-between items-center md:px-8`}
+    >
       <div class="flex items-center gap-2">
-        <span class="font-black text-xl tracking-tighter italic text-zinc-950">{globalCopy.brand.nameLine1}<span class="text-lime-500">{globalCopy.brand.nameHighlight}</span></span>
+        <span class="font-bold text-xl tracking-tighter italic text-zinc-950"
+          >{globalCopy.brand.nameLine1}<span class="text-lime-500"
+            >{globalCopy.brand.nameHighlight}</span
+          ></span
+        >
       </div>
-      <a href="/alumno/perfil" class="w-10 h-10 rounded-2xl bg-zinc-100 flex items-center justify-center text-zinc-600 hover:bg-zinc-200 transition-colors">
+      <a
+        href="/alumno/perfil"
+        class="w-10 h-10 rounded-2xl bg-zinc-100 flex items-center justify-center text-zinc-600 hover:bg-zinc-200 transition-colors"
+      >
         <User className="w-5 h-5" />
       </a>
     </header>
@@ -83,23 +95,42 @@ const waLink = profTel ? `https://wa.me/${profTel}` : "#";
     </main>
 
     <!-- Bottom Navigation (Mobile) - Focus: Thumb Zone -->
-    <nav class="fixed bottom-4 left-4 right-4 bg-zinc-950 text-white rounded-3xl h-16 flex items-center justify-around md:hidden border border-white/10 shadow-2xl z-50 px-2">
-      <a href="/alumno" class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath === '/alumno' ? 'text-lime-400' : 'text-zinc-400'}`}>
+    <nav
+      class="fixed bottom-4 left-4 right-4 bg-zinc-950 text-white rounded-3xl h-16 flex items-center justify-around md:hidden border border-white/10 shadow-2xl z-50 px-2"
+    >
+      <a
+        href="/alumno"
+        class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath === "/alumno" ? "text-lime-400" : "text-zinc-400"}`}
+      >
         <Home className="w-6 h-6 mb-1" />
-        <span class="text-[9px] font-black uppercase tracking-widest">{globalCopy.layout.alumnoNav.inicio}</span>
-      </a>
-      
-      <!-- Central Action Button (Focus) -->
-      <a href="/alumno/mi-plan" class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath.includes('/mi-plan') ? 'text-lime-400' : 'text-zinc-400'}`}>
-        <div class={`p-3 rounded-2xl -mt-8 shadow-xl transition-all ${currentPath.includes('/mi-plan') ? 'bg-lime-400 text-zinc-950' : 'bg-zinc-800 text-white'}`}>
-          <Dumbbell className="w-6 h-6" />
-        </div>
-        <span class="text-[9px] font-black uppercase tracking-widest mt-1">{globalCopy.layout.alumnoNav.miPlan}</span>
+        <span class="text-[9px] font-bold uppercase tracking-widest"
+          >{globalCopy.layout.alumnoNav.inicio}</span
+        >
       </a>
 
-      <a href="/alumno/progreso" class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath.includes('/progreso') ? 'text-lime-400' : 'text-zinc-400'}`}>
+      <!-- Central Action Button (Focus) -->
+      <a
+        href="/alumno/mi-plan"
+        class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath.includes("/mi-plan") ? "text-lime-400" : "text-zinc-400"}`}
+      >
+        <div
+          class={`p-3 rounded-2xl -mt-8 shadow-xl transition-all ${currentPath.includes("/mi-plan") ? "bg-lime-500 text-zinc-950" : "bg-zinc-800 text-white"}`}
+        >
+          <Dumbbell className="w-6 h-6" />
+        </div>
+        <span class="text-[9px] font-bold uppercase tracking-widest mt-1"
+          >{globalCopy.layout.alumnoNav.miPlan}</span
+        >
+      </a>
+
+      <a
+        href="/alumno/progreso"
+        class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath.includes("/progreso") ? "text-lime-400" : "text-zinc-400"}`}
+      >
         <TrendingUp className="w-6 h-6 mb-1" />
-        <span class="text-[9px] font-black uppercase tracking-widest">{globalCopy.layout.alumnoNav.progreso}</span>
+        <span class="text-[9px] font-bold uppercase tracking-widest"
+          >{globalCopy.layout.alumnoNav.progreso}</span
+        >
       </a>
     </nav>
   </div>

@@ -11,7 +11,7 @@ interface StatusRingProps {
 export function StatusRing({ progress, size = "md", className }: StatusRingProps) {
   const [pulse, setPulse] = useState(false);
   const isCompleted = progress >= 100;
-  
+
   // Efecto de pulso cuando cambia el progreso (Realtime)
   useEffect(() => {
     if (progress > 0) {
@@ -34,13 +34,13 @@ export function StatusRing({ progress, size = "md", className }: StatusRingProps
 
   return (
     <div className={cn(
-        "relative flex items-center justify-center transition-transform duration-500", 
-        sizes[size], 
-        pulse && "scale-110",
-        className
+      "relative flex items-center justify-center transition-transform duration-500",
+      sizes[size],
+      pulse && "scale-110",
+      className
     )}>
       {isCompleted ? (
-        <div className="absolute inset-0 bg-lime-400 rounded-full flex items-center justify-center animate-in zoom-in duration-300 shadow-[0_0_15px_rgba(163,230,53,0.5)]">
+        <div className="absolute inset-0 bg-lime-500 rounded-full flex items-center justify-center animate-in zoom-in duration-300 shadow-[0_0_15px_rgba(163,230,53,0.5)]">
           <Check className="text-zinc-950 w-3/5 h-3/5" strokeWidth={4} />
         </div>
       ) : (
@@ -74,7 +74,7 @@ export function StatusRing({ progress, size = "md", className }: StatusRingProps
             />
           </svg>
           <span className={cn(
-            "absolute text-[9px] font-black tracking-tighter text-zinc-500 dark:text-zinc-400 transition-colors",
+            "absolute text-[9px] font-bold tracking-tighter text-zinc-500 dark:text-zinc-400 transition-colors",
             pulse && "text-lime-400"
           )}>
             {Math.round(progress)}%

@@ -19,8 +19,8 @@ interface Props {
 
 const typeConfig = {
   session_completed: { icon: CheckCircle2, color: "primary" as const, label: "completó su sesión" },
-  weight_logged:     { icon: TrendingUp,   color: "info"    as const, label: "registró peso en" },
-  new_student:       { icon: UserPlus,     color: "warning" as const, label: "se unió al equipo" },
+  weight_logged: { icon: TrendingUp, color: "info" as const, label: "registró peso en" },
+  new_student: { icon: UserPlus, color: "warning" as const, label: "se unió al equipo" },
 };
 
 /**
@@ -35,7 +35,7 @@ export function ActivityFeed({ activities }: Props) {
       {/* Header */}
       <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex items-center gap-3">
         <IconWrapper icon={Clock} color="muted" size="md" shape="rounded" />
-        <h2 className="text-xs font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-700 dark:text-zinc-300">
           {c.title}
         </h2>
       </div>
@@ -68,7 +68,7 @@ export function ActivityFeed({ activities }: Props) {
                 {/* Contenido */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-snug truncate">
-                    <span className="font-black text-zinc-950 dark:text-zinc-50">
+                    <span className="font-bold text-zinc-950 dark:text-zinc-50">
                       {log.studentName}
                     </span>{" "}
                     {config.label}
@@ -78,7 +78,7 @@ export function ActivityFeed({ activities }: Props) {
                       </span>
                     )}
                   </p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">
                     {log.timeAgo}
                   </p>
                 </div>

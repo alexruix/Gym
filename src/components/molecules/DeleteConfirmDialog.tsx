@@ -37,7 +37,7 @@ export function DeleteConfirmDialog({
             </div>
             <div className="space-y-2 w-full">
               <DialogHeader>
-                <DialogTitle className="text-xl font-black uppercase tracking-tight text-center">
+                <DialogTitle className="text-xl font-bold uppercase tracking-tight text-center">
                   {title}
                 </DialogTitle>
               </DialogHeader>

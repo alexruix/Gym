@@ -1,21 +1,33 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { getAuthenticatedClient } from '@/lib/supabase-ssr';
-import { getDayNumber, getWeekNumber, formatFechaHumana, getTodayISO, getCyclicDayNumber, getCycleInfo } from '@/lib/schedule';
-import { Zap, LogOut, TrendingUp } from 'lucide-react';
-import { DayCalendarStrip } from '@/components/molecules/DayCalendarStrip';
-import { UpcomingSessionPreview } from '@/components/molecules/UpcomingSessionPreview';
-import type { CalendarDay, DayStatus } from '@/components/molecules/DayCalendarStrip';
-import type { UpcomingSessionData } from '@/components/molecules/UpcomingSessionPreview';
+import Layout from "../../layouts/Layout.astro";
+import { getAuthenticatedClient } from "@/lib/supabase-ssr";
+import {
+  getDayNumber,
+  getWeekNumber,
+  formatFechaHumana,
+  getTodayISO,
+  getCyclicDayNumber,
+  getCycleInfo,
+} from "@/lib/schedule";
+import { Zap, LogOut, TrendingUp } from "lucide-react";
+import { DayCalendarStrip } from "@/components/molecules/DayCalendarStrip";
+import { UpcomingSessionPreview } from "@/components/molecules/UpcomingSessionPreview";
+import type {
+  CalendarDay,
+  DayStatus,
+} from "@/components/molecules/DayCalendarStrip";
+import type { UpcomingSessionData } from "@/components/molecules/UpcomingSessionPreview";
 
 const user = Astro.locals.user;
-if (!user) return Astro.redirect('/login');
+if (!user) return Astro.redirect("/login");
 
 const supabase = getAuthenticatedClient(Astro);
 
 const { data: alumno } = await supabase
-  .from('alumnos')
-  .select('id, nombre, fecha_inicio, plan_id, planes(id, nombre, duracion_semanas, frecuencia_semanal)')
+  .from("alumnos")
+  .select(
+    "id, nombre, fecha_inicio, plan_id, planes(id, nombre, duracion_semanas, frecuencia_semanal)",
+  )
   .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
 
@@ -24,7 +36,7 @@ const assignedPlan = Array.isArray(rawPlanes) ? rawPlanes[0] : rawPlanes;
 const planName = assignedPlan?.nombre;
 
 if (!alumno || !alumno.plan_id) {
-  return Astro.redirect('/alumno/espera');
+  return Astro.redirect("/alumno/espera");
 }
 
 // === LÓGICA DE CALENDARIO OPERATIVO REAL ===
@@ -32,7 +44,11 @@ const fechaInicio = alumno.fecha_inicio || getTodayISO();
 const hoy = new Date();
 const duracionPlan = assignedPlan?.duracion_semanas || 4;
 
-const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(fechaInicio, hoy, duracionPlan);
+const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(
+  fechaInicio,
+  hoy,
+  duracionPlan,
+);
 
 const diaAbsoluto = getDayNumber(fechaInicio, hoy);
 const semanaActual = absoluteWeek;
@@ -41,23 +57,26 @@ const fechaHoyISO = getTodayISO();
 
 // Sesión de hoy
 const { data: sesionDeHoy } = await supabase
-  .from('sesiones_instanciadas')
-  .select(`
+  .from("sesiones_instanciadas")
+  .select(
+    `
     id, estado, nombre_dia, numero_dia_plan, semana_numero,
     sesion_ejercicios_instanciados (
       id, orden, series_plan, reps_plan, completado,
       biblioteca_ejercicios (nombre)
     )
-  `)
-  .eq('alumno_id', alumno.id)
-  .eq('fecha_real', fechaHoyISO)
+  `,
+  )
+  .eq("alumno_id", alumno.id)
+  .eq("fecha_real", fechaHoyISO)
   .single();
 
-const ejerciciosHoy = sesionDeHoy?.sesion_ejercicios_instanciados
-  ?.sort((a: any, b: any) => a.orden - b.orden)
-  ?.slice(0, 3) || [];
+const ejerciciosHoy =
+  sesionDeHoy?.sesion_ejercicios_instanciados
+    ?.sort((a: any, b: any) => a.orden - b.orden)
+    ?.slice(0, 3) || [];
 
-const sesionCompletada = sesionDeHoy?.estado === 'completada';
+const sesionCompletada = sesionDeHoy?.estado === "completada";
 
 // ===  FASE 2: Datos para DayCalendarStrip ===
 const DIAS_ATRAS = 7;
@@ -68,44 +87,51 @@ desdeFecha.setDate(hoy.getDate() - DIAS_ATRAS);
 const hastaFecha = new Date(hoy);
 hastaFecha.setDate(hoy.getDate() + DIAS_ADELANTE);
 
-const desdeISO = desdeFecha.toISOString().split('T')[0];
-const hastaISO = hastaFecha.toISOString().split('T')[0];
+const desdeISO = desdeFecha.toISOString().split("T")[0];
+const hastaISO = hastaFecha.toISOString().split("T")[0];
 
 const { data: sesionesVentana } = await supabase
-  .from('sesiones_instanciadas')
-  .select('id, fecha_real, numero_dia_plan, semana_numero, nombre_dia, estado')
-  .eq('alumno_id', alumno.id)
-  .gte('fecha_real', desdeISO)
-  .lte('fecha_real', hastaISO)
-  .order('fecha_real', { ascending: true });
+  .from("sesiones_instanciadas")
+  .select("id, fecha_real, numero_dia_plan, semana_numero, nombre_dia, estado")
+  .eq("alumno_id", alumno.id)
+  .gte("fecha_real", desdeISO)
+  .lte("fecha_real", hastaISO)
+  .order("fecha_real", { ascending: true });
 
 const sesionesMap: Record<string, any> = {};
-(sesionesVentana || []).forEach((s: any) => { sesionesMap[s.fecha_real] = s; });
+(sesionesVentana || []).forEach((s: any) => {
+  sesionesMap[s.fecha_real] = s;
+});
 
-const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DIAS_SEMANA = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 const calendarDays: CalendarDay[] = [];
 const cur = new Date(desdeFecha);
 while (cur <= hastaFecha) {
-  const fechaISO = cur.toISOString().split('T')[0];
+  const fechaISO = cur.toISOString().split("T")[0];
   const esFuturo = cur > hoy;
   const esHoy = fechaISO === fechaHoyISO;
   const sesion = sesionesMap[fechaISO];
 
-  const numeroDia = sesion?.numero_dia_plan ?? getDayNumber(fechaInicio, new Date(cur));
-  
-  const { absoluteWeek: weekInfoAbs, cycleNumber: weekInfoCycle, relativeWeek: weekInfoRel } = getCycleInfo(fechaInicio, new Date(cur), duracionPlan);
+  const numeroDia =
+    sesion?.numero_dia_plan ?? getDayNumber(fechaInicio, new Date(cur));
+
+  const {
+    absoluteWeek: weekInfoAbs,
+    cycleNumber: weekInfoCycle,
+    relativeWeek: weekInfoRel,
+  } = getCycleInfo(fechaInicio, new Date(cur), duracionPlan);
   const semana = sesion?.semana_numero ?? weekInfoAbs;
 
   let status: DayStatus;
   if (sesion) {
     status = sesion.estado as DayStatus;
   } else if (esFuturo && !esHoy) {
-    status = 'futura';
+    status = "futura";
   } else if (esHoy) {
-    status = 'pendiente';
+    status = "pendiente";
   } else {
-    status = 'omitida';
+    status = "omitida";
   }
 
   calendarDays.push({
@@ -129,34 +155,48 @@ while (cur <= hastaFecha) {
 // === Próxima sesión para UpcomingSessionPreview ===
 const manana = new Date(hoy);
 manana.setDate(hoy.getDate() + 1);
-const mananaISO = manana.toISOString().split('T')[0];
+const mananaISO = manana.toISOString().split("T")[0];
 const diaManana = getDayNumber(fechaInicio, manana);
 
 const { data: rutinasDiarias } = await supabase
-  .from('rutinas_diarias')
-  .select('id, dia_numero, nombre_dia')
-  .eq('plan_id', alumno.plan_id)
-  .order('dia_numero', { ascending: true });
+  .from("rutinas_diarias")
+  .select("id, dia_numero, nombre_dia")
+  .eq("plan_id", alumno.plan_id)
+  .order("dia_numero", { ascending: true });
 
 let upcomingSession: UpcomingSessionData | null = null;
 
 if (rutinasDiarias && rutinasDiarias.length > 0) {
   const diaCicicoManana = getCyclicDayNumber(diaManana, rutinasDiarias.length);
-  const rutinaManana = rutinasDiarias.find((r: any) => r.dia_numero === diaCicicoManana);
+  const rutinaManana = rutinasDiarias.find(
+    (r: any) => r.dia_numero === diaCicicoManana,
+  );
 
   if (rutinaManana) {
     const { data: ejerciciosManana } = await supabase
-      .from('ejercicios_plan')
-      .select('orden, series, reps_target, biblioteca_ejercicios(nombre)')
-      .eq('rutina_id', rutinaManana.id)
-      .order('orden', { ascending: true });
+      .from("ejercicios_plan")
+      .select("orden, series, reps_target, biblioteca_ejercicios(nombre)")
+      .eq("rutina_id", rutinaManana.id)
+      .order("orden", { ascending: true });
 
-    const DIAS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const DIAS_ES = [
+      "domingo",
+      "lunes",
+      "martes",
+      "miércoles",
+      "jueves",
+      "viernes",
+      "sábado",
+    ];
     const diaSemanaNombre = DIAS_ES[manana.getDay()];
-    const mesNombre = manana.toLocaleDateString('es-AR', { month: 'long' });
+    const mesNombre = manana.toLocaleDateString("es-AR", { month: "long" });
     const fechaHumanaManana = `Mañana, ${diaSemanaNombre.charAt(0).toUpperCase() + diaSemanaNombre.slice(1)} ${manana.getDate()} de ${mesNombre}`;
 
-    const { absoluteWeek: nextAbs, cycleNumber: nextCycle, relativeWeek: nextRel } = getCycleInfo(fechaInicio, manana, duracionPlan);
+    const {
+      absoluteWeek: nextAbs,
+      cycleNumber: nextCycle,
+      relativeWeek: nextRel,
+    } = getCycleInfo(fechaInicio, manana, duracionPlan);
     upcomingSession = {
       fecha: mananaISO,
       fechaHumana: fechaHumanaManana,
@@ -166,9 +206,11 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
       relativeWeek: nextRel,
       nombreDia: rutinaManana.nombre_dia || `Día ${diaManana}`,
       ejercicios: (ejerciciosManana || []).map((ej: any) => {
-        const bib = Array.isArray(ej.biblioteca_ejercicios) ? ej.biblioteca_ejercicios[0] : ej.biblioteca_ejercicios;
+        const bib = Array.isArray(ej.biblioteca_ejercicios)
+          ? ej.biblioteca_ejercicios[0]
+          : ej.biblioteca_ejercicios;
         return {
-          nombre: bib?.nombre || 'Ejercicio',
+          nombre: bib?.nombre || "Ejercicio",
           series_plan: ej.series,
           reps_plan: ej.reps_target,
         };
@@ -179,23 +221,44 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
 ---
 
 <Layout title="Dashboard - MiGym Alumno">
-  <div class="min-h-screen bg-black text-white px-5 py-10 overflow-hidden relative font-sans">
-    
+  <div
+    class="min-h-screen bg-black text-white px-5 py-10 overflow-hidden relative font-sans"
+  >
     <!-- Ambient glows -->
-    <div class="absolute -top-32 -left-32 w-96 h-96 bg-lime-500/15 rounded-full blur-[100px] pointer-events-none"></div>
-    <div class="absolute top-1/2 -right-32 w-[500px] h-[500px] bg-fuchsia-500/8 rounded-full blur-[120px] pointer-events-none"></div>
+    <div
+      class="absolute -top-32 -left-32 w-96 h-96 bg-lime-500/15 rounded-full blur-[100px] pointer-events-none"
+    >
+    </div>
+    <div
+      class="absolute top-1/2 -right-32 w-[500px] h-[500px] bg-fuchsia-500/8 rounded-full blur-[120px] pointer-events-none"
+    >
+    </div>
 
     <!-- Header -->
-    <header class="flex justify-between items-center mb-10 relative z-10 w-full max-w-lg mx-auto">
+    <header
+      class="flex justify-between items-center mb-10 relative z-10 w-full max-w-lg mx-auto"
+    >
       <div>
-        <h1 class="text-3xl font-black tracking-tighter">
-          HOLA, <span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-lime-600">{alumno?.nombre ? (alumno.nombre.charAt(0).toUpperCase() + alumno.nombre.slice(1).toLowerCase()) : 'Alumno'}</span>
+        <h1 class="text-3xl font-bold tracking-tighter">
+          HOLA, <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-lime-600"
+            >{
+              alumno?.nombre
+                ? alumno.nombre.charAt(0).toUpperCase() +
+                  alumno.nombre.slice(1).toLowerCase()
+                : "Alumno"
+            }</span
+          >
         </h1>
-        <p class="text-zinc-500 font-bold text-xs mt-1 uppercase tracking-widest">{planName || 'Sin plan asignado'}</p>
+        <p
+          class="text-zinc-500 font-bold text-xs mt-1 uppercase tracking-widest"
+        >
+          {planName || "Sin plan asignado"}
+        </p>
       </div>
-      
+
       <div class="flex items-center gap-2">
-        <button 
+        <button
           id="copyLinkBtn"
           data-email={user.email}
           class="industrial-button-muted group/copy"
@@ -212,19 +275,28 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
     </header>
 
     <main class="w-full max-w-lg mx-auto flex flex-col gap-8 relative z-10">
-      
       <!-- ===== STRIP DE CALENDARIO (Fase 2) ===== -->
-      <section class="w-full bg-zinc-900/50 border border-zinc-800/70 rounded-3xl p-5 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
+      <section
+        class="w-full bg-zinc-900/50 border border-zinc-800/70 rounded-3xl p-5 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700"
+      >
         <div class="flex items-center justify-between mb-4">
           <div>
             <p class="industrial-label text-zinc-600">Tu progreso semanal</p>
-            <p class="text-sm font-black text-white capitalize mt-0.5">{fechaHumana}</p>
+            <p class="text-sm font-bold text-white capitalize mt-0.5">
+              {fechaHumana}
+            </p>
           </div>
           <div class="text-right">
             <p class="industrial-label text-zinc-600">Semana</p>
-            <p class="text-2xl font-black text-lime-400 leading-none">
-              {semanaActual} 
-              {cycleNumber > 1 && <span class="industrial-metadata ml-1">(C{cycleNumber}•R{relativeWeek})</span>}
+            <p class="text-2xl font-bold text-lime-400 leading-none">
+              {semanaActual}
+              {
+                cycleNumber > 1 && (
+                  <span class="industrial-metadata ml-1">
+                    (C{cycleNumber}•R{relativeWeek})
+                  </span>
+                )
+              }
             </p>
           </div>
         </div>
@@ -238,93 +310,117 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
 
       <!-- ===== TARJETA HOY (Premium) ===== -->
       <section class="industrial-card-glass group p-8">
-        <div class="absolute -top-10 -right-10 w-40 h-40 bg-lime-500/10 blur-[60px] pointer-events-none group-hover:bg-lime-500/15 transition-all duration-700"></div>
-        
-        <div class="flex items-center justify-between mb-8">
-          <div>
-            <p class="industrial-label text-zinc-500">Día {diaAbsoluto} · Hoy</p>
-            <h2 class="text-2xl font-black text-white tracking-tight mt-1 uppercase">
-              {sesionDeHoy?.nombre_dia || 'Sin sesión instanciada'}
-            </h2>
-          </div>
-          {sesionCompletada && (
-            <span class="industrial-label text-lime-400 bg-lime-500/10 border border-lime-500/20 px-4 py-2 rounded-full flex items-center gap-2">
-              ✓ Completada
-            </span>
-          )}
+        <div
+          class="absolute -top-10 -right-10 w-40 h-40 bg-lime-500/10 blur-[60px] pointer-events-none group-hover:bg-lime-500/15 transition-all duration-700"
+        >
         </div>
 
-        {ejerciciosHoy.length > 0 && !sesionCompletada && (
-          <div class="space-y-4 mb-10 translate-y-0 opacity-100 transition-all duration-500">
-            {ejerciciosHoy.map((ej: any, index: number) => (
-              <div class={`flex items-center gap-4 ${index !== ejerciciosHoy.length - 1 ? 'pb-4 border-b border-white/5' : ''}`}>
-                <span class={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs flex-shrink-0 transition-colors ${ej.completado ? 'bg-lime-500 text-black shadow-lg shadow-lime-500/20' : 'bg-zinc-800 text-zinc-400 border border-zinc-700'}`}>
-                  {ej.completado ? '✓' : index + 1}
-                </span>
-                <div class="flex-1 min-w-0">
-                  <p class={`font-black text-base tracking-tight truncate ${ej.completado ? 'text-zinc-500 line-through' : 'text-white'}`}>
-                    {(ej.biblioteca_ejercicios as any)?.nombre || 'Ejercicio'}
-                  </p>
-                  <p class="industrial-label text-zinc-600 mt-0.5">{ej.series_plan} series × {ej.reps_plan}</p>
-                </div>
-              </div>
-            ))}
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <p class="industrial-label text-zinc-500">
+              Día {diaAbsoluto} · Hoy
+            </p>
+            <h2
+              class="text-2xl font-bold text-white tracking-tight mt-1 uppercase"
+            >
+              {sesionDeHoy?.nombre_dia || "Sin sesión iniciada"}
+            </h2>
           </div>
-        )}
+          {
+            sesionCompletada && (
+              <span class="industrial-label text-lime-400 bg-lime-500/10 border border-lime-500/20 px-4 py-2 rounded-full flex items-center gap-2">
+                ✓ Completada
+              </span>
+            )
+          }
+        </div>
+
+        {
+          ejerciciosHoy.length > 0 && !sesionCompletada && (
+            <div class="space-y-4 mb-10 translate-y-0 opacity-100 transition-all duration-500">
+              {ejerciciosHoy.map((ej: any, index: number) => (
+                <div
+                  class={`flex items-center gap-4 ${index !== ejerciciosHoy.length - 1 ? "pb-4 border-b border-white/5" : ""}`}
+                >
+                  <span
+                    class={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 transition-colors ${ej.completado ? "bg-lime-500 text-black shadow-lg shadow-lime-500/20" : "bg-zinc-800 text-zinc-400 border border-zinc-700"}`}
+                  >
+                    {ej.completado ? "✓" : index + 1}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p
+                      class={`font-bold text-base tracking-tight truncate ${ej.completado ? "text-zinc-500 line-through" : "text-white"}`}
+                    >
+                      {(ej.biblioteca_ejercicios as any)?.nombre || "Ejercicio"}
+                    </p>
+                    <p class="industrial-label text-zinc-600 mt-0.5">
+                      {ej.series_plan} series × {ej.reps_plan}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        }
 
         <!-- BOTÓN START PREMIUM -->
-        {sesionCompletada ? (
-          <a href="/alumno/sesion/hoy" class="w-full h-16 rounded-2xl border border-zinc-800 flex items-center justify-center gap-3 text-zinc-400 industrial-label hover:text-white hover:bg-zinc-800/50 hover:border-zinc-700 transition-all active:scale-95">
-            Ver resumen del día <TrendingUp className="w-4 h-4 ml-1 opacity-50" />
-          </a>
-        ) : (
-          <a
-            href="/alumno/sesion/hoy"
-            class="industrial-button-premium group/btn"
-          >
-            <span class="absolute w-full h-full bg-gradient-to-br from-lime-400 via-lime-500 to-lime-600 group-hover/btn:animate-[spin_2s_linear_infinite] blur-sm opacity-90"></span>
-            <span class="industrial-button-premium-inner bg-zinc-950/90">
-              <Zap className="w-6 h-6 text-lime-400 fill-lime-400 animate-pulse" />
-              <span class="uppercase tracking-[0.25em] text-lime-400 font-black text-lg drop-shadow-[0_0_10px_rgba(163,230,53,0.3)]">
-                {sesionDeHoy ? 'Continuar sesión' : 'Empezar a entrenar'}
+        {
+          sesionCompletada ? (
+            <a
+              href="/alumno/sesion/hoy"
+              class="w-full h-16 rounded-2xl border border-zinc-800 flex items-center justify-center gap-3 text-zinc-400 industrial-label hover:text-white hover:bg-zinc-800/50 hover:border-zinc-700 transition-all active:scale-95"
+            >
+              Ver resumen del día{" "}
+              <TrendingUp className="w-4 h-4 ml-1 opacity-50" />
+            </a>
+          ) : (
+            <a
+              href="/alumno/sesion/hoy"
+              class="industrial-button-premium group/btn"
+            >
+              <span class="absolute w-full h-full bg-gradient-to-br from-lime-400 via-lime-500 to-lime-600 group-hover/btn:animate-[spin_2s_linear_infinite] blur-sm opacity-90" />
+              <span class="industrial-button-premium-inner bg-zinc-950/90">
+                <Zap className="w-6 h-6 text-lime-400 fill-lime-400 animate-pulse" />
+                <span class="uppercase tracking-[0.25em] text-lime-400 font-bold text-lg drop-shadow-[0_0_10px_rgba(163,230,53,0.3)]">
+                  {sesionDeHoy ? "Continuar sesión" : "Empezar a entrenar"}
+                </span>
               </span>
-            </span>
-          </a>
-        )}
+            </a>
+          )
+        }
       </section>
 
       <!-- ===== PRÓXIMA SESIÓN (Fase 2) ===== -->
-      {upcomingSession && !sesionCompletada && (
-        <UpcomingSessionPreview
-          client:load
-          sesion={upcomingSession}
-        />
-      )}
+      {
+        upcomingSession && !sesionCompletada && (
+          <UpcomingSessionPreview client:load sesion={upcomingSession} />
+        )
+      }
 
-      {sesionCompletada && upcomingSession && (
-        <div class="animate-in slide-in-from-bottom-4 duration-1000">
-          <UpcomingSessionPreview
-            client:load
-            sesion={upcomingSession}
-          />
-        </div>
-      )}
-
+      {
+        sesionCompletada && upcomingSession && (
+          <div class="animate-in slide-in-from-bottom-4 duration-1000">
+            <UpcomingSessionPreview client:load sesion={upcomingSession} />
+          </div>
+        )
+      }
     </main>
   </div>
 </Layout>
 
 <script>
-  const copyBtn = document.getElementById('copyLinkBtn');
+  const copyBtn = document.getElementById("copyLinkBtn");
   if (copyBtn) {
-    copyBtn.addEventListener('click', async () => {
-      const email = copyBtn.getAttribute('data-email');
+    copyBtn.addEventListener("click", async () => {
+      const email = copyBtn.getAttribute("data-email");
       try {
-        const url = `${window.location.origin}/login?email=${encodeURIComponent(email || '')}`;
+        const url = `${window.location.origin}/login?email=${encodeURIComponent(email || "")}`;
         await navigator.clipboard.writeText(url);
-        alert('✅ Link de acceso copiado. Guardalo para entrar desde otros dispositivos.');
+        alert(
+          "✅ Link de acceso copiado. Guardalo para entrar desde otros dispositivos.",
+        );
       } catch (err) {
-        console.error('Error al copiar:', err);
+        console.error("Error al copiar:", err);
       }
     });
   }

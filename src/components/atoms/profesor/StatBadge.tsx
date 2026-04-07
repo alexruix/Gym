@@ -10,11 +10,11 @@ interface StatBadgeProps {
 /**
  * StatBadge: Atom para mostrar métricas clave con estética industrial.
  */
-export function StatBadge({ 
-  label, 
-  value, 
+export function StatBadge({
+  label,
+  value,
   color = "zinc",
-  className 
+  className
 }: StatBadgeProps) {
   return (
     <div className={cn(
@@ -22,12 +22,12 @@ export function StatBadge({
       className
     )}>
       <span className={cn(
-        "text-2xl font-black leading-none", 
+        "text-2xl font-bold leading-none",
         color === "lime" ? "text-lime-400" : "text-white"
       )}>
         {value}
       </span>
-      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">
+      <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
         {label}
       </span>
     </div>

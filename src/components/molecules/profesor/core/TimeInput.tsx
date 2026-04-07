@@ -60,7 +60,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
         let formatted = raw;
         if (raw.length >= 2) {
             if (inputVal.endsWith(':') && raw.length === 2 && inputVal.length < value.length) {
-                formatted = raw; 
+                formatted = raw;
             } else if (raw.length > 2) {
                 formatted = `${raw.slice(0, 2)}:${raw.slice(2)}`;
             } else if (inputVal.length > value.length && raw.length === 2) {
@@ -77,7 +77,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
                 "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors z-10",
                 error ? "text-red-500" : "text-zinc-400 group-focus-within/time:text-lime-500"
             )} />
-            
+
             <Input
                 id={id}
                 type="text"
@@ -88,15 +88,15 @@ export const TimeInput: React.FC<TimeInputProps> = ({
                 disabled={disabled}
                 maxLength={5}
                 className={cn(
-                    "h-14 pl-11 pr-12 rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 font-black text-sm transition-all focus-visible:ring-lime-400",
+                    "h-14 pl-11 pr-12 rounded-2xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 font-bold text-sm transition-all focus-visible:ring-lime-400",
                     error && "border-red-500 focus-visible:ring-red-500",
                     className
                 )}
             />
 
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <span className="text-[9px] font-black text-zinc-400 tracking-widest uppercase bg-zinc-100 dark:bg-zinc-900 px-1.5 py-0.5 rounded-md">24h</span>
+                <span className="text-[9px] font-bold text-zinc-400 tracking-widest uppercase bg-zinc-100 dark:bg-zinc-900 px-1.5 py-0.5 rounded-md">24h</span>
             </div>
         </div>
     );
-};
+};

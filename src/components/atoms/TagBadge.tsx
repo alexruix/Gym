@@ -8,11 +8,11 @@ interface TagBadgeProps {
 
 export function TagBadge({ children, className, onClick }: TagBadgeProps) {
   return (
-    <span 
+    <span
       onClick={onClick}
       className={cn(
         "industrial-tag-badge",
-        onClick && "cursor-pointer hover:bg-lime-400 hover:text-zinc-950 hover:border-lime-400 active:scale-95 shadow-sm",
+        onClick && "cursor-pointer hover:bg-lime-500 hover:text-zinc-950 hover:border-lime-400 active:scale-95 shadow-sm",
         className
       )}
     >

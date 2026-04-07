@@ -31,9 +31,9 @@ Este archivo es la **Única Fuente de Verdad (SSOT)** para el desarrollo de MiGy
   - **Acento Primario:** `lime-400` / `lime-500` (Solo para CTAs y conversiones).
   - **Bordes:** `rounded-2xl` (pequeños), `rounded-3xl` (layouts/cards grandes).
 - **Jerarquía Visual (Regla de 3 Niveles):**
-  1. **Ancla**: Título o número grande (`font-black text-4xl+`).
+  1. **Ancla**: Título o número grande (`font-bold text-4xl+`).
   2. **Soporte**: Subtítulo o descripción (`font-medium text-lg`).
-  3. **Detalle**: Metadata o labels (`text-[10px] font-black uppercase tracking-widest`).
+  3. **Detalle**: Metadata o labels (`text-[10px] font-bold uppercase tracking-widest`).
 
 ## 4. Guía de Voz y Tono (Argentina 🇦🇷)
 

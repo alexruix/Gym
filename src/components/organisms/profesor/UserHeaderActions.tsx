@@ -15,7 +15,7 @@ export function UserHeaderActions() {
     <div className="flex items-center gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button 
+          <button
             className="p-3 text-zinc-400 hover:text-zinc-900 transition-colors relative group rounded-2xl hover:bg-zinc-100"
             aria-label="Notificaciones"
           >
@@ -24,7 +24,7 @@ export function UserHeaderActions() {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80 p-0 rounded-2xl border-zinc-200 shadow-2xl">
-          <DropdownMenuLabel className="px-5 py-4 font-black uppercase tracking-widest text-xs text-zinc-400 border-b">
+          <DropdownMenuLabel className="px-5 py-4 font-bold uppercase tracking-widest text-xs text-zinc-400 border-b">
             Centro de Alertas
           </DropdownMenuLabel>
           <div className="px-5 py-8 text-center space-y-2">
@@ -35,7 +35,7 @@ export function UserHeaderActions() {
             <p className="text-xs text-zinc-500 px-6 leading-relaxed">No tenés notificaciones nuevas por ahora.</p>
           </div>
           <DropdownMenuSeparator className="bg-zinc-100" />
-          <DropdownMenuItem 
+          <DropdownMenuItem
             className="p-4 flex justify-center text-xs font-bold text-primary hover:text-primary/80 focus:text-primary transition-colors cursor-pointer"
             onClick={() => window.location.href = '/profesor/configuracion#notificaciones'}
           >
@@ -44,8 +44,8 @@ export function UserHeaderActions() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <a 
-        href="/profesor/configuracion" 
+      <a
+        href="/profesor/configuracion"
         className="p-3 text-zinc-400 hover:text-zinc-900 transition-colors rounded-2xl hover:bg-zinc-100"
         aria-label="Ajustes"
       >

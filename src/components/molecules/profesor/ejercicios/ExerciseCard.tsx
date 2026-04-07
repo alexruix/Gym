@@ -33,7 +33,7 @@ interface ExerciseCardProps {
 
 export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: ExerciseCardProps) {
   const [imageError, setImageError] = useState(false);
-  
+
   const isVideo = exercise.media_url?.match(/\.(mp4|webm|ogg|mov)$/i);
   const showImage = exercise.media_url && !isVideo && !imageError;
 
@@ -42,8 +42,8 @@ export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: Exercis
       {/* Media Preview / Icon */}
       <div className="aspect-video w-full bg-ui-soft dark:bg-zinc-900 flex items-center justify-center relative overflow-hidden shrink-0">
         {showImage ? (
-          <img 
-            src={exercise.media_url!} 
+          <img
+            src={exercise.media_url!}
             alt={exercise.nombre}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             onError={() => setImageError(true)}
@@ -51,7 +51,7 @@ export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: Exercis
           />
         ) : isVideo ? (
           <div className="absolute inset-0 bg-zinc-950 flex items-center justify-center">
-             <PlaySquare className="w-12 h-12 text-lime-400 opacity-80" />
+            <PlaySquare className="w-12 h-12 text-lime-400 opacity-80" />
           </div>
         ) : (
           <Dumbbell className="w-12 h-12 text-ui-muted dark:text-zinc-800 rotate-12 group-hover:rotate-0 transition-transform duration-500" />
@@ -61,18 +61,18 @@ export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: Exercis
         {(showImage || isVideo) && (
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent z-10" />
         )}
-        
+
         {/* Extra Hover Layer */}
         {exercise.media_url && (
           <div className="absolute inset-0 bg-zinc-950/20 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center">
             <PlaySquare className="w-10 h-10 text-white drop-shadow-2xl" />
           </div>
         )}
-        
+
         {exercise.variantCount && exercise.variantCount > 0 && (
           <div className="absolute bottom-3 left-3 z-30">
-            <div className="bg-zinc-950/80 backdrop-blur-md text-white border border-white/10 px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-xl">
-              <div className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
+            <div className="bg-zinc-950/80 backdrop-blur-md text-white border border-white/10 px-2.5 py-1 rounded-xl text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-xl">
+              <div className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
               +{exercise.variantCount} variantes
             </div>
           </div>
@@ -87,16 +87,16 @@ export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: Exercis
               {exercise.nombre}
               {exercise.is_template_base && (
                 <span className={cn(
-                  "shrink-0 text-[8px] font-black uppercase px-2 py-0.5 rounded-md tracking-tighter shadow-sm",
-                  exercise.profesor_id === null 
+                  "shrink-0 text-[8px] font-bold uppercase px-2 py-0.5 rounded-md tracking-tighter shadow-sm",
+                  exercise.profesor_id === null
                     ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" // Public System
-                    : "bg-lime-400 text-zinc-950" // Private Base (forked or custom)
+                    : "bg-lime-500 text-zinc-950" // Private Base (forked or custom)
                 )}>
                   {exercise.profesor_id === null ? "MiGym" : "Base"}
                 </span>
               )}
             </h3>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 shrink-0">
@@ -104,7 +104,7 @@ export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: Exercis
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 p-2 rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-950/5">
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   asChild
                   className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 >
@@ -114,7 +114,7 @@ export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: Exercis
                   </a>
                 </DropdownMenuItem>
                 {exercise.profesor_id !== null && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => onDelete?.(exercise)}
                     className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 text-red-500 transition-colors"
                   >
@@ -125,7 +125,7 @@ export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: Exercis
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
+
           {exercise.descripcion && (
             <p className="text-sm text-ui-muted dark:text-zinc-400 line-clamp-2 leading-relaxed font-normal">
               {exercise.descripcion}
@@ -137,7 +137,7 @@ export function ExerciseCard({ exercise, onTagClick, onEdit, onDelete }: Exercis
         {exercise.tags && exercise.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
             {exercise.tags.map(tag => (
-              <TagBadge 
+              <TagBadge
                 key={tag}
                 onClick={(e) => {
                   e.stopPropagation();

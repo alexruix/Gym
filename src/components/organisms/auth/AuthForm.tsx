@@ -16,7 +16,7 @@ export function AuthForm() {
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(''); // Limpiamos al reintentar, no antes
-    
+
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
       setErrorMessage(copy.states.error.invalidEmail);
       setState('error');
@@ -24,7 +24,7 @@ export function AuthForm() {
     }
 
     setState('loading');
-    
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -49,7 +49,7 @@ export function AuthForm() {
   // Efecto para capturar email o errores de la URL
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    
+
     // Limpiamos pre-llenado de alumnos ya que no entran por acá
 
     // Capturar errores (viniendo de callback.ts)
@@ -73,7 +73,7 @@ export function AuthForm() {
         },
       },
     });
-    
+
     if (error) {
       setErrorMessage(copy.states.error.general);
       setState('error');
@@ -86,15 +86,15 @@ export function AuthForm() {
         <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <Mail className="w-8 h-8 text-lime-600" />
         </div>
-        <h2 className="text-2xl font-black text-zinc-950 mb-3 tracking-tight">{copy.states.success.title}</h2>
+        <h2 className="text-2xl font-bold text-zinc-950 mb-3 tracking-tight">{copy.states.success.title}</h2>
         <p className="text-zinc-500 font-medium mb-8 leading-relaxed">
           {copy.states.success.desc}
         </p>
         <div className="bg-zinc-50 p-4 rounded-2xl mb-6">
           <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">{copy.states.success.spamHint}</p>
         </div>
-        <button 
-          onClick={() => setState('idle')} 
+        <button
+          onClick={() => setState('idle')}
           className="text-sm font-bold text-lime-600 hover:text-lime-700 transition-colors"
         >
           {copy.states.success.resendBtn}
@@ -106,7 +106,7 @@ export function AuthForm() {
   return (
     <div className="w-full max-w-sm mx-auto bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-zinc-950/5 border border-zinc-200">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-black tracking-tighter text-zinc-950 mb-2">{copy.title}</h2>
+        <h2 className="text-3xl font-bold tracking-tighter text-zinc-950 mb-2">{copy.title}</h2>
         <p className="text-zinc-500 font-medium">{copy.subtitle}</p>
         {/* <div className="mt-6 p-4 bg-lime-500/10 border border-lime-500/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-500">
           <p className="text-xs font-bold text-lime-700 dark:text-lime-400">
@@ -117,12 +117,12 @@ export function AuthForm() {
 
       <form onSubmit={handleMagicLink} className="space-y-5">
         <div className="space-y-2">
-          <label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <label htmlFor="email" className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
             {copy.emailLabel}
           </label>
-          <Input 
-            id="email" 
-            type="email" 
+          <Input
+            id="email"
+            type="email"
             placeholder={copy.emailPlaceholder}
             value={email}
             onChange={(e) => {
@@ -140,10 +140,10 @@ export function AuthForm() {
           </p>
         )}
 
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={state === 'loading'}
-          className="w-full h-14 bg-zinc-950 hover:bg-zinc-800 text-white rounded-2xl font-black text-base uppercase tracking-wider transition-all active:scale-95"
+          className="w-full h-14 bg-zinc-950 hover:bg-zinc-800 text-white rounded-2xl font-bold text-base uppercase tracking-wider transition-all active:scale-95"
         >
           {state === 'loading' ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -164,11 +164,11 @@ export function AuthForm() {
         </div>
       </div>
 
-      <Button 
-        type="button" 
+      <Button
+        type="button"
         variant="outline"
         onClick={handleGoogleLogin}
-        className="w-full h-14 bg-white hover:bg-zinc-50 border-2 border-zinc-200 text-zinc-700 rounded-2xl font-black text-base uppercase tracking-wider transition-all active:scale-95"
+        className="w-full h-14 bg-white hover:bg-zinc-50 border-2 border-zinc-200 text-zinc-700 rounded-2xl font-bold text-base uppercase tracking-wider transition-all active:scale-95"
       >
         <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
           <path

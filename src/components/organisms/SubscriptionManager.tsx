@@ -25,7 +25,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
     const [editMonto, setEditMonto] = useState<number>(0);
     const [editNombre, setEditNombre] = useState<string>("");
     const [editDias, setEditDias] = useState<number>(0);
-    
+
     // UI States
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
 
     const handleAddNew = () => {
         if (editingId === 'temp') return;
-        
+
         const tempSub = {
             id: 'temp',
             nombre: '',
@@ -50,7 +50,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
             cantidad_dias: 0,
             isNew: true
         };
-        
+
         setSubscriptions([tempSub, ...subscriptions]);
         setEditingId('temp');
         setEditNombre('');
@@ -84,7 +84,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                     cantidad_dias: editDias
                 });
                 if (error) throw error;
-                
+
                 // Reemplazar el temp con el real
                 setSubscriptions(prev => prev.map(s => s.id === 'temp' ? data : s));
                 toast.success(suscripcionesCopy.newPlan.success);
@@ -100,7 +100,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                 setSubscriptions(prev => prev.map(s => s.id === editingId ? { ...s, monto: editMonto, nombre: data?.nombre || editNombre } : s));
             }
         }, {
-            successMsg: editingId !== 'temp' ? suscripcionesCopy.massiveUpdate.success : undefined, 
+            successMsg: editingId !== 'temp' ? suscripcionesCopy.massiveUpdate.success : undefined,
             onSuccess: () => {
                 setEditingId(null);
                 setIsConfirmOpen(false);
@@ -130,12 +130,12 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
             <div className="flex justify-between items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-4 pr-6 shadow-sm">
                 <div className="flex items-center gap-3 pl-4">
                     <CreditCard className="w-5 h-5 text-zinc-400" />
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{suscripcionesCopy.headerTitle}</h2>
+                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">{suscripcionesCopy.headerTitle}</h2>
                 </div>
-                <Button 
+                <Button
                     onClick={handleAddNew}
                     disabled={editingId === 'temp' || isUpdating}
-                    className="h-11 px-6 rounded-xl bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg shadow-lime-500/10 active:scale-95 transition-all"
+                    className="h-11 px-6 rounded-xl bg-lime-500 hover:bg-lime-500 text-zinc-950 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-lg shadow-lime-500/10 active:scale-95 transition-all"
                 >
                     <Plus className="w-4 h-4" />
                     {suscripcionesCopy.createPlan}
@@ -145,25 +145,25 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {subscriptions.map((sub) => {
                     const isEditing = editingId === sub.id;
-                    
+
                     return (
                         <div key={sub.id} className={cn(
                             "bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden",
                             isEditing && "border-zinc-950 dark:border-white ring-4 ring-zinc-100 dark:ring-zinc-900 shadow-2xl"
                         )}>
                             <div className="absolute -right-8 -top-8 w-32 h-32 bg-zinc-50 dark:bg-zinc-900 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-700" />
-                            
+
                             <div className="relative space-y-6">
                                 <div className="flex justify-between items-start">
                                     <div className="w-12 h-12 rounded-[1.2rem] bg-zinc-950 dark:bg-white flex items-center justify-center text-lime-400 dark:text-zinc-950 group-hover:scale-110 transition-transform">
                                         <CreditCard className="w-6 h-6" />
                                     </div>
-                                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                                    <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
                                         {isEditing ? (
-                                            <select 
+                                            <select
                                                 value={editDias}
                                                 onChange={(e) => setEditDias(Number(e.target.value))}
-                                                className="bg-transparent border-none outline-none font-black text-zinc-950 dark:text-white cursor-pointer"
+                                                className="bg-transparent border-none outline-none font-bold text-zinc-950 dark:text-white cursor-pointer"
                                                 disabled={sub.id !== 'temp'} // Solo permitimos cambiar días en planes nuevos para no romper mapeos
                                             >
                                                 {[0, 1, 2, 3, 4, 5, 6, 7].map(d => (
@@ -183,13 +183,13 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                                             type="text"
                                             value={editNombre}
                                             onChange={(e) => setEditNombre(e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-3 text-2xl font-black uppercase tracking-tighter focus:border-zinc-950 dark:focus:border-white transition-all outline-none"
+                                            className="w-full bg-zinc-50 dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-3 text-2xl font-bold uppercase tracking-tighter focus:border-zinc-950 dark:focus:border-white transition-all outline-none"
                                             placeholder={suscripcionesCopy.placeholders.nombre}
                                         />
                                     ) : (
-                                        <h3 className="text-3xl font-black text-zinc-950 dark:text-zinc-50 tracking-tighter leading-none">{sub.nombre}</h3>
+                                        <h3 className="text-3xl font-bold text-zinc-950 dark:text-zinc-50 tracking-tighter leading-none">{sub.nombre}</h3>
                                     )}
-                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none pt-1">Cuota mensual recurrente</p>
+                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none pt-1">Cuota mensual recurrente</p>
                                 </div>
 
                                 <div className="pt-6 flex items-end justify-between border-t border-zinc-100 dark:border-zinc-900">
@@ -202,17 +202,17 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                                                         type="number"
                                                         value={editMonto}
                                                         onChange={(e) => setEditMonto(Number(e.target.value))}
-                                                        className="w-full bg-zinc-50 dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-[1.5rem] pl-9 pr-4 py-3 text-xl font-black focus:border-zinc-950 dark:focus:border-white transition-all outline-none"
+                                                        className="w-full bg-zinc-50 dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-[1.5rem] pl-9 pr-4 py-3 text-xl font-bold focus:border-zinc-950 dark:focus:border-white transition-all outline-none"
                                                     />
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={() => sub.id === 'temp' ? handleSave() : setIsConfirmOpen(true)}
                                                     className="p-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-zinc-950/20"
                                                     disabled={isUpdating}
                                                 >
                                                     <Check className="w-6 h-6" />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={handleCancel}
                                                     className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-400 rounded-[1.5rem] hover:bg-zinc-50 transition-colors"
                                                 >
@@ -223,17 +223,17 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                                     ) : (
                                         <>
                                             <div>
-                                                <span className="text-4xl font-black text-zinc-950 dark:text-zinc-50 tracking-tighter">${sub.monto.toLocaleString('es-AR')}</span>
+                                                <span className="text-4xl font-bold text-zinc-950 dark:text-zinc-50 tracking-tighter">${sub.monto.toLocaleString('es-AR')}</span>
                                             </div>
                                             <div className="flex gap-2">
-                                                <button 
+                                                <button
                                                     onClick={() => handleStartEdit(sub)}
                                                     className="p-3 bg-zinc-50 dark:bg-zinc-900 text-zinc-400 rounded-2xl hover:bg-zinc-950 dark:hover:bg-white hover:text-white dark:hover:text-zinc-950 transition-all duration-300"
                                                     title={suscripcionesCopy.editPlan}
                                                 >
                                                     <Edit2 className="w-5 h-5" />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => setIsDeletingId(sub.id)}
                                                     className="p-3 bg-zinc-50 dark:bg-zinc-900 text-zinc-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all duration-300"
                                                     title={suscripcionesCopy.deletePlan}
@@ -244,9 +244,9 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                                         </>
                                     )}
                                 </div>
-                                
+
                                 {isEditing && sub.id !== 'temp' && (
-                                    <div className="text-[9px] font-black uppercase tracking-widest text-amber-600 flex items-center gap-2 animate-pulse">
+                                    <div className="text-[9px] font-bold uppercase tracking-widest text-amber-600 flex items-center gap-2 animate-pulse">
                                         <ShieldCheck className="w-4 h-4" />
                                         <span>{suscripcionesCopy.massiveUpdate.caution}</span>
                                     </div>
@@ -263,7 +263,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                     <TrendingUp className="w-8 h-8" />
                 </div>
                 <div className="flex-1">
-                    <h4 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">{suscripcionesCopy.footer.shieldTitle}</h4>
+                    <h4 className="text-sm font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100">{suscripcionesCopy.footer.shieldTitle}</h4>
                     <p className="text-xs text-zinc-500 mt-2 leading-relaxed max-w-2xl" dangerouslySetInnerHTML={{ __html: suscripcionesCopy.footer.shieldDesc }} />
                 </div>
             </div>
@@ -275,7 +275,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                         <div className="w-16 h-16 rounded-[1.5rem] bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center text-amber-600 mx-auto">
                             <AlertTriangle className="w-8 h-8" />
                         </div>
-                        <DialogTitle className="text-2xl font-black text-center uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">
+                        <DialogTitle className="text-2xl font-bold text-center uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">
                             {suscripcionesCopy.massiveUpdate.title}
                         </DialogTitle>
                         <DialogDescription className="text-center font-medium text-zinc-500 text-sm leading-relaxed">
@@ -283,17 +283,17 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex-col sm:flex-col gap-3 mt-6">
-                        <Button 
-                            className="w-full h-14 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-black uppercase tracking-widest text-[10px] hover:scale-102 active:scale-98 transition-all"
+                        <Button
+                            className="w-full h-14 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold uppercase tracking-widest text-[10px] hover:scale-102 active:scale-98 transition-all"
                             onClick={handleSave}
                             disabled={isUpdating}
                         >
                             {isUpdating ? <TrendingUp className="w-4 h-4 animate-spin mr-2" /> : null}
                             {suscripcionesCopy.massiveUpdate.confirm}
                         </Button>
-                        <Button 
+                        <Button
                             variant="ghost"
-                            className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] text-zinc-400 hover:text-zinc-600"
+                            className="w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-[10px] text-zinc-400 hover:text-zinc-600"
                             onClick={() => setIsConfirmOpen(false)}
                             disabled={isUpdating}
                         >
@@ -310,7 +310,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                         <div className="w-16 h-16 rounded-[1.5rem] bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-red-600 mx-auto animate-pulse">
                             <Trash2 className="w-8 h-8" />
                         </div>
-                        <DialogTitle className="text-2xl font-black text-center uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">
+                        <DialogTitle className="text-2xl font-bold text-center uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">
                             {suscripcionesCopy.deleteDialog.title}
                         </DialogTitle>
                         <DialogDescription className="text-center font-medium text-zinc-500 text-sm leading-relaxed">
@@ -318,17 +318,17 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ initia
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex-col sm:flex-col gap-3 mt-6">
-                        <Button 
-                            className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[10px] hover:scale-102 active:scale-98 transition-all shadow-lg shadow-red-500/20"
+                        <Button
+                            className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest text-[10px] hover:scale-102 active:scale-98 transition-all shadow-lg shadow-red-500/20"
                             onClick={handleDelete}
                             disabled={isUpdating}
                         >
                             {isUpdating ? <TrendingUp className="w-4 h-4 animate-spin mr-2" /> : null}
                             {suscripcionesCopy.deleteDialog.confirm}
                         </Button>
-                        <Button 
+                        <Button
                             variant="ghost"
-                            className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] text-zinc-400 hover:text-zinc-600"
+                            className="w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-[10px] text-zinc-400 hover:text-zinc-600"
                             onClick={() => setIsDeletingId(null)}
                             disabled={isUpdating}
                         >

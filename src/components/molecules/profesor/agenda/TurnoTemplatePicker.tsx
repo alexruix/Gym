@@ -64,7 +64,7 @@ export function TurnoTemplatePicker({ onSuccess, className }: TurnoTemplatePicke
     <div className={cn("grid gap-4 sm:grid-cols-3", className)}>
       {TEMPLATES.map((template) => {
         const Icon = template.icon;
-        
+
         return (
           <button
             key={template.id}
@@ -77,31 +77,31 @@ export function TurnoTemplatePicker({ onSuccess, className }: TurnoTemplatePicke
             )}
           >
             {/* Background Grain/Glow */}
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-lime-400/5 blur-3xl group-hover:bg-lime-400/10 transition-colors duration-500" />
-            
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-lime-500/5 blur-3xl group-hover:bg-lime-500/10 transition-colors duration-500" />
+
             <div className="mb-4 p-3 rounded-2xl bg-zinc-50 border border-zinc-100 group-hover:border-lime-500/30 group-hover:scale-110 transition-all duration-500">
               <Icon className="w-5 h-5 text-zinc-400 group-hover:text-lime-600" />
             </div>
 
-            <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 mb-1">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900 mb-1">
               {template.title}
             </h3>
-            
+
             <p className="text-[10px] font-medium text-zinc-500 mb-4 leading-relaxed group-hover:text-zinc-600 transition-colors">
               {template.description}
             </p>
 
             <div className="mt-auto pt-4 border-t border-zinc-100 w-full flex items-center justify-between">
               <div className="flex flex-col">
-                {/* <span className="text-[9px] font-black uppercase tracking-tight text-lime-600">
+                {/* <span className="text-[9px] font-bold uppercase tracking-tight text-lime-600">
                   {template.hours}
                 </span> */}
                 <span className="text-[8px] font-bold text-zinc-400 uppercase">
                   {template.count}
                 </span>
               </div>
-              
-              <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center group-hover:bg-lime-400 group-hover:border-lime-400 transition-all duration-500">
+
+              <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center group-hover:bg-lime-500 group-hover:border-lime-400 transition-all duration-500">
                 {isPending ? (
                   <Loader2 className="w-3 h-3 animate-spin text-zinc-950" />
                 ) : (

@@ -18,8 +18,8 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        industrial: "bg-lime-400 text-zinc-950 font-black uppercase tracking-widest hover:bg-lime-500 rounded-2xl shadow-sm",
-        heavy: "bg-zinc-950 text-white font-black uppercase tracking-widest hover:bg-zinc-900 rounded-2xl shadow-sm",
+        industrial: "bg-lime-500 text-zinc-950 font-bold uppercase tracking-widest hover:bg-lime-500 rounded-2xl shadow-sm",
+        heavy: "bg-zinc-950 text-white font-bold uppercase tracking-widest hover:bg-zinc-900 rounded-2xl shadow-sm",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -38,7 +38,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 

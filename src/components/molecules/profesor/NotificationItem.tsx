@@ -26,7 +26,7 @@ export function NotificationItem({ notification, onSelect }: NotificationItemPro
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onSelect(notification.id);
-    
+
     // Lógica de navegación opcional basada en el tipo
     if (notification.tipo === "sesion_completada" && notification.alumno_id) {
       window.location.href = `/profesor/alumnos/${notification.alumno_id}`;
@@ -34,7 +34,7 @@ export function NotificationItem({ notification, onSelect }: NotificationItemPro
   };
 
   return (
-    <div 
+    <div
       onClick={handleClick}
       className={cn(
         "group p-4 flex gap-3 transition-colors cursor-pointer border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-900/50",
@@ -43,13 +43,13 @@ export function NotificationItem({ notification, onSelect }: NotificationItemPro
     >
       <div className={cn(
         "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105",
-        !notification.leido 
-          ? "bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400" 
+        !notification.leido
+          ? "bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400"
           : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
       )}>
         <Icon className="w-5 h-5" />
       </div>
-      
+
       <div className="flex-1 space-y-1">
         <div className="flex items-start justify-between gap-2">
           <p className={cn(
@@ -62,7 +62,7 @@ export function NotificationItem({ notification, onSelect }: NotificationItemPro
             <span className="w-2 h-2 rounded-full bg-lime-500 shrink-0 mt-1.5" aria-hidden="true" />
           )}
         </div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
           {formatRelativeTime(notification.created_at)}
         </p>
       </div>

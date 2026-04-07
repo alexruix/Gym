@@ -18,7 +18,7 @@ const { testimonials } = landingCopy;
         <!-- Header -->
         <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 animate-in fade-in duration-500">
             <LandingSectionBadge text={testimonials.badge} variant="dark" />
-            <h2 class="text-4xl md:text-5xl font-black tracking-tighter leading-tight">
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tighter leading-tight">
                 {testimonials.title}<br/>
                 <span class="text-lime-400 italic">{testimonials.titleHighlight}</span>
             </h2>
@@ -30,7 +30,7 @@ const { testimonials } = landingCopy;
                 <blockquote
                     class={`relative p-7 rounded-3xl border transition-all duration-300 hover:-translate-y-1 group flex flex-col ${
                         index === 1
-                            ? 'bg-lime-400 border-lime-300 md:scale-105 shadow-2xl shadow-lime-500/20'
+                            ? 'bg-lime-500 border-lime-300 md:scale-105 shadow-2xl shadow-lime-500/20'
                             : 'bg-zinc-900 border-zinc-800 hover:border-lime-400/30 hover:bg-zinc-800/80'
                     }`}
                 >
@@ -53,17 +53,17 @@ const { testimonials } = landingCopy;
                     <!-- Autor -->
                     <footer class="flex items-center gap-3">
                         <div
-                            class={`w-11 h-11 rounded-full flex items-center justify-center font-black text-lg shrink-0 ${
+                            class={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${
                                 index === 1
                                     ? 'bg-zinc-950 text-lime-400'
-                                    : 'bg-lime-400 text-zinc-950'
+                                    : 'bg-lime-500 text-zinc-950'
                             }`}
                             aria-hidden="true"
                         >
                             {testimonial.author.charAt(0)}
                         </div>
                         <div>
-                            <p class={`font-black text-sm uppercase tracking-wider leading-tight ${
+                            <p class={`font-bold text-sm uppercase tracking-wider leading-tight ${
                                 index === 1 ? 'text-zinc-950' : 'text-white'
                             }`}>{testimonial.author}</p>
                             <p class={`text-xs font-bold mt-0.5 ${

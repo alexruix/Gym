@@ -18,10 +18,10 @@ interface ProfileWorkspaceTabsProps {
  * ProfileWorkspaceTabs: UI de navegación para el perfil del alumno.
  * Utiliza IndustrialTabs para mantener la consistencia visual de alto rendimiento (underline).
  */
-export function ProfileWorkspaceTabs({ 
+export function ProfileWorkspaceTabs({
   planContent,
-  routineContent, 
-  infoContent, 
+  routineContent,
+  infoContent,
   historyContent,
   activeTab,
   onTabChange
@@ -44,39 +44,39 @@ export function ProfileWorkspaceTabs({
         className="w-full"
       >
         <div className="p-4 md:p-10 min-h-[400px]">
-          <TabsPrimitive.Content 
-            value="plan" 
+          <TabsPrimitive.Content
+            value="plan"
             className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-top-1 duration-500"
           >
             {planContent}
           </TabsPrimitive.Content>
 
-          <TabsPrimitive.Content 
-            value="routine" 
+          <TabsPrimitive.Content
+            value="routine"
             className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-top-1 duration-500"
           >
             {routineContent}
           </TabsPrimitive.Content>
-          
-          <TabsPrimitive.Content 
-            value="history" 
+
+          <TabsPrimitive.Content
+            value="history"
             className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-top-1 duration-500"
           >
             {historyContent || (
-               <div className="py-24 text-center space-y-6">
-                   <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center mx-auto border border-dashed border-zinc-200 dark:border-zinc-800 rotate-3 transition-transform hover:rotate-6 duration-500 group">
-                       <History className="w-10 h-10 text-zinc-300 dark:text-zinc-700 group-hover:text-lime-500 transition-colors" />
-                   </div>
-                   <div className="space-y-1">
-                       <h4 className="font-black text-xl uppercase tracking-tighter italic text-zinc-950 dark:text-zinc-100">Sin historial operativo</h4>
-                       <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto text-pretty">Cuando el alumno complete sus rutinas, verás su progreso técnico aquí.</p>
-                   </div>
-               </div>
+              <div className="py-24 text-center space-y-6">
+                <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center mx-auto border border-dashed border-zinc-200 dark:border-zinc-800 rotate-3 transition-transform hover:rotate-6 duration-500 group">
+                  <History className="w-10 h-10 text-zinc-300 dark:text-zinc-700 group-hover:text-lime-500 transition-colors" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-bold text-xl uppercase tracking-tighter italic text-zinc-950 dark:text-zinc-100">Sin historial operativo</h4>
+                  <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto text-pretty">Cuando el alumno complete sus rutinas, verás su progreso técnico aquí.</p>
+                </div>
+              </div>
             )}
           </TabsPrimitive.Content>
 
-          <TabsPrimitive.Content 
-            value="info" 
+          <TabsPrimitive.Content
+            value="info"
             className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-top-1 duration-500"
           >
             {infoContent}

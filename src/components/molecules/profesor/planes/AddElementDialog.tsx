@@ -29,9 +29,9 @@ export function AddElementDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xl industrial-dialog">
-                <div className="p-10 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/10">
+                <div className="industrial-dialog-header">
                     <DialogHeader className="space-y-1 text-left">
-                        <DialogTitle className="text-3xl font-black text-zinc-950 dark:text-zinc-50 tracking-tight leading-none">
+                        <DialogTitle className="industrial-title-lg">
                             {addElementCopy.title}
                         </DialogTitle>
                         <DialogDescription className="industrial-label">
@@ -40,28 +40,28 @@ export function AddElementDialog({
                     </DialogHeader>
                 </div>
 
-                <div className="p-8 space-y-4 bg-zinc-50/20 dark:bg-transparent">
-                    {/* OpciÃ³n Ejercicio */}
+                <div className="p-4 space-y-4 bg-zinc-50/30 dark:bg-transparent">
+                    {/* Opción Ejercicio */}
                     <button
                         type="button"
                         onClick={() => {
                             onSelectExercise();
                             onOpenChange(false);
                         }}
-                        className="w-full text-left gap-8 industrial-card group"
+                        className="w-full text-left gap-8 p-6 industrial-card group group-hover:cursor-pointer"
                     >
                         <div className="industrial-icon-box">
-                            <Dumbbell className="w-8 h-8 text-zinc-500 group-hover:text-lime-400 transition-colors" />
+                            <Dumbbell className="w-8 h-8 text-zinc-500 group-hover:text-lime-400  transition-colors" />
                         </div>
                         <div className="flex-1 space-y-1">
-                            <h4 className="industrial-title text-zinc-950 dark:text-white group-hover:text-lime-600 dark:group-hover:text-lime-400">
+                            <h4 className="industrial-title dark:text-white group-hover:text-lime-600 dark:group-hover:text-lime-400">
                                 {addElementCopy.options.exercise.title}
                             </h4>
                             <p className="industrial-description">
                                 {addElementCopy.options.exercise.description}
                             </p>
                         </div>
-                        <ChevronRight className="w-6 h-6 text-zinc-300 group-hover:text-lime-500 transition-all transform group-hover:translate-x-1" />
+                        <ChevronRight className="w-6 h-6  text-zinc-300 group-hover:text-lime-500 transition-all transform group-hover:translate-x-1" />
                     </button>
 
                     {/* OpciÃ³n Bloque (Circuito) */}

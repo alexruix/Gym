@@ -44,6 +44,8 @@ const { data: alumno, error } = await supabase
           descanso_seg,
           exercise_type,
           position,
+          grupo_bloque_id,
+          grupo_nombre,
           biblioteca_ejercicios (
             id,
             nombre,
@@ -123,7 +125,8 @@ const studentData = {
   ultima_sesion: ultimaSesion?.completed_at || ultimaSesion?.updated_at || null,
   pago_activo,
   historial_pagos: sortedPagos,
-  suscripcion: alumno.suscripciones
+  suscripcion: alumno.suscripciones,
+  dias_asistencia: alumno.dias_asistencia || []
 };
 
 const assignedPlan = Array.isArray(alumno.planes) ? alumno.planes[0] : alumno.planes;

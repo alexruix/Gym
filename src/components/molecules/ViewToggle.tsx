@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { LayoutGrid, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +10,7 @@ interface ViewToggleProps {
 
 export function ViewToggle({ view, onChange, className }: ViewToggleProps) {
   return (
-    <div className={cn("flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 shrink-0", className)}>
+    <div className={cn("industrial-toggle-container shrink-0", className)}>
       <button
         onClick={() => onChange("grid")}
         className={cn(

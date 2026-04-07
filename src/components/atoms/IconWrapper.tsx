@@ -11,10 +11,10 @@ interface IconWrapperProps {
   iconClassName?: string;
 }
 
-export function IconWrapper({ 
-  icon: Icon, 
-  color = 'muted', 
-  size = 'md', 
+export function IconWrapper({
+  icon: Icon,
+  color = 'muted',
+  size = 'md',
   shape = 'rounded',
   className,
   iconClassName
@@ -25,8 +25,8 @@ export function IconWrapper({
     info: "bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400",
     muted: "bg-zinc-100/80 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
     base: "bg-white/10 text-white", // Mayormente para los neones oscuros
-    lime: "bg-lime-400/20 text-lime-400 dark:bg-lime-500/10 dark:text-lime-400",
-    primary: "bg-lime-400/20 text-lime-400 dark:bg-lime-500/10 dark:text-lime-400",
+    lime: "bg-lime-500/20 text-lime-400 dark:bg-lime-500/10 dark:text-lime-400",
+    primary: "bg-lime-500/20 text-lime-400 dark:bg-lime-500/10 dark:text-lime-400",
   };
 
   const sizeStyles = {

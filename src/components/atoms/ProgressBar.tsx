@@ -13,8 +13,8 @@ export const ProgressBar = ({ value, max = 100, className, showValue = false }: 
   return (
     <div className={cn("w-full space-y-1", className)}>
       <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden border border-zinc-200">
-        <div 
-          className="h-full bg-lime-400 transition-all duration-500 ease-out" 
+        <div
+          className="h-full bg-lime-500 transition-all duration-500 ease-out"
           style={{ width: `${percentage}%` }}
         />
       </div>

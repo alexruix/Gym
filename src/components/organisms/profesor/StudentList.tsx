@@ -54,8 +54,8 @@ export function StudentList({ students }: Props) {
   // Adaptación a BaseEntity para el DashboardConsole
   const studentsWithTags = React.useMemo(() => {
     return localStudents.map(s => ({
-        ...s,
-        tags: s.planName ? [s.planName] : []
+      ...s,
+      tags: s.planName ? [s.planName] : []
     }));
   }, [localStudents]);
 
@@ -65,9 +65,9 @@ export function StudentList({ students }: Props) {
   // Lógica de Ordenamiento Centralizada
   const handleSort = (items: typeof studentsWithTags, order: string) => {
     return [...items].sort((a, b) => {
-        if (order === "name-asc") return a.name.localeCompare(b.name);
-        if (order === "status-desc") return a.status.localeCompare(b.status);
-        return 0;
+      if (order === "name-asc") return a.name.localeCompare(b.name);
+      if (order === "status-desc") return a.status.localeCompare(b.status);
+      return 0;
     });
   };
 
@@ -76,15 +76,15 @@ export function StudentList({ students }: Props) {
       header: c.columns.name,
       render: (s) => (
         <div className="flex items-center gap-3 font-bold text-zinc-950 dark:text-zinc-100">
-          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center font-black text-zinc-500 dark:text-zinc-400 text-xs shrink-0 group-hover:bg-lime-400 group-hover:text-zinc-950 transition-all duration-300 transform group-hover:rotate-3 shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center font-bold text-zinc-500 dark:text-zinc-400 text-xs shrink-0 group-hover:bg-lime-500 group-hover:text-zinc-950 transition-all duration-300 transform group-hover:rotate-3 shadow-sm">
             {s.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex flex-col">
             <span className="group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">{s.name}</span>
             {s.fecha_nacimiento && (
-                <span className="text-[10px] text-zinc-400 font-medium">
-                    {calculateAge(s.fecha_nacimiento)} años
-                </span>
+              <span className="text-[10px] text-zinc-400 font-medium">
+                {calculateAge(s.fecha_nacimiento)} años
+              </span>
             )}
           </div>
         </div>
@@ -107,21 +107,21 @@ export function StudentList({ students }: Props) {
   // Acción Centralizada para Reutilización
   const getActions = (s: typeof studentsWithTags[0]) => [
     {
-        label: cMenu.copyMagicLink,
-        icon: <Zap className="w-4 h-4" />,
-        onClick: () => copyGuestLink(s.id)
+      label: cMenu.copyMagicLink,
+      icon: <Zap className="w-4 h-4" />,
+      onClick: () => copyGuestLink(s.id)
     },
     {
-        label: cMenu.sendWhatsApp,
-        icon: <WhatsappLogoIcon size={16} weight="light" />,
-        className: "text-emerald-600",
-        onClick: () => openWhatsApp(s.name, s.telefono, { type: 'general' })
+      label: cMenu.sendWhatsApp,
+      icon: <WhatsappLogoIcon size={16} weight="light" />,
+      className: "text-emerald-600",
+      onClick: () => openWhatsApp(s.name, s.telefono, { type: 'general' })
     },
     {
-        label: cMenu.archive,
-        icon: <Archive className="w-4 h-4" />,
-        variant: "destructive" as const,
-        onClick: () => setDeletingStudent(s)
+      label: cMenu.archive,
+      icon: <Archive className="w-4 h-4" />,
+      variant: "destructive" as const,
+      onClick: () => setDeletingStudent(s)
     }
   ];
 
@@ -132,11 +132,11 @@ export function StudentList({ students }: Props) {
       align: "right",
       className: "w-10",
       render: (s) => (
-        <ResourceActionMenu 
-            type="alumno"
-            id={s.id}
-            name={s.name}
-            actions={getActions(s)}
+        <ResourceActionMenu
+          type="alumno"
+          id={s.id}
+          name={s.name}
+          actions={getActions(s)}
         />
       ),
     },
@@ -149,7 +149,7 @@ export function StudentList({ students }: Props) {
 
   return (
     <>
-    <DashboardConsole 
+      <DashboardConsole
         items={studentsWithTags}
         itemLabel="Alumnos"
         storageKey="alumnos"
@@ -162,61 +162,61 @@ export function StudentList({ students }: Props) {
         emptyIcon={<UserIcon className="w-12 h-12" />}
         emptyTitle={c.empty}
         renderGrid={(items: any[]) => (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {items.map(s => (
-                    <StudentCompactCard 
-                        key={s.id} 
-                        student={{
-                            id: s.id,
-                            nombre: s.name,
-                            email: s.email,
-                            estado: s.status,
-                            telefono: s.telefono,
-                            planName: s.planName,
-                            notas: s.notas,
-                            fecha_nacimiento: s.fecha_nacimiento
-                        }} 
-                        href={`/profesor/alumnos/${s.id}`} 
-                        customActions={getActions(s)}
-                    />
-                ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {items.map(s => (
+              <StudentCompactCard
+                key={s.id}
+                student={{
+                  id: s.id,
+                  nombre: s.name,
+                  email: s.email,
+                  estado: s.status,
+                  telefono: s.telefono,
+                  planName: s.planName,
+                  notas: s.notas,
+                  fecha_nacimiento: s.fecha_nacimiento
+                }}
+                href={`/profesor/alumnos/${s.id}`}
+                customActions={getActions(s)}
+              />
+            ))}
+          </div>
         )}
         renderTable={(items: any[]) => (
-                <StandardTable 
-                    data={items} 
-                    columns={tableColumns}
-                    rowHref={(s) => `/profesor/alumnos/${s.id}`}
-                    entityName="Alumnos"
-                    hideSearch={true}
-                />
+          <StandardTable
+            data={items}
+            columns={tableColumns}
+            rowHref={(s) => `/profesor/alumnos/${s.id}`}
+            entityName="Alumnos"
+            hideSearch={true}
+          />
         )}
-    />
+      />
 
-    <DeleteConfirmDialog 
+      <DeleteConfirmDialog
         isOpen={!!deletingStudent}
         onOpenChange={(open) => !open && setDeletingStudent(null)}
         onConfirm={async () => {
-            if (!deletingStudent) return;
-            const studentId = deletingStudent.id;
-            
-            const result = await archiveStudent(studentId, {
-                onSuccess: () => {
-                    // Borrado Optimista (SPA reflex) tras éxito en db
-                    setLocalStudents(prev => prev.filter(s => s.id !== studentId));
-                    setDeletingStudent(null);
-                }
-            });
+          if (!deletingStudent) return;
+          const studentId = deletingStudent.id;
 
-            if (result?.success && result.data?.mensaje) {
-                toast.success(result.data.mensaje);
+          const result = await archiveStudent(studentId, {
+            onSuccess: () => {
+              // Borrado Optimista (SPA reflex) tras éxito en db
+              setLocalStudents(prev => prev.filter(s => s.id !== studentId));
+              setDeletingStudent(null);
             }
+          });
+
+          if (result?.success && result.data?.mensaje) {
+            toast.success(result.data.mensaje);
+          }
 
         }}
         title="Archivar"
         description={<>¿Estás seguro que querés archivar a <strong>{deletingStudent?.name}</strong>?</>}
         isDeleting={isArchiving}
-    />
+      />
     </>
   );
 }

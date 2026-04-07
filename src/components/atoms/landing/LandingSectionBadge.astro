@@ -7,16 +7,17 @@
  */
 interface Props {
   text: string;
-  variant?: 'light' | 'dark';
+  variant?: "light" | "dark";
   class?: string;
 }
 
-const { text, variant = 'light', class: className = '' } = Astro.props;
+const { text, variant = "light", class: className = "" } = Astro.props;
 
-const base = 'inline-block px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest';
+const base =
+  "inline-block px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest";
 const variants = {
-  light: 'bg-lime-50 border border-lime-200 text-lime-700',
-  dark:  'bg-white/10 border border-white/10 text-lime-400',
+  light: "bg-lime-50 border border-lime-200 text-lime-700",
+  dark: "bg-white/10 border border-white/10 text-lime-400",
 };
 ---
 

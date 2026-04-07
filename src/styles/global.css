@@ -18,7 +18,7 @@
   --font-sans: "Geist", "Inter", system-ui, -apple-system, sans-serif;
   --font-heading: "Geist", "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "Geist Mono", "Fira Code", monospace;
-  
+
   /* Spacing scale: 4px base unit */
   --spacing-4: 1rem;
   --spacing-8: 2rem;
@@ -35,7 +35,7 @@
   /* ── Primarios: Neutrales (Zinc Refinado) ──────────────────────────────── */
   --color-white: oklch(1 0 0);
   --color-black: oklch(0.145 0 0);
-  
+
   /* ── Grises de Base (Zinc Palette) ──────────────────────────────────────── */
   --color-zinc-50: oklch(0.985 0.001 0);
   --color-zinc-100: oklch(0.97 0.001 0);
@@ -50,15 +50,18 @@
   --color-zinc-950: oklch(0.082 0 0);
 
   /* ── Accent: Lime (Verde Energético - MiGym Brand) ──────────────────────── */
-  --color-lime-400: oklch(0.865 0.19 144.978);
-  --color-lime-500: oklch(0.822 0.191 145.026);
-  --color-lime-600: oklch(0.745 0.166 144.798);
-  
-  /* ── Semánticos: Status Colors ──────────────────────────────────────────── */
-  --color-success: oklch(0.627 0.194 149.214);   /* Green */
-  --color-warning: oklch(0.769 0.188 70.08);     /* Amber/Orange */
-  --color-error: oklch(0.577 0.245 27.325);     /* Red */
-  --color-info: oklch(0.525 0.209 248.721);     /* Blue */
+  --color-lime-400: oklch(84.1% 0.238 128.85);
+  --color-lime-500: oklch(76.8% 0.233 130.85);
+  --color-lime-600: oklch(70.5% 0.202 132.17);
+    /* ── Semánticos: Status Colors ──────────────────────────────────────────── */
+    --color-success: oklch(0.627 0.194 149.214);
+  /* Green */
+  --color-warning: oklch(0.769 0.188 70.08);
+  /* Amber/Orange */
+  --color-error: oklch(0.577 0.245 27.325);
+  /* Red */
+  --color-info: oklch(0.525 0.209 248.721);
+  /* Blue */
 
   /* ── UI Foundation Colors ──────────────────────────────────────────────── */
   --background: var(--color-white);
@@ -67,24 +70,24 @@
   --card-foreground: var(--color-black);
   --popover: var(--color-white);
   --popover-foreground: var(--color-black);
-  
+
   /* ── Interactive Colors ─────────────────────────────────────────────────── */
   --primary: var(--color-black);
   --primary-foreground: var(--color-white);
   --secondary: var(--color-zinc-100);
   --secondary-foreground: var(--color-black);
-  
+
   /* ── UI Layers ─────────────────────────────────────────────────────────── */
   --muted: var(--color-zinc-100);
   --muted-foreground: var(--color-zinc-500);
   --accent: var(--color-lime-400);
   --accent-foreground: var(--color-black);
-  
+
   /* ── Borders & Inputs ──────────────────────────────────────────────────── */
   --border: var(--color-zinc-200);
   --input: var(--color-zinc-200);
   --ring: var(--color-zinc-300);
-  
+
   /* ── Radius Scale (Rounded Corners) ────────────────────────────────────── */
   --radius: 0.5rem;
 }
@@ -97,15 +100,15 @@
   --card-foreground: var(--color-zinc-50);
   --popover: var(--color-zinc-900);
   --popover-foreground: var(--color-zinc-50);
-  
+
   --primary: var(--color-white);
   --primary-foreground: var(--color-black);
   --secondary: var(--color-zinc-800);
   --secondary-foreground: var(--color-zinc-50);
-  
+
   --muted: var(--color-zinc-800);
   --muted-foreground: var(--color-zinc-400);
-  
+
   --border: var(--color-zinc-800);
   --input: var(--color-zinc-800);
   --ring: var(--color-zinc-700);
@@ -129,7 +132,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
+
   /* Semantic Colors (Status) */
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
@@ -138,10 +141,10 @@
 
 
   /* MiGym Semantic UI Tokens (Industrial Accessible) */
-  --color-ui-label: var(--color-zinc-500);           
-  --color-ui-muted: var(--color-zinc-400);           
-  --color-ui-soft: var(--color-zinc-50);             
-  --color-ui-accent: var(--color-lime-400);          
+  --color-ui-label: var(--color-zinc-500);
+  --color-ui-muted: var(--color-zinc-400);
+  --color-ui-soft: var(--color-zinc-50);
+  --color-ui-accent: var(--color-lime-400);
 
   /* Radius variants */
   --radius-xs: calc(var(--radius) - 6px);
@@ -161,7 +164,7 @@
   * {
     @apply border-border outline-ring/50;
   }
-  
+
   html {
     @apply scroll-smooth;
   }
@@ -173,22 +176,45 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-heading);
-    @apply font-black tracking-tight;
+    @apply font-bold tracking-tight;
   }
 
-  h1 { @apply text-4xl leading-tight; }
-  h2 { @apply text-3xl leading-snug; }
-  h3 { @apply text-2xl leading-normal; }
+  h1 {
+    @apply text-4xl leading-tight;
+  }
 
-  p { @apply leading-relaxed; }
+  h2 {
+    @apply text-3xl leading-snug;
+  }
 
-  a { @apply transition-colors outline-none; }
+  h3 {
+    @apply text-2xl leading-normal;
+  }
 
-  button { @apply outline-none transition-all; }
+  p {
+    @apply leading-relaxed;
+  }
 
-  input, textarea, select { @apply outline-none transition-colors; }
+  a {
+    @apply transition-colors outline-none;
+  }
+
+  button {
+    @apply outline-none transition-all;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply outline-none transition-colors;
+  }
 
   ::selection {
     @apply bg-accent text-accent-foreground;
@@ -208,46 +234,40 @@
     @apply rounded-3xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-950 border-none shadow-2xl relative;
   }
 
+  .industrial-surface-glass {
+    @apply bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border border-zinc-100 dark:border-zinc-900 shadow-xl shadow-zinc-950/5;
+  }
+
+  .industrial-floating-bar {
+    @apply bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl shadow-xl shadow-zinc-950/5 fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl p-4 rounded-[2rem] border border-white/10 z-50 pointer-events-auto flex items-center justify-between;
+  }
+
   /* ══════════════════════════════════════════════════════════════════════════
      CARDS & CONTAINERS
      ══════════════════════════════════════════════════════════════════════════ */
 
   .industrial-card {
-    @apply rounded-3xl bg-white dark:bg-zinc-900/40 border border-zinc-100 dark:border-zinc-800 
-           hover:border-zinc-950 dark:hover:border-lime-400 hover:shadow-2xl hover:shadow-zinc-950/5 
-           transition-all duration-500 flex items-center;
+    @apply rounded-3xl bg-white dark:bg-zinc-900/40 border p-4 border-zinc-100 dark:border-zinc-800 hover:border-zinc-950 dark:hover:border-lime-400 hover:shadow-2xl hover:shadow-zinc-950/5 transition-all duration-500 flex items-center;
   }
 
   .industrial-card-glass {
-    @apply bg-white/80 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800/80 
-           rounded-3xl backdrop-blur-2xl shadow-2xl overflow-hidden relative;
+    @apply bg-white/80 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800/80 rounded-3xl backdrop-blur-2xl shadow-2xl overflow-hidden relative;
   }
 
   .industrial-card-sm {
-    @apply p-5 rounded-2xl bg-white dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 
-           hover:bg-zinc-950 dark:hover:border-lime-400 transition-all duration-300 flex items-center 
-           justify-between shadow-sm;
+    @apply p-5 rounded-2xl bg-white dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 hover:bg-zinc-950 dark:hover:border-lime-400 transition-all duration-300 flex items-center justify-between shadow-sm;
   }
 
   .industrial-card-md {
-    @apply p-6 rounded-3xl border-zinc-100 bg-white dark:bg-zinc-950 dark:border-zinc-800 
-           transition-all duration-500 shadow-sm relative
-           hover:border-primary dark:hover:border-lime-400 hover:shadow-2xl hover:shadow-zinc-950/5 
-           animate-in fade-in slide-in-from-bottom-2;
+    @apply p-6 rounded-3xl border-zinc-100 bg-white dark:bg-zinc-950 dark:border-zinc-800 transition-all duration-500 shadow-sm relative hover:border-primary dark:hover:border-lime-400 hover:shadow-2xl hover:shadow-zinc-950/5 animate-in fade-in slide-in-from-bottom-2;
   }
 
   .industrial-card-ghost {
-    @apply p-12 border-2 border-dashed border-zinc-100 dark:border-zinc-900 rounded-3xl 
-           flex flex-col items-center justify-center space-y-4 cursor-pointer 
-           hover:border-zinc-200 dark:hover:border-zinc-800 transition-all text-ui-muted 
-           hover:text-zinc-400 select-none;
+    @apply p-12 border-2 border-dashed border-zinc-100 dark:border-zinc-900 rounded-3xl flex flex-col items-center justify-center space-y-4 cursor-pointer hover:border-zinc-200 dark:hover:border-zinc-800 transition-all text-ui-muted hover:text-zinc-400 select-none;
   }
 
   .industrial-section-container {
-    @apply bg-zinc-50/50 dark:bg-zinc-900/20 p-6 sm:p-8 rounded-3xl 
-           border border-zinc-100 dark:border-zinc-900/50 space-y-8
-           transition-all hover:bg-white dark:hover:bg-zinc-900/40 
-           hover:shadow-xl hover:shadow-zinc-100/50 dark:hover:shadow-none duration-500;
+    @apply bg-zinc-50/50 dark:bg-zinc-900/20 p-6 sm:p-8 rounded-3xl border border-zinc-100 dark:border-zinc-900/50 space-y-8 transition-all hover:bg-white dark:hover:bg-zinc-900/40 hover:shadow-xl hover:shadow-zinc-100/50 dark:hover:shadow-none duration-500;
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -255,45 +275,43 @@
      ══════════════════════════════════════════════════════════════════════════ */
 
   .industrial-input {
-    @apply h-14 bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl px-5 text-sm font-black 
-           placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950 dark:focus:ring-lime-400/50 transition-all outline-none;
+    @apply h-14 bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl px-5 text-sm font-bold placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950 dark:focus:ring-lime-400/50 transition-all outline-none;
+  }
+
+  .industrial-search {
+    @apply flex w-full border border-zinc-200 px-4 py-2 md:text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:border-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 h-12 md:h-14 pl-12 pr-4 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-sm font-bold placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-lime-400/20 transition-all;
   }
 
   .industrial-select-trigger {
-    @apply h-14 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 
-           font-black text-sm transition-all focus:ring-2 focus:ring-lime-400/50 outline-none;
+    @apply bg-zinc-50 dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center gap-3;
+  }
+
+  .industrial-select {
+    @apply flex-1 bg-transparent border-none font-bold text-sm uppercase px-4 h-10 outline-none cursor-pointer;
   }
 
   .industrial-input-lg {
-    @apply h-16 px-6 text-xl bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl font-black 
-           placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950 dark:focus:ring-lime-400/50 transition-all outline-none;
+    @apply h-16 px-6 text-xl bg-zinc-100 dark:bg-zinc-900 border-none rounded-2xl font-bold placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950 dark:focus:ring-lime-400/50 transition-all outline-none;
   }
 
   .industrial-button-muted {
-    @apply p-3.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 
-           hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 
-           rounded-full transition-all text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white 
-           hover:scale-105 active:scale-95;
+    @apply p-3.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 rounded-full transition-all text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:scale-105 active:scale-95;
   }
 
   .industrial-button-premium {
-    @apply relative inline-flex items-center justify-center p-[2px] w-full overflow-hidden 
-           rounded-[2rem] transition-all hover:scale-[1.02] active:scale-95;
+    @apply relative inline-flex items-center justify-center p-[2px] w-full overflow-hidden rounded-[2rem] transition-all hover:scale-[1.02] active:scale-95;
   }
 
   .industrial-button-premium-inner {
-    @apply relative w-full py-6 transition-all ease-in duration-75 rounded-[1.9rem] 
-           bg-zinc-950 flex items-center justify-center gap-4;
+    @apply relative w-full py-6 transition-all ease-in duration-75 rounded-[1.9rem] bg-zinc-950 flex items-center justify-center gap-4;
   }
 
   .industrial-action-btn {
-    @apply h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] 
-           transition-all active:scale-95 gap-2;
+    @apply h-14 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all active:scale-95 gap-2;
   }
 
   .industrial-action-btn-sm {
-    @apply h-10 rounded-xl font-black uppercase tracking-widest text-[10px]
-           transition-all active:scale-95 px-4;
+    @apply h-10 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all active:scale-95 px-4;
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -301,19 +319,35 @@
      ══════════════════════════════════════════════════════════════════════════ */
 
   .industrial-title-lg {
-    @apply text-2xl font-black uppercase tracking-tight text-zinc-950 dark:text-white leading-tight;
+    @apply text-2xl font-bold uppercase tracking-tight text-zinc-950 dark:text-white leading-tight;
+  }
+
+  .industrial-title-lg-white {
+    @apply text-2xl font-bold uppercase tracking-tight text-white dark:text-zinc-950 leading-tight;
   }
 
   .industrial-title-xl {
-    @apply text-3xl sm:text-4xl font-black tracking-tighter text-zinc-950 dark:text-white uppercase leading-none;
+    @apply text-3xl sm:text-4xl font-bold tracking-tighter text-zinc-950 dark:text-white uppercase leading-none;
+  }
+
+  .industrial-thumbnail {
+    @apply w-16 h-16 rounded-[1.25rem] bg-zinc-950 dark:bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 font-bold shadow-xl shadow-zinc-950/10 overflow-hidden relative transition-colors;
   }
 
   .industrial-label {
-    @apply text-[10px] font-black  text-ui-label/80;
+    @apply text-[10px] font-bold tracking-[0.2em] text-ui-label/70;
+  }
+
+  .industrial-label-sm {
+    @apply text-[.75rem] tracking-tight font-bold text-ui-label/70;
+  }
+
+  .industrial-label-accent {
+    @apply text-[10px] font-bold uppercase tracking-[0.4em] text-lime-500;
   }
 
   .industrial-metadata {
-    @apply text-[9px] font-black uppercase tracking-widest text-ui-muted;
+    @apply text-[9px] font-bold uppercase tracking-widest text-ui-muted;
   }
 
   .industrial-description {
@@ -325,21 +359,27 @@
   }
 
   .industrial-nav-link {
-    @apply inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest 
-           text-ui-muted hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors;
+    @apply inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ui-muted hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors;
   }
 
-  /* ══════════════════════════════════════════════════════════════════════════
-     ICON WRAPPERS
-     ══════════════════════════════════════════════════════════════════════════ */
-
   .industrial-icon-box {
-    @apply w-16 h-16 rounded-3xl bg-zinc-950 dark:bg-zinc-800 flex items-center justify-center 
-           shrink-0 border border-zinc-800 shadow-lg transition-colors group-hover:border-lime-500;
+    @apply w-16 h-16 rounded-3xl bg-lime-500 text-zinc-950 border-zinc-800 dark:bg-zinc-800 flex items-center justify-center shrink-0 border shadow-lg transition-colors group-hover:border-lime-500;
   }
 
   .industrial-icon-box-sm {
     @apply w-10 h-10 rounded-xl flex items-center justify-center transition-colors group-hover:bg-white/10;
+  }
+
+  .industrial-icon-box-lg {
+    @apply w-20 h-20 rounded-[2.5rem] bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center shrink-0 shadow-sm;
+  }
+
+  .industrial-toggle-container {
+    @apply inline-flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-800;
+  }
+
+  .industrial-select-trigger {
+    @apply bg-zinc-50 dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center gap-3;
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -347,24 +387,15 @@
      ══════════════════════════════════════════════════════════════════════════ */
 
   .industrial-tab-trigger {
-    @apply px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] 
-           transition-all outline-none
-           data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 
-           data-[state=active]:text-zinc-950 dark:data-[state=active]:text-zinc-50 
-           data-[state=active]:shadow-sm text-zinc-500;
+    @apply px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.1em] transition-all outline-none data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 dark:data-[state=active]:text-zinc-50 data-[state=active]:shadow-sm text-zinc-500;
   }
 
   .industrial-tag-badge {
-    @apply px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 
-           text-[10px] font-black uppercase tracking-widest text-ui-label 
-           border border-zinc-200/50 dark:border-zinc-800/50 transition-all duration-300;
+    @apply px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-[10px] font-bold uppercase tracking-widest text-ui-label border border-zinc-200/50 dark:border-zinc-800/50 transition-all duration-300;
   }
 
   .industrial-badge-lime {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full 
-           text-[10px] font-black uppercase tracking-widest 
-           bg-lime-400/10 text-lime-600 dark:text-lime-400 
-           border border-lime-400/20;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-lime-500/10 text-lime-600 dark:text-lime-400 border border-lime-400/20;
   }
 
   /* ───── NEW STANDARDIZED COMPONENTS ───── */
@@ -398,6 +429,7 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;

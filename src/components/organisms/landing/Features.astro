@@ -14,7 +14,7 @@ const { features } = landingCopy;
         <!-- Header de sección -->
         <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 animate-in fade-in duration-500">
             <LandingSectionBadge text={features.badge} variant="light" />
-            <h2 class="text-4xl md:text-5xl font-black tracking-tighter text-zinc-950 leading-tight">
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tighter text-zinc-950 leading-tight">
                 {features.title}<br/>
                 <span class="text-lime-500 italic">{features.titleHighlight}</span>
             </h2>
@@ -34,7 +34,7 @@ const { features } = landingCopy;
                     <div
                         class={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6 transition-all duration-300 ${
                             index === 0
-                                ? 'bg-zinc-800 group-hover:bg-lime-400 group-hover:scale-110'
+                                ? 'bg-zinc-800 group-hover:bg-lime-500 group-hover:scale-110'
                                 : 'bg-zinc-100 group-hover:bg-lime-100 group-hover:scale-110'
                         }`}
                         aria-hidden="true"
@@ -43,14 +43,14 @@ const { features } = landingCopy;
                     </div>
 
                     <!-- Número de feature -->
-                    <div class={`text-[10px] font-black uppercase tracking-widest mb-2 ${
+                    <div class={`text-[10px] font-bold uppercase tracking-widest mb-2 ${
                         index === 0 ? 'text-lime-400' : 'text-zinc-400'
                     }`} aria-hidden="true">
                         0{index + 1}
                     </div>
 
                     <!-- Título -->
-                    <h3 class={`text-xl font-black uppercase tracking-tight mb-3 leading-tight transition-colors ${
+                    <h3 class={`text-xl font-bold uppercase tracking-tight mb-3 leading-tight transition-colors ${
                         index === 0
                             ? 'text-white group-hover:text-lime-400'
                             : 'text-zinc-950 group-hover:text-lime-600'

@@ -73,7 +73,7 @@ export function PlanList({ planes, isProfessorView = true }: PlanListProps) {
           <div className="w-16 h-16 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center mb-4 shadow-sm">
             <FilePlus className="w-8 h-8 text-zinc-200" />
           </div>
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-zinc-400">
             {search ? c.emptySearch : c.empty}
           </p>
         </div>

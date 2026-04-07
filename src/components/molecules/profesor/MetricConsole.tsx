@@ -51,9 +51,9 @@ export function MetricConsole({
 
   const handleBlur = () => {
     if (readOnly) return;
-    const hasChanged = 
-      localValues.series !== series || 
-      localValues.reps !== reps || 
+    const hasChanged =
+      localValues.series !== series ||
+      localValues.reps !== reps ||
       localValues.peso !== (peso?.toString() || "") ||
       localValues.descanso !== descanso;
 
@@ -68,63 +68,68 @@ export function MetricConsole({
   };
 
   const copy = {
-    short: { series: "S", reps: "R", weight: "P", rest: "D" }
+    labels: {
+      series: "Series",
+      reps: "Repes",
+      weight: "Peso/Tiempo",
+      rest: "Descanso"
+    }
   };
 
   return (
     <div className={cn(
-      "flex flex-wrap items-center gap-2 sm:gap-3 bg-zinc-50 dark:bg-zinc-950 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 relative transition-opacity duration-300",
+      "flex flex-wrap items-end gap-3 sm:gap-4 bg-zinc-50 dark:bg-zinc-950 p-4 sm:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 relative transition-opacity duration-300",
       (isSaving || readOnly) && "opacity-70",
       className
     )}>
       {isSaving && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/20 rounded-2xl z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/20 rounded-3xl z-10">
           <Loader2 className="w-5 h-5 text-lime-400 animate-spin" />
         </div>
       )}
 
       {/* 1. Series */}
-      <MetricInput 
-        label={copy.short.series}
+      <MetricInput
+        label={copy.labels.series}
         value={localValues.series}
         onChange={(v) => setLocalValues(p => ({ ...p, series: Number(v) }))}
         onBlur={handleBlur}
         readOnly={readOnly}
         type="number"
-        minWidth="min-w-[65px]"
+        minWidth="min-w-[80px]"
       />
 
-      {/* 2. Reps */}
-      <MetricInput 
-        label={copy.short.reps}
+      {/* 2. Repes */}
+      <MetricInput
+        label={copy.labels.reps}
         value={localValues.reps}
         onChange={(v) => setLocalValues(p => ({ ...p, reps: v }))}
         onBlur={handleBlur}
         readOnly={readOnly}
-        minWidth="min-w-[70px]"
+        minWidth="min-w-[80px]"
       />
 
-      {/* 3. Peso */}
-      <MetricInput 
-        label={copy.short.weight}
+      {/* 3. Peso/Tiempo */}
+      <MetricInput
+        label={copy.labels.weight}
         value={localValues.peso}
         onChange={(v) => setLocalValues(p => ({ ...p, peso: v }))}
         onBlur={handleBlur}
         readOnly={readOnly}
-        placeholder="kg"
+        placeholder="kg / min"
         highlight
-        minWidth="min-w-[85px]"
+        minWidth="min-w-[120px]"
       />
 
       {/* 4. Descanso */}
-      <MetricInput 
-        label={copy.short.rest}
+      <MetricInput
+        label={copy.labels.rest}
         value={localValues.descanso}
         onChange={(v) => setLocalValues(p => ({ ...p, descanso: Number(v) }))}
         onBlur={handleBlur}
         readOnly={readOnly}
         type="number"
-        minWidth="min-w-[70px]"
+        minWidth="min-w-[90px]"
       />
     </div>
   );
@@ -144,16 +149,21 @@ interface MetricInputProps {
 
 function MetricInput({ label, value, onChange, onBlur, readOnly, type = "text", placeholder, highlight, minWidth }: MetricInputProps) {
   return (
-    <div className={cn("flex flex-col gap-1.5 flex-1 md:flex-none", minWidth)}>
-      <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-xl p-1 shadow-inner border border-zinc-200/50 dark:border-zinc-800/50 group/input focus-within:border-lime-500/30 transition-all">
-        <div className={cn(
-          "w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-[10px] font-black shadow-sm shrink-0 uppercase border transition-all",
-          highlight 
-            ? "bg-lime-400 text-zinc-950 border-lime-500/20" 
-            : "bg-white dark:bg-zinc-950 text-zinc-400 dark:text-zinc-600 border-zinc-100 dark:border-zinc-800"
-        )}>
-          {label}
-        </div>
+    <div className={cn("flex flex-col gap-2.5 flex-1 md:flex-none", minWidth)}>
+      {/* Label on top with industrial design */}
+      <span className={cn(
+        "industrial-label-sm px-1",
+        highlight && "text-lime-500 font-black uppercase"
+      )}>
+        {label}
+      </span>
+
+      <div className={cn(
+        "flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-2xl p-1 shadow-inner border transition-all group/input focus-within:ring-2 focus-within:ring-lime-500/20",
+        highlight 
+          ? "border-lime-500/30 bg-lime-500/5 focus-within:border-lime-500" 
+          : "border-zinc-200/50 dark:border-zinc-800/50 focus-within:border-zinc-400 dark:focus-within:border-zinc-700"
+      )}>
         <input
           type={type}
           value={value}
@@ -161,7 +171,7 @@ function MetricInput({ label, value, onChange, onBlur, readOnly, type = "text", 
           onBlur={onBlur}
           readOnly={readOnly}
           placeholder={placeholder}
-          className="w-full bg-transparent border-none focus:ring-0 text-center font-black text-sm text-zinc-950 dark:text-white h-10 sm:h-11 placeholder:text-zinc-400/30"
+          className="w-full bg-transparent border-none focus:ring-0 text-center font-bold text-base text-zinc-950 dark:text-white h-12 placeholder:text-zinc-400/30"
         />
       </div>
     </div>

@@ -53,7 +53,7 @@ export const InconsistencyAlert: React.FC<InconsistencyAlertProps> = ({
               .replace('{actual}', actualDays.toString())
               .replace('{plan}', planDays.toString())}
           </p>
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/70">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600/70">
             Inconsistencia detectada
           </p>
         </div>

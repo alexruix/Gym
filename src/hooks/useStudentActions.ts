@@ -80,6 +80,10 @@ export function useStudentActions() {
         }
 
         const cleanPhone = phone.replace(/\D/g, "");
+        if (!cleanPhone) {
+            toast.error("Formato de teléfono no válido");
+            return;
+        }
         const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(finalMessage)}`;
 
         // Safenet contra Popup Blockers de navegadores

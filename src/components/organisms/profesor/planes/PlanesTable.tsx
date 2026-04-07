@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { 
-  FileText, 
-  MoreHorizontal, 
-  Eye, 
-  Edit3, 
-  Copy, 
+import {
+  FileText,
+  MoreHorizontal,
+  Eye,
+  Edit3,
+  Copy,
   Trash2,
   Layers,
   Users
@@ -66,7 +66,7 @@ export function PlanesTable({ planes, onDelete, onDuplicate }: Props) {
       render: (plan) => (
         <div className="flex items-center justify-center gap-2">
           {plan.studentsCount > 0 ? (
-            <span className="inline-flex items-center gap-1.5 bg-lime-100 text-lime-800 dark:bg-lime-900/40 dark:text-lime-400 px-3 py-1 rounded-full text-xs font-black tracking-widest border border-lime-200 dark:border-lime-500/20">
+            <span className="inline-flex items-center gap-1.5 bg-lime-100 text-lime-800 dark:bg-lime-900/40 dark:text-lime-400 px-3 py-1 rounded-full text-xs font-bold tracking-widest border border-lime-200 dark:border-lime-500/20">
               <Users className="w-3.5 h-3.5" aria-hidden="true" />
               {plan.studentsCount}
             </span>
@@ -101,7 +101,7 @@ export function PlanesTable({ planes, onDelete, onDuplicate }: Props) {
                 </a>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => onDuplicate?.(plan.id)}
                 className="rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 font-bold text-lime-600 dark:text-lime-400 focus:bg-lime-50 dark:focus:bg-lime-500/10 focus:text-lime-700"
               >
@@ -109,7 +109,7 @@ export function PlanesTable({ planes, onDelete, onDuplicate }: Props) {
                 {c.dropdownMenu.duplicatePlan}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => onDelete?.(plan)}
                 className="rounded-lg cursor-pointer text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 focus:bg-red-50 focus:text-red-700"
               >

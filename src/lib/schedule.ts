@@ -6,17 +6,18 @@
  */
 
 /**
- * Calcula qué número de día del plan le corresponde a una fecha dada.
- * Usa normalización local (Argentina UTC-3) para evitar desfases de medianoche.
+ * Calcula qué número de día del plan le corresponde a una fecha dada,
+ * respetando los días de asistencia del alumno si se proveen.
  *
- * @example
- * // fecha_inicio: "2024-03-30", hoy: "2024-04-02" → 4
+ * @param diasAsistencia Array de números de día de la semana (0-6, 0=Domingo, 1=Lunes...)
  */
-export function getDayNumber(fechaInicio: string | Date, fechaHoy: Date | string = new Date()): number {
-  // 1. Normalizar a ISO String YYYY-MM-DD
+export function getDayNumber(
+  fechaInicio: string | Date, 
+  fechaHoy: Date | string = new Date(),
+  diasAsistencia?: number[]
+): number {
   const getISO = (d: string | Date) => {
     if (typeof d === "string") return d.split("T")[0];
-    // Si es Date, lo asimilamos a Argentina Time (UTC-3) antes de sacar el ISO
     const arg = new Date(d.getTime() - (3 * 60 * 60 * 1000));
     return arg.toISOString().split("T")[0];
   };
@@ -24,30 +25,58 @@ export function getDayNumber(fechaInicio: string | Date, fechaHoy: Date | string
   const inicioStr = getISO(fechaInicio);
   const hoyStr = getISO(fechaHoy);
 
-  if (inicioStr === hoyStr) return 1;
-
-  // 2. Calcular diferencia de días puros
+  // Parsear a fechas puras de medianoche para iteración
   const [y1, m1, d1] = inicioStr.split("-").map(Number);
   const [y2, m2, d2] = hoyStr.split("-").map(Number);
+  const start = new Date(Date.UTC(y1, m1 - 1, d1, 12, 0, 0));
+  const target = new Date(Date.UTC(y2, m2 - 1, d2, 12, 0, 0));
 
-  const utc1 = Date.UTC(y1, m1 - 1, d1);
-  const utc2 = Date.UTC(y2, m2 - 1, d2);
+  if (target < start) return 0;
 
-  const diffMs = utc2 - utc1;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  // CASO A: Lineal (Sin filtrar por días de asistencia)
+  if (!diasAsistencia || diasAsistencia.length === 0) {
+    const diffMs = target.getTime() - start.getTime();
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+  }
 
-  return diffDays + 1;
+  // CASO B: Profesional (Solo avanza en días de asistencia)
+  const isAttendanceDay = (date: Date) => diasAsistencia.includes(date.getUTCDay());
+
+  // El "Día 1" es el primer día de asistencia que ocurra >= fechaInicio
+  let firstActualDay = new Date(start);
+  let safeGuard = 0;
+  while (!isAttendanceDay(firstActualDay) && safeGuard < 7) {
+    firstActualDay.setUTCDate(firstActualDay.getUTCDate() + 1);
+    safeGuard++;
+  }
+
+  if (target < firstActualDay) return 0; // Días previos al primer entrenamiento real
+
+  let count = 0;
+  let iter = new Date(firstActualDay);
+  while (iter <= target) {
+    if (isAttendanceDay(iter)) {
+      count++;
+    }
+    iter.setUTCDate(iter.getUTCDate() + 1);
+  }
+
+  return count;
 }
 
-/**
- * Calcula el número de semana dentro del ciclo del plan.
- *
- * @example
- * // Día 1-7 → Semana 1, Día 8-14 → Semana 2, etc.
- * getWeekNumber("2024-03-30", new Date("2024-04-02")) // 1
- */
-export function getWeekNumber(fechaInicio: string | Date, fechaHoy: Date | string = new Date()): number {
-  const dayNumber = getDayNumber(fechaInicio, fechaHoy);
+export function getWeekNumber(
+  fechaInicio: string | Date, 
+  fechaHoy: Date | string = new Date(),
+  diasAsistencia?: number[]
+): number {
+  const dayNumber = getDayNumber(fechaInicio, fechaHoy, diasAsistencia);
+  if (dayNumber === 0) return 1;
+
+  // Si usamos asistencia, la semana se calcula segun la frecuencia semanal
+  if (diasAsistencia && diasAsistencia.length > 0) {
+    return Math.ceil(dayNumber / diasAsistencia.length);
+  }
+  
   return Math.ceil(dayNumber / 7);
 }
 
@@ -67,14 +96,23 @@ export function getCycleInfo(fechaInicio: string | Date, fechaHoy: Date | string
 }
 
 /**
- * Calcula el día estructural (1 a N) dentro del ciclo completo del plan.
- * Útil para mapear contra rutinas_diarias.dia_numero.
+ * Calcula el día estructural (físico) del plan comparando la visita absoluta
+ * del alumno contra los días que tienen rutinas configuradas en el plan.
+ * 
+ * @param availableDiaNumeros Array de dia_numero ordenados (ej. [2, 5, 8])
  */
-export function getStructuralDay(fechaInicio: string | Date, fechaHoy: Date | string = new Date(), duracionSemanas: number = 4): number {
-  const diaAbs = getDayNumber(fechaInicio, fechaHoy);
-  const totalDays = Math.max(1, duracionSemanas * 7);
-  const res = ((diaAbs - 1) % totalDays) + 1;
-  return res;
+export function getStructuralDay(
+  fechaInicio: string | Date, 
+  fechaHoy: Date | string = new Date(),
+  availableDiaNumeros: number[] = [1],
+  diasAsistencia?: number[]
+): number {
+  const diaAbs = getDayNumber(fechaInicio, fechaHoy, diasAsistencia);
+  if (diaAbs <= 0 || !availableDiaNumeros || availableDiaNumeros.length === 0) return 0;
+  
+  // Mapeo por índice: La visita N mapea al índice (N-1) del array de días disponibles
+  const index = (diaAbs - 1) % availableDiaNumeros.length;
+  return availableDiaNumeros[index];
 }
 
 /**

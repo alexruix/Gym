@@ -1,10 +1,10 @@
 ﻿import * as React from "react";
-import { 
-  User, 
-  ExternalLink, 
-  Copy, 
-  Moon, 
-  LogOut, 
+import {
+  User,
+  ExternalLink,
+  Copy,
+  Moon,
+  LogOut,
   Check,
   Loader2
 } from "lucide-react";
@@ -35,8 +35,8 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
 
   // Initialize theme from localStorage/document
   React.useEffect(() => {
-    const isDarkTheme = document.documentElement.classList.contains("dark") || 
-                       localStorage.getItem("theme") === "dark";
+    const isDarkTheme = document.documentElement.classList.contains("dark") ||
+      localStorage.getItem("theme") === "dark";
     setIsDark(isDarkTheme);
   }, []);
 
@@ -87,25 +87,25 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
           {profesor.foto_url ? (
             <img src={profesor.foto_url} alt={profesor.nombre} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-xs font-black text-zinc-400">{initials}</span>
+            <span className="text-xs font-bold text-zinc-400">{initials}</span>
           )}
         </button>
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent align="end" className="w-64 p-2 rounded-2xl shadow-2xl border-zinc-200 dark:border-zinc-800">
         <DropdownMenuLabel className="px-3 py-4">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Entrenador</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Entrenador</span>
             <span className="text-sm font-extrabold text-zinc-900 dark:text-zinc-50 truncate">
               {profesor.nombre}
             </span>
           </div>
         </DropdownMenuLabel>
-        
+
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
-        
+
         <div className="py-1">
-          <DropdownMenuItem 
+          <DropdownMenuItem
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-900"
             onClick={() => window.location.href = "/profesor/configuracion"}
           >
@@ -114,7 +114,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
           </DropdownMenuItem>
 
           {profesor.slug && (
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-900"
               onClick={() => window.open(`/p/${profesor.slug}`, "_blank")}
             >
@@ -127,7 +127,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
 
         <div className="py-1">
-          <DropdownMenuItem 
+          <DropdownMenuItem
             className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-900"
             onClick={copyLandingLink}
           >
@@ -149,7 +149,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
 
-        <DropdownMenuItem 
+        <DropdownMenuItem
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive mt-1"
           onClick={handleLogout}
           disabled={isLoggingOut}

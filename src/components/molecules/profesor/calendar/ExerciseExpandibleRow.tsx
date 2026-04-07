@@ -56,15 +56,15 @@ export function ExerciseExpandibleRow({
         <div className="flex items-center gap-4 flex-1 w-full min-w-0 relative group/ej">
           {/* 1. NAVEGACIÓN + THUMBNAIL */}
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-            <button 
-              onClick={onToggle} 
+            <button
+              onClick={onToggle}
               className="flex flex-col items-center gap-1.5 group/toggle p-1 -m-1"
               aria-label={isExpanded ? "Contraer" : "Expandir"}
             >
               <div className={cn(
-                "w-7 h-7 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center text-[10px] font-black transition-all",
-                ej.completado 
-                  ? "bg-lime-400 text-zinc-950" 
+                "w-7 h-7 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all",
+                ej.completado
+                  ? "bg-lime-500 text-zinc-950"
                   : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 group-hover/toggle:bg-zinc-950 group-hover/toggle:text-white"
               )}>
                 {ej.completado ? "✓" : idx + 1}
@@ -90,23 +90,23 @@ export function ExerciseExpandibleRow({
           <div className="min-w-0 flex-1">
             <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5">
               <h5 className={cn(
-                "font-black text-sm uppercase tracking-tight truncate leading-tight", 
+                "font-bold text-sm uppercase tracking-tight truncate leading-tight",
                 ej.completado ? "text-zinc-400 line-through" : "text-zinc-950 dark:text-white"
               )}>
                 {ej.nombre}
               </h5>
               {ej.is_variation && (
-                <span className="text-[7px] font-black uppercase tracking-widest text-white bg-fuchsia-600 px-1.5 py-0.5 rounded leading-none shrink-0">
+                <span className="text-[7px] font-bold uppercase tracking-widest text-white bg-fuchsia-600 px-1.5 py-0.5 rounded leading-none shrink-0">
                   {copy.variant}
                 </span>
               )}
             </div>
-            
+
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
               {!readOnly && (
-                <button 
+                <button
                   onClick={(e) => { e.stopPropagation(); onSwap(); }}
-                  className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+                  className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
                 >
                   <RefreshCw className="w-3 h-3" />
                   Intercambiar
@@ -114,7 +114,7 @@ export function ExerciseExpandibleRow({
               )}
 
               {ej.series_real && !isExpanded && (
-                <span className="text-[9px] font-black text-lime-500 uppercase tracking-widest flex items-center gap-1">
+                <span className="text-[9px] font-bold text-lime-500 uppercase tracking-widest flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" /> {copy.real}: {ej.series_real}×{ej.reps_real} @ {ej.peso_real}kg
                 </span>
               )}
@@ -125,10 +125,10 @@ export function ExerciseExpandibleRow({
         {/* Consola Unificada (Métrica) o Resumen Compacto */}
         {isCompact && !isExpanded ? (
           <div className="flex flex-col items-end gap-1 shrink-0">
-            <span className="text-[11px] font-black text-zinc-950 dark:text-white uppercase tracking-[0.2em] leading-none">
+            <span className="text-[11px] font-bold text-zinc-950 dark:text-white uppercase tracking-[0.2em] leading-none">
               {ej.series_plan}×{ej.reps_plan}
             </span>
-            <span className="text-[10px] font-black text-lime-500 uppercase tracking-widest leading-none">
+            <span className="text-[10px] font-bold text-lime-500 uppercase tracking-widest leading-none">
               @{ej.peso_plan}kg
             </span>
           </div>

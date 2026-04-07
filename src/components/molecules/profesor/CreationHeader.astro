@@ -12,26 +12,32 @@ const { title, subtitle, backHref, backLabel = "Volver" } = Astro.props;
 ---
 
 <div class="space-y-6">
-  {backHref && (
-    <a 
-      href={backHref} 
-      class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-lime-500 transition-all group"
-    >
-      <div class="p-1.5 rounded-lg border border-zinc-100 dark:border-zinc-900 group-hover:border-lime-500/30 transition-colors">
-        <MoveLeft className="w-3.5 h-3.5" />
-      </div>
-      {backLabel}
-    </a>
-  )}
+  {
+    backHref && (
+      <a
+        href={backHref}
+        class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-lime-500 transition-all group"
+      >
+        <div class="p-1.5 rounded-lg border border-zinc-100 dark:border-zinc-900 group-hover:border-lime-500/30 transition-colors">
+          <MoveLeft className="w-3.5 h-3.5" />
+        </div>
+        {backLabel}
+      </a>
+    )
+  }
 
   <header class="space-y-1.5">
-    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50">
+    <h1
+      class="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50"
+    >
       {title}
     </h1>
-    {subtitle && (
-      <p class="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 font-medium max-w-2xl leading-relaxed">
-        {subtitle}
-      </p>
-    )}
+    {
+      subtitle && (
+        <p class="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 font-medium max-w-2xl leading-relaxed">
+          {subtitle}
+        </p>
+      )
+    }
   </header>
 </div>

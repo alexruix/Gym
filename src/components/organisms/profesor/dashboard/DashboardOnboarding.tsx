@@ -22,7 +22,7 @@ export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
       {/* Elemento de diseño de fondo */}
       <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-64 h-64 bg-lime-500/20 rounded-full blur-3xl pointer-events-none" />
 
-      <button 
+      <button
         onClick={() => setIsVisible(false)}
         className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/10 z-20"
         aria-label="Ocultar guía de inicio"
@@ -32,7 +32,7 @@ export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
 
       <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
         <div className="max-w-xs shrink-0">
-          <h2 className="text-xl font-black mb-2 flex items-center gap-2">
+          <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-lime-400" />
             {c.title}
           </h2>
@@ -40,7 +40,7 @@ export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
             {c.description}
           </p>
           <div className="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-lime-400 h-full transition-all duration-500 rounded-full" style={{ width: `${(completedSteps / 3) * 100}%` }} />
+            <div className="bg-lime-500 h-full transition-all duration-500 rounded-full" style={{ width: `${(completedSteps / 3) * 100}%` }} />
           </div>
           <p className="text-xs text-zinc-500 mt-2 font-bold uppercase tracking-widest">{c.progressText.replace("{n}", String(completedSteps))}</p>
         </div>
@@ -59,12 +59,12 @@ export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
           <a href={hasPlans ? "#" : "/profesor/planes/new"} className={`border p-4 rounded-2xl flex flex-col h-full transition-all ${hasPlans ? 'bg-white/5 border-white/10 opacity-60 cursor-default' : 'bg-white/5 border-lime-500/30 hover:bg-white/10 hover:-translate-y-1 group/card cursor-pointer relative overflow-hidden'}`}>
             {!hasPlans && <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />}
             <div className="flex justify-between items-start mb-3 relative z-10">
-              <IconWrapper 
-                icon={hasPlans ? CheckCircle2 : ClipboardList} 
-                color={hasPlans ? "primary" : "base"} 
-                size="md" 
+              <IconWrapper
+                icon={hasPlans ? CheckCircle2 : ClipboardList}
+                color={hasPlans ? "primary" : "base"}
+                size="md"
                 shape="rounded"
-                className={!hasPlans ? "group-hover/card:bg-lime-400 group-hover/card:text-zinc-950 transition-colors" : ""}
+                className={!hasPlans ? "group-hover/card:bg-lime-500 group-hover/card:text-zinc-950 transition-colors" : ""}
               />
               {!hasPlans && <Circle className="w-4 h-4 text-zinc-500" />}
             </div>
@@ -75,10 +75,10 @@ export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
           {/* Paso 3: Agregar Alumno */}
           <a href={hasStudents ? "#" : "/profesor/alumnos/new"} className={`border p-4 rounded-2xl flex flex-col h-full transition-all ${hasStudents ? 'bg-white/5 border-white/10 opacity-60 cursor-default' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:-translate-y-1 group/card cursor-pointer'}`}>
             <div className="flex justify-between items-start mb-3">
-              <IconWrapper 
-                icon={hasStudents ? CheckCircle2 : UserPlus} 
-                color={hasStudents ? "primary" : "base"} 
-                size="md" 
+              <IconWrapper
+                icon={hasStudents ? CheckCircle2 : UserPlus}
+                color={hasStudents ? "primary" : "base"}
+                size="md"
                 shape="rounded"
               />
               {!hasStudents && <Circle className="w-4 h-4 text-zinc-500" />}

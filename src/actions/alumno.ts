@@ -119,9 +119,10 @@ export const alumnoActions = {
       }
 
       // 3. Calcular qué día del plan le corresponde hoy
+      const diasAsistencia = alumno.dias_asistencia || [];
       const fechaInicio = alumno.fecha_inicio || getTodayISO();
-      const diaAbsoluto = getDayNumber(fechaInicio, fechaReal);
-      const semanaActual = getWeekNumber(fechaInicio, fechaReal);
+      const diaAbsoluto = getDayNumber(fechaInicio, fechaReal, diasAsistencia);
+      const semanaActual = getWeekNumber(fechaInicio, fechaReal, diasAsistencia);
 
       // 4. Buscar las rutinas del plan para saber cuántos días tiene
       const { data: rutinasDiarias } = await supabase
@@ -129,6 +130,9 @@ export const alumnoActions = {
         .select("id, dia_numero, nombre_dia")
         .eq("plan_id", alumno.plan_id)
         .order("dia_numero", { ascending: true });
+
+      const availableDiaNumeros = (rutinasDiarias || []).map(r => r.dia_numero);
+      const totalRoutines = availableDiaNumeros.length || 1;
 
       // 4b. Obtener detalles del plan (duración para ciclos)
       const { data: planDetalle } = await supabase
@@ -148,11 +152,16 @@ export const alumnoActions = {
         diaParaNombre = rutinaDeHoy.dia_numero;
       } else {
         // Modo Automático: Siguiendo estructura del plan
-        const diaEstructural = getStructuralDay(fechaInicio, new Date(fechaReal), planDetalle?.duracion_semanas || 1);
+        const diaEstructural = getStructuralDay(fechaInicio, new Date(fechaReal), availableDiaNumeros, diasAsistencia);
+        
+        if (diaEstructural === 0) {
+          throw new Error("Día de descanso. No hay rutina programada para hoy según tus días de asistencia.");
+        }
+
         rutinaDeHoy = rutinasDiarias.find((r) => r.dia_numero === diaEstructural);
         
         if (!rutinaDeHoy) {
-          throw new Error(`Día de descanso (D${diaEstructural}). No hay rutina programada.`);
+          throw new Error(`No se encontró la rutina D${diaEstructural} en el plan.`);
         }
         diaParaNombre = diaEstructural;
       }
@@ -363,7 +372,7 @@ export const alumnoActions = {
         // El profesor está pidiendo el calendario de un alumno
         const { data: a, error: e } = await supabase
           .from("alumnos")
-          .select("id, fecha_inicio, plan_id, profesor_id")
+          .select("id, fecha_inicio, plan_id, profesor_id, dias_asistencia")
           .eq("id", alumnoId)
           .single();
         
@@ -375,7 +384,7 @@ export const alumnoActions = {
         // Autoconsulta del alumno
         const { data: a, error: e } = await supabase
           .from("alumnos")
-          .select("id, fecha_inicio, plan_id")
+          .select("id, fecha_inicio, plan_id, dias_asistencia")
           .or(`id.eq.${user.id},user_id.eq.${user.id}`)
           .single();
         
@@ -424,11 +433,14 @@ export const alumnoActions = {
       const { data: rutinasPlan } = await supabase
         .from("rutinas_diarias")
         .select("id, dia_numero")
-        .eq("plan_id", alumno.plan_id);
+        .eq("plan_id", alumno.plan_id)
+        .order("dia_numero", { ascending: true });
       
       const activeDaysMap = new Map((rutinasPlan || []).map(r => [r.dia_numero, r.id]));
+      const availableDiaNumeros = (rutinasPlan || []).map(r => r.dia_numero);
 
       // 4. Construir el array de días con cálculo de numero_dia_plan para los que no existen
+      const diasAsistencia = alumno.dias_asistencia || [];
       const fechaInicio = alumno.fecha_inicio || hoyStr;
       const days = [];
       const currentDate = new Date(desde);
@@ -445,11 +457,11 @@ export const alumnoActions = {
           planDetalle?.duracion_semanas || 4
         );
 
-        const numeroDia = sesion?.numero_dia_plan ?? getDayNumber(fechaInicio, currentDate);
-        const semana = sesion?.semana_numero ?? absoluteWeek;
-        const diaEstructural = getStructuralDay(fechaInicio, currentDate, planDetalle?.duracion_semanas || 1);
+        const numeroDia = sesion?.numero_dia_plan ?? getDayNumber(fechaInicio, currentDate, diasAsistencia);
+        const semana = sesion?.semana_numero ?? getWeekNumber(fechaInicio, currentDate, diasAsistencia);
+        const diaEstructural = getStructuralDay(fechaInicio, currentDate, availableDiaNumeros, diasAsistencia);
         const rutinaIdAtStructure = activeDaysMap.get(diaEstructural);
-        const hasRoutineAtStructure = !!rutinaIdAtStructure;
+        const hasRoutineAtStructure = !!rutinaIdAtStructure && diaEstructural > 0;
 
         let status: string;
         if (sesion) {
@@ -593,7 +605,7 @@ export const alumnoActions = {
       return {
         success: true,
         count: metricsToPersist.length,
-        mensaje: `Actualizamos semana ${input.semana_numero} y las ${metricsToPersist.length - 1} posteriores.`
+        mensaje: `Actualizamos esta semana y las siguientes.`
       };
     }
   }),
