@@ -36,7 +36,8 @@ if (error) {
 }
 
 // Map to the component's expected interface
-const mappedStudents = (alumnos || []).map(a => ({
+const _alumnos = (alumnos || []) as any[];
+const mappedStudents = _alumnos.map(a => ({
   id: a.id,
   name: a.nombre,
   planName: Array.isArray(a.planes) ? a.planes[0]?.nombre || null : (a.planes as any)?.nombre || null,

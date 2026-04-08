@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import { Toaster } from '@/components/ui/sonner';
 
 interface Props {
@@ -25,6 +26,7 @@ const { title, description = 'Gestioná tu gimnasio sin hojas de cálculo. Plane
 		
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		<ClientRouter />
 
 		<!-- Theme Script (Prevent Flash) -->
 		<script is:inline>

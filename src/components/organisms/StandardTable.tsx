@@ -115,14 +115,17 @@ export function StandardTable<T extends { id: string | number }>({
                     className={cn(
                       "group transition-colors relative",
                       responsiveMode === "stack" ? "block md:table-row border-b-8 border-zinc-50/50 dark:border-zinc-900/20 md:border-b-0 last:border-b-0" : "",
-                      (onRowClick || rowHref) && "hover:bg-zinc-50/80 dark:hover:bg-lime-500/[0.02]"
+                      (onRowClick || rowHref) && "hover:bg-zinc-50/80 dark:hover:bg-lime-500/[0.02] cursor-pointer"
                     )}
                     onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      // Evitar navegación si el click fue en un botón, link o menú
+                      if (target.closest('button, a, [role="menuitem"]')) return;
+
                       if (onRowClick) {
-                        const target = e.target as HTMLElement;
-                        if (!target.closest('button, a, [role="menuitem"]')) {
-                          onRowClick(item);
-                        }
+                        onRowClick(item);
+                      } else if (rowHref) {
+                        window.location.href = rowHref(item);
                       }
                     }}
                   >

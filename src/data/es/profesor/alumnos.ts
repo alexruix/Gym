@@ -78,8 +78,8 @@ export const alumnosListCopy = {
     action: "Ver todos",
     columns: {
       name: "Nombre",
-      plan: "Plan actual",
-      status: "Estado",
+      plan: "Planificación",
+      phone: "WhatsApp",
     },
     filters: {
       searchPlaceholder: "Buscar por alumno o plan...",

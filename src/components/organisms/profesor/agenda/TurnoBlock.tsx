@@ -58,40 +58,26 @@ export function TurnoBlock({
     <div
       ref={innerRef}
       className={cn(
-        "relative pl-4 md:pl-6 transition-all duration-500",
-        isActive ? "opacity-100" : (activeDay !== realTodayName ? "opacity-100" : "opacity-60 grayscale-[0.5]")
+        "relative transition-all duration-500",
+        isActive ? "opacity-100" : (activeDay !== realTodayName ? "opacity-100" : "opacity-60")
       )}
     >
-      <div className={cn(
-        "absolute left-0 top-0 bottom-0 w-1 rounded-full",
-        isActive ? "bg-lime-500" : "bg-zinc-100 dark:bg-zinc-800"
-      )} />
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-baseline gap-3">
-          <span className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-50 uppercase tracking-tighter">
-            {turno.hora_inicio.substring(0, 5)}
-          </span>
-          <div className="flex flex-col">
-            <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest leading-none">
-              {turno.nombre}
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-2">
+            <div className={cn("w-1 h-4 rounded-full", isActive ? "bg-lime-500" : "bg-zinc-200 dark:bg-zinc-800")} />
+            <span className="text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                {turno.nombre} <span className="ml-1 text-zinc-950 dark:text-zinc-100">{turno.hora_inicio.slice(0, 5)}</span>
             </span>
-          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border",
-            isFull
-              ? "bg-white dark:bg-zinc-950 border-red-200 dark:border-red-900/50 text-red-500"
-              : "bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 text-zinc-400"
-          )}>
-            <Users className="w-3 h-3" />
-            <span>{turnoStudents.length} / {turno.capacidad_max}</span>
-          </div>
+        <div className={cn(
+            "text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-lg border",
+            isFull ? "border-red-200 text-red-600 dark:text-red-400" : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300"
+        )}>
+            {turnoStudents.length} / {turno.capacidad_max}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="flex flex-col gap-3">
         {turnoStudents.length > 0 ? (
           turnoStudents.map(student => (
             <AgendaStudentCard
@@ -104,7 +90,9 @@ export function TurnoBlock({
             />
           ))
         ) : (
-          <p className="text-xs font-medium text-zinc-600 italic py-4">{t.empty}</p>
+          <div className="py-12 flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{t.empty}</p>
+          </div>
         )}
       </div>
     </div>

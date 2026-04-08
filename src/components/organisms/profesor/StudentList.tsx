@@ -2,7 +2,7 @@ import React from "react";
 import { User as UserIcon, Archive, Zap } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { alumnosListCopy } from "@/data/es/profesor/alumnos";
-import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
+import type { StatusType } from "@/components/molecules/StatusBadge";
 import { toast } from "sonner";
 import { actions } from "astro:actions";
 import { StandardTable, type TableColumn } from "@/components/organisms/StandardTable";
@@ -67,7 +67,7 @@ export function StudentList({ students }: Props) {
   const handleSort = (items: typeof studentsWithTags, order: string) => {
     return [...items].sort((a, b) => {
       if (order === "name-asc") return a.name.localeCompare(b.name);
-      if (order === "status-desc") return a.status.localeCompare(b.status);
+      if (order === "phone-asc") return (a.telefono || "").localeCompare(b.telefono || "");
       return 0;
     });
   };
@@ -100,8 +100,12 @@ export function StudentList({ students }: Props) {
       ),
     },
     {
-      header: c.columns.status,
-      render: (s) => <StatusBadge status={s.status} />,
+      header: (c.columns as any).phone,
+      render: (s) => (
+        <span className="text-zinc-500 dark:text-zinc-400 font-medium font-mono text-xs tabular-nums">
+          {s.telefono || <span className="text-zinc-300 dark:text-zinc-800 italic">No cargado</span>}
+        </span>
+      ),
     },
   ];
 
@@ -145,7 +149,7 @@ export function StudentList({ students }: Props) {
 
   const sortOptions = [
     { label: "Nombre A-Z", value: "name-asc" },
-    { label: "Por Estado", value: "status-desc" },
+    { label: "Por Teléfono", value: "phone-asc" },
   ];
 
   return (

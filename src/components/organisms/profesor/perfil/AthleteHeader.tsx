@@ -1,6 +1,5 @@
-import React, { useMemo } from "react";
-import { actions } from "astro:actions";
-import { Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, RefreshCw, Copy, ChevronRight } from "lucide-react";
+import React, { useMemo, useState, useEffect } from "react";
+import { Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, Copy, ChevronRight, Plus, Mail, Phone, ArrowLeft } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { cn } from "@/lib/utils";
-import { PlanMetric } from "@/components/atoms/profesor/planes/PlanMetric";
 import { SubscriptionBadge } from "@/components/atoms/SubscriptionBadge";
 import { StudentPaymentSheet } from "@/components/organisms/profesor/pagos/StudentPaymentSheet";
 import { useStudentActions } from "@/hooks/useStudentActions";
@@ -39,17 +37,20 @@ interface Props {
   planName?: string | null;
 }
 
-/**
- * AthleteHeader: Consola de telemetría para el perfil del alumno.
- * Prioriza datos accionables para el coaching (Ãšltima sesión) y KPIs administrativos (Pago).
- */
 export function AthleteHeader({ alumno, planName }: Props) {
-  const { header, sidebar } = athleteProfileCopy;
-  const [isPaymentSheetOpen, setPaymentSheetOpen] = React.useState(false);
-  const [localPagoActivo, setLocalPagoActivo] = React.useState(alumno.pago_activo);
-  const [localMonto, setLocalMonto] = React.useState(alumno.monto);
-
+  const { header } = athleteProfileCopy;
+  const [isPaymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
   const { copyGuestLink, openWhatsApp } = useStudentActions();
+
+  // Handle scroll for PWA sticky effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 80);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const lastSessionText = useMemo(() => {
     if (!alumno.ultima_sesion) return header.metrics.never;
@@ -57,137 +58,148 @@ export function AthleteHeader({ alumno, planName }: Props) {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - last.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
     if (diffDays === 0) return header.metrics.today;
     if (diffDays === 1) return header.metrics.yesterday;
     return header.metrics.daysAgo.replace("{n}", diffDays.toString());
   }, [alumno.ultima_sesion, header.metrics]);
 
-  const startDateText = useMemo(() => {
-    if (!alumno.fecha_inicio) return "â€”";
-    return new Date(alumno.fecha_inicio).toLocaleDateString("es-AR", {
-      day: "2-digit",
-      month: "short",
-      year: "2-digit"
-    });
-  }, [alumno.fecha_inicio]);
-
-  const currentStatus = localPagoActivo?.estado === 'pagado' ? 'pagado' : alumno.estado;
+  const currentStatus = alumno.pago_activo?.estado === 'pagado' ? 'pagado' : alumno.estado;
 
   return (
-    <div className="relative overflow-hidden bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl shadow-zinc-950/5 group">
-      {/* Visual Accent Layer */}
-      <div className="h-2 w-full bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 dark:from-lime-400/20 dark:to-emerald-500/10" />
+    <>
+      {/* Spacer to prevent layout jump when header sticks */}
+      <div className={cn("h-40 md:h-48 transition-all", isSticky ? "block" : "hidden")} />
 
-      <div className="p-8 md:p-10 space-y-10 relative z-10">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-
-          {/* Identity Section */}
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-3xl bg-zinc-950 flex items-center justify-center text-3xl font-bold text-lime-400 shadow-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500 border border-zinc-800">
+      <div className={cn(
+        "z-50 transition-all duration-500",
+        isSticky 
+          ? "fixed top-0 left-0 right-0 px-4 py-2 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-200 dark:border-zinc-800 shadow-xl" 
+          : "relative"
+      )}>
+        <div className={cn(
+          "max-w-7xl mx-auto flex items-center justify-between gap-4",
+          isSticky ? "h-16" : "bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-6 md:p-10 flex-col md:flex-row shadow-2xl shadow-zinc-950/5"
+        )}>
+          
+          {/* Identity & Nav Group */}
+          <div className="flex items-center gap-4 min-w-0">
+            {isSticky && (
+              <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full shrink-0">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            )}
+            
+            <div className="relative shrink-0">
+              <div className={cn(
+                "rounded-2xl bg-zinc-950 flex items-center justify-center font-bold text-lime-400 border border-zinc-800 transition-all",
+                isSticky ? "w-10 h-10 text-sm" : "w-16 h-16 md:w-20 md:h-20 text-2xl md:text-3xl rotate-3"
+              )}>
                 {alumno.nombre.substring(0, 2).toUpperCase()}
               </div>
-              <div className="absolute -bottom-2 -right-2 flex flex-col gap-1 items-end">
-                <StatusBadge status={currentStatus as StatusType} />
-                {alumno.suscripcion && (
-                  <SubscriptionBadge
-                    status="ok"
-                    label={alumno.suscripcion.nombre}
-                  />
-                )}
-              </div>
+              {!isSticky && (
+                <div className="absolute -bottom-2 -right-2 flex flex-col gap-1 items-end">
+                  <StatusBadge status={currentStatus as StatusType} />
+                </div>
+              )}
             </div>
 
-            <div className="space-y-2 text-left">
-              <h1 className="text-3xl md:text-5xl font-bold tracking-tighter text-zinc-950 dark:text-white uppercase leading-none">
+            <div className="min-w-0">
+              <h1 className={cn(
+                "font-bold tracking-tight text-zinc-950 dark:text-white uppercase truncate",
+                isSticky ? "text-lg" : "text-2xl md:text-4xl"
+              )}>
                 {alumno.nombre}
               </h1>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-500/10 px-3 py-1 rounded-lg border border-lime-400/20 flex items-center gap-1.5 leading-none">
-                  {planName || header.status.noPlan}
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </span>
-                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-100 dark:bg-zinc-900 p-1 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 leading-none">
-                  {alumno.email}
-                </span>
-              </div>
+              {!isSticky && (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-500/10 px-2 py-0.5 rounded border border-lime-400/20 truncate">
+                    {planName || "Sin plan"}
+                  </span>
+                  <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest truncate">
+                    #{alumno.id.split('-')[0]}
+                  </span>
+                </div>
+              )}
+              {isSticky && (
+                 <div className="text-[10px] text-zinc-500 font-medium truncate flex items-center gap-2">
+                    <span className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      currentStatus === 'activo' ? "bg-emerald-500" : "bg-red-500"
+                    )} />
+                    {lastSessionText}
+                 </div>
+              )}
             </div>
           </div>
 
-          {/* Core Industrial Actions */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (!alumno.telefono) {
-                  window.location.assign(`/profesor/alumnos/${alumno.id}/edit`);
-                  return;
-                }
-                openWhatsApp(alumno.nombre, alumno.telefono, { type: 'general' });
-              }}
-              className={cn(
-                "flex-1 md:flex-none h-14 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl font-bold gap-2 px-6 transition-all active:scale-95 uppercase tracking-widest text-[10px]",
-                !alumno.telefono ? "border-dashed text-zinc-400" : ""
-              )}
-            >
-              <WhatsappLogoIcon
-                size={20}
-                weight="light"
-                className={cn(!alumno.telefono ? "text-zinc-400" : "text-emerald-500")}
-              />
-              {!alumno.telefono ? "Agregar WhatsApp" : "WhatsApp"}
-            </Button>
+          {/* Quick Stats (Mobile Inline Telemetry) */}
+          {!isSticky && (
+            <div className="flex md:flex-row flex-col gap-4 w-full md:w-auto">
+              <div className="flex items-center gap-6 md:gap-8 bg-zinc-50 dark:bg-zinc-900/40 p-4 md:p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                <div className="space-y-1">
+                   <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{header.metrics.payDay}</p>
+                   <p className="text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+                      <CreditCard className="w-3.5 h-3.5 text-zinc-400" />
+                      Día {alumno.dia_pago || 15}
+                   </p>
+                </div>
+                <div className="h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
+                <div className="space-y-1">
+                   <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{header.metrics.lastSession}</p>
+                   <p className={cn(
+                     "text-sm font-bold flex items-center gap-2",
+                     lastSessionText.includes("hoy") || lastSessionText.includes("ayer") ? "text-emerald-500" : "text-zinc-950 dark:text-white"
+                   )}>
+                      <Clock className="w-3.5 h-3.5 opacity-40" />
+                      {lastSessionText}
+                   </p>
+                </div>
+              </div>
+            </div>
+          )}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+          {/* Action Group */}
+          <div className="flex items-center gap-2">
+             {isSticky ? (
+               <Button
+                variant="heavy"
+                size="icon"
+                onClick={() => setPaymentSheetOpen(true)}
+                className="w-10 h-10 rounded-full"
+               >
+                 <PaymentIcon className="w-5 h-5" />
+               </Button>
+             ) : (
                 <Button
-                  variant="outline"
-                  className="flex-1 md:flex-none h-14 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-950 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl font-bold gap-2 px-6 transition-all active:scale-95 uppercase tracking-widest text-[10px]"
+                  onClick={() => setPaymentSheetOpen(true)}
+                  className="h-12 md:h-14 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 hover:opacity-90 rounded-2xl font-bold text-[10px] uppercase tracking-widest gap-2 px-6 shadow-xl transition-all active:scale-95"
                 >
-                  <Zap className="w-5 h-5 text-lime-500" />
-                  ACCESO
+                  <CreditCard className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="hidden sm:inline">Cobrar cuota</span>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 shadow-2xl">
-                <DropdownMenuItem onClick={() => copyGuestLink(alumno.id)} className="rounded-xl py-3 font-bold text-[10px] uppercase tracking-[0.15em] gap-3 cursor-pointer">
-                  <Copy className="w-4 h-4 text-zinc-400" />
-                  Copiar link de acceso
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Button
-              onClick={() => setPaymentSheetOpen(true)}
-              className="flex-1 md:flex-none h-14 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 hover:opacity-90 rounded-2xl font-bold text-[10px] uppercase tracking-widest gap-2 px-8 transition-all active:scale-95 shadow-xl"
-            >
-              <CreditCard className="w-5 h-5" />
-              Cobrar cuota
-            </Button>
+             )}
+             
+             {!isSticky && (
+               <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-12 w-12 md:h-14 md:w-14 rounded-2xl border-2">
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl">
+                    <DropdownMenuItem onClick={() => openWhatsApp(alumno.nombre, alumno.telefono || "", { type: 'general' })} className="py-3 font-bold text-[10px] uppercase tracking-widest gap-3">
+                      <WhatsappLogoIcon size={18} className="text-emerald-500" /> WhatsApp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => copyGuestLink(alumno.id)} className="py-3 font-bold text-[10px] uppercase tracking-widest gap-3">
+                      <Copy size={18} className="text-zinc-400" /> Link Acceso
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="py-3 font-bold text-[10px] uppercase tracking-widest gap-3">
+                      <a href={`/profesor/alumnos/${alumno.id}/edit`}>Editar Perfil</a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+               </DropdownMenu>
+             )}
           </div>
-        </div>
-
-        {/* Telemetry Metrics Grid (Refactored for mobile vertical stack) */}
-        <div className="flex flex-col md:flex-row border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20 -mx-8 sm:-mx-10 -mb-10 divide-y md:divide-y-0 md:divide-x divide-zinc-100 dark:divide-zinc-900">
-          <PlanMetric
-            icon={PaymentIcon}
-            label={header.metrics.payDay}
-            value={`Día ${alumno.dia_pago || 15}`}
-            className="flex-1"
-          />
-          <PlanMetric
-            icon={Calendar}
-            label={header.metrics.startDate}
-            value={startDateText}
-            className="flex-1"
-          />
-          <PlanMetric
-            icon={Clock}
-            label={header.metrics.lastSession}
-            value={lastSessionText}
-            accent={lastSessionText === header.metrics.today || lastSessionText === header.metrics.yesterday}
-            className="flex-1"
-          />
         </div>
       </div>
 
@@ -196,21 +208,17 @@ export function AthleteHeader({ alumno, planName }: Props) {
         onOpenChange={setPaymentSheetOpen}
         alumno={{
           ...alumno,
-          name: alumno.nombre, // Map to required 'name' field
-          pago_activo: localPagoActivo,
-          historial: alumno.historial_pagos || [], // Map to 'historial'
-          monto: localMonto ?? null,
+          name: alumno.nombre,
+          pago_activo: alumno.pago_activo,
+          historial: alumno.historial_pagos || [],
+          monto: alumno.monto ?? null,
           dia_pago: alumno.dia_pago || null,
           ultimo_recordatorio_pago_at: alumno.pago_activo?.ultimo_recordatorio_at || null,
           is_moroso: alumno.pago_activo?.estado === 'vencido',
           monto_personalizado: !!alumno.monto
         } as any}
-        onPaymentSuccess={setLocalPagoActivo}
-        onStudentUpdate={(upd) => {
-          if (upd.monto !== undefined) setLocalMonto(upd.monto);
-        }}
       />
-    </div>
+    </>
   );
 }
 
