@@ -27,6 +27,7 @@ export interface DashboardControllers {
     removeTag: (tag: string) => void;
     setSearch: (search: string) => void;
     clearFilters: () => void;
+    search: string;
 }
 
 interface DashboardConsoleProps<T extends BaseEntity> {
@@ -112,26 +113,26 @@ export function DashboardConsole<T extends BaseEntity>({
         <div className="relative">
             {/* NAVIGATION & SEARCH CONSOLE (STICKY) */}
             <div className={cn(
-                "w-full transition-all duration-500 py-4 px-2 mb-8 z-40",
+                "w-full transition-all duration-500 py-2 md:py-4 px-2 mb-4 md:mb-8 z-40",
                 isSticky
-                    ? "sticky top-0 -mx-2 px-4"
+                    ? "sticky top-0 -mx-2 px-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-100 dark:border-zinc-900 shadow-sm"
                     : "relative"
             )}>
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-3 md:gap-4">
 
                     {/* BUSCADOR INTELIGENTE */}
                     <div className="relative flex-1 group">
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                             <Search className={cn(
                                 "w-4 h-4 transition-colors",
-                                search ? "text-lime-500" : "text-zinc-400 group-focus-within:text-lime-500"
+                                search ? "text-lime-600" : "text-zinc-500 group-focus-within:text-lime-600"
                             )} />
                         </div>
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder={searchPlaceholder}
-                            className="industrial-search h-12 md:h-14 pl-12 transition-all font-sans"
+                            className="industrial-search h-11 md:h-14 pl-12 transition-all font-sans placeholder:text-zinc-500"
                         />
 
                         {/* TAG SUGGESTIONS */}
@@ -159,21 +160,20 @@ export function DashboardConsole<T extends BaseEntity>({
                         </div>
                     )}
 
-                    {/* ACTIONS TOOLBAR */}
-                    <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
+                    <div className="flex items-center gap-2 w-full md:w-auto shrink-0 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
                         {/* SELECTOR DE ORDEN (RADIX) */}
                         {sortOptions.length > 0 && (
                             <Select value={sortOrder} onValueChange={setSortOrder}>
-                                <SelectTrigger className="industrial-select-trigger h-12 md:h-14 pl-10 pr-4 min-w-[180px] relative border-none bg-zinc-100/50 dark:bg-zinc-900/50">
-                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+                                <SelectTrigger className="industrial-select-trigger h-11 md:h-14 pl-9 pr-3 min-w-[130px] md:min-w-[180px] relative border-none bg-zinc-100 dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                                     <SelectValue placeholder="Ordenar por" />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-zinc-100 dark:border-zinc-800 shadow-2xl p-1 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl">
+                                <SelectContent className="rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-2xl p-1 bg-white dark:bg-zinc-950">
                                     {sortOptions.map(opt => (
                                         <SelectItem
                                             key={opt.value}
                                             value={opt.value}
-                                            className="rounded-xl cursor-pointer py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-400 focus:bg-lime-500 focus:text-zinc-950 transition-all"
+                                            className="rounded-xl cursor-pointer py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-300 focus:bg-lime-500 focus:text-zinc-950 transition-all"
                                         >
                                             {opt.label}
                                         </SelectItem>
@@ -213,11 +213,11 @@ export function DashboardConsole<T extends BaseEntity>({
                                     onClick={onCreateClick}
                                     variant="heavy"
                                     size="xl"
-                                    className="flex-1 md:flex-none"
+                                    className="h-11 md:h-14 md:px-8 px-4 flex-1 md:flex-none"
                                 >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    <span className="hidden sm:inline">{createLabel}</span>
-                                    <span className="sm:hidden">Nuevo</span>
+                                    <Plus className="w-4 h-4 md:mr-2" />
+                                    <span className="hidden md:inline">{createLabel}</span>
+                                    <span className="md:hidden sr-only">Nuevo</span>
                                 </Button>
                             )
                         )}
@@ -297,8 +297,8 @@ export function DashboardConsole<T extends BaseEntity>({
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
                         {viewMode === "grid"
-                            ? renderGrid(filteredItems, { addTag, removeTag, setSearch, clearFilters })
-                            : renderTable(filteredItems, { addTag, removeTag, setSearch, clearFilters })}
+                            ? renderGrid(filteredItems, { addTag, removeTag, setSearch, clearFilters, search })
+                            : renderTable(filteredItems, { addTag, removeTag, setSearch, clearFilters, search })}
                     </div>
                 )}
             </div>

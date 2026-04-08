@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
-import { Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
+import { Dumbbell, ChevronDown, ChevronUp, Star, Flame, User, Library, Plus } from "lucide-react";
 
 import { ExerciseCard } from "@/components/molecules/profesor/ejercicios/ExerciseCard";
 import { DeleteConfirmDialog } from "@/components/molecules/DeleteConfirmDialog";
@@ -10,15 +10,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDeleteWithConfirm } from "@/hooks/useDeleteWithConfirm";
 import { useUniqueTags } from "@/hooks/useUniqueTags";
-import { SplitActionButton } from "@/components/molecules/profesor/core/SplitActionButton";
-import { FilterSelect } from "@/components/molecules/FilterSelect";
-import { ImportExercisesModal } from "@/components/organisms/profesor/ejercicios/ImportExercisesModal";
 import { exerciseLibraryCopy as copy } from "@/data/es/profesor/ejercicios";
-import { Library, User } from "lucide-react";
 
 interface Exercise {
   id: string;
-  name: string; // Alias de 'nombre' para compatibilidad con BaseEntity
+  name: string; // Required by BaseEntity
   nombre: string;
   descripcion: string | null;
   media_url: string | null;
@@ -26,33 +22,38 @@ interface Exercise {
   parent_id?: string | null;
   is_template_base?: boolean;
   profesor_id?: string | null;
+  is_favorite?: boolean;
+  usage_count?: number;
   created_at: string;
+  createdAt: string; // Required by BaseEntity
 }
 
-export function ExerciseLibrary({ initialExercises }: { initialExercises: Exercise[] }) {
-  // Aseguramos compatibilidad con BaseEntity (name = nombre)
+export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] }) {
   const [exercises, setExercises] = useState<Exercise[]>(
-    initialExercises.map(ex => ({ ...ex, name: ex.nombre }))
+    initialExercises.map(ex => ({ 
+      ...ex, 
+      name: ex.nombre, 
+      createdAt: ex.created_at 
+    }))
   );
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  const [sourceFilter, setSourceFilter] = useState("todos"); // 'todos' | 'migym' | 'personal'
+  const [sourceFilter, setSourceFilter] = useState("todos"); // 'todos' | 'favoritos' | 'top' | 'migym' | 'míos'
 
-  const sortOptions = [
-    { label: "Categorias", value: "etiqueta-asc" },
-    { label: "Nombre A-Z", value: "nombre-asc" },
-    { label: "Más recientes", value: "fecha-desc" },
+  const categories = [
+    { id: "todos", label: "Todos", icon: Library },
+    { id: "favoritos", label: "Favoritos", icon: Star },
+    { id: "top", label: "Top 15", icon: Flame },
+    { id: "migym", label: "Master", icon: Library },
+    { id: "míos", label: "Míos", icon: User },
   ];
 
-  const hasTagsOrCategories = useMemo(() => exercises.some(ex => ex.tags && ex.tags.length > 0), [exercises]);
-  const defaultSort = hasTagsOrCategories ? "etiqueta-asc" : "nombre-asc";
-
-  // Filtrado por Origen (Pre-DashboardConsole)
   const sourceFilteredExercises = useMemo(() => {
-    if (sourceFilter === "todos") return exercises;
-    if (sourceFilter === "migym") return exercises.filter(ex => ex.profesor_id === null);
-    if (sourceFilter === "personal") return exercises.filter(ex => ex.profesor_id !== null);
-    return exercises;
+    let list = [...exercises];
+    if (sourceFilter === "favoritos") list = list.filter(ex => ex.is_favorite);
+    if (sourceFilter === "top") list = list.sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0)).slice(0, 15);
+    if (sourceFilter === "migym") list = list.filter(ex => ex.profesor_id === null);
+    if (sourceFilter === "míos") list = list.filter(ex => ex.profesor_id !== null);
+    return list;
   }, [exercises, sourceFilter]);
 
   const toggleParent = (parentId: string) => {
@@ -65,8 +66,41 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     setExpandedParents(newExpanded);
   };
 
-  // Hooks Core
-  const uniqueTags = useUniqueTags(exercises, (ex) => ex.tags);
+  const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
+    // Optimistic UI - preserving BaseEntity fields
+    setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, is_favorite: isFavorite } : ex));
+    
+    const { error } = await actions.profesor.toggleFavoriteExercise({ id, isFavorite });
+    if (error) {
+      toast.error("Error al actualizar favorito");
+      setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, is_favorite: !isFavorite } : ex));
+    } else {
+      toast.success(isFavorite ? "⭐ Agregado a favoritos" : "Quitado de favoritos");
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    const original = exercises.find(e => e.id === id);
+    if (!original) return;
+
+    toast.loading("Duplicando ejercicio...");
+    const { data: result, error } = await actions.profesor.createExercise({
+      nombre: `${original.nombre} (Copia)`,
+      descripcion: original.descripcion || "",
+      media_url: original.media_url || "",
+      tags: original.tags || [],
+      parent_id: original.id // Se vuelve variante del original
+    });
+
+    toast.dismiss();
+    if (error) {
+       toast.error("Error al duplicar");
+    } else if (result?.success) {
+       toast.success("✅ Ejercicio duplicado");
+       window.location.reload();
+    }
+  };
+
   const deleteFlow = useDeleteWithConfirm<Exercise>({
     onDelete: async (ex) => {
       const { data: result, error } = await actions.profesor.deleteExercise({ id: ex.id });
@@ -78,28 +112,10 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
     successMsg: "Ejercicio eliminado",
   });
 
-  const baseSortLogic = (a: Exercise, b: Exercise, order: string) => {
-    if (order === "etiqueta-asc") {
-      const tagA = (a.tags && a.tags.length > 0) ? a.tags[0].toLowerCase() : "zzzz";
-      const tagB = (b.tags && b.tags.length > 0) ? b.tags[0].toLowerCase() : "zzzz";
-      if (tagA !== tagB) return tagA.localeCompare(tagB);
-      return a.nombre.localeCompare(b.nombre);
-    }
-    if (order === "nombre-asc") return a.nombre.localeCompare(b.nombre);
-    if (order === "fecha-desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    return 0;
-  };
-
-  // Lógica de ordenamiento inyectada al DashboardConsole
-  const handleSort = (items: Exercise[], order: string) =>
-    [...items].sort((a, b) => baseSortLogic(a, b, order));
-
-  // Helper agrupador de variantes: infiere el orden directamente de la lista filtrada
   const getGroupedExercises = (filteredList: Exercise[]) => {
     const vMap: Record<string, Exercise[]> = {};
     const displayParents: (Exercise & { variantCount: number })[] = [];
 
-    // Map all variants in the system
     exercises.forEach(ex => {
       if (ex.parent_id) {
         if (!vMap[ex.parent_id]) vMap[ex.parent_id] = [];
@@ -107,15 +123,12 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
       }
     });
 
-    // Como filteredList YA VIENE ORDENADA por DashboardConsole, 
-    // insertamos los padres en el orden exacto en que aparecen sus hijos o ellos mismos.
     const parentsAdded = new Set<string>();
 
     filteredList.forEach(ex => {
       const parentId = ex.parent_id || ex.id;
       if (!parentsAdded.has(parentId)) {
         parentsAdded.add(parentId);
-
         const parentOb = exercises.find(e => e.id === parentId && !e.parent_id);
         if (parentOb) {
           displayParents.push({
@@ -126,28 +139,33 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
       }
     });
 
-    return {
-      displayParents, // Hereda el orden natural del sort activo
-      variantsMap: vMap
-    };
+    return { displayParents, variantsMap: vMap };
   };
 
-  const GridRenderer = ({ filtered, onTagClick }: { filtered: Exercise[], onTagClick?: (tag: string) => void }) => {
+  const GridRenderer = ({ filtered, search }: { filtered: Exercise[], search: string }) => {
     const { displayParents, variantsMap } = useMemo(
       () => getGroupedExercises(filtered),
       [filtered, exercises]
     );
+    
+    const effectivelyExpanded = useMemo(() => {
+      if (!search) return expandedParents;
+      const autoExpanded = new Set(expandedParents);
+      displayParents.forEach(p => autoExpanded.add(p.id));
+      return autoExpanded;
+    }, [expandedParents, search, displayParents]);
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-32">
         {displayParents.map((parent) => (
-          <div key={parent.id} className="space-y-4">
-            <div className="flex items-start gap-4">
+          <div key={parent.id} className="space-y-3">
+            <div className="flex items-start gap-2">
               <div className="flex-1">
                 <ExerciseCard
                   exercise={parent}
-                  onTagClick={onTagClick}
-                  onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, name: ex.nombre })}
+                  onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, nombre: ex.nombre } as any)}
+                  onToggleFavorite={handleToggleFavorite}
+                  onDuplicate={handleDuplicate}
                 />
               </div>
               {parent.variantCount > 0 && (
@@ -155,23 +173,24 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    "mt-6 h-12 w-12 rounded-2xl border border-zinc-100 dark:border-zinc-800 transition-all",
-                    expandedParents.has(parent.id) ? "bg-lime-500 text-zinc-900 border-lime-500" : "bg-white dark:bg-zinc-900 text-zinc-400"
+                    "mt-8 md:mt-12 h-10 w-10 md:h-12 md:w-12 rounded-2xl border border-zinc-100 dark:border-zinc-800 transition-all",
+                    effectivelyExpanded.has(parent.id) ? "bg-lime-500 text-zinc-900 border-lime-500 shadow-lg" : "bg-white dark:bg-zinc-900 text-zinc-400"
                   )}
                   onClick={() => toggleParent(parent.id)}
                 >
-                  {expandedParents.has(parent.id) ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  {effectivelyExpanded.has(parent.id) ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 </Button>
               )}
             </div>
-            {expandedParents.has(parent.id) && variantsMap[parent.id] && (
-              <div className="pl-6 md:pl-10 border-l-2 border-zinc-100 dark:border-zinc-800 py-2 space-y-4 animate-in slide-in-from-top-2 duration-300">
+            {effectivelyExpanded.has(parent.id) && variantsMap[parent.id] && (
+              <div className="pl-4 md:pl-10 border-l-2 border-zinc-100 dark:border-zinc-800 py-1 space-y-3 animate-in slide-in-from-top-2 duration-300">
                 {variantsMap[parent.id].map(variant => (
                   <ExerciseCard
                     key={variant.id}
                     exercise={variant}
-                    onTagClick={onTagClick}
-                    onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, name: ex.nombre })}
+                    onDelete={(ex) => deleteFlow.setItemToDelete({ ...ex, nombre: ex.nombre } as any)}
+                    onToggleFavorite={handleToggleFavorite}
+                    onDuplicate={handleDuplicate}
                   />
                 ))}
               </div>
@@ -184,57 +203,58 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: Exerci
 
   return (
     <>
-      <ImportExercisesModal
-        isOpen={isImportOpen}
-        onOpenChange={setIsImportOpen}
-        onSuccess={() => {
-          window.location.reload();
-        }}
-      />
+      {/* Category Pills - Sticky PWA Style */}
+      <div className="sticky top-0 z-40 bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 -mx-4 px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar mb-6">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSourceFilter(cat.id)}
+            className={cn(
+              "flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap border-2",
+              sourceFilter === cat.id
+                ? "bg-zinc-950 text-white border-zinc-950 dark:bg-white dark:text-zinc-950 dark:border-white shadow-lg"
+                : "bg-white dark:bg-zinc-900 text-zinc-400 border-transparent hover:border-zinc-200 dark:hover:border-zinc-800"
+            )}
+          >
+            <cat.icon className={cn("w-3.5 h-3.5", sourceFilter === cat.id ? "animate-pulse" : "")} />
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
       <DashboardConsole
         items={sourceFilteredExercises}
         itemLabel="Ejercicios"
         storageKey="ejercicios"
-        initialSort={defaultSort}
+        initialSort="nombre-asc"
         searchPlaceholder="Buscar por nombre o categoría..."
-        allTags={uniqueTags}
-        sortOptions={sortOptions}
-        onSort={handleSort}
-        searchSuffix={
-          <FilterSelect
-            value={sourceFilter}
-            onChange={setSourceFilter}
-            placeholder="Origen: Todos"
-            icon={Library}
-            containerClassName="w-full md:w-56"
-            options={[
-              { label: "Biblioteca MiGym", value: "migym" },
-              { label: "Mis Ejercicios", value: "personal" }
-            ]}
-          />
-        }
-        renderCreateAction={() => (
-          <SplitActionButton
-            createLabel={copy.list.action}
-            importLabel="Subir desde Excel"
-            createHref="/profesor/ejercicios/new"
-            onImportClick={() => setIsImportOpen(true)}
-            className="flex-1 md:flex-none h-12 md:h-14"
-          />
-        )}
+        onSort={(items, order) => [...items].sort((a, b) => {
+          if (order === "nombre-asc") return a.nombre.localeCompare(b.nombre);
+          if (order === "fecha-desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return 0;
+        })}
+        renderCreateAction={() => null} 
         emptyIcon={<Dumbbell className="w-12 h-12" />}
         renderGrid={(filtered, controllers) => (
           <GridRenderer
             filtered={filtered as Exercise[]}
-            onTagClick={controllers.addTag}
+            search={controllers.search}
           />
         )}
-        renderTable={(filtered, controllers) => (
-          <div className="text-center py-20 text-zinc-400 font-medium italic bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border-2 border-dashed border-zinc-100 dark:border-zinc-800">
-            La vista de tabla para ejercicios llegará pronto. <br /> Por ahora, usá la vista de grilla para gestionar tus variantes.
-          </div>
+        renderTable={() => (
+           <div className="py-20 text-center text-zinc-400 italic font-medium">
+             La vista de tabla se habilitará próximamente.
+           </div>
         )}
       />
+
+      {/* FAB - Global Quick Action */}
+      <a
+        href="/profesor/ejercicios/new"
+        className="fixed bottom-10 right-6 z-50 bg-zinc-950 dark:bg-lime-500 text-white dark:text-zinc-950 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all active:scale-95 hover:scale-110 border-4 border-white dark:border-zinc-950 group"
+      >
+        <Plus className="w-8 h-8 transition-transform group-hover:rotate-90" strokeWidth={3} />
+      </a>
 
       <DeleteConfirmDialog
         isOpen={!!deleteFlow.itemToDelete}

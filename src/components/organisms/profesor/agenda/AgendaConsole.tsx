@@ -14,8 +14,10 @@ import { LogisticsPanel } from "./LogisticsPanel";
 import { ImportStudentsModal } from "@/components/organisms/profesor/alumnos/ImportStudentsModal";
 import { DashboardConsole } from "@/components/molecules/profesor/DashboardConsole";
 import { DaySelector } from "@/components/molecules/profesor/agenda/DaySelector";
+import { TurnoPills } from "@/components/molecules/profesor/agenda/TurnoPills";
 import { TurnoBlock } from "./TurnoBlock";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { agendaCopy } from "@/data/es/profesor/agenda";
 import { useAgenda } from "@/hooks/useAgenda";
@@ -63,16 +65,26 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
   // FILTRADO INTELIGENTE POR DÍA (Contexto Temporal) - Moviendo a renderGrid para mantener listado global
   const {
     sessions,
-    activeTurnoId,
+    activeTurnoId: hookActiveTurnoId,
     studentsByTurno,
     refreshStudentProgress
   } = useAgenda(turnos, students, initialSessions);
+
+  const [selectedTurnoId, setSelectedTurnoId] = useState<string | null>(null);
+
+  // Sincronizar con el turno activo inteligente inicialmente
+  useEffect(() => {
+    if (hookActiveTurnoId && !selectedTurnoId) {
+      setSelectedTurnoId(hookActiveTurnoId);
+    }
+  }, [hookActiveTurnoId]);
 
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [isManagementOpen, setIsManagementOpen] = useState(false);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isFabOpen, setIsFabOpen] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeBlockRef = useRef<HTMLDivElement>(null);
@@ -84,7 +96,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
     if (activeBlockRef.current && activeDay === realTodayName) {
       activeBlockRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [activeTurnoId, activeDay, realTodayName]);
+  }, [hookActiveTurnoId, activeDay, realTodayName]);
 
   const dashboardItems = React.useMemo(() =>
     students.map(s => ({ ...s, name: s.nombre })),
@@ -109,14 +121,22 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
     });
 
     return (
-      <div className="space-y-12 pb-32" ref={scrollRef}>
-        {turnos.length > 0 && (
+      <div className="space-y-6 pb-32" ref={scrollRef}>
+        <div className="sticky top-0 z-30 space-y-0">
           <DaySelector
             activeDay={activeDay}
             setActiveDay={setActiveDay}
             realTodayName={realTodayName}
           />
-        )}
+
+          {gridTurnos.length > 0 && (
+            <TurnoPills
+              turnos={gridTurnos}
+              activeTurnoId={selectedTurnoId}
+              onTurnoSelect={setSelectedTurnoId}
+            />
+          )}
+        </div>
 
         {turnos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 animate-in fade-in duration-700">
@@ -136,30 +156,33 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
             </Button>
           </div>
         ) : gridTurnos.length > 0 ? (
-          gridTurnos.map((turno) => {
-            const isActive = turno.id === activeTurnoId && activeDay === realTodayName;
-            const turnoStudents = groupedByTurno[turno.id] || [];
+          gridTurnos
+            .filter(t => !selectedTurnoId || t.id === selectedTurnoId)
+            .map((turno) => {
+              const isActive = turno.id === hookActiveTurnoId && activeDay === realTodayName;
+              const turnoStudents = groupedByTurno[turno.id] || [];
 
-            if (filteredBySearch.length !== students.length && turnoStudents.length === 0) return null;
+              if (filteredBySearch.length !== students.length && turnoStudents.length === 0) return null;
 
-            return (
-              <TurnoBlock
-                key={turno.id}
-                turno={turno}
-                isActive={isActive}
-                activeDay={activeDay}
-                realTodayName={realTodayName}
-                turnoStudents={turnoStudents}
-                sessions={sessions}
-                onViewRoutine={(id) => window.location.assign(`/profesor/alumnos/${id}`)}
-                onChangeTurno={(id, nombre, currentTurnoId) => {
-                  setSelectedStudent({ id, nombre, currentTurnoId });
-                  setIsSelectorOpen(true);
-                }}
-                innerRef={isActive ? activeBlockRef : null}
-              />
-            )
-          })
+              return (
+                <div key={turno.id} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <TurnoBlock
+                    turno={turno}
+                    isActive={isActive}
+                    activeDay={activeDay}
+                    realTodayName={realTodayName}
+                    turnoStudents={turnoStudents}
+                    sessions={sessions}
+                    onViewRoutine={(id) => window.location.assign(`/profesor/alumnos/${id}`)}
+                    onChangeTurno={(id, nombre, currentTurnoId) => {
+                      setSelectedStudent({ id, nombre, currentTurnoId });
+                      setIsSelectorOpen(true);
+                    }}
+                    innerRef={isActive ? activeBlockRef : null}
+                  />
+                </div>
+              )
+            })
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
             <div className="p-8 rounded-[3rem] bg-zinc-50 border border-zinc-100">
@@ -256,7 +279,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
           </div>
         }
         renderCreateAction={() => (
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <Button
               variant="outline"
               onClick={() => setIsLogisticsOpen(true)}
@@ -287,6 +310,50 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
           </div>
         )}
       />
+
+      {/* FAB (Floating Action Button) for Mobile PWA */}
+      <div className="fixed bottom-8 right-6 flex flex-col items-end gap-3 z-50 md:hidden">
+        {isFabOpen && (
+          <div className="flex flex-col items-end gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <Button
+              onClick={() => { setIsLogisticsOpen(true); setIsFabOpen(false); }}
+              className="h-14 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl px-4 flex items-center gap-3"
+            >
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400">{logCopy.trigger}</span>
+              <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+                <ListChecks className="w-4 h-4 text-lime-500" />
+              </div>
+            </Button>
+            <Button
+              onClick={() => { setIsImportOpen(true); setIsFabOpen(false); }}
+              className="h-14 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl px-4 flex items-center gap-3"
+            >
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400">Importar</span>
+              <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+                <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+              </div>
+            </Button>
+            <Button
+              onClick={() => { setIsManagementOpen(true); setIsFabOpen(false); }}
+              className="h-14 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl px-4 flex items-center gap-3"
+            >
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400">Configurar</span>
+              <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+                <Settings className="w-4 h-4 text-zinc-400" />
+              </div>
+            </Button>
+          </div>
+        )}
+        <Button
+          onClick={() => setIsFabOpen(!isFabOpen)}
+          className={cn(
+            "h-16 w-16 rounded-[2rem] shadow-2xl transition-all duration-300 active:scale-95",
+            isFabOpen ? "bg-zinc-900 text-white rotate-45" : "bg-zinc-950 text-white"
+          )}
+        >
+          <Plus className={cn("w-6 h-6 transition-colors", isFabOpen ? "text-lime-400" : "text-lime-400")} />
+        </Button>
+      </div>
 
       <TurnoSelectorDialog
         isOpen={isSelectorOpen}

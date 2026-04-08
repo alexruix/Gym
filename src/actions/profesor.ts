@@ -149,6 +149,24 @@ export const profesorActions = {
       };
     },
   }),
+  toggleFavoriteExercise: defineAction({
+    accept: "json",
+    input: z.object({ id: z.string().uuid(), isFavorite: z.boolean() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      const { error } = await supabase
+        .from("biblioteca_ejercicios")
+        .update({ is_favorite: input.isFavorite })
+        .eq("id", input.id)
+        .eq("profesor_id", user.id);
+
+      if (error) throw new Error(`Error DB: ${error.message}`);
+      return { success: true };
+    },
+  }),
 
   getBlocks: defineAction({
     accept: "json",
@@ -1206,8 +1224,8 @@ export const profesorActions = {
       // FETCH UNIFICADO: Propios + Base
       const { data: rawData, error } = await supabase
         .from("biblioteca_ejercicios")
-        .select("*")
-        .or(`profesor_id.eq.${user.id},profesor_id.is.null`) // Cambiado para incluir variantes públicas
+        .select("*, is_favorite, usage_count")
+        .or(`profesor_id.eq.${user.id},profesor_id.is.null`)
         .order("nombre", { ascending: true });
 
       if (error) throw new Error(`Error al obtener ejercicios: ${error.message}`);

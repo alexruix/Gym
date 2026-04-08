@@ -1,5 +1,5 @@
-import React from "react";
-import { FileText, Layers, Users, MoreHorizontal, Pencil, Trash2, Copy } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { FileText, Layers, Users, MoreHorizontal, Pencil, Trash2, Copy, MoveHorizontal, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface PlanCardProps {
     plan: {
@@ -25,97 +26,158 @@ interface PlanCardProps {
 }
 
 export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
+    // Swipe Logic (Native feel without dependencies)
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [translateX, setTranslateX] = useState(0);
+    const [isSwiping, setIsSwiping] = useState(false);
+    const [bounceHint, setBounceHint] = useState(false);
+
+    // Initial bounce hint for PWA feel
+    useEffect(() => {
+        const timer = setTimeout(() => setBounceHint(true), 800);
+        const timerEnd = setTimeout(() => setBounceHint(false), 1200);
+        return () => { clearTimeout(timer); clearTimeout(timerEnd); };
+    }, []);
+
+    const minSwipeDistance = 50;
+    const maxActionWidth = 80;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchStart(e.targetTouches[0].clientX);
+        setIsSwiping(true);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        if (!touchStart) return;
+        const currentTouch = e.targetTouches[0].clientX;
+        const diff = currentTouch - touchStart;
+        const clampedDiff = Math.max(-maxActionWidth, Math.min(maxActionWidth, diff));
+        setTranslateX(clampedDiff);
+    };
+
+    const onTouchEnd = () => {
+        setIsSwiping(false);
+        if (Math.abs(translateX) < minSwipeDistance) {
+            setTranslateX(0);
+        } else {
+            setTranslateX(translateX > 0 ? maxActionWidth : -maxActionWidth);
+        }
+    };
+
+    const resetSwipe = () => setTranslateX(0);
+
     return (
-        <Card className="group relative bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-3xl hover:shadow-2xl hover:shadow-lime-500/5 transition-all duration-500 flex flex-col h-full border-b-[6px] border-b-zinc-100 dark:border-b-zinc-900 hover:border-b-lime-500/20">
+        <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-900 group">
+            
+            {/* BACK ACTIONS (Revealed via Swipe) */}
+            <div className="absolute inset-0 flex justify-between items-center px-4">
+                {/* Left Action: Duplicate */}
+                <button 
+                    onClick={() => { onDuplicate?.(plan.id); resetSwipe(); }}
+                    className="flex flex-col items-center justify-center w-[70px] h-full bg-lime-500 text-zinc-950 transition-all active:scale-90"
+                >
+                    <Copy className="w-5 h-5 mb-1" />
+                    <span className="text-[8px] font-black uppercase tracking-tight">Duplicar</span>
+                </button>
 
-            {/* Media / Visual Area */}
-            <a href={`/profesor/planes/${plan.id}`} className="aspect-[16/10] w-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center relative overflow-hidden shrink-0 border-b border-zinc-100 dark:border-zinc-800/50">
-                {/* Decorative Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-zinc-200/50 via-transparent to-lime-500/5 dark:from-zinc-800/50 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+                {/* Right Action: Delete */}
+                <button 
+                    onClick={() => { onDelete?.(plan); resetSwipe(); }}
+                    className="flex flex-col items-center justify-center w-[70px] h-full bg-red-600 text-white transition-all active:scale-90"
+                >
+                    <Trash2 className="w-5 h-5 mb-1" />
+                    <span className="text-[8px] font-black uppercase tracking-tight">Borrar</span>
+                </button>
+            </div>
 
-                {/* Large Decorative Icon */}
-                <Layers className="w-24 h-24 text-zinc-200 dark:text-zinc-800/40 -rotate-6 group-hover:rotate-0 group-hover:scale-110 transition-all duration-700 pointer-events-none" />
-
-                {/* Floating Badges */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-                    <div className="bg-zinc-950 text-white dark:bg-lime-500 dark:text-zinc-950 px-3 py-1 rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-xl flex items-center gap-2 border border-white/10 dark:border-zinc-950/20">
-                        <Layers className="w-3 h-3" />
-                        {plan.frequency} días/sem
-                    </div>
-
-                    {plan.studentsCount > 0 && (
-                        <div className="bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md text-zinc-900 dark:text-zinc-50 px-3 py-1 rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg flex items-center gap-2 border border-zinc-200 dark:border-zinc-700">
-                            <Users className="w-3 h-3 text-lime-500" />
-                            {plan.studentsCount} alumnos
-                        </div>
-                    )}
+            {/* FOREGROUND CONTENT */}
+            <div
+                className={cn(
+                    "relative z-10 flex flex-col md:flex-col bg-white dark:bg-zinc-950 transition-all duration-300 select-none touch-pan-y shadow-sm h-full",
+                    isSwiping ? "transition-none" : "transition-transform ease-out",
+                    bounceHint && "translate-x-2"
+                )}
+                style={{ transform: `translateX(${translateX}px)` }}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+                onClick={() => translateX !== 0 && resetSwipe()}
+            >
+                {/* Visual Area (Desktop Only) */}
+                <div className="hidden md:flex aspect-[16/10] w-full bg-zinc-50 dark:bg-zinc-900 items-center justify-center relative overflow-hidden shrink-0 border-b border-zinc-100 dark:border-zinc-800/50">
+                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-200/50 via-transparent to-lime-500/5 dark:from-zinc-800/50 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+                    <Layers className="w-24 h-24 text-zinc-200 dark:text-zinc-800/40 -rotate-6 group-hover:rotate-0 group-hover:scale-110 transition-all duration-700 pointer-events-none" />
                 </div>
-            </a>
 
-            {/* Content */}
-            <div className="p-6 space-y-4 flex-1 flex flex-col">
-                <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between gap-4">
-                        <a href={`/profesor/planes/${plan.id}`} className="hover:underline decoration-lime-500/50 underline-offset-4">
-                            <h3 className="font-bold text-xl text-zinc-950 dark:text-zinc-50 leading-tight group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors line-clamp-2 capitalize tracking-tight">
-                                {plan.name}
+                {/* Content Area */}
+                <div className="flex flex-row md:flex-col items-center md:items-stretch p-3 md:p-6 gap-3 md:gap-4 flex-1">
+                    {/* Name & ID Section */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-bold text-base md:text-xl text-zinc-950 dark:text-zinc-50 line-clamp-1 capitalize tracking-tight leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                                <a href={`/profesor/planes/${plan.id}`}>{plan.name}</a>
                             </h3>
-                        </a>
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 group-hover:ring-1 group-hover:ring-zinc-200 dark:group-hover:ring-zinc-700 transition-all shrink-0">
-                                    <MoreHorizontal className="h-5 w-5 text-zinc-400" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-52 p-2 rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-2xl bg-white dark:bg-zinc-950 font-bold z-50">
-                                <DropdownMenuItem asChild>
-                                    <a href={`/profesor/planes/${plan.id}/edit`} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
-                                        <Pencil className="h-4 w-4 text-zinc-400" />
-                                        <span>Editar planificación</span>
-                                    </a>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => onDuplicate?.(plan.id)}
-                                    className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors text-lime-600 dark:text-lime-400"
-                                >
-                                    <Copy className="h-4 w-4" />
-                                    <span>Duplicar plan</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
-                                <DropdownMenuItem
-                                    onClick={() => onDelete?.(plan)}
-                                    className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 text-red-500 transition-colors"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                    <span>Eliminar</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            <div className="hidden md:block">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 shrink-0">
+                                            <MoreHorizontal className="h-4 w-4 text-zinc-400" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-52 p-2 rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-2xl bg-white dark:bg-zinc-950 font-bold z-50">
+                                        <DropdownMenuItem asChild>
+                                            <a href={`/profesor/planes/${plan.id}/edit`} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
+                                                <Pencil className="h-4 w-4 text-zinc-400" />
+                                                <span>Editar</span>
+                                            </a>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onDuplicate?.(plan.id)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer text-lime-600 dark:text-lime-400">
+                                            <Copy className="h-4 w-4" />
+                                            <span>Duplicar</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
+                                        <DropdownMenuItem onClick={() => onDelete?.(plan)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer text-red-500">
+                                            <Trash2 className="h-4 w-4" />
+                                            <span>Eliminar</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+                           {plan.duration} semanas • {plan.frequency}d/sem
+                        </p>
                     </div>
 
-                    <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                        <div className="flex items-center gap-1.5 grayscale group-hover:grayscale-0 transition-all">
-                            <FileText className="w-3.5 h-3.5" />
-                            {plan.duration} semanas
+                    {/* Quick Stats (Horizontal on mobile) */}
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                            <Users className="w-3 h-3 text-lime-500" />
+                            <span className="text-[10px] font-black text-zinc-900 dark:text-zinc-50">{plan.studentsCount}</span>
                         </div>
+                        <a 
+                            href={`/profesor/planes/${plan.id}`}
+                            className="flex md:hidden h-10 w-10 items-center justify-center bg-zinc-100 dark:bg-zinc-900 rounded-xl text-zinc-400 active:bg-lime-500 active:text-zinc-950 transition-colors"
+                        >
+                            <ArrowRight className="w-4 h-4" />
+                        </a>
                     </div>
                 </div>
 
-                {/* Footer Details */}
-                <div className="pt-4 border-t border-zinc-50 dark:border-zinc-900 flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-tighter text-zinc-300">
+                {/* Footer (Desktop Only) */}
+                <div className="hidden md:flex p-6 pt-0 border-t border-zinc-50 dark:border-zinc-900 items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-tighter text-zinc-400 dark:text-zinc-500">
                         ID: {plan.id.slice(0, 8)}
                     </span>
                     <Button
                         variant="link"
                         asChild
-                        className="h-auto p-0 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors no-underline"
+                        className="h-auto p-0 text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 hover:text-lime-600 dark:hover:text-lime-400 transition-colors no-underline"
                     >
                         <a href={`/profesor/planes/${plan.id}`}>Ver detalles</a>
                     </Button>
                 </div>
             </div>
-        </Card>
+        </div>
     );
 }

@@ -51,6 +51,8 @@ export const exerciseLibrarySchema = z.object({
   tags: z.array(z.string()).max(6, "Máximo 6 etiquetas"),
   is_template_base: z.boolean().optional(),
   variants: z.array(z.string()).optional(),
+  is_favorite: z.boolean().optional().default(false),
+  usage_count: z.number().int().optional().default(0),
 });
 export type ExerciseLibraryFormData = z.infer<typeof exerciseLibrarySchema> & {
   existing_variants?: { id: string, nombre: string }[];

@@ -90,6 +90,8 @@ export type Database = {
           media_url: string | null
           tags: string[] | null
           is_template_base: boolean | null
+          is_favorite: boolean | null
+          usage_count: number | null
           created_at: string | null
         }
         Insert: {
@@ -101,6 +103,8 @@ export type Database = {
           media_url?: string | null
           tags?: string[] | null
           is_template_base?: boolean | null
+          is_favorite?: boolean | null
+          usage_count?: number | null
           created_at?: string | null
         }
         Update: {
@@ -112,6 +116,8 @@ export type Database = {
           media_url?: string | null
           tags?: string[] | null
           is_template_base?: boolean | null
+          is_favorite?: boolean | null
+          usage_count?: number | null
           created_at?: string | null
         }
       }

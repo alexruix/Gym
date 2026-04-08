@@ -71,15 +71,15 @@
   --popover: var(--color-white);
   --popover-foreground: var(--color-black);
 
-  /* ── Interactive Colors ─────────────────────────────────────────────────── */
+  /* ── INTERACTIVE COLORS ─────────────────────────────────────────────────── */
   --primary: var(--color-black);
   --primary-foreground: var(--color-white);
   --secondary: var(--color-zinc-100);
   --secondary-foreground: var(--color-black);
 
-  /* ── UI Layers ─────────────────────────────────────────────────────────── */
+  /* ── UI LAYERS ─────────────────────────────────────────────────────────── */
   --muted: var(--color-zinc-100);
-  --muted-foreground: var(--color-zinc-500);
+  --muted-foreground: var(--color-zinc-600);
   --accent: var(--color-lime-400);
   --accent-foreground: var(--color-black);
 
@@ -107,7 +107,7 @@
   --secondary-foreground: var(--color-zinc-50);
 
   --muted: var(--color-zinc-800);
-  --muted-foreground: var(--color-zinc-400);
+  --muted-foreground: var(--color-zinc-300);
 
   --border: var(--color-zinc-800);
   --input: var(--color-zinc-800);
@@ -141,10 +141,10 @@
 
 
   /* MiGym Semantic UI Tokens (Industrial Accessible) */
-  --color-ui-label: var(--color-zinc-500);
-  --color-ui-muted: var(--color-zinc-400);
-  --color-ui-soft: var(--color-zinc-50);
-  --color-ui-accent: var(--color-lime-400);
+  --color-ui-label: var(--color-zinc-600);
+  --color-ui-muted: var(--color-zinc-500);
+  --color-ui-soft: var(--color-zinc-100);
+  --color-ui-accent: var(--color-lime-600);
 
   /* Radius variants */
   --radius-xs: calc(var(--radius) - 6px);
