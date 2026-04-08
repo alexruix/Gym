@@ -3,6 +3,7 @@ import { getAuthenticatedClient } from '@/lib/supabase-ssr';
 import { actions } from 'astro:actions';
 import { getDayNumber, getWeekNumber, getTodayISO } from '@/lib/schedule';
 import { ActiveSession } from '@/components/organisms/ActiveSession';
+import '../../../styles/global.css'; // OBLIGATORIO para standalone astro pages
 
 const supabase = getAuthenticatedClient(Astro);
 const user = Astro.locals.user;
@@ -29,7 +30,7 @@ const diaAbsoluto = getDayNumber(fechaInicio, hoy);
 
 // 3. Instanciar la sesión de hoy (obtener si existe, crear si no)
 // Llamamos directamente a la acción en el servidor para SSR
-const { data: _instanciadoRaw, error: errorInst } = await actions.alumno.instanciarSesion({
+const { data: _instanciadoRaw, error: errorInst } = await Astro.callAction(actions.alumno.instanciarSesion, {
   fecha_real: getTodayISO(),
 });
 

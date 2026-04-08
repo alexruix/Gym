@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { actions } from 'astro:actions';
 import { MessageSquare, CheckCircle, Timer } from 'lucide-react';
+import { cn } from '@/lib/utils'; // Assuming cn exists following rule 5
 
-export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
+export interface ActiveSessionProps {
+  sesionBase: any[];
+  sessionId: string;
+  alumnoId: string;
+}
+
+export function ActiveSession({ sesionBase, sessionId, alumnoId }: ActiveSessionProps) {
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [comments, setComments] = useState({});
   const [completedExercises, setCompletedExercises] = useState({});
@@ -30,8 +37,21 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
     setActiveTimerObj({ id: ejId, secondsLeft: seconds });
   };
 
-  const markExerciseDone = async (ejId) => {
-    setCompletedExercises({ ...completedExercises, [ejId]: true });
+  const markExerciseDone = async (ej: any) => {
+    setCompletedExercises({ ...completedExercises, [ej.sesion_ejercicio_id]: true });
+
+    try {
+      await actions.alumno.logEjercicioInstanciado({
+        sesion_ejercicio_id: ej.sesion_ejercicio_id,
+        series_real: parseInt(String(ej.series)) || 1,
+        reps_real: String(ej.reps_target) || "1",
+        peso_real: parseFloat(String(ej.peso_plan)) || undefined,
+        nota_alumno: comments[ej.sesion_ejercicio_id] || undefined,
+        completado: true,
+      });
+    } catch (e) {
+      console.error("No se pudo guardar en BD:", e);
+    }
 
     // Auto-avanzar al siguiente ejercicio si no es el último
     if (activeExerciseIndex < sesionBase.length - 1) {
@@ -43,25 +63,24 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
         setActiveExerciseIndex(activeExerciseIndex + 1); // Desencadena fin de sesión
       }, 500);
     }
-
-    // Optional: play sound or animation here (Dopamine hit)
   };
 
-  const submitComment = async (ejId) => {
-    const nota = comments[ejId];
+  const submitComment = async (ej: any) => {
+    const nota = comments[ej.sesion_ejercicio_id];
     if (!nota) {
       setIsCommenting(null);
       return;
     }
 
     try {
-      await actions.alumno.commentExercise({
-        alumno_id: alumnoId,
-        ejercicio_id: ejId,
-        sesion_id: sessionId,
+      await actions.alumno.logEjercicioInstanciado({
+        sesion_ejercicio_id: ej.sesion_ejercicio_id,
+        series_real: parseInt(String(ej.series)) || 1,
+        reps_real: String(ej.reps_target) || "1",
+        peso_real: parseFloat(String(ej.peso_plan)) || undefined,
         nota_alumno: nota,
+        completado: !!completedExercises[ej.sesion_ejercicio_id],
       });
-      // Optionally show a toast
       setIsCommenting(null);
     } catch (e) {
       console.error(e);
@@ -107,12 +126,12 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
       {/* Timeline view */}
       {sesionBase && sesionBase.length > 0 ? sesionBase.map((ej, idx) => {
         const isActive = idx === activeExerciseIndex;
-        const isDone = !!completedExercises[ej.ejercicio_id];
+        const isDone = !!completedExercises[ej.sesion_ejercicio_id] || ej.completado;
         const isPast = idx < activeExerciseIndex || isDone;
 
         return (
           <div
-            key={ej.ejercicio_id}
+            key={ej.sesion_ejercicio_id || ej.ejercicio_id + idx}
             className={`rounded-2xl border bg-zinc-900/60 backdrop-blur-md transition-all duration-300 ${isActive ? 'border-lime-500 shadow-[0_0_15px_rgba(163,230,53,0.15)] ring-1 ring-lime-500' : 'border-zinc-800'
               } overflow-hidden`}
           >
@@ -133,11 +152,11 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
                   {ej.biblioteca_ejercicios?.nombre || 'Ejercicio'}
                 </h3>
                 <p className={`text-sm mt-1 font-medium ${isDone ? 'text-zinc-600' : 'text-lime-400'}`}>
-                  {ej.series} Series Ã— {ej.reps_target}
+                  {ej.series} Series × {ej.reps_target}
                 </p>
 
                 {ej.is_variation && !isDone && (
-                  <span className="inline-block mt-3 px-2 py-1 bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400 text-xs font-bold tracking-widest rounded uppercase">
+                  <span className="inline-block mt-3 px-2 py-1 bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400 text-xs font-bold tracking-widest rounded rounded uppercase">
                     Rotación Semanal
                   </span>
                 )}
@@ -145,8 +164,8 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
 
               {/* Botón rápido de Comentar */}
               <button
-                onClick={(e) => { e.stopPropagation(); setIsCommenting(isCommenting === ej.ejercicio_id ? null : ej.ejercicio_id); }}
-                className={`p-3 self-start rounded-full transition-colors ${comments[ej.ejercicio_id] ? 'bg-fuchsia-500 text-white' : 'bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white'}`}
+                onClick={(e) => { e.stopPropagation(); setIsCommenting(isCommenting === ej.sesion_ejercicio_id ? null : ej.sesion_ejercicio_id); }}
+                className={`p-3 self-start rounded-full transition-colors ${comments[ej.sesion_ejercicio_id] || ej.nota_alumno ? 'bg-fuchsia-500 text-white' : 'bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white'}`}
                 title="Anotar feedback"
               >
                 <MessageSquare className="w-5 h-5" />
@@ -157,19 +176,19 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
             {isActive && !isDone && (
               <div className="px-5 pb-5 pl-20 animate-in slide-in-from-top-4 duration-300">
                 {/* Zona de Feedback Inline */}
-                {isCommenting === ej.ejercicio_id && (
+                {isCommenting === ej.sesion_ejercicio_id && (
                   <div className="mb-6 p-4 bg-zinc-950 rounded-xl border border-zinc-800/50">
                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 block">Ajuste o Nota sobre el peso</label>
                     <textarea
                       className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm text-lime-50 placeholder:text-zinc-600 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none resize-none"
                       rows={2}
                       placeholder="Ej: Bajé a 10kg por dolor en hombro"
-                      value={comments[ej.ejercicio_id] || ''}
-                      onChange={(e) => setComments({ ...comments, [ej.ejercicio_id]: e.target.value })}
+                      value={comments[ej.sesion_ejercicio_id] || ej.nota_alumno || ''}
+                      onChange={(e) => setComments({ ...comments, [ej.sesion_ejercicio_id]: e.target.value })}
                     />
                     <div className="flex justify-end gap-3 mt-3">
                       <button onClick={() => setIsCommenting(null)} className="text-xs font-bold text-zinc-500 hover:text-white">CANCELAR</button>
-                      <button onClick={() => submitComment(ej.ejercicio_id)} className="bg-white hover:bg-lime-500 text-black text-xs font-bold px-4 py-2 uppercase tracking-wide rounded-md transition-colors">Guardar Nota</button>
+                      <button onClick={() => submitComment(ej)} className="bg-white hover:bg-lime-500 text-black text-xs font-bold px-4 py-2 uppercase tracking-wide rounded-md transition-colors">Guardar Nota</button>
                     </div>
                   </div>
                 )}
@@ -178,12 +197,12 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
                 <div className="flex gap-3">
                   {ej.descanso_seg > 0 && (
                     <button
-                      onClick={() => startTimer(ej.ejercicio_id, ej.descanso_seg)}
-                      className={`flex items-center gap-2 px-4 py-4 rounded-xl border ${activeTimerObj?.id === ej.ejercicio_id && activeTimerObj?.secondsLeft > 0 ? 'bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300' : 'bg-black border-zinc-800 text-zinc-400'}`}
+                      onClick={() => startTimer(ej.sesion_ejercicio_id, ej.descanso_seg)}
+                      className={`flex items-center gap-2 px-4 py-4 rounded-xl border ${activeTimerObj?.id === ej.sesion_ejercicio_id && activeTimerObj?.secondsLeft > 0 ? 'bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-300' : 'bg-black border-zinc-800 text-zinc-400'}`}
                     >
                       <Timer className="w-5 h-5" />
                       <span className="font-bold tabular-nums text-lg">
-                        {activeTimerObj?.id === ej.ejercicio_id && activeTimerObj?.secondsLeft >= 0
+                        {activeTimerObj?.id === ej.sesion_ejercicio_id && activeTimerObj?.secondsLeft >= 0
                           ? formatTime(activeTimerObj.secondsLeft)
                           : formatTime(ej.descanso_seg)}
                       </span>
@@ -191,14 +210,16 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId }) {
                   )}
 
                   <button
-                    onClick={() => markExerciseDone(ej.ejercicio_id)}
-                    className="flex-1 bg-lime-500 hover:bg-lime-500 text-black font-bold uppercase tracking-widest text-lg rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgba(163,230,53,0.39)] hover:shadow-[0_6px_20px_rgba(163,230,53,0.23)] transition-all active:scale-95"
+                    onClick={() => markExerciseDone(ej)}
+                    className={cn(
+                      "flex-1 bg-lime-500 hover:bg-lime-500 text-black font-bold uppercase tracking-widest text-lg rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgba(163,230,53,0.39)] hover:shadow-[0_6px_20px_rgba(163,230,53,0.23)] transition-all active:scale-95"
+                    )}
                   >
-                    âœ” Marcar Listo
+                    ✔ Marcar Listo
                   </button>
                 </div>
 
-                {activeTimerObj?.id === ej.ejercicio_id && activeTimerObj?.secondsLeft === 0 && (
+                {activeTimerObj?.id === ej.sesion_ejercicio_id && activeTimerObj?.secondsLeft === 0 && (
                   <p className="text-fuchsia-400 font-bold text-xs mt-3 uppercase tracking-widest text-center animate-pulse">¡Fin del descanso! Listo para la próxima.</p>
                 )}
               </div>
