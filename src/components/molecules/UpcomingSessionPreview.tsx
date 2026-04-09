@@ -10,6 +10,8 @@ export interface UpcomingEjercicio {
   nombre: string;
   series_plan: number;
   reps_plan: string;
+  peso_plan?: number | null;
+  descanso_seg?: number | null;
 }
 
 export interface UpcomingSessionData {
@@ -98,9 +100,15 @@ export function UpcomingSessionPreview({ sesion, className }: UpcomingSessionPre
               {idx + 1}
             </span>
             <p className="text-sm font-bold text-zinc-300 flex-1 truncate">{ej.nombre}</p>
-            <span className="text-xs text-zinc-600 font-medium whitespace-nowrap">
-              {ej.series_plan}×{ej.reps_plan}
-            </span>
+            <div className="flex items-center gap-1.5 whitespace-nowrap">
+              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">
+                {ej.series_plan}×{ej.reps_plan}
+                {ej.peso_plan ? ` @ ${ej.peso_plan}kg` : ""}
+              </span>
+              {ej.descanso_seg && (
+                <span className="text-[9px] text-zinc-700 font-bold">{ej.descanso_seg}"</span>
+              )}
+            </div>
           </div>
         ))}
 

@@ -64,7 +64,7 @@ const { data: _sesionDeHoyRaw } = await supabase
     `
     id, estado, nombre_dia, numero_dia_plan, semana_numero,
     sesion_ejercicios_instanciados (
-      id, orden, series_plan, reps_plan, completado,
+      id, orden, series_plan, reps_plan, peso_plan, descanso_seg, completado,
       biblioteca_ejercicios (nombre)
     )
   `,
@@ -180,7 +180,7 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
   if (rutinaManana) {
     const { data: ejerciciosManana } = await supabase
       .from("ejercicios_plan")
-      .select("orden, series, reps_target, biblioteca_ejercicios(nombre)")
+      .select("orden, series, reps_target, peso_target, descanso_seg, biblioteca_ejercicios(nombre)")
       .eq("rutina_id", rutinaManana.id)
       .order("orden", { ascending: true });
 
@@ -218,6 +218,8 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
           nombre: bib?.nombre || "Ejercicio",
           series_plan: ej.series,
           reps_plan: ej.reps_target,
+          peso_plan: ej.peso_target ? parseFloat(ej.peso_target.replace(/[^0-9.]/g, '')) : null,
+          descanso_seg: ej.descanso_seg,
         };
       }),
     };
@@ -358,9 +360,20 @@ if (rutinasDiarias && rutinasDiarias.length > 0) {
                     >
                       {(ej.biblioteca_ejercicios as any)?.nombre || "Ejercicio"}
                     </p>
-                    <p class="industrial-label text-zinc-600 mt-0.5">
-                      {ej.series_plan} series × {ej.reps_plan}
-                    </p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <p class="text-[11px] font-bold text-zinc-400 uppercase tracking-tight">
+                        {ej.series_plan} × {ej.reps_plan}
+                        {ej.peso_plan ? ` @ ${ej.peso_plan}kg` : ""}
+                      </p>
+                      {ej.descanso_seg && (
+                        <>
+                          <span class="text-zinc-800 text-[10px]">•</span>
+                          <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+                            {ej.descanso_seg}"
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

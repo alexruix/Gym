@@ -2,7 +2,7 @@
 import { getAuthenticatedClient } from '@/lib/supabase-ssr';
 import { actions } from 'astro:actions';
 import { getDayNumber, getWeekNumber, getTodayISO } from '@/lib/schedule';
-import { ActiveSession } from '@/components/organisms/ActiveSession';
+import { ActiveSession } from '@/components/organisms/alumno/ActiveSession';
 import '../../../styles/global.css'; // OBLIGATORIO para standalone astro pages
 
 const supabase = getAuthenticatedClient(Astro);
@@ -57,6 +57,7 @@ const sesionBase = (sesion.sesion_ejercicios_instanciados || [])
     is_variation: ej.is_variation || false,
     // Extras para la nueva arquitectura (disponibles en el componente si los usa)
     sesion_ejercicio_id: ej.id,
+    ejercicio_plan_id: ej.ejercicio_plan_id,
     peso_plan: ej.peso_plan,
     series_real: ej.series_real,
     reps_real: ej.reps_real,
@@ -92,6 +93,7 @@ const sesionBase = (sesion.sesion_ejercicios_instanciados || [])
       sesionBase={sesionBase}
       sessionId={sesion.id}
       alumnoId={alumno.id}
+      semanaActual={semanaActual}
     />
   </main>
 </body>

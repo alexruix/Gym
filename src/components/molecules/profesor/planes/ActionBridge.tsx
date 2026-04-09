@@ -46,6 +46,7 @@ export const ActionBridge = ({
       </div>
 
       <Button
+        type="button"
         onClick={onAction}
         className="bg-lime-500 text-zinc-950 hover:bg-lime-400 font-bold px-8 py-6 rounded-2xl text-[10px] uppercase tracking-widest shadow-xl shadow-lime-500/20 active:scale-95 transition-all group relative overflow-hidden"
       >

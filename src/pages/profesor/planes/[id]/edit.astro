@@ -21,6 +21,7 @@ const { data: plan, error } = await supabase
     nombre,
     duracion_semanas,
     frecuencia_semanal,
+    is_template,
     rutinas_diarias (
       id,
       dia_numero,
@@ -33,7 +34,11 @@ const { data: plan, error } = await supabase
         descanso_seg,
         orden,
         exercise_type,
-        position
+        position,
+        peso_target,
+        notas,
+        grupo_bloque_id,
+        grupo_nombre
       )
     ),
     plan_rotaciones (
@@ -50,7 +55,6 @@ if (error || !plan) {
   return Astro.redirect("/profesor/planes?error=not-found");
 }
 
-// Cast para evitar 'never' del tipado inferido por Supabase en selects complejos
 const planData = plan as any;
 
 import { actions } from "astro:actions";
@@ -58,7 +62,7 @@ import { actions } from "astro:actions";
 // 3. Fetch exercise library unificada (Personales + MiGym)
 const { data: exercises } = await Astro.callAction(actions.profesor.getExercises, {});
 
-// 4. Map DB data to Form Schema and Ensure 7 days
+// 4. Map DB data to Form Schema and Ensure 365 days with sanitization
 const rutinasMap = new Map(planData.rutinas_diarias.map((r: any) => [r.dia_numero, r]));
 
 const initialValues = {
@@ -66,13 +70,29 @@ const initialValues = {
     nombre: planData.nombre,
     duracion_semanas: planData.duracion_semanas,
     frecuencia_semanal: planData.frecuencia_semanal,
+    is_template: planData.is_template ?? true,
     rutinas: Array.from({ length: 365 }, (_, i) => {
         const diaNum = i + 1;
         const existing = rutinasMap.get(diaNum) as any;
+        
         return {
             dia_numero: diaNum,
             nombre_dia: existing?.nombre_dia || `Rutina ${diaNum}`,
-            ejercicios: existing?.ejercicios_plan ? existing.ejercicios_plan.sort((a: any, b: any) => a.orden - b.orden) : []
+            ejercicios: (existing?.ejercicios_plan || [])
+                .sort((a: any, b: any) => a.orden - b.orden)
+                .map((ej: any) => ({
+                    ejercicio_id: ej.ejercicio_id,
+                    series: ej.series ?? 3,
+                    reps_target: ej.reps_target ?? "10",
+                    descanso_seg: ej.descanso_seg ?? 60,
+                    orden: ej.orden ?? 0,
+                    exercise_type: ej.exercise_type ?? "base",
+                    position: ej.position ?? 0,
+                    peso_target: ej.peso_target ?? "",
+                    notas: ej.notas ?? "",
+                    grupo_bloque_id: ej.grupo_bloque_id || undefined,
+                    grupo_nombre: ej.grupo_nombre || undefined
+                }))
         };
     }),
     rotaciones: planData.plan_rotaciones || []

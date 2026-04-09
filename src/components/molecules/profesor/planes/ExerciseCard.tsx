@@ -15,6 +15,7 @@ interface ExerciseCardProps {
 
   // Rotation / Personalized Props
   form?: any;
+  isTemplate?: boolean;
   onEditRotation?: (routineIdx: number, exerciseIdx: number) => void;
   hasRotation?: (position: number) => boolean;
   getRotationForPosition?: (position: number) => any;
@@ -36,6 +37,8 @@ export function ExerciseCard({
   onMove,
   isFirst,
   isLast,
+  form,
+  isTemplate = true,
   onEditRotation,
   hasRotation,
   getRotationForPosition,
@@ -46,10 +49,16 @@ export function ExerciseCard({
   const rotationActive = hasRotation?.(ex.position);
   const rotationData = getRotationForPosition?.(ex.position);
 
+  // Helper para actualizar valores si no es template (Deep Sync)
+  const updateMetric = (field: string, value: any) => {
+    if (!form || isTemplate) return;
+    form.setValue(`rutinas.${routineIdx}.ejercicios.${exerciseIdx}.${field}`, value);
+  };
+
   return (
     <Card
       className={cn(
-        "industrial-card-md group",
+        "industrial-card-md group relative overflow-visible",
         rotationActive && "border-lime-500/30 bg-lime-500/[0.02]"
       )}
     >
@@ -57,8 +66,8 @@ export function ExerciseCard({
       {!readOnly && (
         <button
           type="button"
-          onClick={() => removeExercise(routineIdx, exerciseIdx)}
-          className="absolute -top-3 -right-3 p-3 bg-white dark:bg-zinc-950 text-red-500 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-red-500/10 hover:bg-red-500 hover:text-white transition-all sm:opacity-0 group-hover:opacity-100 z-20"
+          onClick={(e) => { e.stopPropagation(); removeExercise(routineIdx, exerciseIdx); }}
+          className="absolute -top-3 -right-3 p-3 bg-white dark:bg-zinc-950 text-red-500 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-red-500/10 hover:bg-red-500 hover:text-white transition-all sm:opacity-0 group-hover:opacity-100 z-50 pointer-events-auto"
           title="Quitar ejercicio"
         >
           <Trash2 className="w-4 h-4" />
@@ -70,6 +79,7 @@ export function ExerciseCard({
         {(onMove && !readOnly) && (
           <div className="flex flex-col gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
             <button
+              type="button"
               disabled={isFirst}
               onClick={() => onMove("up")}
               className="p-1.5 text-ui-muted hover:text-lime-500 disabled:opacity-0 transition-colors"
@@ -77,6 +87,7 @@ export function ExerciseCard({
               <ChevronUp className="w-4 h-4" />
             </button>
             <button
+              type="button"
               disabled={isLast}
               onClick={() => onMove("down")}
               className="p-1.5 text-ui-muted hover:text-lime-500 disabled:opacity-0 transition-colors"
@@ -87,7 +98,7 @@ export function ExerciseCard({
         )}
 
         {/* Thumbnail Técnico */}
-        <div className="industrial-thumbnail group/thumb">
+        <div className="industrial-thumbnail group/thumb overflow-hidden shrink-0">
           {ex.biblioteca_ejercicios?.media_url ? (
             <img src={ex.biblioteca_ejercicios.media_url} className="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity" alt="" />
           ) : (
@@ -100,47 +111,96 @@ export function ExerciseCard({
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <h5 className="font-bold text-xl text-zinc-950 dark:text-zinc-50 tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate">
-              {getExerciseName(ejId)}
-            </h5>
-            {ex.grupo_nombre && (
-              <span className="industrial-label mt-1 flex items-center gap-1.5 opacity-70">
-                <Box className="w-3 h-3 text-lime-500" /> {ex.grupo_nombre}
-              </span>
-            )}
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 space-y-1">
+              <h5 className="font-bold text-lg md:text-xl text-zinc-950 dark:text-zinc-50 tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate">
+                {getExerciseName(ejId)}
+              </h5>
+              
+              {/* METADATA: PLACEHOLDER O INPUTS */}
+              <div className="flex items-center gap-3">
+                {isTemplate ? (
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 px-3 py-1.5 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                    {/* <span>{ex.series || "3"} × --</span>
+                    <span className="opacity-30">@</span>
+                    <span>--kg</span>
+                    <span className="opacity-30">|</span>
+                    <span>--&quot;</span> */}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4 animate-in fade-in duration-500">
+                    <div className="flex items-center gap-1.5">
+                      <input 
+                        type="number" 
+                        value={ex.series || ""}
+                        onChange={(e) => updateMetric("series", parseInt(e.target.value) || 0)}
+                        placeholder="3"
+                        className="w-10 h-7 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-center text-[10px] font-bold focus:ring-1 focus:ring-lime-500 border-none outline-none" 
+                      />
+                      <span className="text-[10px] font-bold text-zinc-400">×</span>
+                      <input 
+                        type="text" 
+                        value={ex.reps_target || ""}
+                        onChange={(e) => updateMetric("reps_target", e.target.value)}
+                        placeholder="12"
+                        className="w-12 h-7 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-center text-[10px] font-bold focus:ring-1 focus:ring-lime-500 border-none outline-none" 
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-zinc-400">@</span>
+                      <input 
+                        type="text" 
+                        value={ex.peso_target || ""}
+                        onChange={(e) => updateMetric("peso_target", e.target.value)}
+                        placeholder="--"
+                        className="w-16 h-7 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-center text-[10px] font-bold focus:ring-1 focus:ring-lime-500 border-none outline-none" 
+                      />
+                      <span className="text-[10px] font-bold text-zinc-400 lowercase">kg</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-            {rotationActive && (
-              <span className="flex items-center gap-1.5 px-3 py-1 bg-lime-500/10 text-lime-600 dark:text-lime-400 text-[8px] font-bold uppercase tracking-widest rounded-full border border-lime-400/20">
-                <span className="w-1 h-1 rounded-full bg-lime-500 animate-pulse" />
-                Rotación: {rotationData?.cycles[0]?.exercises?.length || 2} variantes
+            {ex.grupo_nombre && (
+              <span className="industrial-label flex items-center gap-1.5 opacity-70 shrink-0">
+                <Box className="w-3 h-3 text-lime-500" /> {ex.grupo_nombre}
               </span>
             )}
           </div>
 
           <div className="flex gap-4 items-center">
-            {(onSwap && !readOnly) && (
-              <button
-                type="button"
-                onClick={onSwap}
-                className="flex items-center gap-2 industrial-label text-[9px] hover:text-lime-500 transition-colors"
-              >
-                <Info className="w-3 h-3" />
-                Intercambiar Variación
-              </button>
+            {rotationActive && (
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-lime-500/10 text-lime-600 dark:text-lime-400 text-[8px] font-bold uppercase tracking-widest rounded-full border border-lime-400/20">
+                <span className="w-1 h-1 rounded-full bg-lime-500 animate-pulse" />
+                Variantes: {rotationData?.cycles[0]?.exercises?.length || 2}
+              </span>
             )}
 
-            {(onEditRotation && !readOnly) && (
-              <button
-                type="button"
-                onClick={() => onEditRotation(routineIdx, exerciseIdx)}
-                className="flex items-center gap-2 industrial-label text-[9px] hover:text-lime-500 transition-colors"
-              >
-                <Layers className="w-3 h-3" />
-                {rotationActive ? "Gestionar Rotación" : "Añadir Rotación"}
-              </button>
-            )}
+            <div className="flex items-center gap-4 ml-auto">
+              {(onSwap && !readOnly) && (
+                <button
+                  type="button"
+                  onClick={onSwap}
+                  className="flex items-center gap-2 industrial-label text-[9px] hover:text-lime-500 transition-colors"
+                >
+                  <Info className="w-3 h-3" />
+                  Variación
+                </button>
+              )}
+
+              {(onEditRotation && !readOnly) && (
+                <button
+                  type="button"
+                  onClick={() => onEditRotation(routineIdx, exerciseIdx)}
+                  className="flex items-center gap-2 industrial-label text-[9px] hover:text-lime-500 transition-colors"
+                >
+                  <Layers className="w-3 h-3" />
+                  {rotationActive ? "Rotación" : "Añadir Rotación"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

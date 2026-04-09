@@ -14,7 +14,7 @@ export const planSchema = z.object({
       ejercicios: z.array(
         z.object({
           ejercicio_id: z.string().uuid(),
-          series: z.number().int().min(1).optional(),
+          series: z.number().int().min(0).optional(),
           reps_target: z.string().optional(),
           descanso_seg: z.number().int().min(0).optional(),
           orden: z.number().int().min(0).optional(),

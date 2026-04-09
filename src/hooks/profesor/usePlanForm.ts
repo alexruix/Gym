@@ -251,6 +251,21 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         form.setValue(`rutinas.${ri}.ejercicios`, updated);
     };
 
+    const moveExercise = (ri: number, ei: number, direction: "up" | "down") => {
+        const currentExercises = [...form.getValues(`rutinas.${ri}.ejercicios`)];
+        const targetIdx = direction === "up" ? ei - 1 : ei + 1;
+        
+        if (targetIdx < 0 || targetIdx >= currentExercises.length) return;
+        
+        // Swap
+        const [moved] = currentExercises.splice(ei, 1);
+        currentExercises.splice(targetIdx, 0, moved);
+        
+        // Update order field explicitly (just in case)
+        const finalized = currentExercises.map((ex, idx) => ({ ...ex, orden: idx }));
+        form.setValue(`rutinas.${ri}.ejercicios`, finalized);
+    };
+
     const handleDuplicateMulti = (targetDayNums: number[]) => {
         historyRef.current = JSON.parse(JSON.stringify(form.getValues("rutinas")));
         const rutinas = form.getValues("rutinas");
@@ -346,6 +361,7 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
             addBlockToRoutine,
             saveDayAsBlock,
             removeExercise,
+            moveExercise,
             handleDuplicateMulti,
             handleExerciseCreated,
             handleSetRotation,
