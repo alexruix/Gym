@@ -5,17 +5,17 @@ import { useRef, useEffect } from "react";
 interface PlanNavigatorProps {
     currentWeek: number;
     numWeeks: number;
+    freqSemanal?: number;
     onWeekChange: (w: number) => void;
     activeDiaAbsoluto: number;
     onDiaChange: (d: number) => void;
     rutinas: any[];
 }
 
-const DIAS_LABELS = ["D1", "D2", "D3", "D4", "D5", "D6", "D7"];
-
 export function PlanNavigator({
     currentWeek,
     numWeeks,
+    freqSemanal = 3,
     onWeekChange,
     activeDiaAbsoluto,
     onDiaChange,
@@ -81,38 +81,43 @@ export function PlanNavigator({
                     {/* Separador (Solo en Desktop) */}
                     <div className="hidden md:block w-px h-8 bg-zinc-100 dark:bg-zinc-800" />
 
-                    {/* Selector de Días (Grid 7 Columnas) */}
-                    <div className="flex-1 grid grid-cols-7 gap-2">
-                        {DIAS_LABELS.map((label, dIdx) => {
-                            const diaNumAbsoluto = (currentWeek - 1) * 7 + (dIdx + 1);
-                            const isActive = activeDiaAbsoluto === diaNumAbsoluto;
-                            const routine = rutinas[diaNumAbsoluto - 1];
-                            const hasExercises = (routine?.ejercicios?.length || 0) > 0;
+                    {/* Selector de Días (Grid Dinámico) */}
+                    <div className="flex-1 overflow-x-auto">
+                        <div 
+                            className="grid gap-2"
+                            style={{ gridTemplateColumns: `repeat(${Math.max(1, freqSemanal)}, minmax(0, 1fr))` }}
+                        >
+                            {Array.from({ length: freqSemanal }, (_, dIdx) => {
+                                const diaNumAbsoluto = (currentWeek - 1) * freqSemanal + (dIdx + 1);
+                                const isActive = activeDiaAbsoluto === diaNumAbsoluto;
+                                const routine = rutinas[diaNumAbsoluto - 1];
+                                const hasExercises = (routine?.ejercicios?.length || 0) > 0;
 
-                            return (
-                                <button
-                                    key={dIdx}
-                                    type="button"
-                                    onClick={() => onDiaChange(diaNumAbsoluto)}
-                                    className={cn(
-                                        "group flex flex-col items-center justify-center p-1.5 rounded-full transition-all relative",
-                                        isActive
-                                            ? "bg-lime-500 text-zinc-950 shadow-xl shadow-lime-500/20 scale-110 z-10"
-                                            : "bg-transparent text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                                    )}
-                                >
-                                    <span className="text-[8px] font-bold uppercase tracking-tighter opacity-70 leading-none mb-0.5">
-                                        {label}
-                                    </span>
-                                    <span className="text-xs font-bold leading-none">{dIdx + 1}</span>
+                                return (
+                                    <button
+                                        key={dIdx}
+                                        type="button"
+                                        onClick={() => onDiaChange(diaNumAbsoluto)}
+                                        className={cn(
+                                            "group flex flex-col items-center justify-center p-1.5 rounded-full transition-all relative",
+                                            isActive
+                                                ? "bg-lime-500 text-zinc-950 shadow-xl shadow-lime-500/20 scale-110 z-10"
+                                                : "bg-transparent text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                                        )}
+                                    >
+                                        <span className="text-[8px] font-bold uppercase tracking-tighter opacity-70 leading-none mb-0.5">
+                                            RUTINA
+                                        </span>
+                                        <span className="text-xs font-bold leading-none">{dIdx + 1}</span>
 
-                                    {/* Puntito indicador */}
-                                    {hasExercises && !isActive && (
-                                        <div className="absolute top-0 right-1/4 w-1 h-1 rounded-full bg-lime-500" />
-                                    )}
-                                </button>
-                            );
-                        })}
+                                        {/* Puntito indicador */}
+                                        {hasExercises && !isActive && (
+                                            <div className="absolute top-0 right-1/4 w-1 h-1 rounded-full bg-lime-500" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             </div>

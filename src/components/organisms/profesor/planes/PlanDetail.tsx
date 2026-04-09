@@ -106,12 +106,14 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
         rutinas: localPlan.rutinas.map(r => ({
           dia_numero: r.dia_numero,
           nombre_dia: r.nombre_dia || "",
-          ejercicios: r.ejercicios_plan.map((e, idx) => ({
-            ejercicio_id: e.biblioteca_ejercicios?.id || "",
-            orden: idx,
-            exercise_type: "base" as const,
-            position: idx
-          }))
+          ejercicios: r.ejercicios_plan
+            .filter(e => e.biblioteca_ejercicios?.id)
+            .map((e, idx) => ({
+              ejercicio_id: e.biblioteca_ejercicios!.id,
+              orden: idx,
+              exercise_type: "base" as const,
+              position: idx
+            }))
         }))
       } as any;
 
@@ -253,6 +255,21 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
       .filter((a: any) => !a.deleted_at)
       .filter(a => a.nombre.toLowerCase().includes(studentSearch.toLowerCase()));
   }, [localPlan.alumnos, studentSearch]);
+
+  const groupedRoutines = useMemo(() => {
+    const groups: { [key: number]: RutinaDiaria[] } = {};
+    const frec = Math.max(1, localPlan.frecuencia_semanal);
+    
+    [...localPlan.rutinas]
+      .sort((a, b) => a.dia_numero - b.dia_numero)
+      .forEach(r => {
+        const week = Math.ceil(r.dia_numero / frec);
+        if (!groups[week]) groups[week] = [];
+        groups[week].push(r);
+      });
+      
+    return groups;
+  }, [localPlan.rutinas, localPlan.frecuencia_semanal]);
 
   const studentColumns: TableColumn<Alumno>[] = [
     {
@@ -409,69 +426,83 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
           }
         >
           {activeTab === "routines" && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6">
-              {localPlan.rutinas.sort((a, b) => a.dia_numero - b.dia_numero).map((rutina) => {
-                const isOpen = openRutinas.has(rutina.id);
-                const existingExIds = rutina.ejercicios_plan.map(e => e.biblioteca_ejercicios?.id || "");
-
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6">
+              {Object.entries(groupedRoutines).map(([weekNumStr, rutinasDeSemana]) => {
+                const weekNum = parseInt(weekNumStr);
                 return (
-                  <div key={rutina.id} className="bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800/60 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-zinc-950/5 transition-all duration-300">
-                    <button
-                      onClick={() => toggleRutina(rutina.id)}
-                      className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all group"
-                    >
-                      <div className="flex items-center gap-6">
-                        <span className={cn(
-                          "w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-500",
-                          isOpen ? "bg-zinc-950 text-white dark:bg-lime-500 dark:text-zinc-950 rotate-6" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 group-hover:rotate-6"
-                        )}>
-                          {rutina.dia_numero}
-                        </span>
-                        <div className="text-left">
-                          <h4 className="font-bold text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
-                            {rutina.nombre_dia || `${c.routines.dayLabel} ${rutina.dia_numero}`}
-                          </h4>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
-                            <Layers className="w-3 h-3" />
-                            {rutina.ejercicios_plan.length} ejercicios técnicos
-                          </p>
-                        </div>
-                      </div>
-                      <div className={cn(
-                        "gap-2 w-10 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all duration-300",
-                        isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
-                      )}>
-                        <ChevronDown className="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" />
-                      </div>
-                    </button>
+                  <div key={`week-${weekNum}`} className="space-y-4">
+                    <div className="flex items-center gap-3 pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-1 rounded-full">
+                        Semana {weekNum}
+                      </span>
+                      <div className="h-px bg-zinc-100 dark:bg-zinc-800 flex-1" />
+                    </div>
 
-                    {isOpen && (
-                      <div className="border-t border-zinc-100 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-4 duration-500">
-                        {rutina.ejercicios_plan.length > 0 && rutina.ejercicios_plan.map((ej: any, idx: number) => (
-                          <RoutineExerciseRow
-                            key={ej.id}
-                            exercise={ej}
-                            index={idx}
-                            hideMetrics={true}
-                            onDelete={() => removeExercise(rutina.id, ej.id)}
-                          />
-                        ))}
+                    {rutinasDeSemana.map((rutina) => {
+                      const isOpen = openRutinas.has(rutina.id);
+                      const relativeRoutineIndex = rutina.dia_numero - (weekNum - 1) * Math.max(1, localPlan.frecuencia_semanal);
 
-                        <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
-                          <Button
-                            variant="ghost"
-                            className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-500/5 text-zinc-400 hover:text-lime-500 transition-all gap-3 font-bold uppercase text-[10px] tracking-widest"
-                            onClick={() => {
-                              setActiveRoutineTarget(rutina.id);
-                              setIsSearchOpen(true);
-                            }}
+                      return (
+                        <div key={rutina.id} className="bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800/60 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-zinc-950/5 transition-all duration-300">
+                          <button
+                            onClick={() => toggleRutina(rutina.id)}
+                            className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all group"
                           >
-                            <Plus className="w-4 h-4" />
-                            Añadir ejercicio
-                          </Button>
+                            <div className="flex items-center gap-6">
+                              <span className={cn(
+                                "w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-500 shrink-0",
+                                isOpen ? "bg-zinc-950 text-white dark:bg-lime-500 dark:text-zinc-950 rotate-6" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 group-hover:rotate-6"
+                              )}>
+                                R{rutina.dia_numero}
+                              </span>
+                              <div className="text-left">
+                                <h4 className="font-bold text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                                  {rutina.nombre_dia || `Rutina ${relativeRoutineIndex}`}
+                                </h4>
+                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
+                                  <Layers className="w-3 h-3" />
+                                  {rutina.ejercicios_plan.length} ejercicios técnicos
+                                </p>
+                              </div>
+                            </div>
+                            <div className={cn(
+                              "gap-2 w-10 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all duration-300 shrink-0",
+                              isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
+                            )}>
+                              <ChevronDown className="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" />
+                            </div>
+                          </button>
+
+                          {isOpen && (
+                            <div className="border-t border-zinc-100 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-4 duration-500">
+                              {rutina.ejercicios_plan.length > 0 && rutina.ejercicios_plan.map((ej: any, idx: number) => (
+                                <RoutineExerciseRow
+                                  key={ej.id}
+                                  exercise={ej}
+                                  index={idx}
+                                  hideMetrics={true}
+                                  onDelete={() => removeExercise(rutina.id, ej.id)}
+                                />
+                              ))}
+
+                              <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+                                <Button
+                                  variant="ghost"
+                                  className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-500/5 text-zinc-400 hover:text-lime-500 transition-all gap-3 font-bold uppercase text-[10px] tracking-widest"
+                                  onClick={() => {
+                                    setActiveRoutineTarget(rutina.id);
+                                    setIsSearchOpen(true);
+                                  }}
+                                >
+                                  <Plus className="w-4 h-4" />
+                                  Añadir ejercicio
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
                 );
               })}

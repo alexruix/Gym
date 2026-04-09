@@ -48,6 +48,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
     currentWeek,
     setCurrentWeek,
     numWeeks,
+    freqSemanal,
     localLibrary,
     isSearchOpen,
     setIsSearchOpen,
@@ -75,7 +76,8 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
         <PlanNavigator
           currentWeek={currentWeek}
           numWeeks={numWeeks}
-          onWeekChange={(w) => { setCurrentWeek(w); setActiveDiaAbsoluto((w - 1) * 7 + 1); }}
+          freqSemanal={freqSemanal}
+          onWeekChange={(w) => { setCurrentWeek(w); setActiveDiaAbsoluto((w - 1) * freqSemanal + 1); }}
           activeDiaAbsoluto={activeDiaAbsoluto}
           onDiaChange={setActiveDiaAbsoluto}
           rutinas={rutinasWatch || []}
@@ -108,12 +110,12 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                 />
               </div>
 
-              <div className="max-w-xs">
+              <div className="flex flex-wrap gap-4 max-w-sm">
                 <FormField
                   control={form.control}
                   name="duracion_semanas"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
+                    <FormItem className="space-y-3 flex-1 min-w-[140px]">
                       <FormLabel className="industrial-label">Duración total</FormLabel>
                       <div className="industrial-select-trigger">
                         <select
@@ -122,6 +124,25 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                           onChange={(e) => field.onChange(parseInt(e.target.value))}
                         >
                           {[1, 2, 4, 8, 12, 24, 52].map(s => <option key={s} value={s}>{s} semanas</option>)}
+                        </select>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="frecuencia_semanal"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3 flex-1 min-w-[140px]">
+                      <FormLabel className="industrial-label">Días x Semana</FormLabel>
+                      <div className="industrial-select-trigger">
+                        <select
+                          className="industrial-select"
+                          value={field.value}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        >
+                          {[1, 2, 3, 4, 5, 6, 7].map(s => <option key={s} value={s}>{s} días</option>)}
                         </select>
                       </div>
                     </FormItem>
@@ -136,7 +157,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                 <div className="space-y-1">
                   <span className="industrial-label-accent">Semana {currentWeek}</span>
                   <h2 className="industrial-title-lg">
-                    Día {activeDiaAbsoluto}
+                    Rutina {activeDiaAbsoluto - (currentWeek - 1) * freqSemanal}
                   </h2>
                 </div>
 
@@ -188,10 +209,10 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div className="flex flex-col items-center min-w-[80px]">
-                  <span className="industrial-label text-white/90 leading-none">Día {activeDiaAbsoluto}</span>
-                  <span className="industrial-metadata text-zinc-500 mt-1">de {numWeeks * 7}</span>
+                  <span className="industrial-label text-white/90 leading-none">Rutina {activeDiaAbsoluto}</span>
+                  <span className="industrial-metadata text-zinc-500 mt-1">de {numWeeks * freqSemanal}</span>
                 </div>
-                <Button variant="ghost" size="icon" disabled={activeDiaAbsoluto === numWeeks * 7} onClick={() => setActiveDiaAbsoluto(prev => prev + 1)} className="text-white hover:bg-white/10 rounded-2xl h-12 w-12">
+                <Button variant="ghost" size="icon" disabled={activeDiaAbsoluto === numWeeks * freqSemanal} onClick={() => setActiveDiaAbsoluto(prev => prev + 1)} className="text-white hover:bg-white/10 rounded-2xl h-12 w-12">
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </div>

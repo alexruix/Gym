@@ -66,12 +66,12 @@ const initialValues = {
     nombre: planData.nombre,
     duracion_semanas: planData.duracion_semanas,
     frecuencia_semanal: planData.frecuencia_semanal,
-    rutinas: Array.from({ length: 7 }, (_, i) => {
+    rutinas: Array.from({ length: 365 }, (_, i) => {
         const diaNum = i + 1;
         const existing = rutinasMap.get(diaNum) as any;
         return {
             dia_numero: diaNum,
-            nombre_dia: existing?.nombre_dia || `${planesCopy.form.routines.selectDayTitle} ${diaNum}`,
+            nombre_dia: existing?.nombre_dia || `Rutina ${diaNum}`,
             ejercicios: existing?.ejercicios_plan ? existing.ejercicios_plan.sort((a: any, b: any) => a.orden - b.orden) : []
         };
     }),

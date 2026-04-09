@@ -45,10 +45,11 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
             nombre: initialValues?.nombre || "",
             descripcion: initialValues?.descripcion || "",
             duracion_semanas: initialValues?.duracion_semanas || 1,
+            frecuencia_semanal: initialValues?.frecuencia_semanal || 3,
             is_template: initialValues?.is_template ?? true,
-            rutinas: initialValues?.rutinas || Array.from({ length: 84 }, (_, i) => ({
+            rutinas: initialValues?.rutinas || Array.from({ length: 365 }, (_, i) => ({
                 dia_numero: i + 1,
-                nombre_dia: `Día ${i + 1}`,
+                nombre_dia: `Rutina ${i + 1}`,
                 ejercicios: [],
             })),
             rotaciones: initialValues?.rotaciones || [],
@@ -60,57 +61,94 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         name: "rutinas",
     });
 
+    const numWeeks = form.watch("duracion_semanas") || 1;
+    const freqSemanal = form.watch("frecuencia_semanal") || 3;
+
     const stats = useMemo(() => {
-        const uniqueDays = new Set<number>();
         let totalEjercicios = 0;
-        rutinasWatch?.forEach(r => {
+        let activeDays = 0;
+        
+        // Solo contamos los días activos dentro del límite
+        const maxValidDay = numWeeks * freqSemanal;
+        const validDays = rutinasWatch?.slice(0, maxValidDay) || [];
+        
+        validDays.forEach(r => {
             const c = r.ejercicios?.length || 0;
             if (c > 0) {
-                uniqueDays.add(((r.dia_numero - 1) % 7) + 1);
+                activeDays++;
                 totalEjercicios += c;
             }
         });
+        
         return { 
-            activeDaysCount: uniqueDays.size,
+            activeDaysCount: activeDays,
             totalEjercicios,
-            isValid: uniqueDays.size > 0 && form.watch("nombre")?.length >= 3
+            isValid: activeDays > 0 && form.watch("nombre")?.length >= 3
         };
-    }, [rutinasWatch, form.watch("nombre")]);
+    }, [rutinasWatch, form.watch("nombre"), numWeeks, freqSemanal]);
 
-    const numWeeks = form.watch("duracion_semanas") || 1;
-
-    // Sincronizar frecuencia semanal
+    // Limpiar excedentes si baja la frecuencia o la duración
     useEffect(() => {
-        form.setValue("frecuencia_semanal", stats.activeDaysCount);
-    }, [stats.activeDaysCount, form]);
+        const maxValidDay = numWeeks * freqSemanal;
+        const currentRoutines = form.getValues("rutinas") || [];
+        
+        let needUpdate = false;
+        const newRoutines = currentRoutines.map((r: any, i: number) => {
+            if (i >= maxValidDay && r.ejercicios?.length > 0) {
+                needUpdate = true;
+                return { ...r, ejercicios: [] };
+            }
+            return r;
+        });
+
+        if (needUpdate) {
+            form.setValue("rutinas", newRoutines);
+        }
+        
+        // Si el usuario quedó en un día fuera de límite
+        if (activeDiaAbsoluto > maxValidDay) {
+            setActiveDiaAbsoluto(Math.max(1, maxValidDay));
+            setCurrentWeek(Math.max(1, Math.ceil(maxValidDay / freqSemanal)));
+        }
+    }, [numWeeks, freqSemanal, activeDiaAbsoluto, form]);
 
     // Keyboard Shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
             
-            // Teclado Industrial: 'S' para cambiar de semana, 'D' para cambiar de dÃa
+            // Teclado Industrial: 'S' para cambiar de semana, 'D' para cambiar de día
             if (e.key === "s" || e.key === "S") {
                 const nextWeek = (currentWeek % numWeeks) + 1;
                 setCurrentWeek(nextWeek);
-                setActiveDiaAbsoluto((nextWeek - 1) * 7 + 1);
+                setActiveDiaAbsoluto((nextWeek - 1) * freqSemanal + 1);
             }
             if (e.key === "d" || e.key === "D") {
-                const nextDia = (activeDiaAbsoluto % (numWeeks * 7)) + 1;
-                if (Math.ceil(nextDia / 7) !== currentWeek) setCurrentWeek(Math.ceil(nextDia / 7));
+                const nextDia = (activeDiaAbsoluto % (numWeeks * freqSemanal)) + 1;
+                setCurrentWeek(Math.ceil(nextDia / freqSemanal));
                 setActiveDiaAbsoluto(nextDia);
             }
             if (e.key === "Enter" && e.ctrlKey) {
-                if (stats.isValid) form.handleSubmit(onSubmit)();
+                if (stats.isValid) {
+                    form.handleSubmit(onSubmit, (errors: any) => {
+                        console.error("Zod Validation Errors:", errors);
+                        toast.error("Error de validación interna. Revisa consola.");
+                    })();
+                }
             }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [currentWeek, numWeeks, activeDiaAbsoluto, stats.isValid]);
+    }, [currentWeek, numWeeks, activeDiaAbsoluto, freqSemanal, stats.isValid]);
+
+    const onInvalidSubmit = (errors: any) => {
+        console.error("Zod Validation Errors preventing submit:", errors);
+        toast.error("El plan tiene errores invisibles que previenen guardarse. Revisa la consola técnica.");
+    };
 
     const onSubmit = async (data: any) => {
         await execute(async () => {
-            const maxDay = numWeeks * 7;
+            const maxDay = numWeeks * freqSemanal;
             const activeRoutines = data.rutinas.filter((r: any) => r.ejercicios.length > 0 && r.dia_numero <= maxDay);
             const payload = { ...data, rutinas: activeRoutines };
             
@@ -288,6 +326,7 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         currentWeek,
         setCurrentWeek,
         numWeeks,
+        freqSemanal,
         localLibrary,
         isSearchOpen,
         setIsSearchOpen,
@@ -300,7 +339,7 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         rotationEditing,
         setRotationEditing,
         actions: {
-            onSubmit: form.handleSubmit(onSubmit),
+            onSubmit: form.handleSubmit(onSubmit, onInvalidSubmit),
             addExercise,
             addBlockToRoutine,
             saveDayAsBlock,
