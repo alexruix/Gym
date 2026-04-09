@@ -283,8 +283,8 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
         <BackButton href="/profesor/planes" />
       </div>
 
-      <section className="bg-white dark:bg-zinc-950/20 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800/60 shadow-2xl shadow-zinc-950/5 overflow-hidden relative">
-        <div className="h-2 w-full bg-gradient-to-r from-lime-400 via-lime-500 to-emerald-600" />
+      <section className="bg-white dark:bg-zinc-950/20 md:rounded-[2.5rem] md:border border-zinc-200 dark:border-zinc-800/60 shadow-2xl shadow-zinc-950/5 overflow-hidden relative -mx-4 md:mx-0">
+        <div className="h-1.5 md:h-2 w-full bg-gradient-to-r from-lime-400 via-lime-500 to-emerald-600" />
 
         <div className="absolute top-4 right-8 z-20">
           {syncStatus === "syncing" && (
@@ -313,72 +313,58 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
           )}
         </div>
 
-        <div className="p-8 md:p-10">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-3xl bg-zinc-950 flex items-center justify-center border border-zinc-800 shadow-2xl shrink-0 group hover:rotate-6 transition-transform duration-500">
-                <Dumbbell className="w-10 h-10 text-lime-400 group-hover:scale-110 transition-transform" />
+        <div className="p-4 md:p-10">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-zinc-950 flex items-center justify-center border border-zinc-800 shadow-2xl shrink-0 group hover:rotate-6 transition-transform duration-500">
+                <Dumbbell className="w-7 h-7 md:w-10 md:h-10 text-lime-400 group-hover:scale-110 transition-transform" />
               </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold capitalize tracking-tighter text-zinc-950 dark:text-white leading-none mb-3">
+              <div className="min-w-0">
+                <h1 className="text-xl md:text-4xl font-bold capitalize tracking-tighter text-zinc-950 dark:text-white leading-none mb-2 truncate">
                   {localPlan.nombre}
                 </h1>
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                    <Calendar className="w-3.5 h-3.5 text-zinc-400" />
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-center">{c.meta.createdAt} {createdDate}</span>
+                <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800">
+                    <Calendar className="w-3 h-3 text-zinc-400" />
+                    <span className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{createdDate}</span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-lime-500/10 rounded-lg border border-lime-400/20">
-                    <div className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
-                    <span className="text-[10px] font-bold text-lime-600 uppercase tracking-widest">Planificación</span>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-lime-500/10 rounded-md border border-lime-400/20">
+                    <Layers className="w-3 h-3 text-lime-600" />
+                    <span className="text-[8px] md:text-[10px] font-bold text-lime-600 uppercase tracking-widest leading-none">{localPlan.frecuencia_semanal} días</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 rounded-md border border-emerald-400/20">
+                    <TrendingUp className="w-3 h-3 text-emerald-600" />
+                    <span className="text-[8px] md:text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none">{localPlan.duracion_semanas} sem</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/10 rounded-md border border-blue-400/20">
+                    <Users className="w-3 h-3 text-blue-600" />
+                    <span className="text-[8px] md:text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-none">{activeStudents.length} alumnos</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 asChild
-                className="h-12 px-6 gap-2 font-bold text-[10px] uppercase tracking-[0.2em] rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-95 flex-1 md:flex-none shadow-sm"
+                className="h-10 md:h-12 px-4 md:px-6 gap-2 font-bold text-[9px] md:text-[10px] uppercase tracking-[0.2em] rounded-xl md:rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active:scale-95 flex-1 md:flex-none shadow-sm"
               >
                 <a href={`/profesor/planes/${localPlan.id}/edit`}>
-                  <Edit3 className="w-4 h-4" />
+                  <Edit3 className="w-3.5 h-3.5" />
                   Editar
                 </a>
               </Button>
               <Button
                 disabled={isDuplicating}
                 onClick={handleDuplicate}
-                className="h-12 px-6 gap-2 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10 active:scale-95 transition-all flex-1 md:flex-none disabled:opacity-50"
+                className="h-10 md:h-12 px-4 md:px-6 gap-2 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 rounded-xl md:rounded-2xl font-bold text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10 active:scale-95 transition-all flex-1 md:flex-none disabled:opacity-50"
               >
-                <Copy className="w-4 h-4" />
+                <Copy className="w-3.5 h-3.5" />
                 {isDuplicating ? "Copiando..." : "Duplicar"}
               </Button>
             </div>
           </div>
-        </div>
-
-        <div className="border-t border-zinc-100 dark:border-zinc-900 grid grid-cols-1 sm:grid-cols-3 bg-zinc-50/50 dark:bg-zinc-900/20">
-          <PlanMetric
-            icon={Layers}
-            label={c.meta.frequency}
-            value={localPlan.frecuencia_semanal}
-            accent
-            className="sm:border-r border-zinc-100 dark:border-zinc-900"
-          />
-          <PlanMetric
-            icon={TrendingUp}
-            label="Semanas"
-            value={localPlan.duracion_semanas}
-            className="border-t sm:border-t-0 sm:border-r border-zinc-100 dark:border-zinc-900"
-          />
-          <PlanMetric
-            icon={Users}
-            label={c.meta.studentsCount}
-            value={activeStudents.length}
-            className="border-t sm:border-t-0 border-zinc-100 dark:border-zinc-900"
-          />
         </div>
       </section>
 
@@ -418,30 +404,33 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                   <div key={rutina.id} className="bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800/60 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-zinc-950/5 transition-all duration-300">
                     <button
                       onClick={() => toggleRutina(rutina.id)}
-                      className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all group"
+                      className={cn(
+                        "w-full flex items-center justify-between p-4 md:p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all group sticky top-0 z-30 bg-white dark:bg-zinc-950",
+                        isOpen && "shadow-lg shadow-zinc-950/5 border-b border-zinc-100 dark:border-zinc-900"
+                      )}
                     >
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-4 md:gap-6">
                         <span className={cn(
-                          "w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-500",
+                          "w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-bold text-base md:text-lg transition-all duration-500",
                           isOpen ? "bg-zinc-950 text-white dark:bg-lime-500 dark:text-zinc-950 rotate-6" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 group-hover:rotate-6"
                         )}>
                           {rutina.dia_numero}
                         </span>
                         <div className="text-left">
-                          <h4 className="font-bold text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                          <h4 className="font-bold text-lg md:text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
                             {rutina.nombre_dia || `${c.routines.dayLabel} ${rutina.dia_numero}`}
                           </h4>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
-                            <Layers className="w-3 h-3" />
+                          <p className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1 md:mt-1.5 flex items-center gap-2">
+                            <Layers className="w-2.5 h-2.5 md:w-3 md:h-3" />
                             {rutina.ejercicios_plan.length} ejercicios técnicos
                           </p>
                         </div>
                       </div>
                       <div className={cn(
-                        "gap-2 w-10 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all duration-300",
+                        "gap-2 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all duration-300",
                         isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
                       )}>
-                        <ChevronDown className="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" />
+                        <ChevronDown className="w-4 h-4 md:w-5 md:h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" />
                       </div>
                     </button>
 

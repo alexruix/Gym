@@ -30,15 +30,17 @@ const user = userAuth?.user;
 if (!user) return Astro.redirect("/login");
 
 // ─── Nombre del profesor (para el saludo personalizado) ───────────────────────
-const { data: profesor } = await supabase
+const { data: profesorData } = await supabase
   .from("profesores")
   .select("nombre")
   .eq("id", user.id)
   .maybeSingle();
+
+const profesor = profesorData as any;
 const profesorNombre = profesor?.nombre?.split(" ")[0] ?? "profe";
 
 // ─── 1. Alumnos (query extendido con todos los campos necesarios) ──────────────
-const { data: allStudents, error: studentsError } = await supabase
+const { data: studentsData, error: studentsError } = await supabase
   .from("alumnos")
   .select(
     `
@@ -56,12 +58,14 @@ const { data: allStudents, error: studentsError } = await supabase
   .is("deleted_at", null)
   .order("created_at", { ascending: false });
 
+const allStudents = studentsData as any[];
+
 if (studentsError) {
   console.error("[Dashboard] Error cargando alumnos:", studentsError);
 }
 
 const students = allStudents || [];
-const studentIds = students.map((s) => s.id);
+const studentIds = students.map((s: any) => s.id);
 
 // ─── 1.5 Fetch Últimas Sesiones (para riesgo y adherencia) ─────────────────────
 const { data: allLastSessions } = studentIds.length > 0
@@ -80,7 +84,7 @@ const studentLastSessionMap = new Map<string, string>();
   }
 });
 const totalStudents = students.length;
-const activeStudents = students.filter((s) => s.estado === "activo");
+const activeStudents = students.filter((s: any) => s.estado === "activo");
 const activeStudentsCount = activeStudents.length;
 
 // ─── 2. Onboarding ────────────────────────────────────────────────────────────
@@ -96,21 +100,21 @@ const hasStudents = totalStudents > 0;
 
 // Alumnos sin plan asignado
 const noPlanStudents: AlertData[] = students
-  .filter((s) => s.planes === null)
-  .map((s) => ({ id: s.id, studentName: s.nombre }));
+  .filter((s: any) => s.planes === null)
+  .map((s: any) => ({ id: s.id, studentName: s.nombre }));
 
 // Alumnos en riesgo de abandono: activos con última sesión > 7 días (o sin sesión)
 const sevenDaysAgo = new Date();
 sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
 const atRiskStudents: AlertData[] = activeStudents
-  .filter((s) => {
+  .filter((s: any) => {
     const lastSession = studentLastSessionMap.get(s.id);
     if (!lastSession) return true; // Nunca entrenó
     return new Date(lastSession) < sevenDaysAgo;
   })
-  .filter((s) => s.planes !== null) // Solo los que SÍ tienen plan (esperaban entrenar)
-  .map((s) => {
+  .filter((s: any) => s.planes !== null) // Solo los que SÍ tienen plan (esperaban entrenar)
+  .map((s: any) => {
     const lastSession = studentLastSessionMap.get(s.id);
     const daysInactive = lastSession
       ? Math.floor(
@@ -127,7 +131,7 @@ const atRiskStudents: AlertData[] = activeStudents
   });
 
 // Adherencia real: % de activos que entrenaron en los últimos 7 días
-const trainedRecently = activeStudents.filter((s) => {
+const trainedRecently = activeStudents.filter((s: any) => {
   const lastSession = studentLastSessionMap.get(s.id);
   return lastSession && new Date(lastSession) >= sevenDaysAgo;
 });
@@ -149,8 +153,8 @@ const pagos = pagosData || [];
 // Cuotas vencidas / pendientes
 const expiringPayments: AlertData[] = pagos
   .filter((p) => p.estado === "pendiente" || p.estado === "vencido")
-  .flatMap((p) => {
-    const student = students.find((s) => s.id === p.alumno_id);
+  .flatMap((p: any) => {
+    const student = students.find((s: any) => s.id === p.alumno_id);
     if (!student) return [];
     const daysLate = p.fecha_vencimiento
       ? Math.max(
@@ -183,7 +187,7 @@ const monthlyRevenue = pagos
       p.fecha_pago &&
       new Date(p.fecha_pago) >= startOfMonth
   )
-  .reduce((sum, p) => sum + (p.monto || 0), 0);
+  .reduce((sum: number, p: any) => sum + (p.monto || 0), 0);
 
 // ─── 5. Alertas combinadas ────────────────────────────────────────────────────
 const hasAlerts =
@@ -192,7 +196,7 @@ const hasAlerts =
   noPlanStudents.length > 0;
 
 // ─── 6. Top 5 alumnos para tabla ─────────────────────────────────────────────
-const recentStudents: Student[] = students.slice(0, 5).map((s) => ({
+const recentStudents: Student[] = students.slice(0, 5).map((s: any) => ({
   id: s.id,
   name: s.nombre,
   email: s.email,
@@ -236,14 +240,13 @@ const c = dashboardCopy.header;
 ---
 
 <ProfesorLayout title={`${c.title} - MiGym`}>
-  <div class="p-6 max-w-7xl mx-auto space-y-8 pb-32 md:pb-6">
+  <div class="px-4 py-4 md:py-12 md:px-10 max-w-7xl mx-auto space-y-4 md:space-y-8 pb-32 md:pb-6">
 
     <!-- Header personalizado -->
     <PageHeader
       title={`Hola, ${profesorNombre}`}
-      subtitle="Tu panel de control. Todo lo que necesitás de un vistazo."
+      subtitle="Tu panel de control."
       hideActionsOnMobile={true}
-      breadcrumbs={[{ label: "Inicio" }]}
     >
       <ActionLink href="/profesor/alumnos/new" variant="secondary">
         {c.actions.newStudent}

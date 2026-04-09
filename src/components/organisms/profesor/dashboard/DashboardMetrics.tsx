@@ -31,39 +31,47 @@ export function DashboardMetrics({
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <StatCard
-        label={c.activeStudents.label}
-        value={activeStudents}
-        icon={Users}
-        tooltip={c.activeStudents.tooltip}
-        href="/profesor/alumnos"
-      />
+    <div className="flex overflow-x-auto overflow-y-hidden md:grid md:grid-cols-4 gap-4 pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide snap-x snap-mandatory">
+      <div className="min-w-[160px] flex-1 snap-start">
+        <StatCard
+          label={c.activeStudents.label}
+          value={activeStudents}
+          icon={Users}
+          tooltip={c.activeStudents.tooltip}
+          href="/profesor/alumnos"
+        />
+      </div>
 
-      <StatCard
-        label={c.pendingRoutines.label}
-        value={pendingRoutines}
-        icon={FilePlus}
-        variant={pendingRoutines > 0 ? "accent" : "default"}
-        tooltip={c.pendingRoutines.tooltip}
-        href="/profesor/planes/new"
-      />
+      <div className="min-w-[160px] flex-1 snap-start">
+        <StatCard
+          label={c.pendingRoutines.label}
+          value={pendingRoutines}
+          icon={FilePlus}
+          variant={pendingRoutines > 0 ? "accent" : "default"}
+          tooltip={c.pendingRoutines.tooltip}
+          href="/profesor/planes/new"
+        />
+      </div>
 
-      <StatCard
-        label={c.adherenceRate.label}
-        value={adherenceRate}
-        badge="%"
-        icon={Activity}
-        tooltip={c.adherenceRate.tooltip}
-      />
+      <div className="min-w-[160px] flex-1 snap-start">
+        <StatCard
+          label={c.adherenceRate.label}
+          value={adherenceRate}
+          badge="%"
+          icon={Activity}
+          tooltip={c.adherenceRate.tooltip}
+        />
+      </div>
 
-      <StatCard
-        label={c.monthlyRevenue.label}
-        value={formatCurrency(monthlyRevenue)}
-        icon={DollarSign}
-        tooltip={c.monthlyRevenue.tooltip}
-        href="/profesor/pagos"
-      />
+      <div className="min-w-[160px] flex-1 snap-start">
+        <StatCard
+          label={c.monthlyRevenue.label}
+          value={formatCurrency(monthlyRevenue)}
+          icon={DollarSign}
+          tooltip={c.monthlyRevenue.tooltip}
+          href="/profesor/pagos"
+        />
+      </div>
     </div>
   );
 }

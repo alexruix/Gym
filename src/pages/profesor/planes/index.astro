@@ -34,7 +34,7 @@ if (error) {
 }
 
 // Map to component format
-const mappedPlanes: PlanRowData[] = (planesData || []).map(p => ({
+const mappedPlanes: PlanRowData[] = (planesData || []).map((p: any) => ({
   id: p.id,
   name: p.nombre,
   duration: p.duracion_semanas || 4,

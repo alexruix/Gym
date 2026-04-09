@@ -14,7 +14,7 @@ const { data: { user } } = await supabase.auth.getUser();
 if (!user) return Astro.redirect("/login");
 
 // 2. Fetch Alumno Completo con todo el árbol de su plan (SSR)
-const { data: alumno, error } = await supabase
+const query = supabase
   .from("alumnos")
   .select(`
     *,
@@ -67,16 +67,22 @@ const { data: alumno, error } = await supabase
   .eq("profesor_id", user.id)
   .single();
 
+type AlumnoResult = any;
+const { data, error } = await query;
+const alumno = data as AlumnoResult;
+
 if (error || !alumno) {
   return Astro.redirect("/profesor/alumnos?error=not-found");
 }
 
 // 2.3 Fetch todas las suscripciones para alertar inconsistencias
-const { data: allSubscriptions } = await supabase
+const { data: subData } = await supabase
   .from("suscripciones")
   .select("*")
   .eq("profesor_id", user.id)
   .order("cantidad_dias", { ascending: true });
+
+const allSubscriptions = (subData as any[]) || [];
 
 // 2.4 Calculamos inconsistencia
 const actualDays = (alumno.dias_asistencia || []).length;
@@ -100,7 +106,7 @@ const { data: exercises } = await supabase
   .eq("profesor_id", user.id)
   .order("nombre", { ascending: true });
 
-const { data: ultimaSesion } = await supabase
+const { data: ultimaSesionData } = await supabase
   .from("sesiones_instanciadas")
   .select("updated_at, completed_at")
   .eq("alumno_id", id)
@@ -108,6 +114,8 @@ const { data: ultimaSesion } = await supabase
   .order("completed_at", { ascending: false })
   .limit(1)
   .single();
+
+const ultimaSesion = ultimaSesionData as any;
 
 // 3. Mapeo de datos para componentes
 const sortedPagos = (alumno.pagos || []).sort((a: any, b: any) => new Date(b.fecha_vencimiento).getTime() - new Date(a.fecha_vencimiento).getTime());
@@ -122,14 +130,16 @@ const studentData = {
   fecha_inicio: alumno.fecha_inicio,
   dia_pago: alumno.dia_pago,
   monto: alumno.monto || null,
-  ultima_sesion: ultimaSesion?.completed_at || ultimaSesion?.updated_at || null,
+  ultima_sesion: (ultimaSesion && ('completed_at' in ultimaSesion || 'updated_at' in ultimaSesion)) 
+    ? (ultimaSesion.completed_at || ultimaSesion.updated_at) 
+    : null,
   pago_activo,
   historial_pagos: sortedPagos,
   suscripcion: alumno.suscripciones,
   dias_asistencia: alumno.dias_asistencia || []
 };
 
-const assignedPlan = Array.isArray(alumno.planes) ? alumno.planes[0] : alumno.planes;
+const assignedPlan = (alumno.planes && Array.isArray(alumno.planes)) ? alumno.planes[0] : (alumno.planes || null);
 const planName = assignedPlan?.nombre;
 
 const sidebarProps = {
@@ -139,17 +149,16 @@ const sidebarProps = {
     telefono: alumno.telefono,
     fecha_inicio: alumno.fecha_inicio,
     dia_pago: alumno.dia_pago,
-    notas: alumno.notas,
+    notas: alumno.notas || "",
   }
 };
-
 ---
 
 <ProfesorLayout title={`${alumno.nombre} - Ficha del Alumno | MiGym`}>
-  <div class="px-5 py-6 md:py-12 md:px-10 max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
+  <div class="px-4 py-4 md:py-12 md:px-10 max-w-[1600px] mx-auto space-y-4 md:space-y-8 animate-in fade-in duration-500">
     
     {/* 1. CABECERA */}
-    <section class="animate-in slide-in-from-top-4 duration-500 space-y-6">
+    <section class="animate-in slide-in-from-top-4 duration-500 space-y-4 md:space-y-6 -mx-4 md:mx-0">
       {targetPlan && (
         <InconsistencyAlert
           client:load

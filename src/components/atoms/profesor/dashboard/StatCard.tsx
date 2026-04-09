@@ -61,7 +61,7 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "relative p-6 overflow-hidden hover:-translate-y-1 transition-all duration-300 group",
+        "relative p-4 sm:p-6 overflow-hidden hover:-translate-y-1 transition-all duration-300 group",
         variantStyles[variant],
         href && "cursor-pointer"
       )}
@@ -77,13 +77,13 @@ export function StatCard({
 
       <div className="relative z-10 flex flex-col gap-4">
         {/* Header: icono + label */}
-        <div className="flex items-center gap-3">
-          <div className={cn("p-3 rounded-2xl shrink-0", iconStyles[variant])}>
-            <Icon className="w-5 h-5" aria-hidden="true" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className={cn("p-2 sm:p-3 rounded-xl sm:rounded-2xl shrink-0", iconStyles[variant])}>
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
           </div>
           <h3
             className={cn(
-              "text-[10px] font-bold uppercase tracking-widest leading-tight",
+              "text-[9px] sm:text-[10px] font-bold uppercase tracking-widest leading-tight",
               labelStyles[variant]
             )}
           >
@@ -92,10 +92,10 @@ export function StatCard({
         </div>
 
         {/* Valor ancla */}
-        <div className="flex items-baseline gap-1.5">
+        <div className="flex items-baseline gap-1 sm:gap-1.5">
           <p
             className={cn(
-              "text-4xl font-bold tracking-tight leading-none",
+              "text-3xl sm:text-4xl font-bold tracking-tight leading-none",
               valueStyles[variant]
             )}
           >
@@ -104,7 +104,7 @@ export function StatCard({
           {badge && (
             <span
               className={cn(
-                "text-lg font-bold",
+                "text-base sm:text-lg font-bold",
                 variant === "accent"
                   ? "text-zinc-700"
                   : variant === "alert"

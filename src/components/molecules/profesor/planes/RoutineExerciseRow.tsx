@@ -53,7 +53,7 @@ export function RoutineExerciseRow({
 
   return (
     <div className={cn(
-      "flex flex-col sm:flex-row sm:items-center gap-4 px-6 py-5 bg-white dark:bg-zinc-950 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/40 transition-all duration-300 group/ej border-l-2 border-transparent hover:border-lime-400 relative",
+      "flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 bg-white dark:bg-zinc-950 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/40 transition-all duration-300 group/ej border-l-2 border-transparent hover:border-lime-400 relative",
       className
     )}>
       {/* 1. INFO BASE + REORDER */}
@@ -94,17 +94,17 @@ export function RoutineExerciseRow({
           )}
         </div>
 
-        <div className="flex-1 min-w-0 pr-4">
-          <h4 className="font-bold text-zinc-950 dark:text-white text-sm uppercase tracking-tight truncate leading-tight">
+        <div className="flex-1 min-w-0 pr-2 sm:pr-4">
+          <h4 className="font-bold text-zinc-950 dark:text-white text-[13px] sm:text-sm uppercase tracking-tight truncate leading-tight">
             {ej?.nombre || "Ejercicio"}
           </h4>
           {(!readOnly && onSwap) && (
             <button
               onClick={onSwap}
-              className="flex items-center gap-1.5 mt-1 text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+              className="flex items-center gap-1.5 mt-0.5 sm:mt-1 text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
             >
-              <Info className="w-3 h-3" />
-              Variaciones disponibles
+              <Info className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              Variaciones
             </button>
           )}
         </div>

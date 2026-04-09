@@ -132,21 +132,24 @@ export function StudentRoutineWorkspace({
                     role="button"
                     tabIndex={0}
                     onClick={() => toggleRutina(rutina.id)}
-                    className="w-full flex items-center justify-between p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer"
+                    className={cn(
+                      "w-full flex items-center justify-between p-4 sm:p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer",
+                      isOpen && "sticky top-16 sm:top-20 z-30 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-b border-zinc-100 dark:border-zinc-800 shadow-sm"
+                    )}
                   >
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4 sm:gap-6">
                       <span className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all duration-500",
+                        "w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-500",
                         isOpen ? "bg-zinc-950 text-white dark:bg-lime-500 dark:text-zinc-950 rotate-3" : "bg-zinc-50 dark:bg-zinc-900 text-zinc-400"
                       )}>
                         {rutina.dia_numero}
                       </span>
                       <div className="text-left">
-                        <h4 className="font-bold text-lg text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 transition-colors">
+                        <h4 className="font-bold text-base sm:text-lg text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 transition-colors">
                           {rutina.nombre_dia || `Día ${rutina.dia_numero}`}
                         </h4>
-                        <p className="text-[10px] font-bold text-zinc-400 tracking-widest mt-1.5 flex items-center gap-2 uppercase">
-                          <Clock className="w-3 h-3" /> {rutina.ejercicios_plan?.length || 0} Ejercicios
+                        <p className="text-[9px] sm:text-[10px] font-bold text-zinc-400 tracking-widest mt-1 sm:mt-1.5 flex items-center gap-2 uppercase">
+                          <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> {rutina.ejercicios_plan?.length || 0} Ejercicios
                         </p>
                       </div>
                     </div>

@@ -34,22 +34,22 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
 
   return (
     <DashboardCard variant="base" className="h-full">
-      <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex items-center gap-4">
-        <IconWrapper icon={AlertTriangle} color="destructive" size="md" shape="rounded" />
+      <div className="px-5 py-4 sm:p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex items-center gap-4">
+        <IconWrapper icon={AlertTriangle} color="destructive" size="sm" shape="rounded" />
         <div className="flex flex-col">
-          <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50 leading-none">{c.title}</h2>
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-1.5">{totalAlerts} {totalAlerts === 1 ? 'pendiente' : 'pendientes'}</span>
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50 leading-none">{c.title}</h2>
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-1 sm:mt-1.5">{totalAlerts} {totalAlerts === 1 ? 'pendiente' : 'pendientes'}</span>
         </div>
       </div>
 
       <Accordion type="single" collapsible className="w-full">
         {expiringPayments.length > 0 && (
-          <AccordionItem value="payments" className="border-b border-zinc-100 px-6">
-            <AccordionTrigger className="hover:no-underline py-6">
+          <AccordionItem value="payments" className="border-b border-zinc-100 px-5 sm:px-6">
+            <AccordionTrigger className="hover:no-underline py-4 sm:py-6">
               <div className="flex items-center gap-3 group">
-                <IconWrapper icon={DollarSign} color="destructive" size="md" shape="circle" />
-                <span className="font-bold text-zinc-950 dark:text-zinc-100 group-hover:text-red-500 transition-colors">{c.types.payment.title}</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">{expiringPayments.length}</span>
+                <IconWrapper icon={DollarSign} color="destructive" size="sm" shape="circle" />
+                <span className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-100 group-hover:text-red-500 transition-colors">{c.types.payment.title}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">{expiringPayments.length}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
@@ -116,7 +116,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
             <AccordionTrigger className="hover:no-underline py-6">
               <div className="flex items-center gap-3 group">
                 <IconWrapper icon={FilePlus} color="info" size="md" shape="circle" />
-                <span className="font-bold text-zinc-950 dark:text-zinc-100 group-hover:text-blue-500 transition-colors">{c.types.noPlan.title}</span>
+                <span className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-100 group-hover:text-blue-500 transition-colors">{c.types.noPlan.title}</span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">{noPlanStudents.length}</span>
               </div>
             </AccordionTrigger>

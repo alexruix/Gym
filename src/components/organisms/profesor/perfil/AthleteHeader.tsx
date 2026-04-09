@@ -68,7 +68,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
   return (
     <>
       {/* Spacer to prevent layout jump when header sticks */}
-      <div className={cn("h-40 md:h-48 transition-all", isSticky ? "block" : "hidden")} />
+      <div className={cn("h-32 md:h-48 transition-all", isSticky ? "block" : "hidden")} />
 
       <div className={cn(
         "z-50 transition-all duration-500",
@@ -77,8 +77,10 @@ export function AthleteHeader({ alumno, planName }: Props) {
           : "relative"
       )}>
         <div className={cn(
-          "max-w-7xl mx-auto flex items-center justify-between gap-4",
-          isSticky ? "h-16" : "bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-6 md:p-10 flex-col md:flex-row shadow-2xl shadow-zinc-950/5"
+          "max-w-7xl mx-auto flex items-center justify-between gap-4 transition-all duration-300",
+          isSticky 
+            ? "h-16" 
+            : "bg-white dark:bg-zinc-950/40 border-b md:border border-zinc-200 dark:border-zinc-800 md:rounded-[2.5rem] p-4 md:p-10 flex-col md:flex-row shadow-2xl shadow-zinc-950/5"
         )}>
           
           {/* Identity & Nav Group */}
@@ -92,13 +94,13 @@ export function AthleteHeader({ alumno, planName }: Props) {
             <div className="relative shrink-0">
               <div className={cn(
                 "rounded-2xl bg-zinc-950 flex items-center justify-center font-bold text-lime-400 border border-zinc-800 transition-all",
-                isSticky ? "w-10 h-10 text-sm" : "w-16 h-16 md:w-20 md:h-20 text-2xl md:text-3xl rotate-3"
+                isSticky ? "w-10 h-10 text-sm" : "w-14 h-14 md:w-20 md:h-20 text-xl md:text-3xl rotate-3"
               )}>
                 {alumno.nombre.substring(0, 2).toUpperCase()}
               </div>
               {!isSticky && (
-                <div className="absolute -bottom-2 -right-2 flex flex-col gap-1 items-end">
-                  <StatusBadge status={currentStatus as StatusType} />
+                <div className="absolute -bottom-1.5 -right-1.5 flex flex-col gap-1 items-end">
+                  {/* <StatusBadge status={currentStatus as StatusType} /> */}
                 </div>
               )}
             </div>
@@ -106,16 +108,16 @@ export function AthleteHeader({ alumno, planName }: Props) {
             <div className="min-w-0">
               <h1 className={cn(
                 "font-bold tracking-tight text-zinc-950 dark:text-white uppercase truncate",
-                isSticky ? "text-lg" : "text-2xl md:text-4xl"
+                isSticky ? "text-base" : "text-xl md:text-4xl"
               )}>
                 {alumno.nombre}
               </h1>
               {!isSticky && (
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-500/10 px-2 py-0.5 rounded border border-lime-400/20 truncate">
+                <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
+                  <span className="text-[7.5px] font-bold uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-500/10 px-1.5 py-0.5 rounded border border-lime-400/20 truncate">
                     {planName || "Sin plan"}
                   </span>
-                  <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest truncate">
+                  <span className="text-[7.5px] font-bold text-zinc-400 uppercase tracking-widest truncate">
                     #{alumno.id.split('-')[0]}
                   </span>
                 </div>
@@ -134,23 +136,23 @@ export function AthleteHeader({ alumno, planName }: Props) {
 
           {/* Quick Stats (Mobile Inline Telemetry) */}
           {!isSticky && (
-            <div className="flex md:flex-row flex-col gap-4 w-full md:w-auto">
-              <div className="flex items-center gap-6 md:gap-8 bg-zinc-50 dark:bg-zinc-900/40 p-4 md:p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800">
-                <div className="space-y-1">
-                   <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{header.metrics.payDay}</p>
-                   <p className="text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
-                      <CreditCard className="w-3.5 h-3.5 text-zinc-400" />
+            <div className="flex md:flex-row flex-col gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-4 sm:gap-8 bg-zinc-50 dark:bg-zinc-900/40 p-3 sm:p-6 rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                <div className="flex-1 sm:flex-none space-y-0.5 sm:space-y-1">
+                   <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{header.metrics.payDay}</p>
+                   <p className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+                      <CreditCard className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400" />
                       Día {alumno.dia_pago || 15}
                    </p>
                 </div>
-                <div className="h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
-                <div className="space-y-1">
-                   <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{header.metrics.lastSession}</p>
+                <div className="h-6 sm:h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
+                <div className="flex-1 sm:flex-none space-y-0.5 sm:space-y-1">
+                   <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{header.metrics.lastSession}</p>
                    <p className={cn(
-                     "text-sm font-bold flex items-center gap-2",
+                     "text-xs sm:text-sm font-bold flex items-center gap-2",
                      lastSessionText.includes("hoy") || lastSessionText.includes("ayer") ? "text-emerald-500" : "text-zinc-950 dark:text-white"
                    )}>
-                      <Clock className="w-3.5 h-3.5 opacity-40" />
+                      <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-40" />
                       {lastSessionText}
                    </p>
                 </div>

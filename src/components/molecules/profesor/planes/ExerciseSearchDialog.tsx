@@ -151,7 +151,7 @@ export function ExerciseSearchDialog({
                             <div className="flex gap-1.5 p-1 bg-ui-soft dark:bg-zinc-900 rounded-xl w-fit">
                                 {[
                                     { id: "all", label: "Todos" },
-                                    { id: "mine", label: "Míos" },
+                                    { id: "mine", label: "Propios" },
                                     { id: "migym", label: "MiGym" }
                                 ].map((tab) => (
                                     <button

@@ -44,7 +44,7 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
     { id: "favoritos", label: "Favoritos", icon: Star },
     { id: "top", label: "Top 15", icon: Flame },
     { id: "migym", label: "Master", icon: Library },
-    { id: "míos", label: "Míos", icon: User },
+    { id: "míos", label: "Propios", icon: User },
   ];
 
   const sourceFilteredExercises = useMemo(() => {

@@ -8,11 +8,13 @@ if (!user) return Astro.redirect("/login");
 
 const supabase = getAuthenticatedClient(Astro);
 // Si ya es profesor con nombre, mandarlo al dashboard
-const { data: prof } = await supabase
+const { data: profData } = await supabase
   .from("profesores")
   .select("nombre")
   .eq("id", user.id)
   .maybeSingle();
+
+const prof = profData as any;
 if (prof?.nombre) return Astro.redirect("/profesor");
 ---
 

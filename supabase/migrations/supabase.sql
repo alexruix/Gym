@@ -20,24 +20,65 @@ END $$;
 -- MANTENIMIENTO / SYNC: Asegurar columnas nuevas en tablas existentes
 -- ============================================================
 DO $$ BEGIN
-    -- alumnos
-    PERFORM 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'telefono';
-    IF NOT FOUND THEN ALTER TABLE alumnos ADD COLUMN telefono text; END IF;
+    -- alumnos maintenance
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'telefono') THEN
+        ALTER TABLE alumnos ADD COLUMN telefono text;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'notas') THEN
+        ALTER TABLE alumnos ADD COLUMN notas text;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'dia_pago') THEN
+        ALTER TABLE alumnos ADD COLUMN dia_pago int DEFAULT 1;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'monto') THEN
+        ALTER TABLE alumnos ADD COLUMN monto numeric;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'dias_asistencia') THEN
+        ALTER TABLE alumnos ADD COLUMN dias_asistencia text[] DEFAULT '{}';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'suscripcion_id') THEN
+        ALTER TABLE alumnos ADD COLUMN suscripcion_id uuid;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'monto_personalizado') THEN
+        ALTER TABLE alumnos ADD COLUMN monto_personalizado boolean DEFAULT false;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'turno_id') THEN
+        ALTER TABLE alumnos ADD COLUMN turno_id uuid;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'fecha_nacimiento') THEN
+        ALTER TABLE alumnos ADD COLUMN fecha_nacimiento DATE;
+    END IF;
 
-    PERFORM 1 FROM information_schema.columns WHERE table_name = 'alumnos' AND column_name = 'notas';
-    IF NOT FOUND THEN ALTER TABLE alumnos ADD COLUMN notas text; END IF;
+    -- biblioteca_ejercicios maintenance
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'biblioteca_ejercicios' AND column_name = 'tags') THEN
+        ALTER TABLE biblioteca_ejercicios ADD COLUMN tags text[] DEFAULT '{}';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'biblioteca_ejercicios' AND column_name = 'is_favorite') THEN
+        ALTER TABLE biblioteca_ejercicios ADD COLUMN is_favorite BOOLEAN DEFAULT false;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'biblioteca_ejercicios' AND column_name = 'usage_count') THEN
+        ALTER TABLE biblioteca_ejercicios ADD COLUMN usage_count INTEGER DEFAULT 0;
+    END IF;
+
+    -- planes maintenance
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'planes' AND column_name = 'is_template') THEN
+        ALTER TABLE planes ADD COLUMN is_template boolean DEFAULT true;
+    END IF;
 
     -- sesiones_instanciadas
-    PERFORM 1 FROM information_schema.columns WHERE table_name = 'sesiones_instanciadas' AND column_name = 'completed_by_professor';
-    IF NOT FOUND THEN ALTER TABLE sesiones_instanciadas ADD COLUMN completed_by_professor boolean DEFAULT false; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sesiones_instanciadas' AND column_name = 'completed_by_professor') THEN
+        ALTER TABLE sesiones_instanciadas ADD COLUMN completed_by_professor boolean DEFAULT false;
+    END IF;
 
     -- sesion_ejercicios_instanciados
-    PERFORM 1 FROM information_schema.columns WHERE table_name = 'sesion_ejercicios_instanciados' AND column_name = 'descanso_plan';
-    IF NOT FOUND THEN ALTER TABLE sesion_ejercicios_instanciados ADD COLUMN descanso_plan int DEFAULT 60; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sesion_ejercicios_instanciados' AND column_name = 'descanso_plan') THEN
+        ALTER TABLE sesion_ejercicios_instanciados ADD COLUMN descanso_plan int DEFAULT 60;
+    END IF;
 
     -- ejercicio_plan_personalizado
-    PERFORM 1 FROM information_schema.columns WHERE table_name = 'ejercicio_plan_personalizado' AND column_name = 'semana_numero';
-    IF NOT FOUND THEN ALTER TABLE ejercicio_plan_personalizado ADD COLUMN semana_numero int NOT NULL DEFAULT 1; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ejercicio_plan_personalizado' AND column_name = 'semana_numero') THEN
+        ALTER TABLE ejercicio_plan_personalizado ADD COLUMN semana_numero int NOT NULL DEFAULT 1;
+    END IF;
 END $$;
 
 
@@ -83,16 +124,19 @@ CREATE TABLE IF NOT EXISTS profesores (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS biblioteca_ejercicios (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
+  profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE, -- opcional si es base
   parent_id uuid REFERENCES biblioteca_ejercicios(id) ON DELETE CASCADE,
   nombre text NOT NULL,
   descripcion text,
   media_url text,
   tags text[] DEFAULT '{}',
   is_template_base boolean DEFAULT false,
+  is_favorite BOOLEAN DEFAULT false,
+  usage_count INTEGER DEFAULT 0,
   created_at timestamptz DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_biblioteca_ej_tags ON biblioteca_ejercicios USING GIN (tags);
+CREATE INDEX IF NOT EXISTS idx_exercise_favorites ON biblioteca_ejercicios(profesor_id, is_favorite) WHERE is_favorite = true;
 
 -- ============================================================
 -- 3. PLANES (MAESTROS Y FORKS)
@@ -103,11 +147,10 @@ CREATE TABLE IF NOT EXISTS planes (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
   nombre text NOT NULL,
-  descripcion text,                   -- usado en importPlans
+  descripcion text,
   duracion_semanas int DEFAULT 4,
   frecuencia_semanal int DEFAULT 3,
-  monto numeric DEFAULT 0,
-  is_template boolean DEFAULT true,   -- usado en promotePlan, getProfessorMaestroPlans, forkPlan
+  is_template boolean DEFAULT true,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
@@ -155,19 +198,26 @@ CREATE TABLE IF NOT EXISTS alumnos (
   user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   profesor_id uuid REFERENCES profesores(id) ON DELETE CASCADE NOT NULL,
   plan_id uuid REFERENCES planes(id) ON DELETE SET NULL,
+  suscripcion_id uuid REFERENCES suscripciones(id) ON DELETE SET NULL,
+  turno_id uuid REFERENCES turnos(id) ON DELETE SET NULL,
   email text,
   nombre text NOT NULL,
-  telefono text,                                        -- usado en inviteStudent, updateStudent
-  notas text,                                           -- usado en inviteStudent, updateStudent
-  dia_pago int DEFAULT 1,                               -- usado en inviteStudent, registrar_pago_atomico
-  monto numeric,                                        -- usado en inviteStudent
+  telefono text,
+  notas text,
+  dia_pago int DEFAULT 1,
+  monto numeric,
+  monto_personalizado boolean DEFAULT false,
+  dias_asistencia text[] DEFAULT '{}',
   fecha_inicio date DEFAULT current_date,
+  fecha_nacimiento date,
   estado text DEFAULT 'activo',
-  access_token uuid DEFAULT uuid_generate_v4() UNIQUE,  -- usado en getStudentGuestLink
-  deleted_at timestamptz,                               -- usado en deleteStudent, filtro RLS
+  access_token uuid DEFAULT uuid_generate_v4() UNIQUE,
+  deleted_at timestamptz,
   ultimo_recordatorio_pago_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
+CREATE INDEX IF NOT EXISTS idx_alumnos_turno_id ON alumnos(turno_id);
+CREATE INDEX IF NOT EXISTS idx_alumnos_suscripcion_id ON alumnos(suscripcion_id);
 
 -- ============================================================
 -- 7. PAGOS Y NOTIFICACIONES
@@ -584,37 +634,48 @@ DECLARE
   v_ejercicio_rec record;
   v_rotacion_rec record;
 BEGIN
+  -- 1. Obtener profesor_id y validar existencia
   SELECT profesor_id INTO v_profesor_id FROM planes WHERE id = p_plan_id;
-  IF NOT FOUND THEN RAISE EXCEPTION 'Plan origen no encontrado'; END IF;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Plan origen no encontrado';
+  END IF;
 
-  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, monto, is_template)
-  SELECT profesor_id, p_nuevo_nombre, duracion_semanas, frecuencia_semanal, monto, false
+  -- 2. Insertar nuevo plan (is_template = false)
+  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, is_template)
+  SELECT profesor_id, p_nuevo_nombre, duracion_semanas, frecuencia_semanal, false
   FROM planes WHERE id = p_plan_id
   RETURNING id INTO v_new_plan_id;
 
+  -- 3. Copiar rutinas_diarias
   FOR v_rutina_rec IN SELECT * FROM rutinas_diarias WHERE plan_id = p_plan_id LOOP
     INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
     VALUES (v_new_plan_id, v_rutina_rec.dia_numero, v_rutina_rec.nombre_dia, v_rutina_rec.orden)
     RETURNING id INTO v_new_rutina_id;
 
+    -- 4. Copiar ejercicios de esta rutina
     FOR v_ejercicio_rec IN SELECT * FROM ejercicios_plan WHERE rutina_id = v_rutina_rec.id LOOP
-      INSERT INTO ejercicios_plan (
-        rutina_id, ejercicio_id, series, reps_target, descanso_seg,
-        orden, exercise_type, position, peso_target
-      )
+      INSERT INTO ejercicios_plan (rutina_id, ejercicio_id, series, reps_target, descanso_seg, orden, exercise_type, position, peso_target)
       VALUES (
-        v_new_rutina_id, v_ejercicio_rec.ejercicio_id, v_ejercicio_rec.series,
-        v_ejercicio_rec.reps_target, v_ejercicio_rec.descanso_seg, v_ejercicio_rec.orden,
-        v_ejercicio_rec.exercise_type, v_ejercicio_rec.position, v_ejercicio_rec.peso_target
+        v_new_rutina_id, 
+        v_ejercicio_rec.ejercicio_id, 
+        v_ejercicio_rec.series, 
+        v_ejercicio_rec.reps_target, 
+        v_ejercicio_rec.descanso_seg, 
+        v_ejercicio_rec.orden, 
+        v_ejercicio_rec.exercise_type, 
+        v_ejercicio_rec.position,
+        v_ejercicio_rec.peso_target
       );
     END LOOP;
   END LOOP;
 
+  -- 5. Copiar rotaciones
   FOR v_rotacion_rec IN SELECT * FROM plan_rotaciones WHERE plan_id = p_plan_id LOOP
     INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
     VALUES (v_new_plan_id, v_rotacion_rec.position, v_rotacion_rec.applies_to_days, v_rotacion_rec.cycles);
   END LOOP;
 
+  -- 6. Asignar el nuevo plan al alumno
   UPDATE alumnos SET plan_id = v_new_plan_id WHERE id = p_alumno_id AND profesor_id = v_profesor_id;
 
   RETURN v_new_plan_id;
@@ -878,43 +939,6 @@ CREATE POLICY "Profesores gestionan ejercicios de sus bloques" ON bloques_ejerci
         )
     );
 
--- Migration: Agregar fecha de nacimiento a alumnos (v2.5)
--- Referencia: Requerimiento de cálculo de edad automática
-
-DO $$ BEGIN
-    PERFORM 1 FROM information_schema.columns 
-    WHERE table_name = 'alumnos' AND column_name = 'fecha_nacimiento';
-    
-    IF NOT FOUND THEN 
-        ALTER TABLE alumnos ADD COLUMN fecha_nacimiento DATE;
-    END IF;
-END $$;
-
-COMMENT ON COLUMN alumnos.fecha_nacimiento IS 'Fecha de nacimiento del alumno para cálculo de edad (opcional)';
-
--- 1. Quitar la restricción de 'profesor_id' obligatorio
-ALTER TABLE biblioteca_ejercicios ALTER COLUMN profesor_id DROP NOT NULL;
-
--- 2. Habilitar la lectura para todos (RLS)
-DROP POLICY IF EXISTS "Profesores gestionan su biblioteca" ON biblioteca_ejercicios;
-
-CREATE POLICY "Lectura biblioteca integrada" ON biblioteca_ejercicios
-  FOR SELECT USING (is_template_base = true OR auth.uid() = profesor_id);
-
-CREATE POLICY "Gestión biblioteca privada" ON biblioteca_ejercicios
-  FOR ALL USING (auth.uid() = profesor_id)
-  WITH CHECK (auth.uid() = profesor_id);
-
--- Migration: Agregar fecha de nacimiento a alumnos (v2.5)
--- Referencia: Requerimiento de cálculo de edad automática
-
-DO $$ BEGIN
-    PERFORM 1 FROM information_schema.columns 
-    WHERE table_name = 'alumnos' AND column_name = 'fecha_nacimiento';
-    
-    IF NOT FOUND THEN 
-        ALTER TABLE alumnos ADD COLUMN fecha_nacimiento DATE;
-    END IF;
-END $$;
-
-COMMENT ON COLUMN alumnos.fecha_nacimiento IS 'Fecha de nacimiento del alumno para cálculo de edad (opcional)';
+-- ============================================================
+-- FIN DEL ESQUEMA CONSOLIDADO
+-- ============================================================

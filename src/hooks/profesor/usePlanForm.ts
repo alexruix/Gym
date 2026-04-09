@@ -245,7 +245,7 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
             id: newEx.id, 
             nombre: newEx.nombre, 
             media_url: newEx.media_url || null,
-            profesor_id: "user_owned" // Marcamos como propio para que el filtro "Míos" lo capture
+            profesor_id: "user_owned" // Marcamos como propio para que el filtro "Propios" lo capture
         }, ...prev]); 
         addExercise(newEx.id); 
     };

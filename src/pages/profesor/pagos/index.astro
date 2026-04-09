@@ -29,7 +29,7 @@ try {
   
   // Si no hay suscripciones, inicializamos las de defecto
   if (subscriptions.length === 0) {
-    await supabase.rpc('inicializar_suscripciones_profesor', { p_profesor_id: userId });
+    await (supabase as any).rpc('inicializar_suscripciones_profesor', { p_profesor_id: userId });
     const { data: subsRetry } = await supabase
       .from("suscripciones")
       .select("*")

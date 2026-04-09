@@ -385,7 +385,6 @@ export type Database = {
           descripcion: string | null
           duracion_semanas: number | null
           frecuencia_semanal: number | null
-          monto: number | null
           is_template: boolean | null
           created_at: string | null
           updated_at: string | null
@@ -397,7 +396,6 @@ export type Database = {
           descripcion?: string | null
           duracion_semanas?: number | null
           frecuencia_semanal?: number | null
-          monto?: number | null
           is_template?: boolean | null
           created_at?: string | null
           updated_at?: string | null
@@ -409,7 +407,6 @@ export type Database = {
           descripcion?: string | null
           duracion_semanas?: number | null
           frecuencia_semanal?: number | null
-          monto?: number | null
           is_template?: boolean | null
           created_at?: string | null
           updated_at?: string | null

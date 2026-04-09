@@ -17,11 +17,13 @@ if (!user) {
 const { data: authUser } = await supabase.auth.getUser();
 const lastPasswordUpdate = authUser.user?.updated_at;
 
-const { data: profesor } = await supabase
+const { data: profesorData } = await supabase
   .from("profesores")
   .select("*")
   .eq("id", user.id)
   .single();
+
+const profesor = profesorData as any;
 
 const safeProfesor = {
   id: user.id,
