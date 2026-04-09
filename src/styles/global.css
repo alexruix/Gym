@@ -343,7 +343,7 @@
   }
 
   .industrial-label-accent {
-    @apply text-[10px] font-bold uppercase tracking-[0.4em] text-lime-500;
+    @apply text-[10px] font-bold uppercase tracking-[0.2em] text-lime-500;
   }
 
   .industrial-metadata {

@@ -86,7 +86,7 @@ export function BlockSearchDialog({
           {blocksCopy.search.description}
         </DialogDescription>
 
-        <div className="p-10 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/10">
+        <div className="pt-8 px-8 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/10">
           <div className="flex items-center justify-between gap-4 mb-8">
             <div className="space-y-1">
               <h2 className="text-3xl font-bold text-zinc-950 dark:text-zinc-50 tracking-tight uppercase leading-none">
@@ -146,7 +146,7 @@ export function BlockSearchDialog({
           )}
         </div>
 
-        <div className="max-h-[550px] overflow-y-auto p-10 custom-scrollbar bg-zinc-50/20 dark:bg-transparent">
+        <div className="max-h-[550px] overflow-y-auto p-4 custom-scrollbar bg-zinc-50/20 dark:bg-transparent">
           {isCreating ? (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <BlockForm

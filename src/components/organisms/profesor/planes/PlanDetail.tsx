@@ -29,6 +29,8 @@ import { StandardTable, type TableColumn } from "@/components/organisms/Standard
 import { ExerciseSearchDialog } from "@/components/molecules/profesor/planes/ExerciseSearchDialog";
 import { BackButton } from "@/components/atoms/profesor/BackButton";
 import { cn } from "@/lib/utils";
+import { PlanPill } from "@/components/atoms/profesor/planes/PlanPill";
+import { ActionBridge } from "@/components/molecules/profesor/planes/ActionBridge";
 
 // --- Tipos ---
 interface EjercicioPlan {
@@ -106,12 +108,14 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
         rutinas: localPlan.rutinas.map(r => ({
           dia_numero: r.dia_numero,
           nombre_dia: r.nombre_dia || "",
-          ejercicios: r.ejercicios_plan.map((e, idx) => ({
-            ejercicio_id: e.biblioteca_ejercicios?.id || "",
-            orden: idx,
-            exercise_type: "base" as const,
-            position: idx
-          }))
+          ejercicios: r.ejercicios_plan
+            .filter(e => e.biblioteca_ejercicios?.id)
+            .map((e, idx) => ({
+              ejercicio_id: e.biblioteca_ejercicios!.id,
+              orden: idx,
+              exercise_type: "base" as const,
+              position: idx
+            }))
         }))
       } as any;
 
@@ -254,6 +258,21 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
       .filter(a => a.nombre.toLowerCase().includes(studentSearch.toLowerCase()));
   }, [localPlan.alumnos, studentSearch]);
 
+  const groupedRoutines = useMemo(() => {
+    const groups: { [key: number]: RutinaDiaria[] } = {};
+    const frec = Math.max(1, localPlan.frecuencia_semanal);
+    
+    [...localPlan.rutinas]
+      .sort((a, b) => a.dia_numero - b.dia_numero)
+      .forEach(r => {
+        const week = Math.ceil(r.dia_numero / frec);
+        if (!groups[week]) groups[week] = [];
+        groups[week].push(r);
+      });
+      
+    return groups;
+  }, [localPlan.rutinas, localPlan.frecuencia_semanal]);
+
   const studentColumns: TableColumn<Alumno>[] = [
     {
       header: "Alumno",
@@ -323,23 +342,28 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                 <h1 className="text-xl md:text-4xl font-bold capitalize tracking-tighter text-zinc-950 dark:text-white leading-none mb-2 truncate">
                   {localPlan.nombre}
                 </h1>
-                <div className="flex flex-wrap items-center gap-2 md:gap-4">
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800">
-                    <Calendar className="w-3 h-3 text-zinc-400" />
-                    <span className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{createdDate}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-lime-500/10 rounded-md border border-lime-400/20">
-                    <Layers className="w-3 h-3 text-lime-600" />
-                    <span className="text-[8px] md:text-[10px] font-bold text-lime-600 uppercase tracking-widest leading-none">{localPlan.frecuencia_semanal} días</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 rounded-md border border-emerald-400/20">
-                    <TrendingUp className="w-3 h-3 text-emerald-600" />
-                    <span className="text-[8px] md:text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none">{localPlan.duracion_semanas} sem</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/10 rounded-md border border-blue-400/20">
-                    <Users className="w-3 h-3 text-blue-600" />
-                    <span className="text-[8px] md:text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-none">{activeStudents.length} alumnos</span>
-                  </div>
+                <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                  <PlanPill
+                    icon={Calendar}
+                    value={createdDate}
+                    label={c.meta.createdAt}
+                  />
+                  <PlanPill
+                    icon={Layers}
+                    value={localPlan.frecuencia_semanal}
+                    label="días"
+                    variant="accent"
+                  />
+                  <PlanPill
+                    icon={TrendingUp}
+                    value={localPlan.duracion_semanas}
+                    label="sem"
+                  />
+                  <PlanPill
+                    icon={Users}
+                    value={activeStudents.length}
+                    label="alumnos"
+                  />
                 </div>
               </div>
             </div>
@@ -352,7 +376,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
               >
                 <a href={`/profesor/planes/${localPlan.id}/edit`}>
                   <Edit3 className="w-3.5 h-3.5" />
-                  Editar
+                  {c.actions.edit.split(' ')[0]}
                 </a>
               </Button>
               <Button
@@ -361,7 +385,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                 className="h-10 md:h-12 px-4 md:px-6 gap-2 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 rounded-xl md:rounded-2xl font-bold text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-lime-500/10 active:scale-95 transition-all flex-1 md:flex-none disabled:opacity-50"
               >
                 <Copy className="w-3.5 h-3.5" />
-                {isDuplicating ? "Copiando..." : "Duplicar"}
+                {isDuplicating ? "..." : c.actions.duplicate}
               </Button>
             </div>
           </div>
@@ -395,72 +419,109 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
           }
         >
           {activeTab === "routines" && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6">
-              {localPlan.rutinas.sort((a, b) => a.dia_numero - b.dia_numero).map((rutina) => {
-                const isOpen = openRutinas.has(rutina.id);
-                const existingExIds = rutina.ejercicios_plan.map(e => e.biblioteca_ejercicios?.id || "");
-
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6">
+              {Object.entries(groupedRoutines).map(([weekNumStr, rutinasDeSemana]) => {
+                const weekNum = parseInt(weekNumStr);
                 return (
-                  <div key={rutina.id} className="bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800/60 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-zinc-950/5 transition-all duration-300">
-                    <button
-                      onClick={() => toggleRutina(rutina.id)}
-                      className={cn(
-                        "w-full flex items-center justify-between p-4 md:p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all group sticky top-0 z-30 bg-white dark:bg-zinc-950",
-                        isOpen && "shadow-lg shadow-zinc-950/5 border-b border-zinc-100 dark:border-zinc-900"
-                      )}
-                    >
-                      <div className="flex items-center gap-4 md:gap-6">
-                        <span className={cn(
-                          "w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-bold text-base md:text-lg transition-all duration-500",
-                          isOpen ? "bg-zinc-950 text-white dark:bg-lime-500 dark:text-zinc-950 rotate-6" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 group-hover:rotate-6"
-                        )}>
-                          {rutina.dia_numero}
-                        </span>
-                        <div className="text-left">
-                          <h4 className="font-bold text-lg md:text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
-                            {rutina.nombre_dia || `${c.routines.dayLabel} ${rutina.dia_numero}`}
-                          </h4>
-                          <p className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1 md:mt-1.5 flex items-center gap-2">
-                            <Layers className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                            {rutina.ejercicios_plan.length} ejercicios técnicos
-                          </p>
-                        </div>
-                      </div>
-                      <div className={cn(
-                        "gap-2 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all duration-300",
-                        isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
-                      )}>
-                        <ChevronDown className="w-4 h-4 md:w-5 md:h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" />
-                      </div>
-                    </button>
+                  <div key={`week-${weekNum}`} className="space-y-4">
+                    <div className="flex items-center gap-3 pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-1 rounded-full">
+                        Semana {weekNum}
+                      </span>
+                      <div className="h-px bg-zinc-100 dark:bg-zinc-800 flex-1" />
+                    </div>
 
-                    {isOpen && (
-                      <div className="border-t border-zinc-100 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-4 duration-500">
-                        {rutina.ejercicios_plan.length > 0 && rutina.ejercicios_plan.map((ej: any, idx: number) => (
-                          <RoutineExerciseRow
-                            key={ej.id}
-                            exercise={ej}
-                            index={idx}
-                            hideMetrics={true}
-                            onDelete={() => removeExercise(rutina.id, ej.id)}
-                          />
-                        ))}
+                    {rutinasDeSemana.map((rutina) => {
+                      const isOpen = openRutinas.has(rutina.id);
+                      const relativeRoutineIndex = rutina.dia_numero - (weekNum - 1) * Math.max(1, localPlan.frecuencia_semanal);
 
-                        <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
-                          <Button
-                            variant="ghost"
-                            className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-500/5 text-zinc-400 hover:text-lime-500 transition-all gap-3 font-bold uppercase text-[10px] tracking-widest"
-                            onClick={() => {
-                              setActiveRoutineTarget(rutina.id);
-                              setIsSearchOpen(true);
-                            }}
+                      return (
+                        <div key={rutina.id} className="bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800/60 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-zinc-950/5 transition-all duration-300">
+                          <button
+                            onClick={() => toggleRutina(rutina.id)}
+                            className={cn(
+                              "w-full flex items-center justify-between p-4 md:p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all group sticky top-0 z-30 bg-white dark:bg-zinc-950",
+                              isOpen && "shadow-lg shadow-zinc-950/5 border-b border-zinc-100 dark:border-zinc-900"
+                            )}
                           >
-                            <Plus className="w-4 h-4" />
-                            Añadir ejercicio
-                          </Button>
+                            <div className="flex items-center gap-4 md:gap-6">
+                              <span className={cn(
+                                "w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-bold text-base md:text-lg transition-all duration-500 shrink-0",
+                                isOpen ? "bg-zinc-950 text-white dark:bg-lime-500 dark:text-zinc-950 rotate-6" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 group-hover:rotate-6"
+                              )}>
+                                R{rutina.dia_numero}
+                              </span>
+                              <div className="text-left">
+                                <h4 className="font-bold text-lg md:text-xl text-zinc-950 dark:text-white uppercase tracking-tighter leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                                  {rutina.nombre_dia || `Rutina ${relativeRoutineIndex}`}
+                                </h4>
+                                {rutina.ejercicios_plan.length === 0 ? (
+                                  <p className="text-[9px] font-bold text-red-500 dark:text-red-400 uppercase tracking-[0.2em] mt-1 flex items-center gap-2 animate-pulse">
+                                    <AlertCircle className="w-2.5 h-2.5" />
+                                    Sin ejercicios cargados
+                                  </p>
+                                ) : (
+                                  <p className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1 md:mt-1.5 flex items-center gap-2">
+                                    <Layers className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                                    {rutina.ejercicios_plan.length} ejercicios técnicos
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className={cn(
+                              "gap-2 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center transition-all duration-300 shrink-0",
+                              isOpen ? "rotate-180 bg-zinc-950 text-white" : "group-hover:bg-zinc-100"
+                            )}>
+                              <ChevronDown className="w-4 h-4 md:w-5 md:h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" />
+                            </div>
+                          </button>
+
+                          {isOpen && (
+                            <div className="border-t border-zinc-100 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-4 duration-500">
+                              {rutina.ejercicios_plan.length > 0 ? (
+                                <>
+                                  {rutina.ejercicios_plan.map((ej: any, idx: number) => (
+                                    <RoutineExerciseRow
+                                      key={ej.id}
+                                      exercise={ej}
+                                      index={idx}
+                                      hideMetrics={true}
+                                      onDelete={() => removeExercise(rutina.id, ej.id)}
+                                    />
+                                  ))}
+                                  <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-800 hover:border-lime-400 hover:bg-lime-500/5 text-zinc-400 hover:text-lime-500 transition-all gap-3 font-bold uppercase text-[10px] tracking-widest"
+                                      onClick={() => {
+                                        setActiveRoutineTarget(rutina.id);
+                                        setIsSearchOpen(true);
+                                      }}
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      {c.routines.emptyDay.split(' ')[0]} ejercicio
+                                    </Button>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="p-6 md:p-10">
+                                  <ActionBridge
+                                    icon={Dumbbell}
+                                    title="Rutina vacía"
+                                    description="Cargá los ejercicios de este día para que tus alumnos puedan entrenar."
+                                    actionLabel="Agregar ejercicios"
+                                    onAction={() => {
+                                      setActiveRoutineTarget(rutina.id);
+                                      setIsSearchOpen(true);
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
                 );
               })}
@@ -470,21 +531,13 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
           {activeTab === "students" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {activeStudents.length === 0 ? (
-                <div className="py-24 bg-white dark:bg-zinc-950/20 border border-zinc-200 dark:border-zinc-800 rounded-3xl flex flex-col items-center gap-6 text-center">
-                  <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-900 rounded-[2rem] flex items-center justify-center border border-dashed border-zinc-300 dark:border-zinc-800">
-                    <Users className="w-8 h-8 text-zinc-300" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-xl uppercase tracking-tighter text-zinc-950 dark:text-zinc-50">Sin alumnos activos</h3>
-                    <p className="text-sm text-zinc-400 font-medium px-6">{studentSearch ? "No se encontraron coincidencias para tu búsqueda." : c.students.empty}</p>
-                  </div>
-                  <Button
-                    onClick={() => setIsAssignDialogOpen(true)}
-                    className="bg-lime-500 text-zinc-950 px-6 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-lime-500 shadow-xl shadow-lime-500/10"
-                  >
-                    {c.students.assignBtn}
-                  </Button>
-                </div>
+                <ActionBridge
+                  icon={Users}
+                  title="Sin alumnos asignados"
+                  description="Asigná este plan a tus alumnos para que puedan ver sus rutinas."
+                  actionLabel="Asignar Alumno"
+                  onAction={() => setIsAssignDialogOpen(true)}
+                />
               ) : (
                 studentView === "grid" ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

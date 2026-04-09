@@ -217,8 +217,9 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
                   {isInstantiatingExtra ? 'Copiando...' : copy.actions.addExtraSession}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-56 bg-zinc-900 border-zinc-800 rounded-2xl p-2 shadow-2xl">
+              <DropdownMenuContent align="center" className="w-56 bg-white dark:bg-zinc-900  rounded-2xl p-2 shadow-2xl">
                 <div className="space-y-1">
+                  <DropdownMenuLabel className="text-[10px] dark:text-white font-bold uppercase tracking-widest text-zinc-500 p-2">Copiado rápido</DropdownMenuLabel>
                   {planRoutines.map((r) => (
                     <DropdownMenuItem
                       key={r.id}
@@ -231,9 +232,8 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
                   ))}
                 </div>
 
-                <DropdownMenuSeparator className="bg-zinc-800/50 my-2" />
+                <DropdownMenuSeparator className="bg-zinc-800/10 my-2" />
 
-                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 p-2">Copiado rápido</DropdownMenuLabel>
                 <div className="space-y-1">
                   {calendarDays
                     .filter(d => d.rutinaIdOriginal && d.fecha !== selectedDay && d.fecha <= hoyISO)

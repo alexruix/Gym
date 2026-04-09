@@ -82,7 +82,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
             <AccordionTrigger className="hover:no-underline py-6">
               <div className="flex items-center gap-3 group">
                 <IconWrapper icon={Frown} color="warning" size="md" shape="circle" />
-                <span className="font-bold text-zinc-950 dark:text-zinc-100 group-hover:text-amber-500 transition-colors">{c.types.risk.title}</span>
+                <span className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-100 group-hover:text-amber-500 transition-colors">{c.types.risk.title}</span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">{atRiskStudents.length}</span>
               </div>
             </AccordionTrigger>
