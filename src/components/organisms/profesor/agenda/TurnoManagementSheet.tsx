@@ -1,15 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-  SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Trash2, Plus, Clock, Settings2 } from "lucide-react";
 import { TurnoTemplatePicker } from "@/components/molecules/profesor/agenda/TurnoTemplatePicker";
 import { cn } from "@/lib/utils";
@@ -17,21 +14,13 @@ import { Separator } from "@/components/ui/separator";
 import { useTurnos } from "@/hooks/profesor/useTurnos";
 import { TurnoForm } from "@/components/molecules/profesor/agenda/TurnoForm";
 import { DeleteConfirmDialog } from "@/components/molecules/DeleteConfirmDialog";
-
-interface Turno {
-  id: string;
-  nombre: string;
-  hora_inicio: string;
-  hora_fin: string;
-  capacidad_max: number;
-  color_tag?: string;
-  dias_asistencia: string[];
-}
+import type { Turno } from "@/types/agenda";
 
 interface TurnoManagementSheetProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   turnos: Turno[];
+  onTurnosChange: (event: { type: 'upsert' | 'delete', turno?: Turno, id?: string }) => void;
 }
 
 // Mapeo de días abreviados para el resumen visual
@@ -47,7 +36,7 @@ const getDayInitials = (dias: string[]) => {
   return dias.map(d => map[d] || d.charAt(0)).join(" ");
 };
 
-export function TurnoManagementSheet({ isOpen, onOpenChange, turnos }: TurnoManagementSheetProps) {
+export function TurnoManagementSheet({ isOpen, onOpenChange, turnos, onTurnosChange }: TurnoManagementSheetProps) {
   const {
     editingId,
     handleEdit,
@@ -56,7 +45,10 @@ export function TurnoManagementSheet({ isOpen, onOpenChange, turnos }: TurnoMana
     handleAdd,
     isPending,
     deleteFlow,
-  } = useTurnos(turnos);
+  } = useTurnos({
+    initialTurnos: turnos,
+    onSuccess: onTurnosChange
+  });
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>

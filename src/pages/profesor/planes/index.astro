@@ -57,4 +57,20 @@ const c = planesCopy.list.header;
       <PlanesDashboard client:load planes={mappedPlanes} />
     </div>
   </div>
+
+  <script>
+    import { toast } from "sonner";
+    
+    // Capturar errores de redirección (ej: Plan no encontrado tras fallo de query)
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    
+    if (error === 'not-found') {
+      toast.error("No se pudo cargar el plan. Es probable que falten columnas técnicas en la base de datos o el plan no exista.", {
+        duration: 5000,
+      });
+      // Limpiar URL para no repetir el toast
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  </script>
 </ProfesorLayout>

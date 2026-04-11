@@ -411,7 +411,7 @@ export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuc
                                                     {subscriptions.length > 0 ? (
                                                         subscriptions.map((sub) => (
                                                             <SelectItem key={sub.id} value={sub.id} className="rounded-xl py-3 font-bold">
-                                                                {sub.nombre} (${sub.monto.toLocaleString()})
+                                                                {sub.nombre} (${sub.monto.toLocaleString('es-AR')})
                                                             </SelectItem>
                                                         ))
                                                     ) : (

@@ -16,6 +16,7 @@ interface Student {
   nombre: string;
   turno_id: string | null;
   email?: string;
+  dias_asistencia: string[];
 }
 
 interface Session {
@@ -36,7 +37,7 @@ interface TurnoBlockProps {
   turnoStudents: Student[];
   sessions: Session[];
   onViewRoutine: (id: string) => void;
-  onChangeTurno: (id: string, nombre: string, currentTurnoId: string | null) => void;
+  onChangeTurno: (id: string, nombre: string, currentTurnoId: string | null, dias_asistencia: string[]) => void;
   innerRef?: React.Ref<HTMLDivElement>;
 }
 
@@ -85,7 +86,7 @@ export function TurnoBlock({
               student={student}
               session={sessions.find(s => s.alumno_id === student.id)}
               onViewRoutine={() => onViewRoutine(student.id)}
-              onChangeTurno={() => onChangeTurno(student.id, student.nombre, student.turno_id)}
+              onChangeTurno={() => onChangeTurno(student.id, student.nombre, student.turno_id, student.dias_asistencia)}
               active={isActive}
             />
           ))

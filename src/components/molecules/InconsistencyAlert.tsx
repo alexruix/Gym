@@ -70,7 +70,7 @@ export const InconsistencyAlert: React.FC<InconsistencyAlertProps> = ({
         >
           {suscripcionesCopy.alerts.inconsistency.solve
             .replace('{targetPlan}', targetPlanName || '')
-            .replace('{monto}', `$${targetPlanMonto?.toLocaleString() || ''}`)}
+            .replace('{monto}', `$${targetPlanMonto?.toLocaleString('es-AR') || ''}`)}
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       )}

@@ -1,13 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Clock,
   Users,
   Settings,
   ListChecks,
   FileSpreadsheet,
-  ArrowRight
+  ArrowRight,
+  UserIcon,
+  Dumbbell,
+  Clock
 } from "lucide-react";
 import { AgendaStudentCard } from "./AgendaStudentCard";
+import { ResourceActionMenu } from "@/components/molecules/profesor/core/ResourceActionMenu";
+import { DaySelector as AttendanceDays } from "@/components/atoms/profesor/DaySelector";
 import { TurnoSelectorDialog } from "@/components/molecules/profesor/agenda/TurnoSelectorDialog";
 import { TurnoManagementSheet } from "./TurnoManagementSheet";
 import { LogisticsPanel } from "./LogisticsPanel";
@@ -22,32 +26,7 @@ import { cn } from "@/lib/utils";
 import { agendaCopy } from "@/data/es/profesor/agenda";
 import { useAgenda } from "@/hooks/useAgenda";
 import type { BaseEntity } from "@/types/core";
-
-interface Turno {
-  id: string;
-  nombre: string;
-  hora_inicio: string;
-  hora_fin: string;
-  color_tag?: string;
-  capacidad_max: number;
-  dias_asistencia: string[];
-}
-
-interface Student extends BaseEntity {
-  nombre: string;
-  turno_id: string | null;
-  dias_asistencia: string[];
-}
-
-interface Session {
-  alumno_id: string;
-  progress: number;
-  coreExercise?: {
-    nombre: string;
-    peso_target?: string;
-    peso_real?: string;
-  };
-}
+import type { Turno, StudentInAgenda as Student, SessionInAgenda as Session } from "@/types/agenda";
 
 interface AgendaConsoleProps {
   turnos: Turno[];
@@ -58,9 +37,11 @@ interface AgendaConsoleProps {
 
 const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
-export function AgendaConsole({ turnos, students, initialSessions, presentCount }: AgendaConsoleProps) {
+export function AgendaConsole({ turnos: initialTurnos, students: initialStudents, initialSessions, presentCount }: AgendaConsoleProps) {
   const realTodayName = dayNames[new Date().getDay()];
   const [activeDay, setActiveDay] = useState(realTodayName);
+  const [currentTurnos, setCurrentTurnos] = useState<Turno[]>(initialTurnos);
+  const [currentStudents, setCurrentStudents] = useState<Student[]>(initialStudents);
 
   // FILTRADO INTELIGENTE POR DÍA (Contexto Temporal) - Moviendo a renderGrid para mantener listado global
   const {
@@ -68,7 +49,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
     activeTurnoId: hookActiveTurnoId,
     studentsByTurno,
     refreshStudentProgress
-  } = useAgenda(turnos, students, initialSessions);
+  } = useAgenda(currentTurnos, currentStudents, initialSessions);
 
   const [selectedTurnoId, setSelectedTurnoId] = useState<string | null>(null);
 
@@ -99,8 +80,8 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
   }, [hookActiveTurnoId, activeDay, realTodayName]);
 
   const dashboardItems = React.useMemo(() =>
-    students.map(s => ({ ...s, name: s.nombre })),
-    [students]
+    currentStudents.map(s => ({ ...s, name: s.nombre })),
+    [currentStudents]
   );
 
   const renderBlocks = (filteredBySearch: Student[]) => {
@@ -108,7 +89,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
     const gridStudents = filteredBySearch.filter(s =>
       !s.dias_asistencia || s.dias_asistencia.length === 0 || s.dias_asistencia.includes(activeDay)
     );
-    const gridTurnos = turnos.filter(t =>
+    const gridTurnos = currentTurnos.filter(t =>
       !t.dias_asistencia || t.dias_asistencia.length === 0 || t.dias_asistencia.includes(activeDay)
     );
 
@@ -138,7 +119,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
           )}
         </div>
 
-        {turnos.length === 0 ? (
+        {currentTurnos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 animate-in fade-in duration-700">
             <div className="p-8 rounded-[3rem] bg-zinc-50 border border-zinc-100 dark:bg-zinc-900 dark:border-zinc-800 mb-2">
               <Settings className="w-12 h-12 text-zinc-300 dark:text-zinc-600" />
@@ -162,7 +143,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
               const isActive = turno.id === hookActiveTurnoId && activeDay === realTodayName;
               const turnoStudents = groupedByTurno[turno.id] || [];
 
-              if (filteredBySearch.length !== students.length && turnoStudents.length === 0) return null;
+              if (filteredBySearch.length !== currentStudents.length && turnoStudents.length === 0) return null;
 
               return (
                 <div key={turno.id} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -174,8 +155,8 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
                     turnoStudents={turnoStudents}
                     sessions={sessions}
                     onViewRoutine={(id) => window.location.assign(`/profesor/alumnos/${id}`)}
-                    onChangeTurno={(id, nombre, currentTurnoId) => {
-                      setSelectedStudent({ id, nombre, currentTurnoId });
+                    onChangeTurno={(id, nombre, currentTurnoId, dias_asistencia) => {
+                      setSelectedStudent({ id, nombre, currentTurnoId, dias_asistencia });
                       setIsSelectorOpen(true);
                     }}
                     innerRef={isActive ? activeBlockRef : null}
@@ -206,43 +187,59 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
             <table className="w-full text-nowrap">
               <thead>
                 <tr className="border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
-                  <th className="px-5 md:px-8 py-5 text-left text-[10px] font-bold uppercase tracking-widest text-zinc-400">Alumno</th>
-                  <th className="px-5 md:px-6 py-5 text-left text-[10px] font-bold uppercase tracking-widest text-zinc-400">Turno</th>
-                  <th className="px-5 md:px-6 py-5 text-left text-[10px] font-bold uppercase tracking-widest text-zinc-400">Progreso</th>
-                  <th className="px-5 md:px-6 py-5 text-right text-[10px] font-bold uppercase tracking-widest text-zinc-400">Acción</th>
+                  <th className="px-5 md:px-8 py-5 text-left text-[10px] font-bold uppercase tracking-widest text-zinc-400">{agendaCopy.list.columns.student}</th>
+                  <th className="px-5 md:px-6 py-5 text-left text-[10px] font-bold uppercase tracking-widest text-zinc-400">{agendaCopy.list.columns.days}</th>
+                  <th className="px-5 md:px-6 py-5 text-left text-[10px] font-bold uppercase tracking-widest text-zinc-400">{agendaCopy.list.columns.schedule}</th>
+                  <th className="px-5 md:px-6 py-5 text-right text-[10px] font-bold uppercase tracking-widest text-zinc-400">{agendaCopy.list.columns.action}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-50 dark:divide-zinc-900/50">
                 {filteredBySearch.map(student => {
-                  const turno = turnos.find(t => t.id === student.turno_id);
-                  const session = sessions.find(s => s.alumno_id === student.id);
+                  const turno = currentTurnos.find(t => t.id === student.turno_id);
                   return (
                     <tr key={student.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
                       <td className="px-5 md:px-8 py-4">
                         <span className="font-bold text-zinc-900 dark:text-zinc-50 group-hover:text-lime-600 transition-colors">{student.nombre}</span>
                       </td>
                       <td className="px-5 md:px-6 py-4">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                          {turno ? `${turno.hora_inicio.slice(0, 5)} - ${turno.nombre}` : "Sin turno"}
-                        </span>
+                        <div className="w-44">
+                          <AttendanceDays 
+                            selectedDays={student.dias_asistencia} 
+                            readonly 
+                            compact 
+                            className="gap-1"
+                          />
+                        </div>
                       </td>
                       <td className="px-5 md:px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-16 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-lime-500 transition-all duration-700" style={{ width: `${session?.progress || 0}%` }} />
-                          </div>
-                          <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-none">{Math.round(session?.progress || 0)}%</span>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                             {turno ? `${turno.hora_inicio.slice(0, 5)} - ${turno.hora_fin.slice(0, 5)}` : "Sin turno"}
+                          </span>
                         </div>
                       </td>
                       <td className="px-5 md:px-6 py-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-xl h-9 hover:bg-lime-500 hover:text-zinc-950 group/btn"
-                          onClick={() => window.location.assign(`/profesor/alumnos/${student.id}`)}
-                        >
-                          <ArrowRight className="w-4 h-4 text-zinc-400 group-hover/btn:text-zinc-950" />
-                        </Button>
+                        <ResourceActionMenu
+                          type="alumno"
+                          id={student.id}
+                          name={student.nombre}
+                          actions={[
+                            {
+                              label: agendaCopy.studentCard.actions.changeTurno,
+                              icon: <Clock className="w-4 h-4 text-lime-500" />,
+                              onClick: () => {
+                                setSelectedStudent({ 
+                                  id: student.id, 
+                                  nombre: student.nombre, 
+                                  currentTurnoId: student.turno_id,
+                                  dias_asistencia: student.dias_asistencia
+                                });
+                                setIsSelectorOpen(true);
+                              }
+                            }
+                          ]}
+                        />
                       </td>
                     </tr>
                   );
@@ -273,7 +270,7 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
                 Alumnos
               </span>
               <span className="text-sm font-bold text-zinc-900 leading-none mt-1">
-                {students.length}
+                {currentStudents.length}
               </span>
             </div>
           </div>
@@ -359,23 +356,45 @@ export function AgendaConsole({ turnos, students, initialSessions, presentCount 
         isOpen={isSelectorOpen}
         onOpenChange={setIsSelectorOpen}
         student={selectedStudent}
-        turnos={turnos}
-        onSuccess={() => window.location.reload()}
+        turnos={currentTurnos}
+        onSuccess={(updatedStudent) => {
+          setCurrentStudents(prev => 
+            prev.map(s => s.id === updatedStudent.id ? updatedStudent : s)
+          );
+        }}
       />
 
       <TurnoManagementSheet
         isOpen={isManagementOpen}
         onOpenChange={setIsManagementOpen}
-        turnos={turnos}
+        turnos={currentTurnos}
+        onTurnosChange={(event) => {
+          if (event.type === 'delete') {
+            setCurrentTurnos(prev => prev.filter(t => t.id !== event.id));
+          } else if (event.type === 'upsert' && event.turno) {
+            setCurrentTurnos(prev => {
+              const exists = prev.find(t => t.id === event.turno?.id);
+              if (exists) {
+                return prev.map(t => t.id === event.turno?.id ? event.turno! : t);
+              }
+              return [...prev, event.turno!].sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+            });
+          }
+        }}
       />
 
       <LogisticsPanel
         isOpen={isLogisticsOpen}
         onOpenChange={setIsLogisticsOpen}
-        students={students}
-        turnos={turnos}
+        students={currentStudents}
+        turnos={currentTurnos}
         onEditStudent={(student) => {
-          setSelectedStudent({ id: student.id, nombre: student.nombre, currentTurnoId: student.turno_id });
+          setSelectedStudent({ 
+            id: student.id, 
+            nombre: student.nombre, 
+            currentTurnoId: student.turno_id,
+            dias_asistencia: student.dias_asistencia
+          });
           setIsSelectorOpen(true);
         }}
       />

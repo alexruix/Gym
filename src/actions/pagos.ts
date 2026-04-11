@@ -63,5 +63,116 @@ export const pagosActions = {
         mensaje: "Recordatorio registrado correctamente.",
       };
     }
+  }),
+
+  getPaymentsData: defineAction({
+    accept: "json",
+    handler: async (_, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // 1. Fetch Students with Payments
+      const { data: alumnosRaw, error: alumnosErr } = await supabase
+        .from('alumnos')
+        .select(`
+          id, nombre, email, telefono, monto, dia_pago, monto_personalizado, ultimo_recordatorio_pago_at,
+          pagos (id, monto, fecha_vencimiento, estado, fecha_pago)
+        `)
+        .eq('profesor_id', user.id)
+        .is('deleted_at', null)
+        .order('nombre');
+
+      if (alumnosErr) throw new Error("Error cargando alumnos: " + alumnosErr.message);
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+
+      // 2. Process Business Logic (Virtual Injections & Delinquency)
+      const alumnos = alumnosRaw.map((alumno: any) => {
+        let historial = (alumno.pagos || []).sort((a: any, b: any) => 
+          new Date(b.fecha_vencimiento).getTime() - new Date(a.fecha_vencimiento).getTime()
+        );
+        
+        let pagoActivo = historial.length > 0 ? { ...historial[0] } : null;
+        let needsVirtual = !pagoActivo;
+
+        if (pagoActivo && pagoActivo.estado === 'pagado') {
+          const lastVenc = new Date(pagoActivo.fecha_vencimiento);
+          if (lastVenc.getMonth() < currentMonth || lastVenc.getFullYear() < currentYear) {
+            needsVirtual = true;
+          }
+        }
+
+        if (needsVirtual) {
+          const virtualDate = alumno.dia_pago ? new Date(currentYear, currentMonth, alumno.dia_pago) : null;
+          pagoActivo = {
+            id: `virtual-${alumno.id}`,
+            monto: alumno.monto || 0,
+            fecha_vencimiento: virtualDate ? virtualDate.toISOString().split('T')[0] : null,
+            estado: 'pendiente' as const,
+            fecha_pago: null,
+            isVirtual: true
+          };
+        }
+
+        let isMoroso = false;
+        if (pagoActivo && pagoActivo.estado !== 'pagado' && pagoActivo.fecha_vencimiento) {
+          if (new Date(pagoActivo.fecha_vencimiento) < today) {
+            isMoroso = true;
+            pagoActivo.estado = 'vencido' as const;
+          }
+        }
+
+        return {
+          ...alumno,
+          name: alumno.nombre,
+          pago_activo: pagoActivo,
+          is_moroso: isMoroso,
+          historial: historial.slice(0, 5), // Only last 5 for performance
+          tags: [
+            isMoroso ? "Moroso" :
+            pagoActivo?.estado === 'pagado' ? "Pagado" : "Pendiente"
+          ]
+        };
+      });
+
+      // 3. Fetch Subscriptions
+      const { data: subsData } = await supabase
+        .from("suscripciones")
+        .select("*")
+        .eq("profesor_id", user.id)
+        .order("cantidad_dias", { ascending: true });
+
+      let subscriptions = subsData || [];
+
+      // Auto-initialize if empty
+      if (subscriptions.length === 0) {
+        await supabase.rpc('inicializar_suscripciones_profesor', { p_profesor_id: user.id });
+        const { data: retry } = await supabase
+          .from("suscripciones")
+          .select("*")
+          .eq("profesor_id", user.id)
+          .order("cantidad_dias", { ascending: true });
+        subscriptions = retry || [];
+      }
+
+      // 4. Calculate Metrics
+      const metrics = {
+        ingresosPagados: alumnos.reduce((acc, a) => acc + (a.pago_activo?.estado === 'pagado' ? (a.pago_activo.monto || a.monto || 0) : 0), 0),
+        ingresosPendientes: alumnos.reduce((acc, a) => acc + (a.pago_activo?.estado !== 'pagado' ? (a.pago_activo?.monto || a.monto || 0) : 0), 0),
+        totalMorosos: alumnos.filter(a => a.is_moroso).length,
+        morosos: alumnos.filter(a => a.is_moroso).slice(0, 6)
+      };
+
+      return {
+        alumnos,
+        subscriptions,
+        metrics,
+        lastUpdated: new Date().toISOString()
+      };
+    }
   })
 };

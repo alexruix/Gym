@@ -122,11 +122,11 @@ export function ExerciseCard({
               <div className="flex items-center gap-3">
                 {isTemplate ? (
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 px-3 py-1.5 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                    {/* <span>{ex.series || "3"} × --</span>
+                    <span>{ex.series || "3"} × --</span>
                     <span className="opacity-30">@</span>
                     <span>--kg</span>
                     <span className="opacity-30">|</span>
-                    <span>--&quot;</span> */}
+                    <span>--&quot;</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-4 animate-in fade-in duration-500">

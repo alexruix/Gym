@@ -33,19 +33,19 @@ export function MetricConsole({
   className
 }: MetricConsoleProps) {
   const [localValues, setLocalValues] = useState({
-    series: series,
-    reps: reps,
+    series: series ?? 1,
+    reps: reps ?? "",
     peso: peso?.toString() || "",
-    descanso: descanso
+    descanso: descanso ?? 60
   });
 
   // Sincronizar con props externas por si cambian (ej. Undo)
   useEffect(() => {
     setLocalValues({
-      series,
-      reps,
+      series: series ?? 1,
+      reps: reps ?? "",
       peso: peso?.toString() || "",
-      descanso
+      descanso: descanso ?? 60
     });
   }, [series, reps, peso, descanso]);
 
@@ -166,7 +166,7 @@ function MetricInput({ label, value, onChange, onBlur, readOnly, type = "text", 
       )}>
         <input
           type={type}
-          value={value}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           readOnly={readOnly}

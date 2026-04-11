@@ -39,34 +39,21 @@ import {
 import { useStudentCalendar } from "@/hooks/profesor/useStudentCalendar";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 
+import type { AssignedPlanMetric } from "@/types/student";
+
 interface Props {
   alumnoId: string;
   fechaInicio: string | null;
-  planData: {
-    id: string;
-    nombre: string;
-    rutinas_diarias: Array<{
-      id: string;
-      dia_numero: number;
-      nombre_dia: string | null;
-      ejercicios_plan: Array<{
-        id: string;
-        series: number;
-        reps_target: string;
-        descanso_seg: number;
-        peso_target: string | null;
-        biblioteca_ejercicios: { id: string, nombre: string, media_url: string | null } | null;
-      }>;
-    }>;
-  } | null;
-  diasAsistencia?: number[];
+  planData: AssignedPlanMetric | null;
+  diasAsistencia?: string[];
+  onPlanChange?: (ejercicioPlanId: string, updates: any) => void;
 }
 
 /**
  * StudentCalendarTab: Organismo principal que orquestra la agenda del alumno.
  * Utiliza Atomic Design y un hook centralizado para evitar problemas de sincronización.
  */
-export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsistencia = [] }: Props) {
+export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsistencia = [], onPlanChange }: Props) {
   const {
     loading,
     calendarDays,
@@ -90,7 +77,7 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
     planRoutines,
     isInstantiatingExtra,
     refreshCalendar
-  } = useStudentCalendar(alumnoId, fechaInicio, planData, diasAsistencia);
+  } = useStudentCalendar(alumnoId, fechaInicio, planData, diasAsistencia, onPlanChange);
 
   const copy = athleteProfileCopy.workspace.calendar;
 

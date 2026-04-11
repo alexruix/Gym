@@ -16,35 +16,8 @@ import { cn } from "@/lib/utils";
 import { useAccordion } from "@/hooks/useAccordion";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 
-// --- Tipos de Datos (Mirroring StudentPlanWorkspace para SSOT) ---
-interface EjercicioPlan {
-  id: string;
-  orden: number;
-  series: number;
-  reps_target: string;
-  descanso_seg: number;
-  peso_target?: string;
-  biblioteca_ejercicios: {
-    id: string;
-    nombre: string;
-    media_url: string | null;
-  } | null;
-  ejercicio_plan_personalizado?: any;
-}
-
-interface RutinaDiaria {
-  id: string;
-  dia_numero: number;
-  nombre_dia: string | null;
-  ejercicios_plan: EjercicioPlan[];
-}
-
-interface AssignedPlan {
-  id: string;
-  nombre: string;
-  duracion_semanas: number;
-  rutinas_diarias: RutinaDiaria[];
-}
+import { useStudentMetrics } from "@/hooks/profesor/useStudentMetrics";
+import type { AssignedPlanMetric as AssignedPlan } from "@/types/student";
 
 interface Props {
   alumnoId: string;
@@ -57,46 +30,14 @@ interface Props {
  */
 export function StudentMetricsWorkspace({ alumnoId, planData }: Props) {
   const { metricsTab } = athleteProfileCopy.workspace.routine;
-  const { execute: run, isPending } = useAsyncAction();
-  const [currentWeek, setCurrentWeek] = useState(1);
-  const { isOpen, toggleItem } = useAccordion(
-    planData?.rutinas_diarias?.slice(0, 1).map(r => r.id) || []
-  );
-
-  const numWeeks = planData?.duracion_semanas || 1;
-
-  const handleUpdateMetric = (ejercicioPlanId: string, updates: any) => {
-    if (!planData || isPending) return;
-
-    run(async () => {
-      const { error } = await actions.profesor.upsertStudentMetricOverride({
-        alumno_id: alumnoId,
-        ejercicio_plan_id: ejercicioPlanId,
-        semana_numero: currentWeek,
-        ...updates
-      });
-
-      if (error) throw new Error(error.message);
-      toast.success("Métrica actualizada", { icon: "🎯", duration: 1500 });
-    }, { loadingMsg: "Guardando...", reloadOnSuccess: true });
-  };
-
-  const handleCopyFromPrevious = () => {
-    if (!planData || currentWeek <= 1 || isPending) return;
-
-    run(async () => {
-      const { data: res, error } = await actions.profesor.copyMetricsToNextWeek({
-        alumno_id: alumnoId,
-        from_week: currentWeek - 1,
-        to_week: currentWeek,
-        plan_id: planData.id
-      });
-
-      if (error) throw new Error(error.message);
-      if (res?.success) toast.success(res.mensaje);
-      else toast.error("No hay métricas para copiar de la semana anterior");
-    }, { loadingMsg: "Clonando métricas...", reloadOnSuccess: true });
-  };
+  const {
+    currentWeek,
+    setCurrentWeek,
+    numWeeks,
+    isPending,
+    accordion: { isOpen, toggleItem },
+    actions: { handleUpdateMetric, handleCopyFromPrevious }
+  } = useStudentMetrics({ alumnoId, planData });
 
   if (!planData || !planData.rutinas_diarias || planData.rutinas_diarias.length === 0) {
     return <EmptyState />;

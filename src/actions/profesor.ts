@@ -2,172 +2,13 @@ import { z } from "zod";
 import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import type { Database } from "@/lib/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { planSchema, studentSchema, updateStudentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema, turnoSchema, bulkAssignSchema, blockSchema } from "@/lib/validators";
 import { baseExercises } from "@/data/es/profesor/biblioteca-base";
+import type { DashboardData } from "@/types/dashboard";
 
 export const profesorActions = {
-  createExercise: defineAction({
-    accept: "json",
-    input: exerciseLibrarySchema,
-    handler: async (input, context) => {
-      const supabase = createSupabaseServerClient(context);
-      const user = context.locals.user;
-      if (!user) throw new Error("No autorizado");
-
-      const normalizedTags = Array.from(new Set((input.tags || []).map(t => t.toLowerCase().trim()))).slice(0, 6);
-
-      const { data: exercise, error } = await supabase
-        .from("biblioteca_ejercicios")
-        .insert({
-          profesor_id: user.id,
-          parent_id: input.parent_id || null,
-          nombre: input.nombre,
-          descripcion: input.descripcion || null,
-          media_url: input.media_url || null,
-          tags: normalizedTags,
-          is_template_base: !input.parent_id, // Jerarquía automática: si no tiene padre, ES base.
-        })
-        .select()
-        .single();
-
-      if (error || !exercise) {
-        console.error("[Action: createExercise] DB Error:", error);
-        throw new Error(`Error en DB al crear: ${error?.message || "Registro fallido"}`);
-      }
-
-      // CREACIÓN INLINE DE VARIANTES (Si es un ejercicio base)
-      if (!input.parent_id && input.variants && input.variants.length > 0) {
-        const variantsData = input.variants.map(vName => ({
-          profesor_id: user.id,
-          parent_id: exercise.id,
-          nombre: vName,
-          tags: normalizedTags,
-          is_template_base: false
-        }));
-
-        const { error: variantError } = await supabase
-          .from("biblioteca_ejercicios")
-          .insert(variantsData);
-        
-        if (variantError) console.error("[Action: createExercise] Variants Error:", variantError);
-      }
-
-      return {
-        success: true,
-        exercise_id: exercise.id,
-        mensaje: `✅ Ejercicio "${exercise.nombre}" creado ${input.variants?.length ? `con ${input.variants.length} variantes` : ""}`,
-      };
-    },
-  }),
-  updateExercise: defineAction({
-    accept: "json",
-    input: exerciseLibrarySchema,
-    handler: async (input, context) => {
-      const supabase = createSupabaseServerClient(context);
-      const user = context.locals.user;
-      if (!user || !input.id) throw new Error("No autorizado");
-
-      const normalizedTags = Array.from(new Set((input.tags || []).map(t => t.toLowerCase().trim()))).slice(0, 6);
-
-      // 1. Verificar propiedad y si es un ejercicio base
-      const { data: existing } = await supabase
-        .from("biblioteca_ejercicios")
-        .select("profesor_id, is_template_base")
-        .eq("id", input.id)
-        .single();
-
-      if (!existing) throw new Error("Ejercicio no encontrado");
-
-      // LOGICA DE FORKING: Si no es el dueño, CREAR COPIA (INSERT)
-      if (existing.profesor_id !== user.id) {
-        const { data: fork, error: forkError } = await supabase
-          .from("biblioteca_ejercicios")
-          .insert({
-            profesor_id: user.id,
-            parent_id: input.id, // Vinculamos al original
-            nombre: input.nombre,
-            descripcion: input.descripcion || null,
-            media_url: input.media_url || null,
-            tags: normalizedTags,
-            is_template_base: false, // Las copias ya no son base de sistema
-          })
-          .select()
-          .single();
-
-        if (forkError || !fork) throw new Error(`Error al crear copia personal: ${forkError?.message}`);
-        
-        return {
-          success: true,
-          exercise_id: fork.id,
-          mensaje: `✅ Se creó una copia privada de "${input.nombre}"`,
-        };
-      }
-
-      // Si es el dueño, UPDATE normal
-      const { data: exercise, error } = await supabase
-        .from("biblioteca_ejercicios")
-        .update({
-          nombre: input.nombre,
-          descripcion: input.descripcion || null,
-          media_url: input.media_url || null,
-          tags: normalizedTags,
-          is_template_base: !input.parent_id, 
-        })
-        .eq("id", input.id)
-        .eq("profesor_id", user.id)
-        .select()
-        .single();
-
-      if (error || !exercise) throw new Error(`Error DB: ${error?.message}`);
-
-      return {
-        success: true,
-        exercise_id: exercise.id,
-        mensaje: `✅ Ejercicio "${exercise.nombre}" actualizado`,
-      };
-    },
-  }),
-  deleteExercise: defineAction({
-    accept: "json",
-    input: z.object({ id: z.string().uuid() }),
-    handler: async (input, context) => {
-      const supabase = createSupabaseServerClient(context);
-      const user = context.locals.user;
-      if (!user) throw new Error("No autorizado");
-
-      const { error } = await supabase
-        .from("biblioteca_ejercicios")
-        .delete()
-        .eq("id", input.id)
-        .eq("profesor_id", user.id); // Seguridad
-
-      if (error) throw new Error(`Error DB: ${error.message}`);
-
-      return {
-        success: true,
-        mensaje: "✅ Ejercicio eliminado correctamente",
-      };
-    },
-  }),
-  toggleFavoriteExercise: defineAction({
-    accept: "json",
-    input: z.object({ id: z.string().uuid(), isFavorite: z.boolean() }),
-    handler: async (input, context) => {
-      const supabase = createSupabaseServerClient(context);
-      const user = context.locals.user;
-      if (!user) throw new Error("No autorizado");
-
-      const { error } = await supabase
-        .from("biblioteca_ejercicios")
-        .update({ is_favorite: input.isFavorite })
-        .eq("id", input.id)
-        .eq("profesor_id", user.id);
-
-      if (error) throw new Error(`Error DB: ${error.message}`);
-      return { success: true };
-    },
-  }),
-
   getBlocks: defineAction({
     accept: "json",
     handler: async (_, context) => {
@@ -353,12 +194,17 @@ export const profesorActions = {
 
       if (error) {
         console.error("[Action: updatePlan] RPC Error:", error);
-        throw new Error(`Error al actualizar el plan: ${error.message}`);
+        return {
+          success: false,
+          error: `Error de BD: ${error.message}${error.details ? ` (${error.details})` : ""}`,
+          mensaje: "No se pudo actualizar el plan por un error técnico de base de datos."
+        };
       }
 
       return {
         success: true,
-        mensaje: "✅ El plan se actualizó correctamente.",
+        plan_id: input.id,
+        mensaje: "El plan se actualizó correctamente.",
       };
     },
   }),
@@ -977,6 +823,7 @@ export const profesorActions = {
       return {
         success: true,
         student_id: student.id,
+        student: student,
         mensaje: `Datos de "${student.nombre}" actualizados`,
       };
     },
@@ -1123,137 +970,7 @@ export const profesorActions = {
     },
   }),
 
-  getExercises: defineAction({
-    accept: "json",
-    handler: async (input, context) => {
-      const supabase = createSupabaseServerClient(context);
-      const user = context.locals.user;
-      if (!user) throw new Error("No autorizado");
-
-      // SILENT SEEDING & SMART SYNC (Sincronización Inteligente)
-      // Mantenemos el archivo TS como Single Source of Truth
-      const { data: systemItems, error: fetchError } = await supabaseAdmin
-        .from("biblioteca_ejercicios")
-        .select("*")
-        .is("profesor_id", null);
-
-      if (fetchError) console.error("[Smart Sync: Fetch Error]", fetchError.message);
-
-      const dbMap = new Map((systemItems || []).map(item => [item.nombre, item]));
-      let needsSync = false;
-
-      // Determinamos si hay cambios reales para evitar escrituras innecesarias
-      for (const ex of baseExercises) {
-        const dbEx = dbMap.get(ex.nombre);
-        if (!dbEx) { needsSync = true; break; }
-        
-        // Comparación de campos básicos
-        if (
-          dbEx.descripcion !== (ex.descripcion || null) ||
-          dbEx.media_url !== (ex.media_url || null) ||
-          JSON.stringify(dbEx.tags?.sort()) !== JSON.stringify([...(ex as any).tags || []].sort())
-        ) {
-          needsSync = true;
-          break;
-        }
-
-        // Si es padre, verificamos si sus hijos en DB coinciden con los del archivo
-        if (dbEx.is_template_base && (ex as any).variants) {
-          const dbVariantsCount = (systemItems || []).filter(v => v.parent_id === dbEx.id).length;
-          if (dbVariantsCount !== (ex as any).variants.length) {
-            needsSync = true;
-            break;
-          }
-        }
-      }
-
-      if (needsSync || (systemItems || []).length === 0) {
-        console.log("[Smart Sync] Sincronizando biblioteca base de MiGym...");
-        
-        for (const ex of baseExercises) {
-           const { variants, ...parentData } = (ex as any);
-           const dbEx = dbMap.get(ex.nombre);
-
-           let parentId = dbEx?.id;
-
-           // INSERT O UPDATE DEL PADRE
-           if (!dbEx) {
-             const { data: newP, error: pError } = await supabaseAdmin
-               .from("biblioteca_ejercicios")
-               .insert({ ...parentData, profesor_id: null, is_template_base: true })
-               .select("id")
-               .single();
-             if (pError) { console.error(`[Sync] Error insertando "${ex.nombre}":`, pError.message); continue; }
-             parentId = newP.id;
-           } else {
-             // Update si hay cambios detectados
-             const { error: upError } = await supabaseAdmin
-               .from("biblioteca_ejercicios")
-               .update({ ...parentData })
-               .eq("id", dbEx.id);
-             if (upError) console.error(`[Sync] Error actualizando "${ex.nombre}":`, upError.message);
-           }
-
-           // SINCRONIZACIÓN DE VARIANTES (Hijos)
-           if (variants && variants.length > 0 && parentId) {
-             // Obtenemos variantes actuales en DB para este padre
-             const currentVariants = (systemItems || []).filter(v => v.parent_id === parentId);
-             const variantNames = new Set(variants as string[]);
-
-             // Insertar nuevas variantes
-             const toInsert = (variants as string[]).filter(vName => !currentVariants.some(cv => cv.nombre === vName));
-             if (toInsert.length > 0) {
-               await supabaseAdmin.from("biblioteca_ejercicios").insert(
-                 toInsert.map(vName => ({
-                   nombre: vName,
-                   parent_id: parentId,
-                   profesor_id: null,
-                   is_template_base: false,
-                   tags: parentData.tags || []
-                 }))
-               );
-             }
-
-             // Limpieza opcional: si una variante ya no está en el archivo, se podría borrar
-             // (pero por seguridad y para evitar IDs rotos en planes, no borramos automáticamente aquí)
-           }
-        }
-        console.log("[Smart Sync] ¡Biblioteca base sincronizada!");
-      }
-
-      // FETCH UNIFICADO: Propios + Base
-      const { data: rawData, error } = await supabase
-        .from("biblioteca_ejercicios")
-        .select("*, is_favorite, usage_count")
-        .or(`profesor_id.eq.${user.id},profesor_id.is.null`)
-        .order("nombre", { ascending: true });
-
-      if (error) throw new Error(`Error al obtener ejercicios: ${error.message}`);
-      if (!rawData) return [];
-
-      // Filtro de integridad: Mantenemos solo los ejercicios públicos que coinciden con el archivo actual
-      // (Prevenimos mostrar "Zombies" de ejercicios renombrados)
-      const validSystemNames = new Set(baseExercises.map(ex => ex.nombre));
-      
-      const filteredData = rawData.filter(item => {
-        // Los ejercicios del usuario siempre se muestran
-        if (item.profesor_id !== null) return true;
-        
-        // Para ítems públicos (null):
-        if (!item.parent_id) {
-          // Si es un padre, debe existir en el archivo biblioteca-base.ts
-          return validSystemNames.has(item.nombre);
-        } else {
-          // Si es un hijo, su padre debe tener un nombre válido en el archivo
-          const parent = rawData.find(p => p.id === item.parent_id);
-          return parent && validSystemNames.has(parent.nombre);
-        }
-      });
-
-      return filteredData;
-    },
-  }),
-
+  
   /**
    * getExerciseVariants: Obtiene los ejercicios que son variantes o padres del ejercicio dado.
    * Útil para sugerir sustituciones directas (hermanos o padre).
@@ -1772,6 +1489,149 @@ export const profesorActions = {
 
       if (error) throw new Error(`Error al marcar todas como leídas: ${error.message}`);
       return { success: true };
+    },
+  }),
+
+  getDashboardData: defineAction({
+    accept: "json",
+    handler: async (_, context): Promise<DashboardData> => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // 1. Alumnos
+      const { data: studentsData } = await supabase
+        .from("alumnos")
+        .select(`
+          id, nombre, estado, email, telefono, dia_pago, monto,
+          planes ( id, nombre )
+        `)
+        .eq("profesor_id", user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+
+      const students = (studentsData as any[]) || [];
+      const studentIds = students.map((s) => s.id);
+
+      // 2. Últimas Sesiones
+      const { data: allLastSessions } = studentIds.length > 0
+        ? await supabase
+            .from("sesiones_instanciadas")
+            .select("alumno_id, completed_at, updated_at")
+            .in("alumno_id", studentIds)
+            .eq("estado", "completada")
+            .order("completed_at", { ascending: false })
+        : { data: [] };
+
+      const studentLastSessionMap = new Map<string, string>();
+      (allLastSessions || []).forEach(s => {
+        if (!studentLastSessionMap.has(s.alumno_id)) {
+          studentLastSessionMap.set(s.alumno_id, s.completed_at || s.updated_at);
+        }
+      });
+
+      const activeStudents = students.filter((s) => s.estado === "activo");
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      // 3. Alertas
+      const noPlanStudents = students
+        .filter((s) => s.planes === null)
+        .map((s) => ({ id: s.id, studentName: s.nombre }));
+
+      const atRiskStudents = activeStudents
+        .filter((s) => {
+          const lastSession = studentLastSessionMap.get(s.id);
+          if (!lastSession) return true;
+          return new Date(lastSession) < sevenDaysAgo;
+        })
+        .filter((s) => s.planes !== null)
+        .map((s) => ({
+          id: s.id,
+          studentName: s.nombre,
+          phone: s.telefono ?? undefined,
+          daysInactive: studentLastSessionMap.get(s.id) 
+            ? Math.floor((Date.now() - new Date(studentLastSessionMap.get(s.id)!).getTime()) / (1000 * 60 * 60 * 24))
+            : undefined
+        }));
+
+      // 4. Pagos y Cobros
+      const { data: pagosData } = studentIds.length > 0
+        ? await supabase
+            .from("pagos")
+            .select("alumno_id, monto, fecha_vencimiento, fecha_pago, estado")
+            .in("alumno_id", studentIds)
+        : { data: [] };
+
+      const pagos = (pagosData as any[]) || [];
+      const expiringPayments = pagos
+        .filter((p) => p.estado === "pendiente" || p.estado === "vencido")
+        .flatMap((p) => {
+          const student = students.find((s) => s.id === p.alumno_id);
+          if (!student) return [];
+          const daysLate = p.fecha_vencimiento
+            ? Math.max(0, Math.floor((Date.now() - new Date(p.fecha_vencimiento).getTime()) / (1000 * 60 * 60 * 24)))
+            : 0;
+          return [{ id: student.id, studentName: student.nombre, phone: student.telefono, daysLate }];
+        });
+
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const monthlyRevenue = pagos
+        .filter(p => p.estado === "pagado" && p.fecha_pago && new Date(p.fecha_pago) >= startOfMonth)
+        .reduce((sum, p) => sum + (p.monto || 0), 0);
+
+      // 5. Adherencia
+      const trainedRecently = activeStudents.filter((s) => {
+        const lastSession = studentLastSessionMap.get(s.id);
+        return lastSession && new Date(lastSession) >= sevenDaysAgo;
+      });
+      const adherenceRate = activeStudents.length > 0 ? Math.round((trainedRecently.length / activeStudents.length) * 100) : 0;
+
+      // 6. Alumnos Recientes y Actividad
+      const recentStudents = students.slice(0, 5).map((s) => ({
+        id: s.id,
+        name: s.nombre,
+        email: s.email,
+        planName: s.planes ? (Array.isArray(s.planes) ? s.planes[0]?.nombre : s.planes.nombre) : null,
+        status: s.estado
+      }));
+
+      const { data: recentSessions } = studentIds.length > 0
+        ? await supabase
+            .from("sesiones_instanciadas")
+            .select("id, fecha_real, alumno_id, alumnos ( nombre )")
+            .in("alumno_id", studentIds)
+            .order("fecha_real", { ascending: false })
+            .limit(10)
+        : { data: [] };
+
+      const now = new Date();
+      const activities = (recentSessions || []).map((s: any) => {
+        const diffDays = Math.floor((now.getTime() - new Date(s.fecha_real).getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          id: s.id,
+          type: "session_completed" as const,
+          studentName: s.alumnos?.nombre ?? "Alumno",
+          timeAgo: diffDays === 0 ? "Hoy" : diffDays === 1 ? "Ayer" : `Hace ${diffDays} días`
+        };
+      });
+
+      return {
+        stats: {
+          activeStudents: activeStudents.length,
+          pendingRoutines: noPlanStudents.length,
+          adherenceRate,
+          monthlyRevenue
+        },
+        expiringPayments,
+        atRiskStudents,
+        noPlanStudents,
+        recentStudents,
+        activities,
+        lastUpdated: new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
+      };
     },
   }),
 };

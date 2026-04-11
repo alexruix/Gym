@@ -1,0 +1,38 @@
+{
+  "name": "MiGym - Gestión Deportiva",
+  "short_name": "MiGym",
+  "description": "Gestión de gimnasio de alto rendimiento para solopreneurs.",
+  "start_url": "/profesor",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nuevo alumno",
+      "short_name": "Nuevo",
+      "url": "/profesor/alumnos/new",
+      "icons": [{ "src": "/favicon.svg", "sizes": "512x512" }]
+    },
+    {
+      "name": "Agenda de hoy",
+      "short_name": "Agenda",
+      "url": "/profesor/agenda",
+      "icons": [{ "src": "/favicon.svg", "sizes": "512x512" }]
+    },
+    {
+      "name": "Registrar pago",
+      "short_name": "Pagos",
+      "url": "/profesor/pagos",
+      "icons": [{ "src": "/favicon.svg", "sizes": "512x512" }]
+    }
+  ]
+}

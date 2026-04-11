@@ -1,49 +1,24 @@
 ---
 import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import PageHeader from "@/components/molecules/PageHeader.astro";
-import { TablaPagos } from "@/components/organisms/TablaPagos";
-import { createSupabaseServerClient } from "@/lib/supabase-ssr";
-import { getAlumnosConPagoActivo } from "@/lib/data-pagos";
+import { PaymentsConsole } from "@/components/organisms/profesor/pagos/PaymentsConsole";
+import { actions } from "astro:actions";
 import { pagosCopy } from "@/data/es/profesor/pagos";
 
-const supabase = createSupabaseServerClient(Astro);
-const { data: userData } = await supabase.auth.getUser();
-const userId = userData.user?.id;
+// ─── Hybrid Hydration ────────────────────────────────────────────────────────
+// Obtenemos el estado inicial en el servidor para un LCP instantáneo.
+// Luego el PaymentsConsole toma el control para refrescos silenciosos.
+const { data: initialData, error } = await Astro.callAction(actions.pagos.getPaymentsData, {});
 
-if (!userId) {
-  return Astro.redirect("/login");
+if (error) {
+  console.error("[Pagos:Index] Error inicializando datos:", error);
 }
 
-let alumnosPagos = [];
-let subscriptions = [];
-try {
-  alumnosPagos = await getAlumnosConPagoActivo(supabase, userId);
-  
-  const { data: subs } = await supabase
-    .from("suscripciones")
-    .select("*")
-    .eq("profesor_id", userId)
-    .order("cantidad_dias", { ascending: true });
-    
-  subscriptions = subs || [];
-  
-  // Si no hay suscripciones, inicializamos las de defecto
-  if (subscriptions.length === 0) {
-    await (supabase as any).rpc('inicializar_suscripciones_profesor', { p_profesor_id: userId });
-    const { data: subsRetry } = await supabase
-      .from("suscripciones")
-      .select("*")
-      .eq("profesor_id", userId)
-      .order("cantidad_dias", { ascending: true });
-    subscriptions = subsRetry || [];
-  }
-} catch (e) {
-  console.error("Error cargando datos para pagos:", e);
-}
+const title = `${pagosCopy.title} | MiGym`;
 ---
 
-<ProfesorLayout title={`${pagosCopy.title} | MiGym`}>
-  <div class="px-4 py-6 md:py-10 max-w-7xl mx-auto space-y-8">
+<ProfesorLayout title={title}>
+  <div class="px-4 py-6 md:py-10 max-w-7xl mx-auto space-y-8 min-h-screen">
     <PageHeader
       title={pagosCopy.title}
       subtitle={pagosCopy.description}
@@ -53,8 +28,15 @@ try {
       ]}
     />
 
-    <div class="bg-transparent rounded-2xl">
-      <TablaPagos client:load initialAlumnos={alumnosPagos} initialSubscriptions={subscriptions} />
-    </div>
+    <main class="animate-in fade-in duration-700">
+      {initialData ? (
+        <PaymentsConsole client:load initialData={initialData} />
+      ) : (
+        <div class="h-64 flex flex-col items-center justify-center gap-4 text-zinc-500 bg-zinc-50 dark:bg-zinc-900/40 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800">
+          <div class="w-12 h-12 rounded-full border-2 border-zinc-200 border-t-lime-500 animate-spin" />
+          <p class="font-bold uppercase tracking-widest text-[10px]">Cargando consola de pagos...</p>
+        </div>
+      )}
+    </main>
   </div>
 </ProfesorLayout>

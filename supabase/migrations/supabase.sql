@@ -164,7 +164,8 @@ CREATE TABLE IF NOT EXISTS rutinas_diarias (
   plan_id uuid REFERENCES planes(id) ON DELETE CASCADE NOT NULL,
   dia_numero int NOT NULL,
   nombre_dia text,
-  orden int DEFAULT 0
+  orden int DEFAULT 0,
+  CONSTRAINT unique_plan_dia UNIQUE (plan_id, dia_numero)
 );
 
 -- ============================================================
@@ -183,7 +184,14 @@ CREATE TABLE IF NOT EXISTS ejercicios_plan (
   orden int DEFAULT 0,
   exercise_type exercise_type DEFAULT 'base',
   position int DEFAULT 0,
-  peso_target text DEFAULT ''
+  peso_target text DEFAULT '',
+  notas text DEFAULT '',
+  grupo_bloque_id uuid DEFAULT NULL,
+  grupo_nombre text DEFAULT NULL,
+  deleted_at timestamptz DEFAULT NULL,
+  created_at timestamptz DEFAULT NOW(),
+  updated_at timestamptz DEFAULT NOW(),
+  CONSTRAINT unique_rutina_position UNIQUE (rutina_id, position)
 );
 
 -- ============================================================
@@ -490,36 +498,39 @@ DECLARE
   v_ejercicio jsonb;
   v_rotacion jsonb;
 BEGIN
-  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal)
-  VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal)
+  -- SEGURIDAD: Validar que el profesor que ejecuta sea el dueño
+  IF p_profesor_id != auth.uid() THEN
+    RAISE EXCEPTION 'No autorizado: El ID de profesor no coincide con el usuario autenticado';
+  END IF;
+
+  INSERT INTO planes (profesor_id, nombre, duracion_semanas, frecuencia_semanal, is_template)
+  VALUES (p_profesor_id, p_nombre, p_duracion_semanas, p_frecuencia_semanal, true)
   RETURNING id INTO v_plan_id;
 
   FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas) LOOP
     INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
-    VALUES (
-      v_plan_id,
-      (v_rutina->>'dia_numero')::int,
-      v_rutina->>'nombre_dia',
-      (v_rutina->>'dia_numero')::int
-    )
+    VALUES (v_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
     RETURNING id INTO v_rutina_id;
 
     IF v_rutina ? 'ejercicios' THEN
       FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios') LOOP
         INSERT INTO ejercicios_plan (
-          rutina_id, ejercicio_id, series, reps_target, descanso_seg,
-          orden, exercise_type, position, peso_target
+          rutina_id, ejercicio_id, series, reps_target, peso_target, descanso_seg,
+          orden, exercise_type, position, grupo_bloque_id, grupo_nombre, notas
         )
         VALUES (
           v_rutina_id,
           (v_ejercicio->>'ejercicio_id')::uuid,
-          COALESCE((v_ejercicio->>'series')::int, 3),
-          COALESCE(v_ejercicio->>'reps_target', '12'),
-          COALESCE((v_ejercicio->>'descanso_seg')::int, 60),
+          0,    -- ADN: Neutral
+          NULL, -- ADN: Neutral
+          NULL, -- ADN: Neutral
+          0,    -- ADN: Neutral
           COALESCE((v_ejercicio->>'orden')::int, 0),
           COALESCE((v_ejercicio->>'exercise_type')::exercise_type, 'base'::exercise_type),
-          COALESCE((v_ejercicio->>'position')::int, 0),
-          COALESCE(v_ejercicio->>'peso_target', '')
+          COALESCE((v_ejercicio->>'position')::int, (random() * 1000000000)::int),
+          (v_ejercicio->>'grupo_bloque_id')::uuid,
+          v_ejercicio->>'grupo_nombre',
+          COALESCE(v_ejercicio->>'notas', '')
         );
       END LOOP;
     END IF;
@@ -558,50 +569,78 @@ DECLARE
   v_rutina jsonb;
   v_ejercicio jsonb;
   v_rotacion jsonb;
+  v_is_template boolean;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM planes WHERE id = p_plan_id AND profesor_id = p_profesor_id) THEN
+  -- SEGURIDAD: Validar que el profesor que ejecuta sea el dueño
+  IF p_profesor_id != auth.uid() THEN
+    RAISE EXCEPTION 'No autorizado: El ID de profesor no coincide con el usuario autenticado';
+  END IF;
+
+  -- Verificar propiedad del plan específico
+  SELECT is_template INTO v_is_template FROM planes WHERE id = p_plan_id AND profesor_id = p_profesor_id;
+  IF NOT FOUND THEN
     RAISE EXCEPTION 'Plan no encontrado o no pertenece al profesor';
   END IF;
 
+  -- 1. Actualizar metadatos del plan
   UPDATE planes
-  SET nombre = p_nombre, duracion_semanas = p_duracion_semanas,
-      frecuencia_semanal = p_frecuencia_semanal, updated_at = now()
+  SET nombre = p_nombre, 
+      duracion_semanas = p_duracion_semanas,
+      frecuencia_semanal = p_frecuencia_semanal, 
+      updated_at = now()
   WHERE id = p_plan_id;
 
-  DELETE FROM rutinas_diarias WHERE plan_id = p_plan_id;
+  -- 2. Limpiar rotaciones
   DELETE FROM plan_rotaciones WHERE plan_id = p_plan_id;
+
+  -- 3. Conciliación de Rutinas y Ejercicios
+  UPDATE ejercicios_plan 
+  SET deleted_at = now() 
+  WHERE rutina_id IN (SELECT id FROM rutinas_diarias WHERE plan_id = p_plan_id);
 
   FOR v_rutina IN SELECT * FROM jsonb_array_elements(p_rutinas) LOOP
     INSERT INTO rutinas_diarias (plan_id, dia_numero, nombre_dia, orden)
-    VALUES (
-      p_plan_id,
-      (v_rutina->>'dia_numero')::int,
-      v_rutina->>'nombre_dia',
-      (v_rutina->>'dia_numero')::int
-    )
+    VALUES (p_plan_id, (v_rutina->>'dia_numero')::int, v_rutina->>'nombre_dia', (v_rutina->>'dia_numero')::int)
+    ON CONFLICT (plan_id, dia_numero) DO UPDATE 
+    SET nombre_dia = EXCLUDED.nombre_dia, orden = EXCLUDED.orden
     RETURNING id INTO v_rutina_id;
 
     IF v_rutina ? 'ejercicios' THEN
       FOR v_ejercicio IN SELECT * FROM jsonb_array_elements(v_rutina->'ejercicios') LOOP
         INSERT INTO ejercicios_plan (
-          rutina_id, ejercicio_id, series, reps_target, descanso_seg,
-          orden, exercise_type, position, peso_target
+          rutina_id, ejercicio_id, position, orden, 
+          series, reps_target, peso_target, descanso_seg,
+          exercise_type, grupo_bloque_id, grupo_nombre, notas, deleted_at
         )
         VALUES (
           v_rutina_id,
           (v_ejercicio->>'ejercicio_id')::uuid,
-          COALESCE((v_ejercicio->>'series')::int, 3),
-          COALESCE(v_ejercicio->>'reps_target', '12'),
-          COALESCE((v_ejercicio->>'descanso_seg')::int, 60),
-          COALESCE((v_ejercicio->>'orden')::int, 0),
+          (v_ejercicio->>'position')::int,
+          (v_ejercicio->>'orden')::int,
+          CASE WHEN v_is_template THEN 0 ELSE 3 END,
+          CASE WHEN v_is_template THEN NULL ELSE '12' END,
+          CASE WHEN v_is_template THEN NULL ELSE '10' END,
+          CASE WHEN v_is_template THEN 0 ELSE 60 END,
           COALESCE((v_ejercicio->>'exercise_type')::exercise_type, 'base'::exercise_type),
-          COALESCE((v_ejercicio->>'position')::int, 0),
-          COALESCE(v_ejercicio->>'peso_target', '')
-        );
+          (v_ejercicio->>'grupo_bloque_id')::uuid,
+          v_ejercicio->>'grupo_nombre',
+          COALESCE(v_ejercicio->>'notas', ''),
+          NULL 
+        )
+        ON CONFLICT (rutina_id, position) DO UPDATE SET
+          ejercicio_id = EXCLUDED.ejercicio_id,
+          orden = EXCLUDED.orden,
+          exercise_type = EXCLUDED.exercise_type,
+          grupo_bloque_id = EXCLUDED.grupo_bloque_id,
+          grupo_nombre = EXCLUDED.grupo_nombre,
+          notas = EXCLUDED.notas,
+          deleted_at = NULL, 
+          updated_at = now();
       END LOOP;
     END IF;
   END LOOP;
 
+  -- 4. Recrear rotaciones
   IF p_rotaciones IS NOT NULL AND jsonb_array_length(p_rotaciones) > 0 THEN
     FOR v_rotacion IN SELECT * FROM jsonb_array_elements(p_rotaciones) LOOP
       INSERT INTO plan_rotaciones (plan_id, position, applies_to_days, cycles)
@@ -926,10 +965,12 @@ ALTER TABLE bloques ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bloques_ejercicios ENABLE ROW LEVEL SECURITY;
 
 -- Profesores solo ven y editan sus propios bloques
+DROP POLICY IF EXISTS "Profesores gestionan sus bloques" ON bloques;
 CREATE POLICY "Profesores gestionan sus bloques" ON bloques
     FOR ALL USING (auth.uid() = profesor_id);
 
 -- Profesores solo ven ejercicios de bloques que les pertenecen
+DROP POLICY IF EXISTS "Profesores gestionan ejercicios de sus bloques" ON bloques_ejercicios;
 CREATE POLICY "Profesores gestionan ejercicios de sus bloques" ON bloques_ejercicios
     FOR ALL USING (
         EXISTS (
@@ -939,6 +980,9 @@ CREATE POLICY "Profesores gestionan ejercicios de sus bloques" ON bloques_ejerci
         )
     );
 
+-- ============================================================
+-- FIN DEL ESQUEMA CONSOLIDADO
+-- ============================================================
 -- ============================================================
 -- FIN DEL ESQUEMA CONSOLIDADO
 -- ============================================================

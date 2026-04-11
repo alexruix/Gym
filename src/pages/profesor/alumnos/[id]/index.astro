@@ -1,7 +1,6 @@
 ---
 import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
 import { AthleteHeader } from '@/components/organisms/profesor/perfil/AthleteHeader';
-import { HealthAlert } from '@/components/molecules/profesor/perfil/HealthAlert.tsx';
 import { StudentProfileManager } from '@/components/organisms/profesor/perfil/StudentProfileManager.tsx';
 import { InconsistencyAlert } from '@/components/molecules/InconsistencyAlert';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
@@ -19,6 +18,7 @@ const query = supabase
   .select(`
     *,
     suscripciones (*),
+    turnos (*),
     pagos (
       id,
       monto,
@@ -136,7 +136,8 @@ const studentData = {
   pago_activo,
   historial_pagos: sortedPagos,
   suscripcion: alumno.suscripciones,
-  dias_asistencia: alumno.dias_asistencia || []
+  dias_asistencia: alumno.dias_asistencia || [],
+  turno: alumno.turnos
 };
 
 const assignedPlan = (alumno.planes && Array.isArray(alumno.planes)) ? alumno.planes[0] : (alumno.planes || null);
@@ -173,11 +174,6 @@ const sidebarProps = {
       )}
       <AthleteHeader client:load alumno={studentData} planName={planName} />
     </section>
-
-    {/* 2. NOTAS CRÍTICAS (HEALTH STICKY) */}
-    {alumno.notas && (
-      <HealthAlert client:load notes={alumno.notas} className="max-w-4xl" />
-    )}
 
     {/* 3. WORKSPACE UNIFICADO (CENTRALIZADO) */}
     <div class="w-full mx-auto animate-in slide-in-from-bottom-4 duration-700 delay-150">

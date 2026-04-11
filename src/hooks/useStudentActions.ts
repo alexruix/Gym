@@ -24,7 +24,8 @@ export function useStudentActions() {
     const [isArchiving, setIsArchiving] = useState(false);
 
     /**
-     * Genera y copia al portapapeles el Magic Link del alumno.
+     * Genera y comparte el Magic Link del alumno usando la API nativa de compartir
+     * o volviendo al portapapeles como fallback.
      */
     const copyGuestLink = async (studentId: string) => {
         const toastId = toast.loading("Generando acceso seguro...");
@@ -32,9 +33,27 @@ export function useStudentActions() {
             const { data, error } = await actions.profesor.getStudentGuestLink({ id: studentId });
             if (error || !data?.link) throw new Error("Error de conexión");
             
-            await copyToClipboard(data.link);
             toast.dismiss(toastId);
-            toast.success("¡Acceso copiado al portapapeles!");
+
+            // Intento de Compartir Nativo (PWA 2026 Level)
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Acceso MiGym',
+                        text: 'Este es tu link para ver el plan de entrenamiento:',
+                        url: data.link,
+                    });
+                    toast.success("¡Link compartido!");
+                    return data.link;
+                } catch (shareError: any) {
+                    if (shareError.name === 'AbortError') return data.link; // User cancelled, no error
+                    // Fallback to clipboard if share fails
+                }
+            }
+
+            // Fallback: Portapapeles
+            await copyToClipboard(data.link);
+            toast.success("¡Link copiado al portapapeles!");
             return data.link;
         } catch (err: any) {
             toast.dismiss(toastId);

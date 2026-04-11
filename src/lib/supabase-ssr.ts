@@ -1,9 +1,9 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient, type CookieOptions, type SupabaseClient } from '@supabase/ssr';
 import { parse } from 'cookie';
 import type { Database } from './database.types';
 import { supabaseAdmin } from './supabase-admin';
 
-export function createSupabaseServerClient(context: { cookies: any, request: Request }) {
+export function createSupabaseServerClient(context: { cookies: any, request: Request }): SupabaseClient<Database> {
   return createServerClient<Database>(
     import.meta.env.PUBLIC_SUPABASE_URL,
     import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
@@ -40,7 +40,7 @@ export function createSupabaseServerClient(context: { cookies: any, request: Req
  * Si el usuario es 'invitado', devuelve el cliente admin (service role) ya que los invitados
  * no tienen sesión de Supabase Auth y el RLS los bloquearía.
  */
-export function getAuthenticatedClient(context: { locals: App.Locals, cookies: any, request: Request }) {
+export function getAuthenticatedClient(context: { locals: App.Locals, cookies: any, request: Request }): SupabaseClient<Database> {
   const user = context.locals.user;
   
   if (user?.role === "invitado") {

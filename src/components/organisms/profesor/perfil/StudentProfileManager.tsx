@@ -5,6 +5,7 @@ import { ProfileWorkspaceTabs } from "./ProfileWorkspaceTabs";
 import { StudentRoutineWorkspace } from "./StudentRoutineWorkspace";
 import { StudentCalendarTab } from "./StudentCalendarTab";
 import { StudentInfoTab } from "./StudentInfoTab";
+import { StudentNotesTab } from "./StudentNotesTab";
 import { useStudentPlanEditor } from "@/hooks/profesor/useStudentPlanEditor";
 import { useStudentActions } from "@/hooks/useStudentActions";
 import { Button } from "@/components/ui/button";
@@ -23,19 +24,32 @@ interface StudentProfileManagerProps {
 }
 
 export function StudentProfileManager({ assignedPlan, student, library }: StudentProfileManagerProps) {
-  const [activeTab, setActiveTab] = useState<"plan" | "routine" | "info" | "history">("routine");
+  const [activeTab, setActiveTab] = useState<"plan" | "routine" | "info" | "history" | "notes">("routine");
+  const [notes, setNotes] = useState(student.notas || "");
   const { openWhatsApp, copyGuestLink } = useStudentActions();
   const planDataEmpty = !assignedPlan || (assignedPlan.rutinas_diarias?.length || 0) === 0;
   
   const { 
     plan, 
-    updateExerciseMetrics, 
-    moveExercise, 
-    deleteExercise, 
-    addExercise,
-    promotePlan,
-    getGroupedExercises 
+    setPlan,
+    selectors: { getGroupedExercises },
+    actions: { updateExerciseMetrics, moveExercise, deleteExercise, addExercise, promotePlan }
   } = useStudentPlanEditor(student.id, assignedPlan);
+
+  const handleCalendarPlanChange = (ejercicioPlanId: string, updates: any) => {
+    setPlan(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        rutinas_diarias: prev.rutinas_diarias.map(r => ({
+          ...r,
+          ejercicios_plan: r.ejercicios_plan.map(e => 
+            e.id === ejercicioPlanId ? { ...e, ...updates } : e
+          )
+        }))
+      };
+    });
+  };
 
   const planWorkspace = (
     <StudentRoutineWorkspace 
@@ -58,6 +72,7 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
       fechaInicio={student.fecha_inicio || null}
       planData={plan}
       diasAsistencia={student.dias_asistencia || []}
+      onPlanChange={handleCalendarPlanChange}
     />
   );
 
@@ -69,6 +84,7 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
         planContent={planWorkspace}
         routineContent={routineWorkspace}
         infoContent={<StudentInfoTab student={student} />}
+        notesContent={<StudentNotesTab alumnoId={student.id} notes={notes} onSaveSuccess={setNotes} />}
         historyContent={null}
       />
 

@@ -15,18 +15,13 @@ if (!userId) {
 
 import { actions } from "astro:actions";
 
-const { data: exercises, error } = await Astro.callAction(actions.profesor.getExercises, {});
+const { data: exercises, error } = await Astro.callAction(actions.ejercicios.getExerciseLibrary, {});
 
 if (error) {
   console.error("Error cargando ejercicios:", error);
 }
 
-// Mapeo a formato de componente (BaseEntity compatibility)
-const mappedExercises = (exercises || []).map(ex => ({
-  ...ex,
-  name: ex.nombre,
-  createdAt: ex.created_at
-}));
+const mappedExercises = exercises || [];
 ---
 
 <ProfesorLayout title={`${exerciseLibraryCopy.header.title} | MiGym`}>

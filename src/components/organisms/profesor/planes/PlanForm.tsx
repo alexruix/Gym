@@ -189,15 +189,23 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                   </h2>
                 </div>
 
-                <div className="flex flex-wrap gap-3 shrink-0">
-                  <Button type="button" variant="outline" size="sm" onClick={() => setIsBulkOpen(true)} className="">
-                    <Copy className="w-5 h-5 mr-3" /> <span className="text-[10px] font-bold uppercase">Duplicar día</span>
-                  </Button>
-                  <Button type="button" variant="industrial" size="sm" onClick={() => setIsAddElementOpen(true)} className="">
-                    <Plus className="w-5 h-5 mr-3" /> <span className="text-[10px] font-bold uppercase">Añadir item</span>
-                  </Button>
                 </div>
               </div>
+
+              {/* Alerta Industrial: Datos Archivados (Hidden Data) */}
+              {stats.hasHiddenData && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl p-6 flex items-start gap-4 animate-in fade-in zoom-in-95 duration-500">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+                    <AlertTriangle className="w-6 h-6 text-zinc-950" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">Datos archivados</h4>
+                    <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                      Bajaste la frecuencia o duración. Hay rutinas con ejercicios que quedaron "ocultas". <br /> No se perderán, pero no se incluirán en el plan a menos que vuelvas a subir los límites.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4 min-h-[300px]">
                 {currentExercises.length === 0 ? (

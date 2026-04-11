@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
@@ -7,6 +7,11 @@ import { planesCopy } from "@/data/es/profesor/planes";
 import { blocksCopy } from "@/data/es/profesor/ejercicios";
 import { toast } from "sonner";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+
+// Modular Hooks
+import { useFormNavigation } from "./form/useFormNavigation";
+import { useFormStats } from "./form/useFormStats";
+import { useFormOperations } from "./form/useFormOperations";
 
 interface Exercise {
     id: string;
@@ -23,21 +28,21 @@ interface UsePlanFormProps {
     onSuccess?: () => void;
 }
 
+/**
+ * usePlanForm: Orquestador modular para la creación y edición de planes.
+ */
 export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormProps) {
-    const [activeDiaAbsoluto, setActiveDiaAbsoluto] = useState<number>(1);
     const [localLibrary, setLocalLibrary] = useState<Exercise[]>(library);
     const [rotationEditing, setRotationEditing] = useState<{ routineIdx: number; exerciseIdx: number } | null>(null);
-    const [currentWeek, setCurrentWeek] = useState(1);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isBlockSearchOpen, setIsBlockSearchOpen] = useState(false);
     const [isAddElementOpen, setIsAddElementOpen] = useState(false);
     const [isBulkOpen, setIsBulkOpen] = useState(false);
     
-    // Undo Support
     const historyRef = useRef<any>(null);
-
     const { execute, isPending } = useAsyncAction();
 
+    // 1. React Hook Form Setup
     const form = useForm<any>({
         resolver: zodResolver(planSchema),
         defaultValues: {
@@ -56,97 +61,45 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         },
     });
 
-    const rutinasWatch = useWatch({
-        control: form.control,
-        name: "rutinas",
+    const rutinasWatch = useWatch({ control: form.control, name: "rutinas" });
+
+    // 2. Motor de Estadísticas y Validación
+    const { stats, effectiveNumWeeks, freqSemanal } = useFormStats(form, rutinasWatch);
+
+    // 3. Motor de Navegación Industrial
+    const {
+        activeDiaAbsoluto, setActiveDiaAbsoluto,
+        currentWeek, setCurrentWeek
+    } = useFormNavigation({
+        effectiveNumWeeks,
+        freqSemanal,
+        onSave: () => {
+            if (stats.isValid) {
+                form.handleSubmit(onSubmit, (errors: any) => {
+                    console.error("Zod Validation Errors:", errors);
+                    toast.error("Error de validación interna. Revisá la consola.");
+                })();
+            }
+        }
     });
 
-    const numWeeks = form.watch("duracion_semanas") ?? 1;
-    const effectiveNumWeeks = numWeeks === 0 ? 1 : numWeeks;
-    const freqSemanal = form.watch("frecuencia_semanal") || 3;
+    // 4. Motor de Operaciones Estructurales
+    const {
+        addExercise,
+        addBlockToRoutine,
+        removeExercise,
+        moveExercise,
+        handleDuplicateMulti
+    } = useFormOperations({
+        form,
+        activeDiaAbsoluto,
+        historyRef,
+        setIsSearchOpen,
+        setIsBlockSearchOpen,
+        setIsBulkOpen
+    });
 
-    const stats = useMemo(() => {
-        let totalEjercicios = 0;
-        let activeDays = 0;
-        
-        // Solo contamos los días activos dentro del límite
-        const maxValidDay = effectiveNumWeeks * freqSemanal;
-        const validDays = rutinasWatch?.slice(0, maxValidDay) || [];
-        
-        validDays.forEach(r => {
-            const c = r.ejercicios?.length || 0;
-            if (c > 0) {
-                activeDays++;
-                totalEjercicios += c;
-            }
-        });
-        
-        return { 
-            activeDaysCount: activeDays,
-            totalEjercicios,
-            isValid: activeDays > 0 && form.watch("nombre")?.length >= 3
-        };
-    }, [rutinasWatch, form.watch("nombre"), numWeeks, freqSemanal]);
-
-    // Limpiar excedentes si baja la frecuencia o la duración
-    useEffect(() => {
-        const maxValidDay = effectiveNumWeeks * freqSemanal;
-        const currentRoutines = form.getValues("rutinas") || [];
-        
-        let needUpdate = false;
-        const newRoutines = currentRoutines.map((r: any, i: number) => {
-            if (i >= maxValidDay && r.ejercicios?.length > 0) {
-                needUpdate = true;
-                return { ...r, ejercicios: [] };
-            }
-            return r;
-        });
-
-        if (needUpdate) {
-            form.setValue("rutinas", newRoutines);
-        }
-        
-        // Si el usuario quedó en un día fuera de límite
-        if (activeDiaAbsoluto > maxValidDay) {
-            setActiveDiaAbsoluto(Math.max(1, maxValidDay));
-            setCurrentWeek(Math.max(1, Math.ceil(maxValidDay / freqSemanal)));
-        }
-    }, [numWeeks, freqSemanal, activeDiaAbsoluto, form]);
-
-    // Keyboard Shortcuts
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-            
-            // Teclado Industrial: 'S' para cambiar de semana, 'D' para cambiar de día
-            if (e.key === "s" || e.key === "S") {
-                if (numWeeks === 0) return; // No hay cambio de semana en indefinido
-                const nextWeek = (currentWeek % effectiveNumWeeks) + 1;
-                setCurrentWeek(nextWeek);
-                setActiveDiaAbsoluto((nextWeek - 1) * freqSemanal + 1);
-            }
-            if (e.key === "d" || e.key === "D") {
-                const nextDia = (activeDiaAbsoluto % (effectiveNumWeeks * freqSemanal)) + 1;
-                setCurrentWeek(Math.ceil(nextDia / freqSemanal));
-                setActiveDiaAbsoluto(nextDia);
-            }
-            if (e.key === "Enter" && e.ctrlKey) {
-                if (stats.isValid) {
-                    form.handleSubmit(onSubmit, (errors: any) => {
-                        console.error("Zod Validation Errors:", errors);
-                        toast.error("Error de validación interna. Revisa consola.");
-                    })();
-                }
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [currentWeek, numWeeks, activeDiaAbsoluto, freqSemanal, stats.isValid]);
-
-    const onInvalidSubmit = (errors: any) => {
-        console.error("Zod Validation Errors preventing submit:", errors);
-        toast.error("El plan tiene errores invisibles que previenen guardarse. Revisa la consola técnica.");
-    };
+    // --- Persistencia y Lógica de Negocio ---
 
     const onSubmit = async (data: any) => {
         await execute(async () => {
@@ -169,51 +122,7 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         });
     };
 
-    const addExercise = (exerciseId: string) => {
-        const routineIdx = activeDiaAbsoluto - 1;
-        const currentExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`) || [];
-        
-        // FIX CRÃ TICO: Usamos un entero de 9 dÃgitos para evitar el Integer Overflow en la DB (LÃmite 2.1B)
-        const position = Math.floor(Math.random() * 1000000000);
-        
-        const newExercise = {
-            ejercicio_id: exerciseId, 
-            series: 3, 
-            reps_target: "12", 
-            descanso_seg: 60, 
-            orden: currentExercises.length, 
-            exercise_type: "base" as const, 
-            position, 
-            peso_target: ""
-        };
-        
-        form.setValue(`rutinas.${routineIdx}.ejercicios`, [...currentExercises, newExercise]);
-        setIsSearchOpen(false);
-    };
-
-    const addBlockToRoutine = (block: any) => {
-        const routineIdx = activeDiaAbsoluto - 1;
-        const currentExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`) || [];
-        
-        const newExercises = (block.bloques_ejercicios || []).map((item: any, idx: number) => ({
-            ejercicio_id: item.ejercicio_id,
-            series: item.series,
-            reps_target: item.reps_target,
-            descanso_seg: item.descanso_seg,
-            orden: currentExercises.length + idx,
-            exercise_type: "base" as const,
-            position: Math.floor(Math.random() * 1000000000),
-            peso_target: "",
-            grupo_bloque_id: block.id,
-            grupo_nombre: block.nombre
-        }));
-        
-        form.setValue(`rutinas.${routineIdx}.ejercicios`, [...currentExercises, ...newExercises]);
-        setIsBlockSearchOpen(false);
-        toast.success(`Bloque "${block.nombre}" importado`);
-    };
-
-    const saveDayAsBlock = async () => {
+    const saveDayAsBlock = useCallback(async () => {
         const routineIdx = activeDiaAbsoluto - 1;
         const routineExercises = form.getValues(`rutinas.${routineIdx}.ejercicios`) || [];
         
@@ -238,76 +147,24 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
                 }))
             };
 
-            const { data, error } = await actions.profesor.createBlock(payload);
+            const { error } = await actions.profesor.createBlock(payload);
             if (error) throw error;
-        }, {
-            successMsg: blocksCopy.form.messages.success
-        });
-    };
+        }, { successMsg: blocksCopy.form.messages.success });
+    }, [form, activeDiaAbsoluto, execute]);
 
-    const removeExercise = (ri: number, ei: number) => {
-        const updated = [...form.getValues(`rutinas.${ri}.ejercicios`)];
-        updated.splice(ei, 1);
-        form.setValue(`rutinas.${ri}.ejercicios`, updated);
-    };
-
-    const moveExercise = (ri: number, ei: number, direction: "up" | "down") => {
-        const currentExercises = [...form.getValues(`rutinas.${ri}.ejercicios`)];
-        const targetIdx = direction === "up" ? ei - 1 : ei + 1;
-        
-        if (targetIdx < 0 || targetIdx >= currentExercises.length) return;
-        
-        // Swap
-        const [moved] = currentExercises.splice(ei, 1);
-        currentExercises.splice(targetIdx, 0, moved);
-        
-        // Update order field explicitly (just in case)
-        const finalized = currentExercises.map((ex, idx) => ({ ...ex, orden: idx }));
-        form.setValue(`rutinas.${ri}.ejercicios`, finalized);
-    };
-
-    const handleDuplicateMulti = (targetDayNums: number[]) => {
-        historyRef.current = JSON.parse(JSON.stringify(form.getValues("rutinas")));
-        const rutinas = form.getValues("rutinas");
-        const sourceRoutine = rutinas[activeDiaAbsoluto - 1];
-        if (!sourceRoutine) return;
-        
-        const newRutinas = [...rutinas];
-        targetDayNums.forEach(dNum => {
-            newRutinas[dNum - 1] = { 
-                ...newRutinas[dNum - 1], 
-                ejercicios: JSON.parse(JSON.stringify(sourceRoutine.ejercicios || [])) 
-            };
-        });
-        
-        form.setValue("rutinas", newRutinas);
-        setIsBulkOpen(false);
-        
-        toast(`${targetDayNums.length} ${targetDayNums.length === 1 ? 'Día duplicado' : 'Días duplicados'} correctamente`, {
-            action: {
-                label: "Deshacer",
-                onClick: () => {
-                    if (historyRef.current) form.setValue("rutinas", historyRef.current);
-                    toast.success("Cambios revertidos");
-                }
-            }
-        });
-    };
-
-    const handleExerciseCreated = (newEx: any) => {
-        // Al crearse inline, el profesor_id será el del usuario actual (no null)
+    const handleExerciseCreated = useCallback((newEx: any) => {
         setLocalLibrary(prev => [{ 
             id: newEx.id, 
             nombre: newEx.nombre, 
             media_url: newEx.media_url || null,
-            profesor_id: "user_owned" // Marcamos como propio para que el filtro "Propios" lo capture
+            profesor_id: "user_owned" 
         }, ...prev]); 
         addExercise(newEx.id); 
-    };
+    }, [addExercise]);
 
-    const handleSetRotation = (altId: string, dur: number) => {
-        const ri = rotationEditing!.routineIdx; 
-        const ei = rotationEditing!.exerciseIdx;
+    const handleSetRotation = useCallback((altId: string, dur: number) => {
+        if (!rotationEditing) return;
+        const { routineIdx: ri, exerciseIdx: ei } = rotationEditing;
         const ex = form.getValues(`rutinas.${ri}.ejercicios.${ei}`);
         const currot = form.getValues("rotaciones") || [];
         const idx = currot.findIndex((r: any) => r.position === ex.position);
@@ -323,14 +180,14 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
             }]); 
         }
         setRotationEditing(null);
-    };
+    }, [form, rotationEditing]);
 
-    const handleRemoveRotationExercise = (p: number, id: string) => {
+    const handleRemoveRotationExercise = useCallback((p: number, id: string) => {
         const updated = form.getValues("rotaciones")
             .map((rot: any) => rot.position === p ? ({ ...rot, cycles: rot.cycles.map((c: any) => ({ ...c, exercises: c.exercises.filter((exid: string) => exid !== id) })) }) : rot)
             .filter((rot: any) => rot.cycles[0].exercises.length > 1);
         form.setValue("rotaciones", updated);
-    };
+    }, [form]);
 
     const getExerciseName = (id: string) => localLibrary.find(e => e.id === id)?.nombre || "Ejercicio";
 
@@ -338,25 +195,21 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         form,
         stats,
         isPending,
-        activeDiaAbsoluto,
-        setActiveDiaAbsoluto,
-        currentWeek,
-        setCurrentWeek,
-        numWeeks,
+        activeDiaAbsoluto, setActiveDiaAbsoluto,
+        currentWeek, setCurrentWeek,
+        numWeeks: form.watch("duracion_semanas"),
         freqSemanal,
         localLibrary,
-        isSearchOpen,
-        setIsSearchOpen,
-        isBlockSearchOpen,
-        setIsBlockSearchOpen,
-        isAddElementOpen,
-        setIsAddElementOpen,
-        isBulkOpen,
-        setIsBulkOpen,
-        rotationEditing,
-        setRotationEditing,
+        isSearchOpen, setIsSearchOpen,
+        isBlockSearchOpen, setIsBlockSearchOpen,
+        isAddElementOpen, setIsAddElementOpen,
+        isBulkOpen, setIsBulkOpen,
+        rotationEditing, setRotationEditing,
         actions: {
-            onSubmit: form.handleSubmit(onSubmit, onInvalidSubmit),
+            onSubmit: form.handleSubmit(onSubmit, (err) => {
+                console.error("Zod Submit Errors:", err);
+                toast.error("Revisá los datos del plan, hay errores de validación.");
+            }),
             addExercise,
             addBlockToRoutine,
             saveDayAsBlock,

@@ -53,5 +53,20 @@ Para jubilar el Excel sin dolor, el importador de alumnos ahora reconocerá una 
 
 Automatización: El sistema crea los bloques horarios (9 a 10hs, 10 a 11hs, etc.) basándose en tu archivo Horarios_.xlsx y mete a los alumnos adentro automáticamente.
 
+5. Evolución: El "Organismo Vivo" (Fase 5)
+Para que la Agenda no sea solo una lista de tareas, sino un organismo que respira y evoluciona:
+
+A. Micro-Sparklines de Tendencia
+Cada ejercicio en la card del alumno incluirá un sparkline (gráfico de líneas minimalista) con la progresión del peso de las últimas 4 sesiones. El profesor decide el peso de hoy con "visión de rayos X" histórica.
+
+B. Zonas de Fatiga / Heatmap Muscular
+Si un alumno reporta una molestia, el sistema marcará visualmente los grupos musculares afectados. Los ejercicios de esa zona aparecerán con un aviso de precaución en la agenda hasta que el profesor limpie la alerta.
+
+C. Nudge de Progresión (Inteligencia de Carga)
+El sistema analizará el volumen acumulado. Si el alumno marcando "Fácil" durante 2 semanas, un ícono de ⚡ sugerirá un aumento de carga proactivo, transformando al sistema en un asistente de alto rendimiento.
+
+D. Modo "En Vivo" (Telemetría en Tiempo Real)
+Cuando el alumno abre su app y empieza a entrenar, su card en la Agenda Colectiva pulsará levemente en lime-400. El profesor podrá ver "en vivo" qué peso está cargando el alumno y dar feedback instantáneo.
+
 [!IMPORTANT]
-Definición de Éxito: El profesor entra al gimnasio, abre la Agenda Colectiva y no toca el buscador en todo el día. La información fluye sola a medida que pasan las horas.
+Definición de Éxito: El profesor entra al gimnasio, abre la Agenda Colectiva y no toca el buscador en todo el día. La información fluye sola a medida que pasan las horas. El sistema no solo muestra datos, sino que propone victorias.

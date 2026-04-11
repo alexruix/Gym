@@ -1,66 +1,54 @@
-import { useState } from "react";
-import { actions } from "astro:actions";
+import { useTurnoState } from "./turnos/useTurnoState";
+import { useTurnoOperations } from "./turnos/useTurnoOperations";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useDeleteWithConfirm } from "@/hooks/useDeleteWithConfirm";
+import type { Turno } from "@/types/agenda";
 
-interface Turno {
-  id: string;
-  nombre: string;
-  hora_inicio: string;
-  hora_fin: string;
-  capacidad_max: number;
-  dias_asistencia: string[];
+interface SuccessEvent {
+  type: 'upsert' | 'delete';
+  turno?: Turno;
+  id?: string;
 }
 
-export function useTurnos(turnos: Turno[]) {
-  const { execute, isPending } = useAsyncAction();
-  const [editingId, setEditingId] = useState<string | null>(null);
+interface UseTurnosOptions {
+  initialTurnos: Turno[]; // Conservado por compatibilidad de firma, aunque se gestiona externamente
+  onSuccess?: (event: SuccessEvent) => void;
+}
 
-  const deleteFlow = useDeleteWithConfirm<Turno>({
-    onDelete: async (turno) => {
-      const { error } = await actions.profesor.deleteTurno({ id: turno.id });
-      if (error) throw error;
-    },
-    loadingMsg: "Eliminando turno...",
-    successMsg: "Turno eliminado",
-    reloadOnSuccess: true,
-  });
+/**
+ * useTurnos: Motor de Gestión de Agenda Industrial.
+ * Orquesta el estado de edición (MEMORIA) y el CRUD de alta velocidad (OPERACIONES).
+ * Optimizado para percepción de instantaneidad (<300ms) y feedback sensorial PWA.
+ */
+export function useTurnos({ initialTurnos, onSuccess }: UseTurnosOptions) {
+    const { execute, isPending } = useAsyncAction();
 
-  const handleEdit = (id: string) => {
-    setEditingId(id);
-  };
+    // 1. Memoria de Agenda (Estado de Edición y Limpieza)
+    const { 
+        editingId, 
+        setEditingId 
+    } = useTurnoState();
 
-  const handleCancel = () => {
-    setEditingId(null);
-  };
+    // 2. Motor de Alta Velocidad (Operaciones: CRUD e Instantaneidad)
+    const { 
+        handleSave, 
+        handleAdd, 
+        handleEdit, 
+        handleCancel, 
+        deleteFlow 
+    } = useTurnoOperations(editingId, setEditingId, execute, onSuccess);
 
-  const handleSave = (data: any) => {
-    execute(
-      async () => {
-        const payload = editingId === "new" ? data : { ...data, id: editingId };
-        const { error } = await actions.profesor.upsertTurno(payload);
-        if (error) throw error;
-      },
-      {
-        loadingMsg: "Guardando turno...",
-        successMsg: editingId === "new" ? "Turno creado" : "Turno actualizado",
-        reloadOnSuccess: true,
-      }
-    );
-  };
+    return {
+        // State
+        editingId,
+        isPending,
 
-  const handleAdd = () => {
-    setEditingId("new");
-  };
-
-  return {
-    editingId,
-    setEditingId,
-    handleEdit,
-    handleCancel,
-    handleSave,
-    handleAdd,
-    isPending,
-    deleteFlow,
-  };
+        // Actions
+        handleEdit,
+        handleCancel,
+        handleSave,
+        handleAdd,
+        
+        // Modules
+        deleteFlow
+    };
 }

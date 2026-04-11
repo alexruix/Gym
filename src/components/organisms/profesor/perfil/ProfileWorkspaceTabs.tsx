@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
-import { Dumbbell, Info, History, Layers } from "lucide-react";
+import { Dumbbell, Info, History, Layers, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ProfileWorkspaceTabsProps {
   planContent: React.ReactNode;
   routineContent: React.ReactNode;
   infoContent: React.ReactNode;
+  notesContent: React.ReactNode;
   historyContent?: React.ReactNode;
   activeTab: string;
   onTabChange: (tab: any) => void;
@@ -17,6 +18,7 @@ export function ProfileWorkspaceTabs({
   planContent,
   routineContent,
   infoContent,
+  notesContent,
   historyContent,
   activeTab,
   onTabChange
@@ -36,6 +38,7 @@ export function ProfileWorkspaceTabs({
   const tabList = [
     { value: "plan", label: tabs.plan, icon: Layers },
     { value: "routine", label: tabs.routine, icon: Dumbbell },
+    { value: "notes", label: tabs.notes, icon: ClipboardList },
     { value: "history", label: tabs.history, icon: History },
     { value: "info", label: tabs.info, icon: Info },
   ];
@@ -89,6 +92,13 @@ export function ProfileWorkspaceTabs({
             className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-bottom-2 duration-500"
           >
             {routineContent}
+          </TabsPrimitive.Content>
+
+          <TabsPrimitive.Content
+            value="notes"
+            className="mt-0 focus-visible:ring-0 animate-in fade-in slide-in-from-bottom-2 duration-500"
+          >
+            {notesContent}
           </TabsPrimitive.Content>
 
           <TabsPrimitive.Content

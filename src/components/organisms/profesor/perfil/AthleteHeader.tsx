@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { SubscriptionBadge } from "@/components/atoms/SubscriptionBadge";
 import { StudentPaymentSheet } from "@/components/organisms/profesor/pagos/StudentPaymentSheet";
 import { useStudentActions } from "@/hooks/useStudentActions";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 interface Props {
   alumno: {
@@ -33,6 +34,12 @@ interface Props {
       nombre: string;
       cantidad_dias: number;
     } | null;
+    turno?: {
+      nombre: string;
+      hora_inicio: string;
+      hora_fin: string;
+    } | null;
+    dias_asistencia: string[];
   };
   planName?: string | null;
 }
@@ -145,17 +152,35 @@ export function AthleteHeader({ alumno, planName }: Props) {
                       Día {alumno.dia_pago || 15}
                    </p>
                 </div>
-                <div className="h-6 sm:h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
-                <div className="flex-1 sm:flex-none space-y-0.5 sm:space-y-1">
+                <div className="flex-1 sm:flex-none space-y-0.5 sm:space-y-1 text-right sm:text-left">
                    <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{header.metrics.lastSession}</p>
                    <p className={cn(
-                     "text-xs sm:text-sm font-bold flex items-center gap-2",
+                     "text-xs sm:text-sm font-bold flex items-center justify-end sm:justify-start gap-2",
                      lastSessionText.includes("hoy") || lastSessionText.includes("ayer") ? "text-emerald-500" : "text-zinc-950 dark:text-white"
                    )}>
                       <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-40" />
                       {lastSessionText}
                    </p>
                 </div>
+
+                {alumno.turno && (
+                  <>
+                    <div className="h-6 sm:h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="flex-1 sm:flex-none space-y-0.5 sm:space-y-1">
+                      <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Agenda</p>
+                      <div className="flex flex-col gap-0.5 md:gap-1">
+                        <p className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-1.5 whitespace-nowrap">
+                           <CalendarIcon className="w-3 h-3 text-lime-500 shrink-0" />
+                           {alumno.dias_asistencia.map(d => d.slice(0, 2)).join(" - ")}
+                        </p>
+                        <p className="text-[10px] sm:text-xs font-bold text-zinc-400 dark:text-zinc-500 flex items-center gap-1.5 uppercase tracking-widest leading-none">
+                           <Clock className="w-3 h-3 opacity-50 shrink-0" />
+                           {alumno.turno.hora_inicio.slice(0, 5)}hs
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +28,7 @@ export const PagoMetricCard = ({ label, value, variant = 'default', className }:
           variant === 'default' ? "text-zinc-900" : "text-red-700"
         )}>
           {typeof value === 'number' && label.includes('$') 
-            ? `$${value.toLocaleString()}` 
+            ? `$${value.toLocaleString('es-AR')}` 
             : value}
         </CardTitle>
       </CardHeader>

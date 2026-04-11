@@ -26,7 +26,6 @@ export const athleteProfileCopy = {
   sidebar: {
     criticalNotes: {
       label: "Notas Internas (Solo Profe)",
-      semaphore: "SEMÁFORO DE SEGURIDAD",
       empty: "Sin observaciones o notas registradas."
     },
     info: {
@@ -44,8 +43,18 @@ export const athleteProfileCopy = {
     tabs: {
       plan: "Planificación",
       routine: "Rutina",
+      notes: "Notas",
       info: "Información",
       history: "Historial"
+    },
+    notes: {
+      title: "Notas Privadas",
+      subtitle: "Aclaraciones sobre lesiones, objetivos o cuidados especiales.",
+      placeholder: "Escribí acá las aclaraciones importantes para este alumno...",
+      saveAction: "Guardar notas",
+      lastUpdate: "Actualizado el",
+      emptyState: "Todavía no cargaste ninguna nota para este alumno.",
+      success: "✅ Notas actualizadas correctamente"
     },
     routine: {
       title: "Rutina Asignada",

@@ -43,5 +43,13 @@ export const agendaCopy = {
       submitActive: "Sumar {{count}} alumnos al turno",
       success: "¡Listo! Ya sumaste a los alumnos al turno de las {{hora}}.",
     }
+  },
+  list: {
+    columns: {
+      student: "Alumno",
+      days: "Días",
+      schedule: "Horario",
+      action: "Acción"
+    }
   }
 };

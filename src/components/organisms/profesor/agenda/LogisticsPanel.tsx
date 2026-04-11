@@ -45,6 +45,7 @@ interface Student {
     id: string;
     nombre: string;
     turno_id: string | null;
+    dias_asistencia: string[];
 }
 
 interface LogisticsPanelProps {
@@ -113,11 +114,14 @@ export function LogisticsPanel({
         const selectedTurno = turnos.find(t => t.id === targetTurnoId);
 
         await execute(
-            actions.profesor.bulkUpdateStudents({
-                studentIds: selectedIds,
-                turno_id: targetTurnoId,
-                dias_asistencia: diasAsistencia,
-            }),
+            async () => {
+                const { error } = await actions.profesor.bulkUpdateStudents({
+                    studentIds: selectedIds,
+                    turno_id: targetTurnoId,
+                    dias_asistencia: diasAsistencia,
+                });
+                if (error) throw error;
+            },
             {
                 onSuccess: () => {
                     toast.success(copy.success.replace("{{hora}}", selectedTurno?.nombre || ""));

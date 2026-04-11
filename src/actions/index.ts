@@ -3,6 +3,7 @@ import { alumnoActions } from "./alumno";
 import { authActions } from "./auth";
 import { pagosActions } from "./pagos";
 import { suscripcionesActions } from "./suscripciones";
+import { ejercicioActions } from "./ejercicios";
 
 export const server = {
   profesor: profesorActions,
@@ -10,4 +11,5 @@ export const server = {
   auth: authActions,
   pagos: pagosActions,
   suscripcion: suscripcionesActions,
+  ejercicios: ejercicioActions,
 };

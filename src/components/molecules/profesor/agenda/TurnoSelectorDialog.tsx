@@ -13,19 +13,16 @@ import { actions } from "astro:actions";
 import { cn } from "@/lib/utils";
 import { agendaCopy } from "@/data/es/profesor/agenda";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { DaySelector } from "@/components/atoms/profesor/DaySelector";
 
-interface Turno {
-  id: string;
-  nombre: string;
-  hora_inicio: string;
-}
+import type { Turno } from "@/types/agenda";
 
 interface TurnoSelectorDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  student: { id: string; nombre: string; currentTurnoId?: string } | null;
+  student: { id: string; nombre: string; currentTurnoId?: string; dias_asistencia?: string[] } | null;
   turnos: Turno[];
-  onSuccess?: () => void;
+  onSuccess?: (updatedStudent: any) => void;
 }
 
 export function TurnoSelectorDialog({
@@ -36,6 +33,16 @@ export function TurnoSelectorDialog({
   onSuccess
 }: TurnoSelectorDialogProps) {
   const [selectedId, setSelectedId] = useState<string | null>(student?.currentTurnoId || null);
+  const [selectedDays, setSelectedDays] = useState<string[]>(student?.dias_asistencia || []);
+
+  // Sincronizar estado cuando cambia el alumno
+  React.useEffect(() => {
+    if (student) {
+      setSelectedId(student.currentTurnoId || null);
+      setSelectedDays(student.dias_asistencia || []);
+    }
+  }, [student]);
+
   const { execute, isPending } = useAsyncAction();
   const t = agendaCopy.modals.changeTurno;
 
@@ -46,15 +53,18 @@ export function TurnoSelectorDialog({
       async () => {
         const { error } = await actions.profesor.updateStudent({
           id: student.id,
-          turno_id: selectedId
+          turno_id: selectedId,
+          dias_asistencia: selectedDays
         });
         if (error) throw error;
       },
       {
         loadingMsg: "Actualizando turno...",
         successMsg: t.success,
-        onSuccess: () => {
-          onSuccess?.();
+        onSuccess: (result: any) => {
+          if (result?.student) {
+            onSuccess?.(result.student);
+          }
           onOpenChange(false);
         }
       } as any // useAsyncAction might need a small fix for onSuccess or use external handling
@@ -70,38 +80,58 @@ export function TurnoSelectorDialog({
           <DialogTitle className="text-xl font-bold text-zinc-100 uppercase tracking-tighter">
             {t.title}
           </DialogTitle>
-          <DialogDescription className="text-zinc-500 font-medium pb-2">
-            Mové a <span className="text-zinc-300 font-bold">{student.nombre}</span> a otro bloque horario.
+          <DialogDescription className="text-zinc-500 font-medium pb-2 text-balance leading-relaxed">
+            Personalizá el bloque horario y los días de asistencia para <span className="text-zinc-300 font-bold">{student.nombre}</span>.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-2 py-4">
-          {turnos.map((turno) => {
-            const isSelected = selectedId === turno.id;
-            return (
-              <button
-                key={turno.id}
-                onClick={() => setSelectedId(turno.id)}
-                className={cn(
-                  "flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 text-left group",
-                  isSelected
-                    ? "bg-lime-500 border-lime-400 text-zinc-950"
-                    : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800/50"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <Clock className={cn("w-4 h-4", isSelected ? "text-zinc-950" : "text-zinc-600")} />
-                  <div>
-                    <p className="font-bold text-sm uppercase tracking-tight">{turno.hora_inicio.substring(0, 5)}hs</p>
-                    <p className={cn("text-[10px] font-bold uppercase tracking-widest leading-none mt-0.5", isSelected ? "text-zinc-950/70" : "text-zinc-500")}>
-                      {turno.nombre}
-                    </p>
-                  </div>
-                </div>
-                {isSelected && <Check className="w-5 h-5" />}
-              </button>
-            );
-          })}
+        <div className="space-y-6 py-4">
+          <div className="space-y-4">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+              <Clock className="w-3 h-3" /> Bloque Horario
+            </label>
+            <div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
+              {turnos.map((turno) => {
+                const isSelected = selectedId === turno.id;
+                return (
+                  <button
+                    key={turno.id}
+                    onClick={() => setSelectedId(turno.id)}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 text-left group",
+                      isSelected
+                        ? "bg-lime-500 border-lime-400 text-zinc-950"
+                        : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800/50"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Clock className={cn("w-4 h-4", isSelected ? "text-zinc-950" : "text-zinc-600 font-bold")} />
+                      <div>
+                        <p className="font-bold text-sm uppercase tracking-tight leading-none">{turno.hora_inicio.substring(0, 5)}hs</p>
+                        <p className={cn("text-[10px] font-bold uppercase tracking-widest mt-1", isSelected ? "text-zinc-950/70" : "text-zinc-500")}>
+                          {turno.nombre}
+                        </p>
+                      </div>
+                    </div>
+                    {isSelected && <Check className="w-5 h-5 animate-in zoom-in duration-300" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+              Días de Entrenamiento
+            </label>
+            <div className="bg-zinc-900/50 border border-zinc-800 p-2 rounded-2xl">
+              <DaySelector
+                selectedDays={selectedDays}
+                onChange={setSelectedDays}
+                compact
+              />
+            </div>
+          </div>
         </div>
 
         <DialogFooter className="mt-4 gap-2">

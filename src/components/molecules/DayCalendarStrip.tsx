@@ -53,52 +53,56 @@ function getStatusColors(status: DayStatus, esHoy: boolean, selected: boolean): 
   bg: string;
   border: string;
 } {
+  // 1. Determinar el color del DOT (Semántica de Resultado)
+  let dotColor = 'bg-zinc-500'; // Programada / Futura
+  if (status === 'completada') dotColor = 'bg-lime-500';
+  if (status === 'omitida') dotColor = 'bg-red-500';
+  if (status === 'descanso') dotColor = 'bg-transparent border border-zinc-500';
+  if (status === 'en_progreso') dotColor = 'bg-amber-400 animate-pulse';
+  if (esHoy && status !== 'completada' && status !== 'omitida') dotColor = 'bg-violet-500 animate-pulse';
+
+  // 2. Jerarquía de Navegación (Selección > Hoy > Normal)
   if (selected) {
     return {
-      dot: 'bg-lime-500',
-      num: 'text-black bg-lime-500',
-      label: 'text-lime-400',
-      bg: 'bg-lime-500/10',
-      border: 'border-lime-500',
+      dot: dotColor,
+      num: 'text-black bg-lime-500 shadow-lg shadow-lime-500/40',
+      label: 'text-lime-500',
+      bg: 'bg-lime-500/[0.08]',
+      border: 'border-lime-500/50',
     };
   }
+
   if (esHoy) {
     return {
-      dot: 'bg-lime-500 animate-pulse',
-      num: 'text-lime-400 bg-lime-500/15 border border-lime-500/40',
-      label: 'text-lime-400',
-      bg: 'bg-lime-500/5',
-      border: 'border-lime-500/30',
+      dot: dotColor,
+      num: 'text-violet-400 bg-violet-500/15 border border-violet-500/40',
+      label: 'text-violet-400',
+      bg: 'bg-violet-500/[0.03]',
+      border: 'border-violet-500/20',
     };
   }
+
+  // Estados base según el status
   switch (status) {
     case 'completada':
       return {
-        dot: 'bg-lime-500',
-        num: 'text-white bg-zinc-800',
-        label: 'text-lime-500',
-        bg: '',
-        border: 'border-zinc-800',
+        dot: dotColor,
+        num: 'text-lime-500 bg-zinc-900',
+        label: 'text-zinc-500',
+        bg: 'bg-transparent',
+        border: 'border-zinc-800/10',
       };
     case 'omitida':
       return {
-        dot: 'bg-red-500/60',
-        num: 'text-zinc-600 bg-zinc-900',
-        label: 'text-red-500/60',
-        bg: '',
-        border: 'border-zinc-900',
-      };
-    case 'futura':
-      return {
-        dot: 'bg-zinc-700',
-        num: 'text-zinc-600 bg-zinc-900',
+        dot: dotColor,
+        num: 'text-red-500/70 bg-zinc-900',
         label: 'text-zinc-600',
-        bg: '',
+        bg: 'opacity-80',
         border: 'border-zinc-900',
       };
     case 'descanso':
       return {
-        dot: 'bg-zinc-800',
+        dot: dotColor,
         num: 'text-zinc-700 bg-transparent border-zinc-900',
         label: 'text-zinc-800',
         bg: 'opacity-40',
@@ -106,11 +110,11 @@ function getStatusColors(status: DayStatus, esHoy: boolean, selected: boolean): 
       };
     default:
       return {
-        dot: 'bg-zinc-600',
+        dot: dotColor,
         num: 'text-zinc-400 bg-zinc-800',
-        label: 'text-zinc-400',
+        label: 'text-zinc-500',
         bg: '',
-        border: 'border-zinc-800',
+        border: 'border-zinc-800/5',
       };
   }
 }
@@ -260,13 +264,13 @@ export function DayCalendarStrip({
               <div className="flex flex-col items-center gap-1 px-1">
                 <span className={cn(
                   'w-1.5 h-1.5 rounded-full transition-all',
-                  icon ? colors.dot : 'bg-transparent border border-zinc-800/50',
+                  icon ? colors.dot : 'bg-transparent border border-zinc-700/50',
                 )} />
                 {/* <span className="text-[8px] font-bold text-zinc-500/70 uppercase tracking-tighter">
                   D{dia.numeroDiaPlan}
                 </span> */}
                 {dia.cycleNumber && dia.cycleNumber > 1 && (
-                  <span className="text-[7px] font-bold text-lime-500/60 uppercase tracking-tighter leading-none mt-0.5">
+                  <span className="text-[7px] font-bold uppercase tracking-tighter leading-none mt-0.5">
                     C{dia.cycleNumber}•S{dia.relativeWeek}
                   </span>
                 )}
@@ -280,9 +284,10 @@ export function DayCalendarStrip({
       <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
         {[
           { color: 'bg-lime-500', label: 'Completada' },
-          { color: 'bg-lime-500 animate-pulse', label: 'Hoy' },
-          { color: 'bg-red-500/60', label: 'Omitida' },
-          { color: 'bg-zinc-800', label: 'Descanso' },
+          { color: 'bg-violet-500 animate-pulse', label: 'Hoy' },
+          { color: 'bg-red-500', label: 'Omitida' },
+          { color: 'bg-transparent border border-zinc-500', label: 'Descanso' },
+          { color: 'bg-zinc-500', label: 'Programada' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className={cn('w-1.5 h-1.5 rounded-full', color)} />

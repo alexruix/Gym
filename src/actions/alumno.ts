@@ -1,6 +1,8 @@
 import { defineAction, ActionError } from "astro:actions";
 import { z } from "zod";
 import { getAuthenticatedClient } from "@/lib/supabase-ssr";
+import type { Database } from "@/lib/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   sessionLogSchema,
   commentExerciseSchema,
@@ -12,7 +14,7 @@ import {
   removeExerciseFromStudentPlanSchema,
   swapExerciseInStudentPlanSchema,
 } from "@/lib/validators";
-import { getDayNumber, getWeekNumber, getTodayISO, getCyclicDayNumber, getCycleInfo, getStructuralDay } from "@/lib/schedule";
+import { getDayNumber, getWeekNumber, getTodayISO, getCyclicDayNumber, getCycleInfo, getStructuralDay, convertDaysToNumbers } from "@/lib/schedule";
 
   /**
    * Helper: Sanitiza un string para convertirlo en un número decimal válido para Postgres.
@@ -120,7 +122,8 @@ export const alumnoActions = {
       }
 
       // 3. Calcular qué día del plan le corresponde hoy
-      const diasAsistencia = alumno.dias_asistencia || [];
+      const diasAsistenciaRaw = alumno.dias_asistencia || [];
+      const diasAsistencia = convertDaysToNumbers(diasAsistenciaRaw);
       const fechaInicio = alumno.fecha_inicio || getTodayISO();
       const diaAbsoluto = getDayNumber(fechaInicio, fechaReal, diasAsistencia);
       const semanaActual = getWeekNumber(fechaInicio, fechaReal, diasAsistencia);
@@ -149,16 +152,22 @@ export const alumnoActions = {
       let diaParaNombre;
 
       if (input.rutina_id) {
-        // Modo Manual: Sesión Extra
+        // MODO MANUAL (Sesión Extra): Se proporcionó una rutina específica
         rutinaDeHoy = (rutinasDiarias as any[])?.find((r: any) => r.id === input.rutina_id);
-        if (!rutinaDeHoy) throw new Error("La rutina seleccionada no pertenece al plan del alumno.");
+        
+        if (!rutinaDeHoy) {
+          throw new Error("La rutina seleccionada no pertenece al plan actual del alumno.");
+        }
+        
+        // Calculamos qué día estructural le correspondería por inercia, 
+        // pero usamos el ID de la rutina forzada por el profesor.
         diaParaNombre = rutinaDeHoy.dia_numero;
       } else {
-        // Modo Automático: Siguiendo estructura del plan
+        // MODO AUTOMÁTICO: Siguiendo la agenda de asistencia confirmada
         const diaEstructural = getStructuralDay(fechaInicio, new Date(fechaReal), availableDiaNumeros, diasAsistencia);
         
         if (diaEstructural === 0) {
-          throw new Error("Día de descanso. No hay rutina programada para hoy según tus días de asistencia.");
+          throw new Error("Día de descanso oficial. Para sumar una sesión hoy, debés elegir una rutina manualmente como 'Sesión Extra'.");
         }
 
         rutinaDeHoy = (rutinasDiarias as any[])?.find((r: any) => r.dia_numero === diaEstructural);
@@ -248,9 +257,8 @@ export const alumnoActions = {
 
       if (ejerciciosAInsertar.length > 0) {
         console.log("DEBUG - Insertando ejercicios:", JSON.stringify(ejerciciosAInsertar, null, 2));
-        const { error: errorEjs } = await supabase
-          .from("sesion_ejercicios_instanciados")
-          .insert(ejerciciosAInsertar as any[]);
+        const { error: errorEjs } = await (supabase.from("sesion_ejercicios_instanciados") as any)
+          .insert(ejerciciosAInsertar);
         
         if (errorEjs) {
           console.error("DEBUG - Error al insertar ejercicios:", errorEjs);
@@ -293,15 +301,15 @@ export const alumnoActions = {
       if (!user) throw new Error("No autorizado");
       const supabase = getAuthenticatedClient(context);
 
-      const { error } = await supabase
-        .from("sesion_ejercicios_instanciados")
+      const { error } = await (supabase
+        .from("sesion_ejercicios_instanciados") as any)
         .update({
           series_real: input.series_real,
           reps_real: input.reps_real,
           peso_real: input.peso_real ?? null,
           nota_alumno: input.nota_alumno ?? null,
           completado: input.completado,
-        } as any)
+        })
         .eq("id", input.sesion_ejercicio_id);
 
       if (error) throw new Error(`Error al guardar progreso: ${error.message}`);
@@ -321,13 +329,13 @@ export const alumnoActions = {
       if (!user) throw new Error("No autorizado");
       const supabase = getAuthenticatedClient(context);
 
-      const { error } = await supabase
-        .from("sesiones_instanciadas")
+      const { error } = await (supabase
+        .from("sesiones_instanciadas") as any)
         .update({
           estado: "completada",
           notas_alumno: input.notas_alumno ?? null,
           completed_at: new Date().toISOString(),
-        })
+        } as any)
         .eq("id", input.sesion_id);
 
       if (error) throw new Error(`Error al cerrar sesión: ${error.message}`);
@@ -435,7 +443,7 @@ export const alumnoActions = {
         .order("fecha_real", { ascending: true });
 
       const sesionesMap: Record<string, any> = {};
-      (sesiones || []).forEach((s) => {
+      (sesiones || []).forEach((s: any) => {
         sesionesMap[s.fecha_real] = s;
       });
 
@@ -450,7 +458,8 @@ export const alumnoActions = {
       const availableDiaNumeros = ((rutinasPlan as any[]) || []).map(r => r.dia_numero);
 
       // 4. Construir el array de días con cálculo de numero_dia_plan para los que no existen
-      const diasAsistencia = alumno.dias_asistencia || [];
+      const diasAsistenciaRaw = alumno.dias_asistencia || [];
+      const diasAsistencia = convertDaysToNumbers(diasAsistenciaRaw);
       const fechaInicio = alumno.fecha_inicio || hoyStr;
       const days = [];
       const currentDate = new Date(desde);
@@ -464,7 +473,7 @@ export const alumnoActions = {
         const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(
           fechaInicio, 
           currentDate, 
-          planDetalle?.duracion_semanas || 4
+          (planDetalle as any)?.duracion_semanas || 4
         );
 
         const numeroDia = sesion?.numero_dia_plan ?? getDayNumber(fechaInicio, currentDate, diasAsistencia);
@@ -568,37 +577,41 @@ export const alumnoActions = {
       if (!isTemplate) {
         // [DEEP SYNC]: Si es un plan privado/fork, actualizamos la base estructural
         // para que sea permanente SIN necesidad de overrides futuros.
-        const { error: structuralError } = await supabase
-          .from("ejercicios_plan")
+        const { error: structuralError } = await (supabase
+          .from("ejercicios_plan") as any)
           .update({
             series: input.series,
             reps_target: input.reps_target,
             descanso_seg: input.descanso_seg,
             peso_target: input.peso_target,
-          } as any)
+          })
           .eq("id", input.ejercicio_plan_id);
 
         if (structuralError) throw new Error("Error al actualizar base estructural: " + structuralError.message);
         syncMessage = "Cambio aplicado permanentemente al plan del alumno.";
       } else {
-        // [NUDGE]: Si es un template, usamos overrides y avisamos al profesor.
-        const metricsToPersist = [{
-          alumno_id: input.alumno_id,
-          ejercicio_plan_id: input.ejercicio_plan_id,
-          semana_numero: inputRelativeWeek,
-          series: input.series,
-          reps_target: input.reps_target,
-          descanso_seg: input.descanso_seg,
-          peso_target: input.peso_target,
-          updated_at: new Date().toISOString()
-        }];
+        // [CASCADA DE PROGRESO]: Si es un template, generamos overrides para la semana actual 
+        // y TODAS las semanas restantes del ciclo (1..maxWeeks).
+        const metricsToPersist = [];
+        for (let w = inputRelativeWeek; w <= maxWeeks; w++) {
+          metricsToPersist.push({
+            alumno_id: input.alumno_id,
+            ejercicio_plan_id: input.ejercicio_plan_id,
+            semana_numero: w,
+            series: input.series,
+            reps_target: input.reps_target,
+            descanso_seg: input.descanso_seg,
+            peso_target: input.peso_target,
+            updated_at: new Date().toISOString()
+          });
+        }
 
-        const { error: upsertError } = await supabase
-          .from("ejercicio_plan_personalizado")
-          .upsert(metricsToPersist as any[], { onConflict: "alumno_id, ejercicio_plan_id, semana_numero" });
+        const { error: upsertError } = await (supabase
+          .from("ejercicio_plan_personalizado") as any)
+          .upsert(metricsToPersist, { onConflict: "alumno_id, ejercicio_plan_id, semana_numero" });
 
-        if (upsertError) throw new Error("Error al persistir override: " + upsertError.message);
-        syncMessage = "Estás editando un Plan Maestro. Para que este cambio sea estructural, personalizá el plan de este alumno.";
+        if (upsertError) throw new Error("Error al persistir cascada de overrides: " + upsertError.message);
+        syncMessage = `Cambios aplicados a la semana ${input.semana_numero} y todas las posteriores del ciclo del alumno.`;
       }
 
       // 3. Sincronizar Instancias ya creadas (futuras y hoy no completadas)
@@ -609,16 +622,16 @@ export const alumnoActions = {
         .gte("semana_numero", input.semana_numero);
 
       if (sesiones && sesiones.length > 0) {
-        const sesionIds = sesiones.map(s => s.id);
-        await supabase
-          .from("sesion_ejercicios_instanciados")
+        const sesionIds = sesiones.map((s: any) => s.id);
+        await (supabase
+          .from("sesion_ejercicios_instanciados") as any)
           .update({
             series_plan: input.series,
             reps_plan: input.reps_target,
             peso_plan: input.peso_target ? sanitizeWeight(input.peso_target) : null,
             descanso_plan: input.descanso_seg,
             updated_at: new Date().toISOString()
-          } as any)
+          })
           .eq("ejercicio_plan_id", input.ejercicio_plan_id)
           .is("completado", false)
           .in("sesion_id", sesionIds);
@@ -656,7 +669,7 @@ export const alumnoActions = {
       if (alumno.profesor_id !== user.id) throw new Error("Sin permisos");
 
       const { data: bibEj } = await supabase.from("biblioteca_ejercicios").select("nombre").eq("id", input.nuevo_biblioteca_id).single();
-      const nombreEj = bibEj?.nombre || "Nuevo Ejercicio";
+      const nombreEj = (bibEj as any)?.nombre || "Nuevo Ejercicio";
 
       if (input.is_permanent) {
         let planId = alumno.plan_id;
@@ -677,25 +690,25 @@ export const alumnoActions = {
         }
 
         // Actualizar ejercicio en el plan maestro (ahora ya forkeado si era template)
-        await supabase.from("ejercicios_plan").update({ ejercicio_id: input.nuevo_biblioteca_id } as any).eq("id", ejPlanId);
+        await (supabase.from("ejercicios_plan") as any).update({ ejercicio_id: input.nuevo_biblioteca_id }).eq("id", ejPlanId);
 
         // Propagar a instancias futuras no completadas
-        const { data: f } = await supabase.from("sesiones_instanciadas").select("id").eq("alumno_id", input.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).is("estado", "pendiente");
+        const { data: f } = await (supabase.from("sesiones_instanciadas") as any).select("id").eq("alumno_id", input.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).is("estado", "pendiente");
         const futuras = f as any[];
         if (futuras && futuras.length > 0) {
-            const ids = futuras.map(s => s.id);
-            await supabase.from("sesion_ejercicios_instanciados").update({ 
+            const ids = futuras.map((s: any) => s.id);
+            await (supabase.from("sesion_ejercicios_instanciados") as any).update({ 
                 ejercicio_id: input.nuevo_biblioteca_id,
                 series_real: null, reps_real: null, peso_real: null, completado: false, is_variation: false 
-            } as any).eq("ejercicio_plan_id", ejPlanId).in("sesion_id", ids);
+            }).eq("ejercicio_plan_id", ejPlanId).in("sesion_id", ids);
         }
         return { success: true, mensaje: `Sustitución de "${nombreEj}" aplicada permanentemente a la planificación.` };
       } else {
-        await supabase.from("sesion_ejercicios_instanciados").update({ 
+        await (supabase.from("sesion_ejercicios_instanciados") as any).update({ 
             ejercicio_id: input.nuevo_biblioteca_id, 
             is_variation: true,
             series_real: null, reps_real: null, peso_real: null, completado: false 
-        } as any).eq("id", input.ejercicio_id);
+        }).eq("id", input.ejercicio_id);
         return { success: true, mensaje: `Sustituido por "${nombreEj}" solo por hoy.` };      }
     }
   }),
@@ -729,14 +742,14 @@ export const alumnoActions = {
       }
 
       // 2. Marcar como completada
-      const { error } = await supabase
-        .from("sesiones_instanciadas")
+      const { error } = await (supabase
+        .from("sesiones_instanciadas") as any)
         .update({
           estado: "completada",
           completed_at: new Date().toISOString(),
           notas_alumno: "Completada por el profesor",
           completed_by_professor: true // Asumiendo que existe el campo o se documenta como metadata
-        } as any) // Cast a any por si el campo no existe aún en tipos
+        } as any) 
         .eq("id", input.sesion_id);
 
       if (error) throw new Error("Error al cerrar sesión: " + error.message);
@@ -778,9 +791,8 @@ export const alumnoActions = {
       const newStartISO = currentStart.toISOString().split("T")[0];
 
       // 2. Actualizar alumno
-      const { error } = await supabase
-        .from("alumnos")
-        .update({ fecha_inicio: newStartISO } as any)
+      const { error } = await (supabase.from("alumnos") as any)
+        .update({ fecha_inicio: newStartISO })
         .eq("id", input.alumno_id);
 
       if (error) throw new Error("Error al desplazar fecha: " + error.message);
@@ -820,40 +832,40 @@ export const alumnoActions = {
         .select("nombre")
         .eq("id", input.biblioteca_id)
         .single();
-      const nombreEj = bibEj?.nombre || "Ejercicio";
+      const nombreEj = (bibEj as any)?.nombre || "Ejercicio";
 
       if (input.is_permanent) {
         let planId = alumno.plan_id;
         const { data: p } = await supabase.from("planes").select("nombre, is_template").eq("id", planId).single();
         const plan = p as any;
         if (plan?.is_template) {
-          const { data: forkedId, error: forkErr } = await supabase.rpc("fork_plan", {
+          const { data: forkedId, error: forkErr } = await (supabase.rpc("fork_plan", {
             p_plan_id: planId,
             p_alumno_id: input.alumno_id,
             p_nuevo_nombre: `${plan.nombre} (${alumno.nombre})`
-          } as any);
+          } as any) as any);
           if (forkErr) throw new Error("Error personalizando plan: " + forkErr.message);
           planId = forkedId;
-          await supabase.from("alumnos").update({ plan_id: planId } as any).eq("id", input.alumno_id);
+          await (supabase.from("alumnos") as any).update({ plan_id: planId }).eq("id", input.alumno_id);
         }
 
-        const { data: rutina } = await supabase.from("rutinas_diarias").select("id").eq("plan_id", planId).eq("dia_numero", sesion.numero_dia_plan).single();
+        const { data: rutina } = await (supabase.from("rutinas_diarias") as any).select("id").eq("plan_id", planId).eq("dia_numero", sesion.numero_dia_plan).single();
         if (!rutina) throw new Error("Estructura de plan no encontrada para hoy");
 
-        const { data: countRes } = await supabase.from("ejercicios_plan").select("orden").eq("rutina_id", (rutina as any).id).order("orden", { ascending: false }).limit(1);
+        const { data: countRes } = await (supabase.from("ejercicios_plan") as any).select("orden").eq("rutina_id", (rutina as any).id).order("orden", { ascending: false }).limit(1);
         const nextOrder = ((countRes as any[])?.[0]?.orden ?? 0) + 1;
 
-        const { data: newEjPlan, error: insertErr } = await supabase
-          .from("ejercicios_plan")
-          .insert({ rutina_id: (rutina as any).id, ejercicio_id: input.biblioteca_id, orden: nextOrder, series: 3, reps_target: "10", descanso_seg: 60 } as any)
+        const { data: newEjPlan, error: insertErr } = await (supabase
+          .from("ejercicios_plan") as any)
+          .insert({ rutina_id: (rutina as any).id, ejercicio_id: input.biblioteca_id, orden: nextOrder, series: 3, reps_target: "10", descanso_seg: 60 })
           .select("id")
           .single();
         if (insertErr) throw new Error("Insert Error: " + insertErr.message);
         
         const newEjPlanData = newEjPlan as any;
 
-        const { data: sesionesFuturas } = await supabase.from("sesiones_instanciadas").select("id").eq("alumno_id", input.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).is("estado", "pendiente");
-        const idsAInstanciar = [sesion.id, ...(((sesionesFuturas as any[])?.map(s => s.id) || []).filter(id => id !== sesion.id))];
+        const { data: sesionesFuturas } = await (supabase.from("sesiones_instanciadas") as any).select("id").eq("alumno_id", input.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).is("estado", "pendiente");
+        const idsAInstanciar = [sesion.id, ...(((sesionesFuturas as any[])?.map((s: any) => s.id) || []).filter(id => id !== sesion.id))];
         
         if (idsAInstanciar.length > 0) {
           const instancias = idsAInstanciar.map(sid => ({
@@ -866,13 +878,13 @@ export const alumnoActions = {
             descanso_seg: 60,
             is_variation: false
           }));
-          await supabase.from("sesion_ejercicios_instanciados").insert(instancias as any[]);
+          await (supabase.from("sesion_ejercicios_instanciados") as any).insert(instancias);
         }
         return { success: true, mensaje: `✅ Ejercicio "${nombreEj}" añadido permanentemente.` };
       } else {
-        const { data: countRes } = await supabase.from("sesion_ejercicios_instanciados").select("orden").eq("sesion_id", input.sesion_id).order("orden", { ascending: false }).limit(1);
+        const { data: countRes } = await (supabase.from("sesion_ejercicios_instanciados") as any).select("orden").eq("sesion_id", input.sesion_id).order("orden", { ascending: false }).limit(1);
         const nextOrder = ((countRes as any[])?.[0]?.orden ?? 0) + 1;
-        await supabase.from("sesion_ejercicios_instanciados").insert({ sesion_id: input.sesion_id, ejercicio_id: input.biblioteca_id, orden: nextOrder, series_plan: 3, reps_plan: "10", descanso_seg: 60, is_variation: true } as any);
+        await (supabase.from("sesion_ejercicios_instanciados") as any).insert({ sesion_id: input.sesion_id, ejercicio_id: input.biblioteca_id, orden: nextOrder, series_plan: 3, reps_plan: "10", descanso_seg: 60, is_variation: true });
         return { success: true, mensaje: `✅ Ejercicio "${nombreEj}" añadido para hoy.` };
       }
     }
@@ -921,18 +933,18 @@ export const alumnoActions = {
         }
 
         // 2. Eliminar del plan maestro (ahora ya forkeado si era template)
-        await supabase.from("ejercicios_plan").delete().eq("id", ejPlanId);
+        await (supabase.from("ejercicios_plan") as any).delete().eq("id", ejPlanId);
 
         // 3. Limpiar de instancias futuras
-        const { data: f } = await supabase.from("sesiones_instanciadas").select("id").eq("alumno_id", sesion.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).gte("semana_numero", sesion.semana_numero);
+        const { data: f } = await (supabase.from("sesiones_instanciadas") as any).select("id").eq("alumno_id", sesion.alumno_id).eq("numero_dia_plan", sesion.numero_dia_plan).gte("semana_numero", sesion.semana_numero);
         const futuras = f as any[];
         if (futuras && futuras.length > 0) {
-          const ids = futuras.map(s => s.id);
-          await supabase.from("sesion_ejercicios_instanciados").delete().eq("ejercicio_plan_id", ejPlanId).is("completado", false).in("sesion_id", ids);
+          const ids = futuras.map((s: any) => s.id);
+          await (supabase.from("sesion_ejercicios_instanciados") as any).delete().eq("ejercicio_plan_id", ejPlanId).is("completado", false).in("sesion_id", ids);
         }
         return { success: true, mensaje: "✅ Ejercicio eliminado permanentemente." };
       } else {
-        await supabase.from("sesion_ejercicios_instanciados").delete().eq("id", input.ejercicio_id);
+        await (supabase.from("sesion_ejercicios_instanciados") as any).delete().eq("id", input.ejercicio_id);
         return { success: true, mensaje: "✅ Ejercicio eliminado solo hoy." };
       }
     }

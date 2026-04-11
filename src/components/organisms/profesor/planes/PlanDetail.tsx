@@ -32,246 +32,38 @@ import { cn } from "@/lib/utils";
 import { PlanPill } from "@/components/atoms/profesor/planes/PlanPill";
 import { ActionBridge } from "@/components/molecules/profesor/planes/ActionBridge";
 
-// --- Tipos ---
-interface EjercicioPlan {
-  id: string;
-  orden: number;
-  biblioteca_ejercicios: {
-    id: string;
-    nombre: string;
-    media_url: string | null;
-  } | null;
-}
-
-interface RutinaDiaria {
-  id: string;
-  dia_numero: number;
-  nombre_dia: string | null;
-  orden: number;
-  ejercicios_plan: EjercicioPlan[];
-}
-
-interface Alumno {
-  id: string;
-  nombre: string;
-  email: string | null;
-  estado: string;
-  telefono?: string;
-  notas?: string;
-}
-
-interface PlanData {
-  id: string;
-  nombre: string;
-  duracion_semanas: number;
-  frecuencia_semanal: number;
-  created_at: string;
-  rutinas: RutinaDiaria[];
-  alumnos: Alumno[];
-}
+import { usePlanDetail } from "@/hooks/profesor/usePlanDetail";
+import type { PlanData, AlumnoDePlan as Alumno, SyncStatus } from "@/types/planes";
 
 interface Props {
   plan: PlanData;
   library: any[];
 }
 
-type SyncStatus = "synced" | "syncing" | "error" | "retrying";
-
 export function PlanDetail({ plan: initialPlan, library }: Props) {
   const c = planesCopy.detail;
   const [activeTab, setActiveTab] = useState<"routines" | "students">("routines");
   const [studentView, setStudentView] = useState<"grid" | "table">("grid");
-  const [studentSearch, setStudentSearch] = useState("");
-  const [localPlan, setLocalPlan] = useState<PlanData>(initialPlan);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>("synced");
-  const [retryCount, setRetryCount] = useState(0);
-  const isInteracting = useRef(false);
-  const [openRutinas, setOpenRutinas] = useState<Set<string>>(
-    new Set(initialPlan.rutinas.slice(0, 1).map((r) => r.id))
-  );
-  const [isDuplicating, setIsDuplicating] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [activeRoutineTarget, setActiveRoutineTarget] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isInteracting.current) return;
-
-    const syncWithServer = async () => {
-      setSyncStatus("syncing");
-
-      const payload = {
-        id: localPlan.id,
-        nombre: localPlan.nombre,
-        duracion_semanas: localPlan.duracion_semanas,
-        frecuencia_semanal: localPlan.frecuencia_semanal,
-        rutinas: localPlan.rutinas.map(r => ({
-          dia_numero: r.dia_numero,
-          nombre_dia: r.nombre_dia || "",
-          ejercicios: r.ejercicios_plan
-            .filter(e => e.biblioteca_ejercicios?.id)
-            .map((e, idx) => ({
-              ejercicio_id: e.biblioteca_ejercicios!.id,
-              orden: idx,
-              exercise_type: "base" as const,
-              position: idx
-            }))
-        }))
-      } as any;
-
-      try {
-        const { error } = await actions.profesor.updatePlan(payload);
-        if (error) throw error;
-
-        setSyncStatus("synced");
-        setRetryCount(0);
-      } catch (err) {
-        console.error("Sync Error:", err);
-        if (retryCount < 3) {
-          setSyncStatus("retrying");
-          setTimeout(() => setRetryCount(prev => prev + 1), 2000);
-        } else {
-          setSyncStatus("error");
-          toast.error("Error de conexión al guardar cambios.");
-        }
-      }
-    };
-
-    const timer = setTimeout(syncWithServer, 1000);
-    return () => clearTimeout(timer);
-  }, [localPlan, retryCount]);
-
-  const toggleRutina = (id: string) => {
-    setOpenRutinas((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const removeExercise = (rutinaId: string, exerciseId: string) => {
-    isInteracting.current = true;
-    const oldPlan = { ...localPlan };
-
-    setLocalPlan(prev => ({
-      ...prev,
-      rutinas: prev.rutinas.map(r => {
-        if (r.id !== rutinaId) return r;
-        return {
-          ...r,
-          ejercicios_plan: r.ejercicios_plan.filter(e => e.id !== exerciseId)
-        };
-      })
-    }));
-
-    toast.info("Ejercicio removido", {
-      description: "Se eliminó el ejercicio de la rutina.",
-      action: {
-        label: "Deshacer",
-        onClick: () => {
-          setLocalPlan(oldPlan);
-          toast.success("Cambio revertido");
-        }
-      },
-      duration: 5000
-    });
-  };
-
-  const addExercise = (exerciseId: string) => {
-    if (!activeRoutineTarget) return;
-    isInteracting.current = true;
-
-    setLocalPlan(prev => ({
-      ...prev,
-      rutinas: prev.rutinas.map(r => {
-        if (r.id !== activeRoutineTarget) return r;
-        const baseExercise = library.find(ex => ex.id === exerciseId);
-        const newExercise: EjercicioPlan = {
-          id: crypto.randomUUID(),
-          orden: r.ejercicios_plan.length,
-          biblioteca_ejercicios: baseExercise ? {
-            id: baseExercise.id,
-            nombre: baseExercise.nombre,
-            media_url: baseExercise.media_url
-          } : null
-        };
-        return {
-          ...r,
-          ejercicios_plan: [...r.ejercicios_plan, newExercise]
-        };
-      })
-    }));
-    setIsSearchOpen(false);
-    toast.success("Ejercicio añadido");
-  };
-
-  const handleDuplicate = async () => {
-    setIsDuplicating(true);
-    toast.loading("Duplicando plan...");
-    try {
-      const { data: result, error } = await actions.profesor.duplicatePlan({ id: localPlan.id });
-      if (error) {
-        toast.error(error.message || "Error al duplicar");
-        return;
-      }
-      if (result?.success) {
-        toast.dismiss();
-        toast.success(result.mensaje);
-        window.location.href = `/profesor/planes/${result.plan_id}/edit`;
-      }
-    } catch (err) {
-      toast.dismiss();
-      toast.error("Ocurrió un error inesperado");
-    } finally {
-      setIsDuplicating(false);
+  const {
+    localPlan,
+    syncStatus,
+    retryCount,
+    openRutinas,
+    isDuplicating,
+    studentSearch,
+    selectors: { activeStudents, groupedRoutines, createdDate },
+    setters: { setStudentSearch, setActiveRoutineTarget, setSyncStatus, setRetryCount },
+    actions: {
+      toggleRutina,
+      removeExercise,
+      addExercise,
+      handleDuplicate,
+      handleAssignmentSuccess,
     }
-  };
-
-  const handleAssignmentSuccess = (newAssignedStudents: any[]) => {
-    setLocalPlan(prev => {
-      const mappedStudents = newAssignedStudents.map(s => ({
-        id: s.id,
-        nombre: s.name,
-        email: s.email,
-        estado: s.estado || 'activo',
-        telefono: s.telefono || undefined,
-        notas: s.notas || undefined
-      }));
-      return {
-        ...prev,
-        alumnos: mappedStudents
-      };
-    });
-  };
-
-  const createdDate = useMemo(() => {
-    return new Date(localPlan.created_at).toLocaleDateString("es-AR", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  }, [localPlan.created_at]);
-
-  const activeStudents = useMemo(() => {
-    return localPlan.alumnos
-      .filter((a: any) => !a.deleted_at)
-      .filter(a => a.nombre.toLowerCase().includes(studentSearch.toLowerCase()));
-  }, [localPlan.alumnos, studentSearch]);
-
-  const groupedRoutines = useMemo(() => {
-    const groups: { [key: number]: RutinaDiaria[] } = {};
-    const frec = Math.max(1, localPlan.frecuencia_semanal);
-    
-    [...localPlan.rutinas]
-      .sort((a, b) => a.dia_numero - b.dia_numero)
-      .forEach(r => {
-        const week = Math.ceil(r.dia_numero / frec);
-        if (!groups[week]) groups[week] = [];
-        groups[week].push(r);
-      });
-      
-    return groups;
-  }, [localPlan.rutinas, localPlan.frecuencia_semanal]);
+  } = usePlanDetail({ initialPlan, library });
 
   const studentColumns: TableColumn<Alumno>[] = [
     {
@@ -344,11 +136,6 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
                   <PlanPill
-                    icon={Calendar}
-                    value={createdDate}
-                    label={c.meta.createdAt}
-                  />
-                  <PlanPill
                     icon={Layers}
                     value={localPlan.frecuencia_semanal}
                     label="días"
@@ -364,6 +151,11 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                     value={activeStudents.length}
                     label="alumnos"
                   />
+                  {/* <PlanPill
+                    icon={Calendar}
+                    label={c.meta.createdAt}
+                    value={createdDate}
+                  /> */}
                 </div>
               </div>
             </div>

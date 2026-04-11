@@ -31,3 +31,17 @@ export interface Subscription {
   monto: number;
   cantidad_dias: number;
 }
+
+export interface PaymentsMetrics {
+    ingresosPagados: number;
+    ingresosPendientes: number;
+    totalMorosos: number;
+    morosos: AlumnoPago[];
+}
+
+export interface PaymentsData {
+    alumnos: AlumnoPago[];
+    subscriptions: Subscription[];
+    metrics: PaymentsMetrics;
+    lastUpdated: string;
+}

@@ -6,6 +6,26 @@
  */
 
 /**
+ * Convierte un array de nombres de días ("Lunes", "Martes", etc.)
+ * en un array de índices numéricos de JavaScript (0=Domingo, 1=Lunes, ...).
+ */
+export function convertDaysToNumbers(days: string[]): number[] {
+  const mapping: Record<string, number> = {
+    "Domingo": 0,
+    "Lunes": 1,
+    "Martes": 2,
+    "Miércoles": 3,
+    "Jueves": 4,
+    "Viernes": 5,
+    "Sábado": 6
+  };
+  return days
+    .map(d => mapping[d])
+    .filter(v => v !== undefined)
+    .sort((a, b) => a - b);
+}
+
+/**
  * Calcula qué número de día del plan le corresponde a una fecha dada,
  * respetando los días de asistencia del alumno si se proveen.
  *
@@ -105,8 +125,23 @@ export function getStructuralDay(
   fechaInicio: string | Date, 
   fechaHoy: Date | string = new Date(),
   availableDiaNumeros: number[] = [1],
-  diasAsistencia?: number[]
+  diasAsistencia?: number[],
+  ignoreAttendance: boolean = false
 ): number {
+  // 1. Validar que hoy sea un día de asistencia real si se provee agenda y no se ignora
+  if (!ignoreAttendance && diasAsistencia && diasAsistencia.length > 0) {
+    const getISO = (d: string | Date) => {
+      if (typeof d === "string") return d.split("T")[0];
+      const arg = new Date(d.getTime() - (3 * 60 * 60 * 1000));
+      return arg.toISOString().split("T")[0];
+    };
+    const targetStr = getISO(fechaHoy);
+    const [y, m, d] = targetStr.split("-").map(Number);
+    const target = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+    
+    if (!diasAsistencia.includes(target.getUTCDay())) return 0;
+  }
+
   const diaAbs = getDayNumber(fechaInicio, fechaHoy, diasAsistencia);
   if (diaAbs <= 0 || !availableDiaNumeros || availableDiaNumeros.length === 0) return 0;
   
