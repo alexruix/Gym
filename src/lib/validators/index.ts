@@ -52,6 +52,7 @@ export {
   swapExerciseInStudentPlanSchema,
   commentExerciseSchema,
   getDashboardDataSchema,
+  getStudentPerformanceSchema,
   getPlanDetailsSchema,
   getWeeklySessionsSchema,
   updateStudentMetricWithPropagationSchema,
