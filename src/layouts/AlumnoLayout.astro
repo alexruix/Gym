@@ -1,9 +1,9 @@
-﻿---
+---
 import Layout from "./Layout.astro";
 import { Home, Dumbbell, TrendingUp, User } from "lucide-react";
 import { globalCopy } from "../data/es/global";
-
 import { getAuthenticatedClient } from "../lib/supabase-ssr";
+import { cn } from "@/lib/utils";
 
 interface Props {
   title: string;
@@ -20,8 +20,7 @@ if (!user) {
 const isGuest = user.role === "invitado";
 const supabase = getAuthenticatedClient(Astro);
 
-// Buscamos el perfil del alumno y los datos de su profe para el botón de WA
-// Para invitados, el ID es el del registro. Para auth, es el user_id.
+// Buscamos el perfil del alumno y los datos de su profe
 const { data: alumno } = await supabase
   .from("alumnos")
   .select(
@@ -38,8 +37,6 @@ const { data: alumno } = await supabase
   .or(`id.eq.${user.id},user_id.eq.${user.id}`)
   .single();
 
-// Evitamos redirecciones en el layout (causan ResponseSentError).
-// La protección de rutas ahora recae 100% en el Middleware.
 if (!alumno) {
   console.error("AlumnoLayout: Alumno no encontrado para el usuario:", user.id);
 }
@@ -49,7 +46,9 @@ const waLink = profTel ? `https://wa.me/${profTel}` : "#";
 ---
 
 <Layout title={title}>
-  <div class="min-h-screen bg-zinc-50/30 pb-24 md:pb-0">
+  <!-- INDUSTRIAL DARK WRAPPER -->
+  <div class="min-h-screen bg-black text-white pb-24 md:pb-0 font-sans selection:bg-lime-400 selection:text-black">
+    
     <!-- BANNER DE INVITADO (Aesthetics Industrial) -->
     {
       isGuest && (
@@ -63,7 +62,7 @@ const waLink = profTel ? `https://wa.me/${profTel}` : "#";
           </div>
           <a
             href="/login"
-            class="relative z-10 bg-lime-500 text-zinc-950 px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-[0_0_15px_rgba(163,230,53,0.3)]"
+            class="relative z-10 bg-lime-400 text-black px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-[0_0_15px_rgba(163,230,53,0.3)]"
           >
             Asegurar Historial
           </a>
@@ -71,74 +70,115 @@ const waLink = profTel ? `https://wa.me/${profTel}` : "#";
       )
     }
 
-    <!-- Header Alumno (Mobile) -->
+    <!-- Header Alumno (Mobile) - Industrial Glass -->
     <header
-      class={`bg-white/80 backdrop-blur-md border-b border-zinc-100 p-4 sticky ${isGuest ? "top-10" : "top-0"} z-10 flex justify-between items-center md:px-8`}
+      class={cn(
+        "bg-black/60 backdrop-blur-2xl border-b border-white/5 p-4 sticky z-40 flex justify-between items-center md:px-8",
+        isGuest ? "top-10" : "top-0"
+      )}
     >
       <div class="flex items-center gap-2">
-        <span class="font-bold text-xl tracking-tighter italic text-zinc-950"
-          >{globalCopy.brand.nameLine1}<span class="text-lime-500"
-            >{globalCopy.brand.nameHighlight}</span
-          ></span
-        >
+        <span class="font-black text-xl tracking-tighter uppercase text-white">
+          {globalCopy.brand.nameLine1}<span class="text-lime-400">{globalCopy.brand.nameHighlight}</span>
+        </span>
       </div>
       <a
         href="/alumno/perfil"
-        class="w-10 h-10 rounded-2xl bg-zinc-100 flex items-center justify-center text-zinc-600 hover:bg-zinc-200 transition-colors"
+        class="w-10 h-10 rounded-2xl bg-zinc-900/50 border border-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/20 transition-all active:scale-95"
       >
         <User className="w-5 h-5" />
       </a>
     </header>
 
-    <main class="flex-1 p-4 md:p-8 max-w-lg mx-auto md:max-w-4xl">
+    <!-- Main Content with Max Width for Phone Layout -->
+    <main class="flex-1 p-4 md:p-8 max-w-lg mx-auto md:max-w-4xl min-h-[calc(100vh-140px)]">
       <slot />
     </main>
 
-    <!-- Bottom Navigation (Mobile) - Focus: Thumb Zone -->
+    <!-- Bottom Navigation (Mobile) - Focus: Thumb Zone & Status Colors -->
     <nav
-      class="fixed bottom-4 left-4 right-4 bg-zinc-950 text-white rounded-3xl h-16 flex items-center justify-around md:hidden border border-white/10 shadow-2xl z-50 px-2"
+      class="fixed bottom-6 left-6 right-6 bg-zinc-900/80 backdrop-blur-3xl text-white rounded-[2.5rem] h-20 flex items-center justify-around md:hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-50 px-2"
     >
       <a
         href="/alumno"
-        class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath === "/alumno" ? "text-lime-400" : "text-zinc-400"}`}
+        class={cn(
+            "flex flex-col items-center justify-center w-full h-full transition-all group relative",
+            currentPath === "/alumno" ? "text-lime-400" : "text-zinc-500 hover:text-zinc-300"
+        )}
       >
-        <Home className="w-6 h-6 mb-1" />
-        <span class="text-[9px] font-bold uppercase tracking-widest"
-          >{globalCopy.layout.alumnoNav.inicio}</span
-        >
+        <div class={cn(
+          "relative transition-transform group-active:scale-90",
+          currentPath === "/alumno" && "after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-lime-400 after:rounded-full after:shadow-[0_0_8px_rgba(163,230,53,1)]"
+        )}>
+          <Home className="w-6 h-6 mb-1" />
+        </div>
+        <span class="text-[8px] font-black uppercase tracking-[0.2em]">
+          {globalCopy.layout.alumnoNav.inicio}
+        </span>
       </a>
 
-      <!-- Central Action Button (Focus) -->
+      <!-- Central Action Button (The "Lab" Accessory) -->
       <a
         href="/alumno/mi-plan"
-        class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath.includes("/mi-plan") ? "text-lime-400" : "text-zinc-400"}`}
+        class={cn(
+            "flex flex-col items-center justify-center w-full h-full transition-all group relative",
+            currentPath.includes("/mi-plan") ? "text-lime-400" : "text-zinc-500"
+        )}
       >
         <div
-          class={`p-3 rounded-2xl -mt-8 shadow-xl transition-all ${currentPath.includes("/mi-plan") ? "bg-lime-500 text-zinc-950" : "bg-zinc-800 text-white"}`}
+          class={cn(
+            "p-4 rounded-2xl -mt-12 transition-all duration-300 group-active:scale-90 border",
+            currentPath.includes("/mi-plan") 
+                ? "bg-lime-400 text-black border-lime-400 shadow-[0_10px_30px_rgba(163,230,53,0.3)]" 
+                : "bg-zinc-950 text-white border-white/10"
+          )}
         >
           <Dumbbell className="w-6 h-6" />
         </div>
-        <span class="text-[9px] font-bold uppercase tracking-widest mt-1"
-          >{globalCopy.layout.alumnoNav.miPlan}</span
-        >
+        <span class="text-[8px] font-black uppercase tracking-[0.2em] mt-2">
+          {globalCopy.layout.alumnoNav.miPlan}
+        </span>
       </a>
 
       <a
         href="/alumno/progreso"
-        class={`flex flex-col items-center justify-center w-full h-full transition-all ${currentPath.includes("/progreso") ? "text-lime-400" : "text-zinc-400"}`}
+        class={cn(
+            "flex flex-col items-center justify-center w-full h-full transition-all group relative",
+            currentPath.includes("/progreso") ? "text-fuchsia-400" : "text-zinc-500 hover:text-zinc-300"
+        )}
       >
-        <TrendingUp className="w-6 h-6 mb-1" />
-        <span class="text-[9px] font-bold uppercase tracking-widest"
-          >{globalCopy.layout.alumnoNav.progreso}</span
-        >
+        <div class={cn(
+          "relative transition-transform group-active:scale-90",
+          currentPath.includes("/progreso") && "after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-fuchsia-400 after:rounded-full after:shadow-[0_0_8px_rgba(217,70,239,1)]"
+        )}>
+          <TrendingUp className="w-6 h-6 mb-1" />
+        </div>
+        <span class="text-[8px] font-black uppercase tracking-[0.2em]">
+          {globalCopy.layout.alumnoNav.progreso}
+        </span>
       </a>
     </nav>
   </div>
 </Layout>
 
-<style>
-  /* Optional: Add extra padding for iPhone safe areas if not handled by fixed position */
+<style is:global>
+  /* Safe area for mobile keyboards and iPhone notches */
   nav {
     margin-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Industrial Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #000;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
   }
 </style>

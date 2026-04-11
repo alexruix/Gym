@@ -1,7 +1,7 @@
 ---
 import { getAuthenticatedClient } from '@/lib/supabase-ssr';
 import { actions } from 'astro:actions';
-import { getTodayISO } from '@/lib/schedule';
+import { getDayNumber, getWeekNumber, getTodayISO } from '@/lib/schedule';
 import { ActiveSession } from '@/components/organisms/alumno/ActiveSession';
 import { SessionHeader } from '@/components/molecules/alumno/SessionHeader';
 import { sesionStrings } from '@/data/es/alumno/sesion';
@@ -11,10 +11,7 @@ const supabase = getAuthenticatedClient(Astro);
 const user = Astro.locals.user;
 if (!user) return Astro.redirect('/login');
 
-const { numero } = Astro.params;
-const sessionOffsetIndex = parseInt(numero || '1') - 1; 
-
-// 1. Obtener datos del alumno
+// 1. Verificar que el alumno tiene plan asignado
 const { data: _alumnoRaw } = await supabase
   .from('alumnos')
   .select('id, nombre, fecha_inicio, plan_id, planes(id, nombre)')
@@ -27,40 +24,23 @@ if (!alumno || !alumno.plan_id) {
   return Astro.redirect('/alumno/espera');
 }
 
-// 2. Buscar qué rutina corresponde a este índice (Día N)
-const { data: _rutinasRaw } = await supabase
-  .from('rutinas_diarias')
-  .select('id, dia_numero')
-  .eq('plan_id', alumno.plan_id)
-  .order('dia_numero', { ascending: true });
-
-const rutinasDiarias = (_rutinasRaw || []) as any[];
-
-if (!rutinasDiarias || rutinasDiarias.length === 0) {
-  return Astro.redirect('/alumno/espera');
-}
-
-// Seleccionamos la rutina (usando módulo si el número excede la cantidad de rutinas)
-const rutinaActual = rutinasDiarias[sessionOffsetIndex % rutinasDiarias.length];
-
-// 3. Instanciar la sesión usando la ACCIÓN (Seguridad + Unificación)
-// El backend se encarga de resolver JIT y Overrides
+// 2. Instanciar la sesión de hoy (obtener si existe, crear si no)
 const { data: response, error: errorInst } = await Astro.callAction(actions.alumno.instanciarSesion, {
   fecha_real: getTodayISO(),
-  rutina_id: rutinaActual.id, // Forzamos esta rutina específica
 });
 
 if (errorInst || !response?.success) {
-  console.error("Error instanciando sesión por número:", errorInst || response?.message);
+  console.error("Error al instanciar sesión:", errorInst || response?.message);
   return Astro.redirect('/alumno/espera');
 }
 
 const instanciado = response.data;
 const sesion = instanciado.sesion;
 const nombreDia = sesion.nombre_dia || `Día ${sesion.numero_dia_plan}`;
-const semanaActual = sesion.semana_numero || 1;
+const fechaInicio = alumno.fecha_inicio || getTodayISO();
+const semanaActual = sesion.semana_numero || getWeekNumber(fechaInicio, new Date());
 
-// 4. Mapear a contrato de ActiveSession
+// 3. Mapear a contrato de ActiveSession
 const sesionBase = (sesion.sesion_ejercicios_instanciados || [])
   .sort((a: any, b: any) => a.orden - b.orden)
   .map((ej: any) => ({

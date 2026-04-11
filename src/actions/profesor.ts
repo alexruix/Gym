@@ -4,7 +4,21 @@ import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import type { Database } from "@/lib/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { planSchema, studentSchema, updateStudentSchema, inviteStudentSchema, exerciseLibrarySchema, updateAccountSchema, updatePublicProfileSchema, updateNotificationsSchema, updatePrivacySchema, changePasswordSchema, turnoSchema, bulkAssignSchema, blockSchema } from "@/lib/validators";
+import { 
+  planSchema, 
+  studentSchema, 
+  updateStudentSchema, 
+  inviteStudentSchema, 
+  exerciseLibrarySchema, 
+  updateAccountSchema, 
+  updatePublicProfileSchema, 
+  updateNotificationsSchema, 
+  updatePrivacySchema, 
+  changePasswordSchema, 
+  turnoSchema, 
+  bulkAssignSchema, 
+  blockSchema 
+} from "@/lib/validators";
 import { baseExercises } from "@/data/es/profesor/biblioteca-base";
 import type { DashboardData } from "@/types/dashboard";
 
@@ -31,8 +45,11 @@ export const profesorActions = {
         .eq("profesor_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw new Error(`Error al obtener bloques: ${error.message}`);
-      return data || [];
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `Error al obtener bloques: ${error.message}` });
+      return {
+        success: true,
+        data: data || []
+      };
     }
   }),
 
@@ -140,8 +157,8 @@ export const profesorActions = {
         .eq("id", input.id)
         .eq("profesor_id", user.id);
 
-      if (error) throw new Error(`Error al eliminar bloque: ${error.message}`);
-      return { success: true, mensaje: "✅ Bloque eliminado correctamente" };
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `Error al eliminar bloque: ${error.message}` });
+      return { success: true, message: "✅ Bloque eliminado correctamente" };
     }
   }),
   createPlan: defineAction({
@@ -169,8 +186,8 @@ export const profesorActions = {
 
       return {
         success: true,
-        plan_id: planId,
-        mensaje: "El plan se guardó correctamente.",
+        data: { plan_id: planId },
+        message: "El plan se guardó correctamente.",
       };
     },
   }),

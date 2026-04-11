@@ -6,7 +6,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const path = url.pathname;
 
   // 🌩️ OPTIMIZACIÓN: Saltamos el middleware para assets estáticos y rutas públicas de marketing
-  const isStaticAsset = (path.includes('.') && !path.startsWith('/_actions')) || path.startsWith('/_astro');
+  const isStaticAsset = path.includes('.') && 
+                        !path.startsWith('/_actions') && 
+                        !path.endsWith('.astro') || 
+                        path.startsWith('/_astro') ||
+                        path.endsWith('.webmanifest') ||
+                        path.endsWith('.ico');
+
   const isPublicRoute = path === '/' || path === '/login' || path.startsWith('/api/auth');
 
   if (isStaticAsset) return next();

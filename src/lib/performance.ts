@@ -31,8 +31,17 @@ export const calculateTotalVolume = (ejercicios: ExerciseMetric[]): number => {
  * Emite un evento háptico de 'Récord Personal' (PR).
  */
 export const triggerHapticPR = () => {
-    if ('vibrate' in navigator) {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
         // Patrón de pulso doble para PR
-        navigator.vibrate([100, 30, 100]);
+        navigator.vibrate([100, 30, 200]);
+    }
+};
+
+/**
+ * Emite un vibración suave para feedback técnico (Check de serie).
+ */
+export const triggerHapticSoft = () => {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(40);
     }
 };

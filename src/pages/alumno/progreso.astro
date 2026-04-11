@@ -1,9 +1,107 @@
 ---
 import AlumnoLayout from '../../layouts/AlumnoLayout.astro';
+import { actions } from 'astro:actions';
+import { PerformanceHUD } from '@/components/organisms/alumno/PerformanceHUD';
+import { ConsistencyHeatmap } from '@/components/organisms/alumno/ConsistencyHeatmap';
+import { TechnicalLabel } from '@/components/atoms/alumno/TechnicalLabel';
+import { TrendingUp, Target, Zap, Waves } from 'lucide-react';
+import { progresoData } from '@/data/es/alumno';
+import '@/styles/global.css';
+
+const { data: response, error } = await Astro.callAction(actions.alumno.getStudentPerformance, {});
+
+if (error || !response?.success) {
+    console.error("Error cargando performance:", error || response?.message);
+}
+
+const stats = response?.data || { prTrends: {}, volumeTrends: [], heatmapData: {} };
+
+// Obtener los 2 ejercicios con más progreso para mostrar en el HUD
+const topPRs = Object.entries(stats.prTrends || {})
+    .sort((a: any, b: any) => b[1].length - a[1].length)
+    .slice(0, 2);
+
+// Preparar datos de volumen
+const volumeLineData = (stats.volumeTrends || []).map((d: any) => ({
+    date: d.date,
+    value: d.volume
+}));
+
 ---
 
-<AlumnoLayout title="Mi Progreso - MiGym">
-  <div class="min-h-screen p-6">
-    <h1 class="text-2xl font-bold">Evolución</h1>
+<AlumnoLayout title={`${progresoData.header.title} - MiGym`}>
+  <div class="flex flex-col gap-8 pb-32">
+    
+    <!-- Header -->
+    <header class="mb-4">
+        <TechnicalLabel className="text-zinc-500 mb-1">{progresoData.header.label}</TechnicalLabel>
+        <h1 class="text-4xl font-black tracking-tighter uppercase leading-none">
+            {progresoData.header.title}
+        </h1>
+    </header>
+
+    <!-- HEATMAP (Consistencia) -->
+    <ConsistencyHeatmap data={stats.heatmapData || {}} />
+
+    <!-- STATS SUMMARY (Quick Insights) -->
+    <div class="grid grid-cols-2 gap-4">
+        <div class="bg-zinc-900/40 border border-white/5 p-6 rounded-[2rem] backdrop-blur-md">
+            <div class="w-8 h-8 rounded-lg bg-lime-400 flex items-center justify-center mb-3">
+                <Target className="w-4 h-4 text-black" />
+            </div>
+            <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1">
+                {progresoData.stats.sessions.label}
+            </p>
+            <p class="text-2xl font-black text-white">{stats.volumeTrends?.length || 0}</p>
+        </div>
+        <div class="bg-zinc-900/40 border border-white/5 p-6 rounded-[2rem] backdrop-blur-md">
+            <div class="w-8 h-8 rounded-lg bg-fuchsia-400 flex items-center justify-center mb-3">
+                <Zap className="w-4 h-4 text-black" />
+            </div>
+            <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1">
+                {progresoData.stats.records.label}
+            </p>
+            <p class="text-2xl font-black text-white">
+                {Object.values(stats.prTrends || {}).reduce((acc, curr: any) => acc + curr.length, 0)}
+            </p>
+        </div>
+    </div>
+
+    <!-- HUD CHARTS (Técnico) -->
+    <div class="space-y-6">
+        {/* Volumen Total */}
+        {volumeLineData.length > 0 && (
+            <PerformanceHUD 
+                title={progresoData.charts.volume.title} 
+                subtitle={progresoData.charts.volume.subtitle}
+                data={volumeLineData}
+                unit={progresoData.charts.volume.unit}
+                color="lime"
+            />
+        )}
+
+        {/* PRs de Ejercicios */}
+        {topPRs.map(([name, trend]: [string, any], idx) => (
+            <PerformanceHUD 
+                key={name}
+                title={name} 
+                subtitle={progresoData.charts.pr.subtitle}
+                data={trend.map((t: any) => ({ date: t.date, value: t.weight }))}
+                unit={progresoData.charts.pr.unit}
+                color={idx === 0 ? "lime" : "fuchsia"}
+            />
+        ))}
+    </div>
+
+    {/* Empty State */}
+    {(!stats.volumeTrends || stats.volumeTrends.length === 0) && (
+        <div class="bg-zinc-900/40 border border-dashed border-zinc-800 rounded-[2.5rem] p-12 text-center">
+            <Waves className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
+            <p class="text-xs font-bold text-zinc-600 uppercase tracking-widest leading-relaxed">
+                {progresoData.emptyState.message}
+            </p>
+        </div>
+    )}
+
   </div>
 </AlumnoLayout>

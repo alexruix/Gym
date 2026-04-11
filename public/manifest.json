@@ -1,8 +1,8 @@
 {
   "name": "MiGym - Gestión Deportiva",
   "short_name": "MiGym",
-  "description": "Gestión de gimnasio de alto rendimiento para solopreneurs.",
-  "start_url": "/profesor",
+  "description": "Gestión de gimnasio de alto rendimiento.",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
   "theme_color": "#09090b",

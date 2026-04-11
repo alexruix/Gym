@@ -18,17 +18,23 @@ export function createSupabaseServerClient(context: { cookies: any, request: Req
           return Object.entries(parsed).map(([name, value]) => ({ name, value }));
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            context.cookies.set(name, value, {
-              path: options?.path || '/',
-              httpOnly: options?.httpOnly ?? true,
-              secure: options?.secure ?? import.meta.env.PROD,
-              sameSite: (options?.sameSite as any) || 'lax',
-              maxAge: options?.maxAge,
-              domain: options?.domain,
-              expires: options?.expires
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              context.cookies.set(name, value, {
+                path: options?.path || '/',
+                httpOnly: options?.httpOnly ?? true,
+                secure: options?.secure ?? import.meta.env.PROD,
+                sameSite: (options?.sameSite as any) || 'lax',
+                maxAge: options?.maxAge,
+                domain: options?.domain,
+                expires: options?.expires
+              });
             });
-          });
+          } catch (err) {
+            // 🛡️ 防御: Si la respuesta ya se envió (ResponseSentError), ignoramos el set
+            // Esto sucede si Supabase intenta refrescar el token tarde en el ciclo de vida.
+            console.warn("[supabase-ssr] No se pudo actualizar la cookie auth (Response already sent)");
+          }
         },
       },
     }

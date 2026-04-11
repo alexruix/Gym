@@ -4,16 +4,23 @@ import { getAuthenticatedClient } from "@/lib/supabase-ssr";
 import type { Database } from "@/lib/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  sessionLogSchema,
-  commentExerciseSchema,
-  completeSessionSchema,
   instanciarSesionSchema,
   logEjercicioInstanciadoSchema,
   completarSesionSchema,
   addExerciseToStudentPlanSchema,
   removeExerciseFromStudentPlanSchema,
   swapExerciseInStudentPlanSchema,
-} from "@/lib/validators";
+  sessionLogSchema,
+  commentExerciseSchema,
+  completeSessionSchema,
+  getDashboardDataSchema,
+  getStudentPerformanceSchema,
+  getPlanDetailsSchema,
+  getWeeklySessionsSchema,
+  updateStudentMetricWithPropagationSchema,
+  completeSessionByProfessorSchema,
+  updateStudentStartDateOffsetSchema,
+} from "../lib/validators";
 import { getDayNumber, getWeekNumber, getTodayISO, getCyclicDayNumber, getCycleInfo, getStructuralDay, convertDaysToNumbers } from "@/lib/schedule";
 
   /**
@@ -122,6 +129,7 @@ export const alumnoActions = {
       }
 
       // 3. Calcular qué día del plan le corresponde hoy
+      const creada = true; // Si llegamos aquí, la sesión no existía
       const diasAsistenciaRaw = alumno.dias_asistencia || [];
       const diasAsistencia = convertDaysToNumbers(diasAsistenciaRaw);
       const fechaInicio = alumno.fecha_inicio || getTodayISO();
@@ -286,7 +294,11 @@ export const alumnoActions = {
       
       const sesionCompleta = sesionCompletaRaw as any;
 
-      return { sesion: sesionCompleta, creada: true };
+      return { 
+        success: true, 
+        message: creada ? "Sesión operativa inicializada" : "Sesión recuperada",
+        data: { sesion: sesionCompleta, creada } 
+      };
     },
   }),
 
@@ -308,13 +320,14 @@ export const alumnoActions = {
           reps_real: input.reps_real,
           peso_real: input.peso_real ?? null,
           nota_alumno: input.nota_alumno ?? null,
+          rpe: input.rpe ?? null,
           completado: input.completado,
         })
         .eq("id", input.sesion_ejercicio_id);
 
-      if (error) throw new Error(`Error al guardar progreso: ${error.message}`);
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `Error al guardar progreso: ${error.message}` });
 
-      return { success: true, mensaje: "✅ Progreso guardado" };
+      return { success: true, message: "✅ Progreso guardado" };
     },
   }),
 
@@ -338,7 +351,7 @@ export const alumnoActions = {
         } as any)
         .eq("id", input.sesion_id);
 
-      if (error) throw new Error(`Error al cerrar sesión: ${error.message}`);
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `Error al cerrar sesión: ${error.message}` });
 
       // Notificar al profesor
       const { data: a } = await supabase
@@ -350,6 +363,7 @@ export const alumnoActions = {
       const alumno = a as any;
 
       if (alumno) {
+        // 1. Notificación estándar de sesión completada
         await supabase.from("notificaciones").insert({
           profesor_id: alumno.profesor_id,
           alumno_id: user.id,
@@ -357,9 +371,41 @@ export const alumnoActions = {
           mensaje: `${alumno.nombre} completó su rutina de hoy.${input.notas_alumno ? ` Nota: "${input.notas_alumno.substring(0, 40)}..."` : ""}`,
           referencia_id: input.sesion_id,
         } as any);
+
+        // 2. DETECTOR DE BURNOUT (3 sesiones consecutivas con RPE 10)
+        const { data: ultimasSesiones } = await supabase
+          .from("sesiones_instanciadas")
+          .select("id")
+          .eq("alumno_id", alumno.id)
+          .eq("estado", "completada")
+          .order("completed_at", { ascending: false })
+          .limit(3);
+
+        const ids = (ultimasSesiones || []).map(s => s.id);
+        
+        if (ids.length === 3) {
+          const { data: ejerciciosConRPE } = await supabase
+            .from("sesion_ejercicios_instanciados")
+            .select("sesion_id, rpe")
+            .in("sesion_id", ids)
+            .eq("rpe", 10);
+
+          const sesionesConRpe10 = new Set((ejerciciosConRPE || []).map(e => e.sesion_id));
+          
+          if (sesionesConRpe10.size === 3) {
+            await supabase.from("notificaciones").insert({
+              profesor_id: alumno.profesor_id,
+              alumno_id: user.id,
+              tipo: "burnout_alert",
+              mensaje: `⚠️ ALERTA DE FATIGA: ${alumno.nombre} reportó Esfuerzo Máximo (RPE 10) en sus últimas 3 sesiones.`,
+              referencia_id: input.sesion_id,
+              leida: false
+            } as any);
+          }
+        }
       }
 
-      return { success: true, mensaje: "🏆 ¡Sesión completada!" };
+      return { success: true, message: "🏆 ¡Sesión completada!" };
     },
   }),
 
@@ -371,11 +417,7 @@ export const alumnoActions = {
    */
   getWeeklySessions: defineAction({
     accept: "json",
-    input: z.object({
-      alumno_id: z.string().uuid().optional(),
-      dias_atras: z.number().int().min(0).max(30).default(7),
-      dias_adelante: z.number().int().min(0).max(30).default(6),
-    }),
+    input: getWeeklySessionsSchema,
     handler: async (input, context) => {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
@@ -521,8 +563,11 @@ export const alumnoActions = {
       }
 
       return { 
-          dias: days, 
-          hasConsecutiveOmissions: consecutiveOmissions >= 3 
+          success: true,
+          data: {
+            dias: days, 
+            hasConsecutiveOmissions: consecutiveOmissions >= 3 
+          }
       };
     },
   }),
@@ -533,15 +578,7 @@ export const alumnoActions = {
    */
   updateStudentMetricWithPropagation: defineAction({
     accept: "json",
-    input: z.object({
-      alumno_id: z.string().uuid(),
-      ejercicio_plan_id: z.string().uuid(),
-      semana_numero: z.number().int(),
-      series: z.number().int().optional(),
-      reps_target: z.string().optional(),
-      descanso_seg: z.number().int().optional(),
-      peso_target: z.string().optional(),
-    }),
+    input: updateStudentMetricWithPropagationSchema,
     handler: async (input, context) => {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
@@ -719,10 +756,7 @@ export const alumnoActions = {
    */
   completeSessionByProfessor: defineAction({
     accept: "json",
-    input: z.object({
-      sesion_id: z.string().uuid(),
-      alumno_id: z.string().uuid(),
-    }),
+    input: completeSessionByProfessorSchema,
     handler: async (input, context) => {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
@@ -764,10 +798,7 @@ export const alumnoActions = {
    */
   updateStudentStartDateOffset: defineAction({
     accept: "json",
-    input: z.object({
-      alumno_id: z.string().uuid(),
-      offset_days: z.number().int(), // Ej: 3 para mover 3 días al futuro
-    }),
+    input: updateStudentStartDateOffsetSchema,
     handler: async (input, context) => {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
@@ -947,6 +978,308 @@ export const alumnoActions = {
         await (supabase.from("sesion_ejercicios_instanciados") as any).delete().eq("id", input.ejercicio_id);
         return { success: true, mensaje: "✅ Ejercicio eliminado solo hoy." };
       }
+    }
+  }),
+
+  /**
+   * getDashboardData: Centraliza toda la información para el dashboard del alumno.
+   * Garantiza sincronización total entre agenda, turnos y rutinas.
+   */
+  getDashboardData: defineAction({
+    accept: "json",
+    input: getDashboardDataSchema,
+    handler: async (input, context) => {
+      const user = context.locals.user;
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      const supabase = getAuthenticatedClient(context);
+
+      const hoyStr = input.desde || getTodayISO();
+
+      // 1. Obtener datos base del alumno
+      const { data: a, error: e } = await supabase
+        .from("alumnos")
+        .select(`
+          id, nombre, fecha_inicio, plan_id, dias_asistencia,
+          planes (id, nombre, duracion_semanas, frecuencia_semanal),
+          turnos (id, nombre, hora_inicio, hora_fin)
+        `)
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
+        .single();
+      
+      if (e || !a) throw new ActionError({ code: "NOT_FOUND", message: "Perfil no encontrado" });
+      const alumno = a as any;
+      const plan = alumno.planes;
+      const turno = alumno.turnos;
+      const diasAsistenciaRaw = alumno.dias_asistencia || [];
+      const diasAsistenciaIdx = convertDaysToNumbers(diasAsistenciaRaw);
+      const fechaInicio = alumno.fecha_inicio || getTodayISO();
+      const hoyISO = getTodayISO();
+
+      // 2. Sesión de hoy (priorizar instanciada)
+      const { data: sesionHoy } = await supabase
+        .from("sesiones_instanciadas")
+        .select(`
+          id, estado, nombre_dia, numero_dia_plan, semana_numero,
+          sesion_ejercicios_instanciados (
+            id, orden, series_plan, reps_plan, peso_plan, descanso_seg, completado,
+            biblioteca_ejercicios (nombre)
+          )
+        `)
+        .eq("alumno_id", alumno.id)
+        .eq("fecha_real", hoyISO)
+        .single();
+
+      // 3. Lógica inteligente de "Próximo Entrenamiento" (Skip rest days)
+      let proximaSesion = null;
+      if (plan) {
+        const { data: rutinas } = await supabase
+          .from("rutinas_diarias")
+          .select("id, dia_numero, nombre_dia")
+          .eq("plan_id", plan.id)
+          .order("dia_numero", { ascending: true });
+        
+        const available = (rutinas || []).map(r => r.dia_numero);
+
+        let cur = new Date();
+        let found = false;
+        let safe = 0;
+        while (!found && safe < 14) {
+          cur.setDate(cur.getDate() + 1);
+          safe++;
+          
+          const dayIdx = cur.getDay();
+          if (diasAsistenciaIdx.length === 0 || diasAsistenciaIdx.includes(dayIdx)) {
+            const diaEst = getStructuralDay(fechaInicio, cur, available, diasAsistenciaIdx);
+            if (diaEst > 0) {
+              const rutina = (rutinas || []).find(r => r.dia_numero === diaEst);
+              if (rutina) {
+                const { data: ejs } = await supabase
+                  .from("ejercicios_plan")
+                  .select("id, orden, series, reps_target, peso_target, descanso_seg, biblioteca_ejercicios(nombre)")
+                  .eq("rutina_id", rutina.id)
+                  .order("orden", { ascending: true });
+
+                const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(fechaInicio, cur, plan.duracion_semanas || 4);
+                
+                proximaSesion = {
+                  fecha: cur.toISOString().split("T")[0],
+                  nombreDia: rutina.nombre_dia || `Día ${diaEst}`,
+                  numeroDiaPlan: diaEst,
+                  semana: absoluteWeek,
+                  cycleNumber,
+                  relativeWeek,
+                  ejercicios: (ejs || []).map((ej: any) => ({
+                    nombre: (ej.biblioteca_ejercicios as any)?.nombre || "Ejercicio",
+                    series_plan: ej.series,
+                    reps_plan: ej.reps_target,
+                    peso_plan: sanitizeWeight(ej.peso_target),
+                    descanso_seg: ej.descanso_seg,
+                  }))
+                };
+                found = true;
+              }
+            }
+          }
+        }
+      }
+
+      // 4. Datos para el Calendar Strip (14 días)
+      const DIAS_ATRAS = 7;
+      const DIAS_ADELANTE = 6;
+      const desde = new Date(); desde.setDate(desde.getDate() - DIAS_ATRAS);
+      const hasta = new Date(); hasta.setDate(hasta.getDate() + DIAS_ADELANTE);
+
+      const { data: sesionesWindow } = await supabase
+        .from("sesiones_instanciadas")
+        .select("id, fecha_real, numero_dia_plan, semana_numero, nombre_dia, estado")
+        .eq("alumno_id", alumno.id)
+        .gte("fecha_real", desde.toISOString().split("T")[0])
+        .lte("fecha_real", hasta.toISOString().split("T")[0]);
+
+      const sesionesMap: Record<string, any> = {};
+      (sesionesWindow || []).forEach(s => { sesionesMap[s.fecha_real] = s; });
+
+      const calendarDays = [];
+      let iter = new Date(desde);
+      while (iter <= hasta) {
+        const iso = iter.toISOString().split("T")[0];
+        const sesion = sesionesMap[iso];
+        const isFuture = iter > new Date();
+        const isToday = iso === hoyISO;
+        
+        const dayNum = sesion?.numero_dia_plan ?? getDayNumber(fechaInicio, iter, diasAsistenciaIdx);
+        const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(fechaInicio, iter, plan?.duracion_semanas || 4);
+
+        let status = "futura";
+        if (sesion) status = sesion.estado;
+        else if (isToday) status = "pendiente";
+        else if (!isFuture && !isToday) status = "omitida";
+        
+        // Si el día no es de asistencia y no está instanciado → descanso
+        if (!sesion && diasAsistenciaIdx.length > 0 && !diasAsistenciaIdx.includes(iter.getDay())) {
+          status = "descanso";
+        }
+
+        calendarDays.push({
+          fecha: iso,
+          status,
+          numeroDiaPlan: dayNum,
+          semana: sesion?.semana_numero ?? absoluteWeek,
+          cycleNumber,
+          relativeWeek,
+          nombreDia: sesion?.nombre_dia,
+          esHoy: isToday
+        });
+        iter.setDate(iter.getDate() + 1);
+      }
+
+      // 5. Build Final Payload (Zero-LCP Ready)
+      return {
+        success: true,
+        data: {
+          alumno: { 
+            id: alumno.id, 
+            nombre: alumno.nombre, 
+            plan_nombre: plan?.nombre,
+            has_plan: !!plan,
+          },
+          turno,
+          sesionHoy: sesionHoy as any,
+          proximaSesion,
+          calendarDays,
+          semanaActual: getWeekNumber(fechaInicio, new Date(), diasAsistenciaIdx),
+          fechaHoyISO: hoyISO,
+          // Technical metadata for PWA
+          planStatus: plan ? 'active' : 'waiting',
+          syncTimestamp: new Date().toISOString(),
+        }
+      };
+    }
+  }),
+
+  /**
+   * getStudentPerformance: Genera métricas de ingeniería (PRs, Volumen, Consistencia).
+   */
+  getStudentPerformance: defineAction({
+    accept: "json",
+    input: getStudentPerformanceSchema,
+    handler: async (_, context) => {
+      const user = context.locals.user;
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      const supabase = getAuthenticatedClient(context);
+
+      // 1. Obtener ID del alumno vinculado
+      const { data: alu } = await supabase
+        .from("alumnos")
+        .select("id")
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
+        .single();
+      
+      if (!alu) throw new ActionError({ code: "NOT_FOUND", message: "Alumno no encontrado" });
+
+      // 2. Obtener historial de sesiones completadas
+      const { data: sesiones } = await supabase
+        .from("sesiones_instanciadas")
+        .select(`
+          id, fecha_real,
+          sesion_ejercicios_instanciados (
+            id, rpe, peso_real, series_real, reps_real, completado,
+            biblioteca_ejercicios (id, nombre)
+          )
+        `)
+        .eq("alumno_id", alu.id)
+        .eq("estado", "completada")
+        .order("fecha_real", { ascending: true });
+
+      // 3. Procesar datos de rendimiento
+      const volumeData: any[] = [];
+      const prData: Record<string, { date: string, weight: number }[]> = {};
+      const heatmapValues: Record<string, number> = {};
+
+      (sesiones || []).forEach(s => {
+        let dailyVolume = 0;
+        const exercises = (s.sesion_ejercicios_instanciados as any[]) || [];
+        
+        exercises.forEach(ej => {
+          if (!ej.completado) return;
+          
+          const weight = ej.peso_real || 0;
+          const reps = parseInt(ej.reps_real) || 0;
+          const series = ej.series_real || 1;
+          const vol = weight * reps * series;
+          dailyVolume += vol;
+
+          // PR Tracking (High Performance)
+          const ejName = ej.biblioteca_ejercicios?.nombre;
+          if (ejName) {
+            if (!prData[ejName]) prData[ejName] = [];
+            const lastMax = prData[ejName].length > 0 ? prData[ejName][prData[ejName].length - 1].weight : 0;
+            if (weight > lastMax) {
+              prData[ejName].push({ date: s.fecha_real, weight });
+            }
+          }
+        });
+
+        volumeData.push({ date: s.fecha_real, volume: dailyVolume });
+        
+        // Heatmap Intensity (Gradient by Volume)
+        let intensity = 1; // Mínimo por asistir
+        if (dailyVolume > 6000) intensity = 4;
+        else if (dailyVolume > 3000) intensity = 3;
+        else if (dailyVolume > 1000) intensity = 2;
+        
+        heatmapValues[s.fecha_real] = intensity;
+      });
+
+      return {
+        success: true,
+        data: {
+          volumeTrends: volumeData,
+          prTrends: prData,
+          heatmapData: heatmapValues,
+        }
+      };
+    }
+  }),
+
+  /**
+   * getPlanDetails: Devuelve el plan completo del alumno con su estructura técnica.
+   */
+  getPlanDetails: defineAction({
+    accept: "json",
+    input: getPlanDetailsSchema,
+    handler: async (_, context) => {
+      const user = context.locals.user;
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      const supabase = getAuthenticatedClient(context);
+
+      const { data: alu } = await supabase
+        .from("alumnos")
+        .select("id, plan_id")
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
+        .single();
+      
+      if (!alu || !alu.plan_id) throw new ActionError({ code: "NOT_FOUND", message: "Plan no encontrado" });
+
+      const { data: plan } = await supabase
+        .from("planes")
+        .select(`
+          id, nombre, descripcion, duracion_semanas, frecuencia_semanal,
+          rutinas_diarias (
+            id, dia_numero, nombre_dia,
+            ejercicios_plan (
+              id, orden, series, reps_target, peso_target, descanso_seg,
+              biblioteca_ejercicios (id, nombre, media_url)
+            )
+          )
+        `)
+        .eq("id", alu.plan_id)
+        .single();
+
+      return {
+        success: true,
+        data: plan
+      };
     }
   }),
 
