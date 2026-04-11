@@ -187,7 +187,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                   <h2 className="industrial-title-lg">
                     Rutina {activeDiaAbsoluto - (currentWeek - 1) * freqSemanal}
                   </h2>
-                </div>
+                
 
                 </div>
               </div>
