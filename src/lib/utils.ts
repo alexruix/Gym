@@ -171,3 +171,21 @@ export function formatDateLatam(dateString: string | Date | undefined | null, st
 
   return new Intl.DateTimeFormat('es-AR', options).format(localDate);
 }
+
+/**
+ * Obtiene el ID de un video de YouTube a partir de su URL
+ */
+export function getYouTubeId(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
+/**
+ * Convierte una URL de YouTube en una URL de embed
+ */
+export function getYouTubeEmbedUrl(url: string | null | undefined): string | null {
+  const id = getYouTubeId(url);
+  return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0` : null;
+}

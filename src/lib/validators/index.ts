@@ -59,11 +59,14 @@ export {
   completeSessionByProfessorSchema,
   updateStudentStartDateOffsetSchema,
   sessionLogSchema,
-  completeSessionSchema
+  completeSessionSchema,
+  activarPerfilSchema,
+  updateStudentProfileSchema
 } from "./alumno";
 
 export type {
   InstanciarSesionData,
   LogEjercicioInstanciadoData,
-  CompletarSesionData
+  CompletarSesionData,
+  ActivarPerfilData
 } from "./alumno";

@@ -15,7 +15,9 @@ export const sesionStrings = {
     rest: "Descanso",
     commentPlaceholder: "Anotá alguna molestia o ajuste técnico...",
     doneButton: "¡Listo, terminando!",
+    finishButton: "Finalizar",
     details: "Ver detalles técnicos",
+
   },
   completion: {
     title: "¡Liquidaste el día!",

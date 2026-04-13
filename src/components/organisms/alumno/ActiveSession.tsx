@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useActiveSession, type ExerciseBase } from '@/hooks/alumno/useActiveSession';
 import { ActiveExerciseCard } from '@/components/organisms/alumno/ActiveExerciseCard';
-import { CompletionOverlay } from '@/components/organisms/alumno/CompletionOverlay';
+import { SessionActionDock } from '@/components/organisms/alumno/SessionActionDock';
 import { TechnicalLabel } from '@/components/atoms/alumno/TechnicalLabel';
 import { sesionStrings } from '@/data/es/alumno/sesion';
 
@@ -12,11 +12,6 @@ interface ActiveSessionProps {
   semanaActual: number;
 }
 
-/**
- * ActiveSession V2.6
- * Componente orquestador refactorizado con Atomic Design.
- * No hardcoding, lógica en hooks, persistencia resiliente.
- */
 export function ActiveSession({ sesionBase, sessionId, alumnoId, semanaActual }: ActiveSessionProps) {
   const { state, actions } = useActiveSession({
     sessionId,
@@ -25,17 +20,21 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId, semanaActual }:
     sesionBase
   });
 
+  const [showSummary, setShowSummary] = useState(false);
+
+  const completedCount = Object.keys(state.completedExercises).length;
+  const isComplete = completedCount === sesionBase.length && sesionBase.length > 0;
+
   return (
-    <div className="flex flex-col gap-8 max-w-xl mx-auto w-full pb-40 px-2 animate-in fade-in duration-1000">
+    <div className="flex flex-col gap-8 max-w-xl mx-auto w-full pb-64 px-2 animate-in fade-in duration-1000">
       
-      {/* HEADER TÉCNICO DE VERSIÓN */}
-      <div className="flex items-center justify-between opacity-40 hover:opacity-100 transition-opacity">
+      {/* HUD DE ESTADO LIVE */}
+      <div className="flex items-center justify-between opacity-30 px-2">
         <div className="flex gap-4 items-center">
-            <div className="h-[1px] w-8 bg-zinc-800" />
             <TechnicalLabel>{sesionStrings.activeSession.version}</TechnicalLabel>
         </div>
         <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-lime-400" />
             <TechnicalLabel className="text-lime-400">{sesionStrings.activeSession.sync}</TechnicalLabel>
         </div>
       </div>
@@ -70,15 +69,19 @@ export function ActiveSession({ sesionBase, sessionId, alumnoId, semanaActual }:
         })}
       </div>
 
-      {/* OVERLAY DE FINALIZACIÓN */}
-      {state.activeExerciseIndex >= sesionBase.length && sesionBase.length > 0 && (
-        <CompletionOverlay 
-          isFinishing={state.isFinishing}
-          globalNota={state.globalNota}
-          onNotaChange={actions.setGlobalNota}
-          onFinish={actions.finishSession}
-        />
-      )}
+      {/* DOCK DE ACCIONES (BOTTOM NAVBAR) */}
+      <SessionActionDock 
+        onAbandon={() => window.location.href = "/alumno"}
+        onFinish={actions.finishSession}
+        isFinishing={state.isFinishing}
+        totalExercises={sesionBase.length}
+        completedCount={completedCount}
+        isComplete={isComplete}
+        showSummary={showSummary}
+        onToggleSummary={() => setShowSummary(!showSummary)}
+        globalNota={state.globalNota}
+        onNotaChange={actions.setGlobalNota}
+      />
     </div>
   );
 }

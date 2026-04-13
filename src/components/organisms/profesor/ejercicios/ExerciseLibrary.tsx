@@ -1,59 +1,60 @@
-import { useState, useMemo } from "react";
-import { 
-  Dumbbell, 
-  ChevronDown, 
-  ChevronUp, 
-  Star, 
-  Flame, 
-  User, 
-  Library, 
-  Plus, 
+import { useState, useMemo, useTransition, useEffect } from "react";
+import {
+  Dumbbell,
+  ChevronDown,
+  Star,
+  Flame,
+  User,
+  Library,
   Search,
   LayoutGrid,
-  Table as TableIcon
+  List,
+  Plus,
+  ChevronUp,
+  Video
 } from "lucide-react";
 
 import { ExerciseCard } from "@/components/molecules/profesor/ejercicios/ExerciseCard";
 import { ExerciseLibrarySkeleton } from "@/components/molecules/profesor/ejercicios/ExerciseCardSkeleton";
 import { DeleteConfirmDialog } from "@/components/molecules/DeleteConfirmDialog";
-import { DashboardConsole } from "@/components/molecules/profesor/DashboardConsole";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useExercises } from "@/hooks/profesor/useExercises";
 import { useDeleteWithConfirm } from "@/hooks/useDeleteWithConfirm";
 import { exerciseLibraryCopy as copy } from "@/data/es/profesor/ejercicios";
+import { StandardTable, type TableColumn } from "@/components/organisms/StandardTable";
+import { ExerciseActions } from "@/components/molecules/profesor/ejercicios/ExerciseActions";
+import type { Exercise } from "@/hooks/profesor/exercises/useLibraryState";
 
-interface Exercise {
-  id: string;
-  nombre: string;
-  descripcion: string | null;
-  media_url: string | null;
-  tags?: string[];
-  parent_id?: string | null;
-  is_template_base?: boolean;
-  profesor_id?: string | null;
-  is_favorite?: boolean;
-  usage_count?: number;
-  created_at: string;
-}
+
 
 export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] }) {
   const {
-    exercises: filtered,
+    exercises: gridList,
+    allFiltered,
     allExercises,
     isLoading,
     searchQuery,
     setSearchQuery,
     activeFilter,
     setActiveFilter,
+    muscleFilter,
+    setMuscleFilter,
     toggleFavorite,
     deleteExercise,
     duplicateExercise
   } = useExercises(initialExercises);
 
+  const [isPending, startTransition] = useTransition();
+  const [localSearch, setLocalSearch] = useState(searchQuery);
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+
+  // Sync local search when global state changes (e.g. clear)
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
 
   const categories = [
     { id: "todos", label: "Todos", icon: Library },
@@ -61,6 +62,10 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
     { id: "top", label: "Top 15", icon: Flame },
     { id: "migym", label: "Master", icon: Library },
     { id: "míos", label: "Propios", icon: User },
+  ];
+
+  const muscleGroups = [
+    "Abdominales", "Glúteos", "Cuádriceps", "Isquios", "Gemelos", "Pecho", "Espalda", "Hombros", "Tríceps", "Bíceps"
   ];
 
   const toggleParent = (parentId: string) => {
@@ -86,7 +91,6 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
     const parents: (Exercise & { variantCount: number })[] = [];
     const parentsAdded = new Set<string>();
 
-    // 1. Build variant map from ALL available exercises
     allExercises.forEach(ex => {
       if (ex.parent_id) {
         if (!vMap[ex.parent_id]) vMap[ex.parent_id] = [];
@@ -94,27 +98,132 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
       }
     });
 
-    // 2. Determine which parents to show based on filtered list
-    filtered.forEach(ex => {
+    gridList.forEach(ex => {
       const parentId = ex.parent_id || ex.id;
       if (!parentsAdded.has(parentId)) {
         parentsAdded.add(parentId);
-        const parentOb = allExercises.find(e => e.id === parentId && !e.parent_id);
+        // Buscar el padre real (sin asumir que no tiene parent_id)
+        const parentOb = allExercises.find(e => e.id === parentId);
+
         if (parentOb) {
           parents.push({
             ...parentOb,
             variantCount: vMap[parentOb.id]?.length || 0
+          });
+        } else {
+          // Fallback de seguridad: Si por alguna razón la BD tiene un parent_id huerfano,
+          // mostramos el ejercicio original como si fuera un padre para no ocultarlo.
+          parents.push({
+            ...ex,
+            variantCount: vMap[ex.id]?.length || 0
           });
         }
       }
     });
 
     return { displayParents: parents, variantsMap: vMap };
-  }, [filtered, allExercises]);
+  }, [gridList, allExercises]);
+
+  // Table Columns Definition
+  const columns: TableColumn<Exercise>[] = [
+    {
+      header: "Nombre",
+      render: (ex) => {
+        const isMaster = ex.profesor_id === null;
+        const hasVideo = !!ex.video_url || ex.media_url?.match(/\.(mp4|webm|ogg|mov)$/i);
+
+        return (
+          <div className="flex items-center gap-3">
+            {ex.media_url && !ex.media_url.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+              <div className="w-10 h-10 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800 shrink-0">
+                <img src={ex.media_url} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center shrink-0 border border-zinc-100 dark:border-zinc-800">
+                {hasVideo ? (
+                  <Video className="w-5 h-5 text-lime-500" />
+                ) : (
+                  <Dumbbell className="w-5 h-5 text-zinc-400" />
+                )}
+              </div>
+            )}
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+
+                <span className="font-bold text-zinc-900 dark:text-zinc-100 line-clamp-1">{ex.nombre}</span>
+
+                {hasVideo && <Video className="w-3 h-3 text-lime-500/50" />}
+              </div>
+              {ex.parent_id && (
+                <span className="text-[9px] uppercase tracking-tighter text-zinc-400 font-black">Variante</span>
+              )}
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      header: "Categoría",
+      render: (ex) => (
+        <div className="flex flex-wrap gap-1.5">
+          {ex.tags?.slice(0, 3).map(tag => (
+            <span key={tag} className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-900/50 rounded-lg text-[9px] font-bold uppercase tracking-widest text-zinc-500 border border-zinc-200/50 dark:border-zinc-800/50">
+              {tag}
+            </span>
+          ))}
+          {ex.tags && ex.tags.length > 3 && (
+            <span className="text-[9px] text-zinc-400 font-bold">+{ex.tags.length - 3}</span>
+          )}
+        </div>
+      )
+    },
+    {
+      header: "Descripción",
+      render: (ex) => {
+        const isMaster = ex.profesor_id === null;
+        if (!ex.descripcion) return <span className="text-zinc-300 italic text-xs">Sin descripción</span>;
+
+        return (
+          <div className="max-w-[300px]">
+
+            <p className="line-clamp-1 text-xs text-zinc-500">{ex.descripcion}</p>
+
+          </div>
+        );
+      }
+    },
+    {
+      header: "Acciones",
+      align: "right",
+      render: (ex) => (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(ex.id, !ex.is_favorite);
+            }}
+            className={cn(
+              "h-9 w-9 rounded-xl transition-all",
+              ex.is_favorite ? "text-lime-500 bg-lime-500/5" : "text-zinc-300 hover:text-zinc-500"
+            )}
+          >
+            <Star className={cn("h-4 w-4", ex.is_favorite && "fill-current")} />
+          </Button>
+          <ExerciseActions
+            exercise={ex}
+            onDelete={deleteFlow.setItemToDelete}
+            onDuplicate={duplicateExercise}
+          />
+        </div>
+      )
+    }
+  ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
-      
+
       {/* 1. Gabinete: Categorías & Search */}
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 -mx-4 px-4 py-4 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -123,7 +232,11 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setActiveFilter(cat.id)}
+                onClick={() => {
+                  startTransition(() => {
+                    setActiveFilter(cat.id);
+                  });
+                }}
                 className={cn(
                   "flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all whitespace-nowrap border-2",
                   activeFilter === cat.id
@@ -137,23 +250,77 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
             ))}
           </div>
 
-          {/* Search Input Industrial */}
-          <div className="relative group w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={copy.list.searchPlaceholder}
-              className="pl-11 h-12 bg-zinc-50 dark:bg-zinc-900 border-transparent rounded-2xl font-bold text-sm focus:ring-2 focus:ring-lime-500/20 focus:border-lime-500 transition-all shadow-inner"
-            />
+          {/* View Toggle & Search */}
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewMode("grid")}
+                className={cn(
+                  "h-8 w-8 rounded-lg transition-all",
+                  viewMode === "grid" ? "bg-white dark:bg-zinc-800 shadow-sm text-lime-500" : "text-zinc-400"
+                )}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewMode("table")}
+                className={cn(
+                  "h-8 w-8 rounded-lg transition-all",
+                  viewMode === "table" ? "bg-white dark:bg-zinc-800 shadow-sm text-lime-500" : "text-zinc-400"
+                )}
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="relative group flex-1 md:w-80 shrink-0">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-lime-500 transition-colors" />
+              <Input
+                value={localSearch}
+                onChange={(e) => {
+                  setLocalSearch(e.target.value);
+                  startTransition(() => {
+                    setSearchQuery(e.target.value);
+                  });
+                }}
+                placeholder={copy.list.searchPlaceholder}
+                className="pl-11 h-12 bg-zinc-50 dark:bg-zinc-900 border-transparent rounded-2xl font-bold text-sm focus:ring-2 focus:ring-lime-500/20 focus:border-lime-500 transition-all shadow-inner"
+              />
+            </div>
           </div>
+        </div>
+
+        {/* Muscle Group Pills */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+          {muscleGroups.map(mg => (
+            <button
+              key={mg}
+              onClick={() => {
+                startTransition(() => {
+                  setMuscleFilter(muscleFilter === mg ? null : mg);
+                });
+              }}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wide whitespace-nowrap transition-all border",
+                muscleFilter === mg
+                  ? "bg-lime-500 text-zinc-950 border-lime-500 shadow-md scale-105"
+                  : "bg-white dark:bg-zinc-950 text-zinc-500 border-zinc-200 dark:border-zinc-800 hover:border-lime-500/50 hover:bg-lime-500/5"
+              )}
+            >
+              {mg}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* 2. Content Grid */}
-      {isLoading && filtered.length === 0 ? (
+      {/* 2. Content */}
+      {(isPending || (isLoading && gridList.length === 0)) ? (
         <ExerciseLibrarySkeleton />
-      ) : filtered.length === 0 ? (
+      ) : (gridList.length === 0 && allFiltered.length === 0) ? (
         <div className="py-32 flex flex-col items-center justify-center text-center space-y-4 animate-in zoom-in-95 duration-500">
           <div className="p-8 bg-zinc-50 dark:bg-zinc-900 rounded-[3rem] border-2 border-dashed border-zinc-100 dark:border-zinc-800">
             <Dumbbell className="w-16 h-16 text-zinc-200 dark:text-zinc-800" />
@@ -163,36 +330,19 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
             <p className="text-sm text-zinc-500 font-medium tracking-tight">Probá con otros términos o ajustá los filtros.</p>
           </div>
         </div>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 pb-32">
           {displayParents.map((parent) => (
             <div key={parent.id} className="space-y-4 group">
-              <div className="flex items-start gap-2 h-full">
-                <div className="flex-1 h-full">
-                  <ExerciseCard
-                    exercise={parent}
-                    onDelete={deleteFlow.setItemToDelete}
-                    onToggleFavorite={toggleFavorite}
-                    onDuplicate={duplicateExercise}
-                  />
-                </div>
-                {parent.variantCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "mt-10 md:mt-12 h-10 w-10 shrink-0 rounded-2xl border transition-all duration-500 backdrop-blur-sm",
-                      expandedParents.has(parent.id) 
-                        ? "bg-lime-500 text-zinc-900 border-lime-500 shadow-xl scale-110" 
-                        : "bg-white/50 dark:bg-zinc-900/50 text-zinc-400 border-zinc-100 dark:border-zinc-800 hover:scale-105"
-                    )}
-                    onClick={() => toggleParent(parent.id)}
-                  >
-                    {expandedParents.has(parent.id) ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                  </Button>
-                )}
-              </div>
-              
+              <ExerciseCard
+                exercise={parent}
+                onDelete={deleteFlow.setItemToDelete}
+                onToggleFavorite={toggleFavorite}
+                onDuplicate={duplicateExercise}
+                expanded={expandedParents.has(parent.id)}
+                onToggleExpand={() => toggleParent(parent.id)}
+              />
+
               {/* Variants Dropdown */}
               {expandedParents.has(parent.id) && variantsMap[parent.id] && (
                 <div className="pl-6 md:pl-10 space-y-4 border-l-2 border-lime-500/20 animate-in slide-in-from-top-4 duration-500">
@@ -209,6 +359,16 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
               )}
             </div>
           ))}
+        </div>
+      ) : (
+        <div className="pb-32 animate-in slide-in-from-bottom-4 duration-500">
+          <StandardTable
+            data={allFiltered}
+            columns={columns}
+            entityName="Ejercicios"
+            hideSearch={true}
+            responsiveMode="scroll"
+          />
         </div>
       )}
 

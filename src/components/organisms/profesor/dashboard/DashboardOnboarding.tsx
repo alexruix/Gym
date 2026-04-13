@@ -10,20 +10,50 @@ interface Props {
 }
 
 export function DashboardOnboarding({ hasPlans, hasStudents }: Props) {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('gym_hide_onboarding') !== 'true';
+    }
+    return true;
+  });
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Si completó todo, lo escondemos autmáticamente
+    if (hasPlans && hasStudents) {
+        setIsVisible(false);
+        localStorage.setItem('gym_hide_onboarding', 'true');
+    }
+
+    const handleRestore = () => {
+      setIsVisible(true);
+      localStorage.removeItem('gym_hide_onboarding');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    
+    window.addEventListener('restore-onboarding', handleRestore);
+    return () => window.removeEventListener('restore-onboarding', handleRestore);
+  }, [hasPlans, hasStudents]);
+
+  const handleDismiss = () => {
+    setIsVisible(false);
+    localStorage.setItem('gym_hide_onboarding', 'true');
+  };
+
   const c = dashboardCopy.onboarding;
 
-  if (!isVisible || (hasPlans && hasStudents)) return null;
+  if (!isVisible) return null;
 
   const completedSteps = 1 + (hasPlans ? 1 : 0) + (hasStudents ? 1 : 0);
 
   return (
-    <DashboardCard variant="neon">
+    <DashboardCard className="relative overflow-hidden border border-lime-500/20 bg-zinc-950 shadow-2xl">
       {/* Elemento de diseño de fondo */}
       <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-64 h-64 bg-lime-500/20 rounded-full blur-3xl pointer-events-none" />
 
       <button
-        onClick={() => setIsVisible(false)}
+        onClick={handleDismiss}
         className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/10 z-20"
         aria-label="Ocultar guía de inicio"
       >

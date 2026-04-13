@@ -28,5 +28,7 @@ export interface SesionDetalle {
   semana_numero: number;
   cycle_number?: number;
   relative_week?: number;
+  isRestDay?: boolean;
   ejercicios: EjercicioDetail[];
 }
+

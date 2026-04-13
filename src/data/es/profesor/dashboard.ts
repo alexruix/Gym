@@ -78,21 +78,21 @@ export const dashboardCopy = {
     }
   },
   onboarding: {
-    title: "Empezá por acá",
-    description: "Completá estos 3 pasos para empezar a usar la plataforma.",
-    progressText: "{n} de 3 completados",
+    title: "Arrancá por acá",
+    description: "Completá estos pasos para poner a rodar tu gimnasio digital.",
+    progressText: "{n} de 3 listos",
     steps: {
       profile: {
-        title: "Crear tu perfil",
+        title: "Creá tu perfil",
         desc: "Nombre público guardado.",
       },
       plan: {
-        title: "Crear un plan",
-        desc: "Diseñá tu primer plan de entrenamiento.",
+        title: "Creá tu primer Plan",
+        desc: "Armá una rutina para tus alumnos.",
       },
       student: {
-        title: "Sumar un alumno",
-        desc: "E invitá a descargar la app.",
+        title: "Invitá un Alumno",
+        desc: "Sumalo a la plataforma con un link.",
       }
     }
   },

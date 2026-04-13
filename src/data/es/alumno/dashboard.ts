@@ -39,5 +39,10 @@ export const dashboardStrings = {
     estimatedTime: "min",
     moreExercises: "ejercicios más",
     prepared: "Preparado automáticamente",
+  },
+  restDay: {
+    title: "Aprovechá el descanso",
+    description: "Hoy no te toca entrenar. Recuperá energías para mañana.",
+    action: "Ver mi progreso"
   }
 };

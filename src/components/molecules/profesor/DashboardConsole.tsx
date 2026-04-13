@@ -115,7 +115,7 @@ export function DashboardConsole<T extends BaseEntity>({
             <div className={cn(
                 "w-full transition-all duration-500 py-2 md:py-4 px-2 mb-4 md:mb-8 z-40",
                 isSticky
-                    ? "sticky top-0 -mx-2 px-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-100 dark:border-zinc-900 shadow-sm"
+                    ? "sticky top-0 -mx-2 px-4 bg-background/80 backdrop-blur-xl border-b border-border shadow-sm"
                     : "relative"
             )}>
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-3 md:gap-4">
@@ -125,26 +125,26 @@ export function DashboardConsole<T extends BaseEntity>({
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                             <Search className={cn(
                                 "w-4 h-4 transition-colors",
-                                search ? "text-lime-600" : "text-zinc-500 group-focus-within:text-lime-600"
+                                search ? "text-lime-600" : "text-zinc-500 group-focus-within:text-lime-600 "
                             )} />
                         </div>
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder={searchPlaceholder}
-                            className="industrial-search h-11 md:h-14 pl-12 transition-all font-sans placeholder:text-zinc-500"
+                            className="industrial-search h-11 md:h-14 pl-12 transition-all font-sans"
                         />
 
                         {/* TAG SUGGESTIONS */}
                         {search.startsWith("#") && search.length > 1 && (
-                            <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 p-2">Sugerencias de categorías</p>
+                            <div className="absolute top-full left-0 w-full mt-2 bg-card border border-border rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-ui-muted p-2">Sugerencias de categorías</p>
                                 <div className="flex flex-wrap gap-2 p-2">
                                     {allTags.filter(t => t.toLowerCase().includes(search.slice(1).toLowerCase())).map(t => (
                                         <button
                                             key={t}
                                             onClick={() => { addTag(t); setSearch(""); }}
-                                            className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-900 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-lime-500 hover:text-zinc-950 transition-all"
+                                            className="px-3 py-1.5 bg-ui-soft rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-lime-500 hover:text-zinc-950 transition-all"
                                         >
                                             #{t}
                                         </button>
@@ -160,7 +160,7 @@ export function DashboardConsole<T extends BaseEntity>({
                         </div>
                     )}
 
-                    <div className="flex items-center gap-2 w-full md:w-auto shrink-0 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+                    <div className="flex items-center rounded-2xl gap-2 w-full md:w-auto shrink-0 overflow-x-auto hide-scrollbar pb-1 md:pb-0 font-bold">
                         {/* SELECTOR DE ORDEN (RADIX) */}
                         {sortOptions.length > 0 && (
                             <Select value={sortOrder} onValueChange={setSortOrder}>

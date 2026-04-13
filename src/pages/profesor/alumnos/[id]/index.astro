@@ -137,7 +137,15 @@ const studentData = {
   historial_pagos: sortedPagos,
   suscripcion: alumno.suscripciones,
   dias_asistencia: alumno.dias_asistencia || [],
-  turno: alumno.turnos
+  turno: alumno.turnos,
+  peso_actual: alumno.peso_actual,
+  objetivo_principal: alumno.objetivo_principal,
+  lesiones: alumno.lesiones,
+  fecha_nacimiento: alumno.fecha_nacimiento,
+  genero: alumno.genero,
+  profesion: alumno.profesion,
+  nivel_experiencia: alumno.nivel_experiencia,
+  perfil_completado: alumno.perfil_completado
 };
 
 const assignedPlan = (alumno.planes && Array.isArray(alumno.planes)) ? alumno.planes[0] : (alumno.planes || null);

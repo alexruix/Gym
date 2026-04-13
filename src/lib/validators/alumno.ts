@@ -101,6 +101,32 @@ export const updateStudentStartDateOffsetSchema = z.object({
   offset_days: z.number().int(),
 });
 
+export const activarPerfilSchema = z.object({
+  peso_actual: z.number().min(30).max(250).optional().nullable(),
+  objetivo_principal: z.string().min(2).max(100),
+  dias_asistencia: z.array(z.string()).min(1),
+  lesiones: z.string().max(300).optional().nullable(),
+});
+
+export type ActivarPerfilData = z.infer<typeof activarPerfilSchema>;
+
+// Actualizar Perfil Completo (Onboarding o Edición Móvil)
+export const updateStudentProfileSchema = z.object({
+  telefono: z.string().max(50).optional().nullable(),
+  fecha_nacimiento: z.string().optional().nullable(),
+  peso_actual: z.number().min(30).max(300).optional().nullable(),
+  altura_cm: z.number().min(50).max(250).optional().nullable(),
+  objetivo_principal: z.string().max(100).optional().nullable(),
+  nivel_experiencia: z.string().max(50).optional().nullable(),
+  profesion: z.string().max(100).optional().nullable(),
+  lesiones: z.string().max(500).optional().nullable(),
+  genero: z.string().max(30).optional().nullable(),
+  turno_id: z.string().uuid().optional().nullable(),
+  dias_asistencia: z.array(z.string()).optional().nullable(),
+});
+
+export type UpdateStudentProfileData = z.infer<typeof updateStudentProfileSchema>;
+
 // Legacy (Compatibilidad temporal)
 export const sessionLogSchema = z.object({
   sesion_id: z.string(),

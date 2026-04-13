@@ -40,6 +40,10 @@ interface Props {
       hora_fin: string;
     } | null;
     dias_asistencia: string[];
+    peso_actual?: number | null;
+    objetivo_principal?: string | null;
+    lesiones?: string | null;
+    perfil_completado?: boolean;
   };
   planName?: string | null;
 }
@@ -182,6 +186,36 @@ export function AthleteHeader({ alumno, planName }: Props) {
                   </>
                 )}
               </div>
+
+              {/* HUD Rendimiento (Solo visible si completó el onboarding) */}
+              {alumno.perfil_completado && (
+                <div className="flex items-center gap-4 sm:gap-6 bg-zinc-50 dark:bg-zinc-900/40 p-3 sm:p-6 rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                  <div className="space-y-0.5 sm:space-y-1">
+                     <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Peso</p>
+                     <p className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white tabular-nums">
+                        {alumno.peso_actual ? `${alumno.peso_actual}kg` : "--"}
+                     </p>
+                  </div>
+                  <div className="h-6 sm:h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
+                  <div className="space-y-0.5 sm:space-y-1">
+                     <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Objetivo</p>
+                     <p className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white capitalize">
+                        {alumno.objetivo_principal || "--"}
+                     </p>
+                  </div>
+                  {alumno.lesiones && (
+                    <>
+                      <div className="h-6 sm:h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
+                      <div className="space-y-0.5 sm:space-y-1">
+                         <p className="text-[7px] sm:text-[8px] font-bold text-fuchsia-500 uppercase tracking-[0.2em]">Alertas</p>
+                         <p className="text-[10px] sm:text-xs font-bold text-fuchsia-500 bg-fuchsia-500/10 px-2 py-0.5 rounded border border-fuchsia-500/20 truncate max-w-[120px]" title={alumno.lesiones}>
+                            [!] {alumno.lesiones}
+                         </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

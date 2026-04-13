@@ -34,8 +34,11 @@ export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan
     getUpdatePayload, 
     removeExercise: coreRemove, 
     addExercise: coreAdd,
-    reorderExercise: coreReorder
+    reorderExercise: coreReorder,
+    duplicateRoutine,
+    deleteRoutine
   } = usePlanOperations(localPlan, setLocalPlan, isInteracting);
+
 
   // 3. Motor de Selectores (Vista)
   const { groupedRoutines } = usePlanSelectors(localPlan, studentSearch);
@@ -107,8 +110,14 @@ export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan
     }
   }, [coreAdd, getUpdatePayload, initialPlan]);
 
-  const removeExercise = useCallback(async (rutinaId: string, exerciseId: string) => {
-    const updatedPlan = await coreRemove(rutinaId, exerciseId);
+  const removeExercise = useCallback(async (exerciseId: string) => {
+    if (!localPlan) return;
+    const routine = localPlan.rutinas_diarias.find((r: any) => 
+      r.ejercicios_plan.some((e: any) => e.id === exerciseId)
+    );
+    if (!routine) return;
+
+    const updatedPlan = await coreRemove(routine.id, exerciseId);
     try {
        const payload = getUpdatePayload(updatedPlan);
        const { error } = await actions.profesor.updatePlan(payload as any);
@@ -117,12 +126,11 @@ export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan
        toast.error("Error al persistir borrado");
        setLocalPlan(initialPlan);
     }
-  }, [coreRemove, getUpdatePayload, initialPlan]);
+  }, [localPlan, coreRemove, getUpdatePayload, initialPlan]);
 
   const moveExercise = useCallback(async (ejercicioId: string, direction: "up" | "down") => {
     if (!localPlan) return;
-    const routinesKey = localPlan.rutinas ? 'rutinas' : 'rutinas_diarias';
-    const routine = localPlan[routinesKey].find((r: any) => 
+    const routine = localPlan.rutinas_diarias.find((r: any) => 
       r.ejercicios_plan.some((e: any) => e.id === ejercicioId)
     );
     if (!routine) return;
@@ -158,7 +166,32 @@ export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan
     activeRoutineTarget,
     setActiveRoutineTarget,
     selectors: {
-      groupedRoutines
+      groupedRoutines,
+      getGroupedExercises: (ejs: any[]) => {
+         // Lógica simple de agrupación (se puede mover a un utils si crece)
+         const groups: any[] = [];
+         let currentGroup: any = { id: null, nombre: null, exercises: [] };
+
+         ejs.forEach(ex => {
+            if (ex.grupo_bloque_id) {
+               if (currentGroup.id !== ex.grupo_bloque_id) {
+                  if (currentGroup.exercises.length > 0) groups.push(currentGroup);
+                  currentGroup = { id: ex.grupo_bloque_id, nombre: ex.grupo_nombre, exercises: [ex] };
+               } else {
+                  currentGroup.exercises.push(ex);
+               }
+            } else {
+               if (currentGroup.id !== null) {
+                  groups.push(currentGroup);
+                  currentGroup = { id: null, nombre: null, exercises: [ex] };
+               } else {
+                  currentGroup.exercises.push(ex);
+               }
+            }
+         });
+         if (currentGroup.exercises.length > 0) groups.push(currentGroup);
+         return groups;
+      }
     },
     actions: {
       toggleRutina,
@@ -166,7 +199,42 @@ export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan
       deleteExercise: removeExercise,
       addExercise,
       moveExercise,
-      promotePlan
+      promotePlan,
+      duplicateRoutine: async (rutinaId: string) => {
+        const updatedPlan = await duplicateRoutine(rutinaId);
+        try {
+           const payload = getUpdatePayload(updatedPlan);
+           const { error } = await actions.profesor.updatePlan(payload as any);
+           if (error) throw error;
+        } catch (err) {
+           toast.error("Error al persistir duplicado");
+           setLocalPlan(initialPlan);
+        }
+      },
+      deleteRoutine: async (rutinaId: string) => {
+        const updatedPlan = await deleteRoutine(rutinaId);
+        try {
+           const payload = getUpdatePayload(updatedPlan);
+           const { error } = await actions.profesor.updatePlan(payload as any);
+           if (error) throw error;
+        } catch (err) {
+           toast.error("Error al persistir eliminación");
+           setLocalPlan(initialPlan);
+        }
+      },
+      updateStudentDates: async (dates: { fecha_inicio?: Date; fecha_fin?: Date | null }) => {
+
+        try {
+          const { error } = await actions.profesor.updateStudent({
+            id: alumnoId,
+            ...dates
+          });
+          if (error) throw error;
+          toast.success("Vigencia del plan actualizada");
+        } catch (err) {
+          toast.error("Error al actualizar fechas");
+        }
+      }
     }
   };
 }

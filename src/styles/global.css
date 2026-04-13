@@ -90,6 +90,12 @@
 
   /* ── Radius Scale (Rounded Corners) ────────────────────────────────────── */
   --radius: 0.5rem;
+
+  /* ── MiGym Semantic UI Tokens (SSOT - Light) ───────────────────────── */
+  --ui-label: var(--color-zinc-600);
+  --ui-muted: var(--color-zinc-500);
+  --ui-soft: var(--color-zinc-100);
+  --ui-accent: var(--color-lime-600);
 }
 
 /* ── Dark Mode ── */
@@ -112,6 +118,12 @@
   --border: var(--color-zinc-800);
   --input: var(--color-zinc-800);
   --ring: var(--color-zinc-700);
+
+  /* ── MiGym Semantic UI Tokens (SSOT - Dark) ────────────────────────── */
+  --ui-label: var(--color-zinc-400);
+  --ui-muted: var(--color-zinc-400);
+  --ui-soft: var(--color-zinc-800);
+  --ui-accent: var(--color-lime-400);
 }
 
 @theme inline {
@@ -139,12 +151,11 @@
   --color-error: var(--color-error);
   --color-info: var(--color-info);
 
-
   /* MiGym Semantic UI Tokens (Industrial Accessible) */
-  --color-ui-label: var(--color-zinc-600);
-  --color-ui-muted: var(--color-zinc-500);
-  --color-ui-soft: var(--color-zinc-100);
-  --color-ui-accent: var(--color-lime-600);
+  --color-ui-label: var(--ui-label);
+  --color-ui-muted: var(--ui-muted);
+  --color-ui-soft: var(--ui-soft);
+  --color-ui-accent: var(--ui-accent);
 
   /* Radius variants */
   --radius-xs: calc(var(--radius) - 6px);
@@ -214,6 +225,13 @@
   textarea,
   select {
     @apply outline-none transition-colors;
+    font-size: 16px; /* Evitar auto-zoom en iOS */
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
   }
 
   ::selection {
@@ -279,8 +297,26 @@
   }
 
   .industrial-search {
-    @apply flex w-full border border-zinc-200 px-4 py-2 md:text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:border-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 h-12 md:h-14 pl-12 pr-4 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-sm font-bold placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-lime-400/20 transition-all;
-  }
+  /* Layout y Base */
+  @apply flex w-full h-12 md:h-14 px-4 pl-12 pr-4 rounded-2xl border-none outline-none;
+  @apply text-base font-bold transition-shadow duration-200;
+
+  /* Light Mode (Accesibilidad mejorada) */
+  @apply bg-amber-400 text-zinc-950 placeholder:text-zinc-700/70;
+  
+  /* Dark Mode */
+  @apply dark:bg-zinc-900/50 dark:text-zinc-100 dark:placeholder:text-zinc-500;
+
+  /* Estado: Foco (Clave para a11y) */
+  /* Usamos un ring sólido o más oscuro para que se note el cambio */
+  @apply focus-visible:ring-4 focus-visible:ring-zinc-950/20 dark:focus-visible:ring-lime-400/40;
+
+  /* Estado: Deshabilitado */
+  @apply disabled:cursor-not-allowed disabled:opacity-40;
+
+  /* Archivos (si es input file) */
+  @apply file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground;
+}
 
   .industrial-select-trigger {
     @apply bg-zinc-50 dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center gap-3;

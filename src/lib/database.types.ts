@@ -32,6 +32,15 @@ export type Database = {
           suscripcion_id: string | null
           monto_personalizado: boolean | null
           fecha_nacimiento: string | null
+          peso_actual: number | null
+          altura_cm: number | null
+          objetivo_principal: string | null
+          nivel_experiencia: string | null
+          profesion: string | null
+          lesiones: string | null
+          perfil_completado: boolean | null
+          genero: string | null
+          frecuencia_semanal: number | null
         }
         Insert: {
           id?: string
@@ -55,6 +64,15 @@ export type Database = {
           suscripcion_id?: string | null
           monto_personalizado?: boolean | null
           fecha_nacimiento?: string | null
+          peso_actual?: number | null
+          altura_cm?: number | null
+          objetivo_principal?: string | null
+          nivel_experiencia?: string | null
+          profesion?: string | null
+          lesiones?: string | null
+          perfil_completado?: boolean | null
+          genero?: string | null
+          frecuencia_semanal?: number | null
         }
         Update: {
           id?: string
@@ -78,6 +96,15 @@ export type Database = {
           suscripcion_id?: string | null
           monto_personalizado?: boolean | null
           fecha_nacimiento?: string | null
+          peso_actual?: number | null
+          altura_cm?: number | null
+          objetivo_principal?: string | null
+          nivel_experiencia?: string | null
+          profesion?: string | null
+          lesiones?: string | null
+          perfil_completado?: boolean | null
+          genero?: string | null
+          frecuencia_semanal?: number | null
         }
       }
       biblioteca_ejercicios: {

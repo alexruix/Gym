@@ -24,7 +24,9 @@ import { ExerciseSelectorDialog } from "@/components/molecules/profesor/ejercici
 import { StatBadge } from "@/components/atoms/profesor/StatBadge";
 import { SessionStatusBadge } from "@/components/atoms/profesor/SessionStatusBadge";
 import { LoaderState } from "@/components/atoms/LoaderState";
+import { RestDayHUD } from "@/components/molecules/profesor/calendar/RestDayHUD";
 import { ExerciseExpandibleRow } from "@/components/molecules/profesor/calendar/ExerciseExpandibleRow";
+
 import { ScopeSelectorDialog } from "@/components/molecules/profesor/calendar/ScopeSelectorDialog";
 import {
   DropdownMenu,
@@ -38,6 +40,8 @@ import {
 // Lógica de Estado (Hook)
 import { useStudentCalendar } from "@/hooks/profesor/useStudentCalendar";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
+import { getTodayISO } from "@/lib/schedule";
+
 
 import type { AssignedPlanMetric } from "@/types/student";
 
@@ -94,26 +98,25 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
   } | null>(null);
   const [viewMode, setViewMode] = useState<"detailed" | "compact">("detailed");
 
-  const hoyISO = new Date().toISOString().split("T")[0];
+  const hoyISO = getTodayISO();
   const isPastDay = !!selectedDay && selectedDay < hoyISO;
   const isSessionCompleted = selectedSesion?.estado === 'completada';
   const isReadOnly = isPastDay || isSessionCompleted;
+
+
+
 
   // Handlers de UI
   const handleExerciseSelected = (exerciseId: string) => {
     if (selectorMode === "swap") {
       if (!swapExId) return;
-      const currentEj = selectedSesion?.ejercicios.find(e => e.id === swapExId);
-      setScopeData({
-        type: "swap",
-        id: swapExId,
-        nuevoId: exerciseId,
-        nombre: currentEj?.nombre || 'ejercicio'
-      });
+      swapExercise(swapExId, exerciseId, false);
     } else {
-      setScopeData({ type: "add", id: exerciseId, nombre: copy.dialogs.selector.addTitle.toLowerCase() });
+      addExercise(exerciseId, false);
     }
+    setIsSelectorOpen(false);
   };
+
 
   const variacionesCount = selectedSesion?.ejercicios.filter(e => e.is_variation).length || 0;
   const showStructuralWarning = variacionesCount >= 2;
@@ -183,70 +186,20 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
         </div>
       )}
 
-      {/* Detalle del Día o Día de Descanso */}
+      {/* Detalle del Día o HUD de Descanso (Fallback Industrial) */}
       {selectedDay && (
-        !selectedSesion && calendarDays.find(d => d.fecha === selectedDay)?.status === 'descanso' ? (
-          <div className="bg-white dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-800 rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center space-y-6 animate-in slide-in-from-bottom-2 duration-500 shadow-xl">
-            <div className="w-20 h-20 rounded-[2rem] bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center shadow-inner">
-              <Coffee className="w-10 h-10 text-zinc-400 dark:text-zinc-600" />
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-2xl font-bold text-zinc-950 dark:text-white uppercase tracking-tight">{copy.restDay.title}</h4>
-              <p className="text-sm font-medium text-zinc-500 max-w-sm mx-auto leading-relaxed">{copy.restDay.description}</p>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  className="bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-bold uppercase text-[10px] tracking-widest h-14 px-10 rounded-2xl shadow-2xl transition-all active:scale-95 border border-zinc-800 group"
-                  disabled={isInstantiatingExtra}
-                >
-                  <Plus className="w-4 h-4 mr-3 text-lime-400 group-hover:rotate-90 transition-transform" />
-                  {isInstantiatingExtra ? 'Copiando...' : copy.actions.addExtraSession}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-56 bg-white dark:bg-zinc-900  rounded-2xl p-2 shadow-2xl">
-                <div className="space-y-1">
-                  <DropdownMenuLabel className="text-[10px] dark:text-white font-bold uppercase tracking-widest text-zinc-500 p-2">Copiado rápido</DropdownMenuLabel>
-                  {planRoutines.map((r) => (
-                    <DropdownMenuItem
-                      key={r.id}
-                      onClick={() => addExtraSession(selectedDay!, r.id)}
-                      className="rounded-xl focus:bg-zinc-800 focus:text-lime-400 font-bold text-xs p-3 cursor-pointer group/item flex items-center"
-                    >
-                      <Dumbbell className="w-3.5 h-3.5 mr-2 opacity-50 group-hover/item:opacity-100 transition-all" />
-                      {r.nombre_dia || `Día ${r.dia_numero}`}
-                    </DropdownMenuItem>
-                  ))}
-                </div>
+        (selectedSesion?.isRestDay || !selectedSesion) && !loadingDetalle ? (
 
-                <DropdownMenuSeparator className="bg-zinc-800/10 my-2" />
-
-                <div className="space-y-1">
-                  {calendarDays
-                    .filter(d => d.rutinaIdOriginal && d.fecha !== selectedDay && d.fecha <= hoyISO)
-                    .slice(-3)
-                    .reverse()
-                    .map((d) => (
-                      <DropdownMenuItem
-                        key={d.fecha}
-                        onClick={() => d.rutinaIdOriginal && addExtraSession(selectedDay!, d.rutinaIdOriginal)}
-                        className="rounded-xl focus:bg-zinc-800 focus:text-lime-400 font-bold text-xs p-3 cursor-pointer group/item flex items-center"
-                      >
-                        <Copy className="w-3.5 h-3.5 mr-2 opacity-50 group-hover/item:opacity-100 transition-all" />
-                        <div className="flex flex-col">
-                          <span className="leading-tight">{d.nombreDia || `Día ${d.numeroDiaPlan}`}</span>
-                          <span className="text-[8px] opacity-30 font-bold uppercase tracking-tighter">
-                            {new Date(d.fecha + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
-                          </span>
-                        </div>
-                        <ChevronRight className="ml-auto w-3 h-3 opacity-0 group-hover/item:opacity-30 transition-all" />
-                      </DropdownMenuItem>
-                    ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <RestDayHUD
+            title={copy.restDay.title}
+            description={copy.restDay.description}
+            tag={copy.restDay.tag}
+            planRoutines={planRoutines}
+            onAddExtra={(rutinaId) => addExtraSession(selectedDay, rutinaId)}
+            isPending={isInstantiatingExtra}
+          />
         ) : selectedSesion ? (
+
           <div className="bg-white dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xl animate-in slide-in-from-bottom-2">
             {loadingDetalle ? <LoaderState label={copy.status.fetching} /> : (
               <>
@@ -261,8 +214,9 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest" suppressHydrationWarning>
                       <span>{formatFechaDisplay(selectedDay)}</span>
+
                       <span className="text-zinc-700">•</span>
                       <span className="text-lime-500/80 font-bold">
                         {selectedSesion.cycle_number && selectedSesion.cycle_number > 1
@@ -339,7 +293,8 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
                       onToggle={() => setExpandedExId(expandedExId === ej.id ? null : ej.id)}
                       onSave={(fields) => updateMetric(ej, fields)}
                       onSwap={() => { setSwapExId(ej.id); setSelectorMode("swap"); setIsSelectorOpen(true); }}
-                      onRemove={() => setScopeData({ type: "remove", id: ej.id, nombre: ej.nombre })}
+                      onRemove={() => removeExercise(ej.id, false)}
+
                     />
                   ))}
 
@@ -373,18 +328,8 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
         description={selectorMode === "add" ? copy.dialogs.selector.addDesc : copy.dialogs.selector.swapDesc}
       />
 
-      {/* Selector de Alcance (Solo hoy vs Permanente) */}
-      <ScopeSelectorDialog
-        data={scopeData}
-        onClose={() => setScopeData(null)}
-        onConfirm={(permanent) => {
-          if (!scopeData) return;
-          if (scopeData.type === "add") addExercise(scopeData.id, permanent);
-          else if (scopeData.type === "remove") removeExercise(scopeData.id, permanent);
-          else if (scopeData.type === "swap") swapExercise(scopeData.id, scopeData.nuevoId!, permanent);
-          setScopeData(null);
-        }}
-      />
+      {/* Selector de Alcance (ELIMINADO: ahora es siempre Solo Hoy) */}
+
     </div>
   );
 }

@@ -19,6 +19,16 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { StandardField } from "@/components/molecules/StandardField";
 import { QuickOptionsGroup } from "@/components/molecules/QuickOptionsGroup";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
+} from "@/components/ui/select";
 
 interface SimpleExercise {
   id: string;
@@ -29,29 +39,42 @@ interface SimpleExercise {
 interface ExerciseFormProps {
   initialValues?: Partial<ExerciseLibraryFormData>;
   parents?: SimpleExercise[]; // Lista de ejercicios para el selector de padre
+  existingTags?: string[];    // Categorías ya existentes en la base
   onSuccess?: (data: any) => void;
   onCancel?: () => void;
   successHref?: string;
   cancelHref?: string;
 }
 
-export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel, successHref, cancelHref }: ExerciseFormProps) {
+export function ExerciseForm({ 
+  initialValues, 
+  parents = [], 
+  existingTags = [],
+  onSuccess, 
+  onCancel, 
+  successHref, 
+  cancelHref 
+}: ExerciseFormProps) {
   const { execute, isPending } = useAsyncAction();
   const [tagInput, setTagInput] = React.useState("");
+  const [isCreatingNewTag, setIsCreatingNewTag] = React.useState(false);
   const [variantInput, setVariantInput] = React.useState("");
   const copy = exerciseLibraryCopy.form;
 
   // Use a strictly typed form to avoid common RHF + Zod issues
   const form = useForm<ExerciseLibraryFormData>({
-    resolver: zodResolver(exerciseLibrarySchema),
+    resolver: zodResolver(exerciseLibrarySchema) as any,
     defaultValues: {
       id: initialValues?.id,
       parent_id: initialValues?.parent_id || undefined,
       nombre: initialValues?.nombre ?? "",
       descripcion: initialValues?.descripcion ?? "",
       media_url: initialValues?.media_url ?? "",
+      video_url: (initialValues as any)?.video_url ?? "",
       tags: initialValues?.tags ?? [],
       is_template_base: initialValues?.is_template_base ?? false,
+      is_favorite: initialValues?.is_favorite ?? false,
+      usage_count: initialValues?.usage_count ?? 0,
       variants: [],
     } as ExerciseLibraryFormData,
   });
@@ -64,12 +87,12 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
       // Inyectar is_template_base automáticamente: si no tiene padre, es base.
       const finalValues = {
         ...values,
-        is_template_base: !values.parent_id
+        is_template_base: !values.parent_id || values.parent_id === "none"
       };
 
       const { data: result, error } = values.id
-        ? await actions.profesor.updateExercise(finalValues)
-        : await actions.profesor.createExercise(finalValues);
+        ? await actions.profesor.updateExercise(finalValues as any)
+        : await actions.profesor.createExercise(finalValues as any);
 
       if (error || !result) {
         throw error || new Error("Error desconocido");
@@ -84,8 +107,6 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
       }
     }, {
       loadingMsg: values.id ? "Guardando cambios..." : "Creando ejercicio...",
-      // Si el action devuelve un mensaje, useAsyncAction suele mostrarlo. 
-      // Si no, usamos estos por defecto.
       successHref: successHref
     });
   };
@@ -133,7 +154,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
 
   return (
     <Form {...(form as any)}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8">
         {/* Warning de Forking para Ejercicios Base de Sistema */}
         {initialValues?.id && (initialValues as any).profesor_id === null && (
           <div className="p-4 rounded-2xl bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-500 shadow-xl border border-white/10">
@@ -149,26 +170,59 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
           </div>
         )}
 
-        <FormField
-          control={form.control as any}
-          name="nombre"
-          render={({ field, fieldState }) => (
-            <StandardField
-              label={copy.labels.nombre}
-              error={fieldState.error?.message}
-              required
-            >
-              <FormControl>
-                <Input
-                  placeholder={copy.placeholders.nombre}
-                  {...field}
-                  value={field.value || ""}
-                  className="font-bold text-lg"
-                />
-              </FormControl>
-            </StandardField>
-          )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <FormField
+            control={form.control as any}
+            name="nombre"
+            render={({ field, fieldState }) => (
+              <StandardField
+                label={copy.labels.nombre}
+                error={fieldState.error?.message}
+                required
+              >
+                <FormControl>
+                  <Input
+                    placeholder={copy.placeholders.nombre}
+                    {...field}
+                    value={field.value || ""}
+                    className="font-bold text-lg h-14 rounded-2xl"
+                  />
+                </FormControl>
+              </StandardField>
+            )}
+          />
+
+          <FormField
+            control={form.control as any}
+            name="parent_id"
+            render={({ field }) => (
+              <StandardField
+                label="Ejercicio padre (Opcional)"
+                hint="Asocialo a un ejercicio base si es una variante."
+              >
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="h-14 rounded-2xl font-bold uppercase tracking-widest text-[10px]">
+                      <SelectValue placeholder="Seleccioná un padre..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="rounded-[2rem] p-2">
+                    <SelectItem value="none" className="rounded-xl">Ninguno (Es ejercicio base)</SelectItem>
+                    <SelectSeparator />
+                    {parents.map(p => (
+                      <SelectItem key={p.id} value={p.id} className="rounded-xl">
+                        {p.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </StandardField>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control as any}
@@ -180,7 +234,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
             >
               <FormControl>
                 <Textarea
-                  className="min-h-[140px] resize-none font-medium p-4 rounded-2xl"
+                  className="min-h-[140px] resize-none font-medium p-4 rounded-[2rem] border-zinc-200 dark:border-zinc-800 focus:ring-lime-500/20"
                   placeholder={copy.placeholders.descripcion}
                   maxLength={1000}
                   {...field}
@@ -191,8 +245,49 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
           )}
         />
 
-        <div className="flex">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          {/* MEDIA URL */}
+          <FormField
+            control={form.control as any}
+            name="media_url"
+            render={({ field, fieldState }) => (
+              <StandardField
+                label="Imagen / Miniatura (URL)"
+                error={fieldState.error?.message}
+              >
+                <FormControl>
+                  <Input
+                    type="url"
+                    className="h-14 rounded-2xl"
+                    placeholder="https://..."
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+              </StandardField>
+            )}
+          />
 
+          <FormField
+            control={form.control as any}
+            name="video_url"
+            render={({ field, fieldState }) => (
+              <StandardField
+                label="Video de técnica (YouTube/Vimeo)"
+                error={fieldState.error?.message}
+              >
+                <FormControl>
+                  <Input
+                    type="url"
+                    className="h-14 rounded-2xl"
+                    placeholder="https://youtube.com/..."
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+              </StandardField>
+            )}
+          />
 
           {/* INLINE VARIANTS SECTION - Solo si es Base */}
           {isBaseExercise && (
@@ -201,8 +296,8 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
               name="variants"
               render={({ field }) => (
                 <StandardField
-                  label="Variantes"
-                  hint="Añadí variaciones rápidas (ej: Sumo, Copa, etc.)"
+                  label="Variantes rápidas"
+                  hint="Añadí variantes (ej: Sumo, Copa, etc.)"
                 >
                   <div className="space-y-4">
                     <div className="flex gap-2">
@@ -217,7 +312,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
                               if (addVariant(variantInput)) setVariantInput("");
                             }
                           }}
-                          className="font-medium h-12"
+                          className="font-medium h-12 rounded-xl"
                         />
                       </FormControl>
                       <Button
@@ -233,9 +328,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
                       </Button>
                     </div>
 
-                    {/* Existing Variants (Read-only) + New Variants */}
                     <div className="flex flex-wrap gap-2 min-h-[40px]">
-                      {/* Existentes */}
                       {initialValues?.existing_variants?.map(v => (
                         <div key={v.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 opacity-60">
                           <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">
@@ -244,7 +337,6 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
                         </div>
                       ))}
 
-                      {/* Nuevas por crear */}
                       {field.value.map(vName => (
                         <div key={vName} className="flex items-center gap-1.5 pl-3 pr-1 py-1.5 rounded-xl bg-lime-500/10 border border-lime-500/20 text-lime-600 dark:text-lime-400 group animate-in fade-in zoom-in duration-300">
                           <span className="text-[10px] font-bold uppercase tracking-tight">
@@ -259,12 +351,6 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
                           </button>
                         </div>
                       ))}
-
-                      {!(initialValues?.existing_variants?.length) && !field.value.length && (
-                        <span className="text-[10px] font-bold text-zinc-400 italic py-2">
-                          Sin variantes cargadas.
-                        </span>
-                      )}
                     </div>
                   </div>
                 </StandardField>
@@ -275,81 +361,109 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
 
         <FormField
           control={form.control as any}
-          name="media_url"
-          render={({ field, fieldState }) => (
-            <StandardField
-              label={copy.labels.mediaUrl}
-              error={fieldState.error?.message}
-            >
-              <FormControl>
-                <Input
-                  type="url"
-                  placeholder={copy.placeholders.mediaUrl}
-                  {...field}
-                  value={field.value || ""}
-                />
-              </FormControl>
-            </StandardField>
-          )}
-        />
-
-        <FormField
-          control={form.control as any}
           name="tags"
           render={({ field, fieldState }) => (
             <StandardField
               label={copy.labels.tags}
               error={fieldState.error?.message}
-              hint={`Máx 6 etiquetas. Enter para añadir.`}
+              hint={`Seleccioná categorías existentes o creá una nueva.`}
             >
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <FormControl>
-                    <Input
-                      placeholder={copy.placeholders.tags}
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          if (addTag(tagInput)) setTagInput("");
+              <div className="space-y-6">
+                {!isCreatingNewTag ? (
+                  <div className="flex gap-2">
+                    <Select
+                      onValueChange={(val) => {
+                        if (val === "NEW") {
+                          setIsCreatingNewTag(true);
+                        } else {
+                          addTag(val);
                         }
                       }}
-                      className="font-medium"
-                      disabled={field.value.length >= 6}
-                    />
-                  </FormControl>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0 rounded-xl"
-                    onClick={() => {
-                      if (addTag(tagInput)) setTagInput("");
-                    }}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* Quick Tags */}
-                <QuickOptionsGroup
-                  options={copy.quickTags}
-                  selectedOptions={field.value || []}
-                  onToggle={toggleTag}
-                  maxSelections={6}
-                />
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-14 rounded-2xl font-bold uppercase tracking-widest text-[10px]">
+                          <SelectValue placeholder="Elegir categoría..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="rounded-[2rem] p-2">
+                        <SelectGroup>
+                          <SelectLabel>Populares</SelectLabel>
+                          {copy.quickTags.map(tag => (
+                            <SelectItem key={tag} value={tag} className="rounded-xl">{tag}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectSeparator />
+                        <SelectGroup>
+                          <SelectLabel>Mis categorías</SelectLabel>
+                          {existingTags.filter(t => !(copy.quickTags as readonly string[]).includes(t)).map(tag => (
+                            <SelectItem key={tag} value={tag} className="rounded-xl">{tag}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectSeparator />
+                        <SelectItem value="NEW" className="rounded-xl text-lime-500 font-black">
+                          + Crear nueva categoría...
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="flex gap-2 animate-in slide-in-from-left-2 duration-300">
+                    <FormControl>
+                      <Input
+                        placeholder="Escribí el nombre de la categoría..."
+                        value={tagInput}
+                        autoFocus
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (addTag(tagInput)) {
+                              setTagInput("");
+                              setIsCreatingNewTag(false);
+                            }
+                          } else if (e.key === "Escape") {
+                            setIsCreatingNewTag(false);
+                          }
+                        }}
+                        className="font-medium h-14 rounded-2xl"
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="industrial"
+                      className="shrink-0 rounded-2xl h-14 px-6"
+                      onClick={() => {
+                        if (addTag(tagInput)) {
+                          setTagInput("");
+                          setIsCreatingNewTag(false);
+                        }
+                      }}
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      <span className="text-[10px] font-bold uppercase">Añadir</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-14 w-14 rounded-2xl"
+                      onClick={() => setIsCreatingNewTag(false)}
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                )}
 
                 {/* Selected Chips */}
                 {field.value && field.value.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pt-2">
+                  <div className="flex flex-wrap gap-2">
                     {field.value.map(tag => (
-                      <div key={tag} className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[9px] font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                      <div key={tag} className="flex items-center gap-2 pl-3 pr-1 py-1.5 rounded-xl bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-[10px] font-black uppercase tracking-widest shadow-xl border border-white/10">
                         {tag}
                         <button
                           type="button"
                           onClick={() => removeTag(tag)}
-                          className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md transition-colors"
+                          className="p-1 hover:bg-white/10 dark:hover:bg-zinc-100 rounded-lg transition-colors"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -362,7 +476,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
           )}
         />
 
-        <div className="flex gap-3 pt-6 justify-end items-center">
+        <div className="flex gap-3 pt-12 justify-end items-center border-t border-zinc-100 dark:border-zinc-800">
           {(onCancel || cancelHref) && (
             <Button
               type="button"
@@ -382,7 +496,7 @@ export function ExerciseForm({ initialValues, parents = [], onSuccess, onCancel,
             disabled={isPending}
             variant="industrial"
             size="xl"
-            className="px-12 shadow-2xl shadow-lime-400/10"
+            className="px-12 shadow-2xl shadow-lime-400/10 h-16"
           >
             {isPending ? (
               <Loader2 className="w-5 h-5 animate-spin" />

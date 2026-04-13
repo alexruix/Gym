@@ -89,14 +89,19 @@ export function useCalendarOperations(
       // Haptic Feedback
       if ('vibrate' in navigator) navigator.vibrate(20);
       toast.success(data.mensaje);
+
+      // Actualización optimista inmediata
+      setSelectedSesion(prev => prev ? { ...prev, estado: 'completada' } : null);
+
       return true; // Éxito
+
     } catch (err: any) {
       toast.error("Error al cerrar sesión: " + err.message);
       return false;
     }
   }, [alumnoId, selectedSesion, ensureSessionId]);
 
-  const swapExercise = useCallback(async (ejId: string, nuevoBibId: string, isPermanent: boolean) => {
+  const swapExercise = useCallback(async (ejId: string, nuevoBibId: string, _isPermanent: boolean) => {
     if (!selectedSesion) return;
     try {
       const targetId = await ensureSessionId(selectedSesion);
@@ -105,18 +110,19 @@ export function useCalendarOperations(
         sesion_id: targetId,
         ejercicio_id: ejId,
         nuevo_biblioteca_id: nuevoBibId,
-        is_permanent: isPermanent
+        is_permanent: false // Forzado: Organismo Vivo
       });
       if (error) throw error;
-      toast.success(data.mensaje);
+      toast.success("Ejercicio cambiado correctamente (sólo por hoy).");
       return true;
+
     } catch (err: any) {
       toast.error("Error: " + err.message);
       return false;
     }
   }, [alumnoId, selectedSesion, ensureSessionId]);
 
-  const addExercise = useCallback(async (bibId: string, isPermanent: boolean) => {
+  const addExercise = useCallback(async (bibId: string, _isPermanent: boolean) => {
     if (!selectedSesion) return;
     try {
         const targetId = await ensureSessionId(selectedSesion);
@@ -124,18 +130,19 @@ export function useCalendarOperations(
             alumno_id: alumnoId,
             sesion_id: targetId,
             biblioteca_id: bibId,
-            is_permanent: isPermanent
+            is_permanent: false // Forzado: Organismo Vivo
         });
         if (error) throw error;
-        toast.success(data.mensaje);
+        toast.success("Ejercicio añadido para esta sesión.");
         return true;
+
     } catch (err: any) {
         toast.error("Error: " + err.message);
         return false;
     }
   }, [alumnoId, selectedSesion, ensureSessionId]);
 
-  const removeExercise = useCallback(async (ejId: string, isPermanent: boolean) => {
+  const removeExercise = useCallback(async (ejId: string, _isPermanent: boolean) => {
     if (!selectedSesion) return;
     try {
         const targetId = await ensureSessionId(selectedSesion);
@@ -143,11 +150,12 @@ export function useCalendarOperations(
             alumno_id: alumnoId,
             sesion_id: targetId,
             ejercicio_id: ejId,
-            is_permanent: isPermanent
+            is_permanent: false // Forzado: Organismo Vivo
         });
         if (error) throw error;
-        toast.success(data.mensaje);
+        toast.success("Ejercicio quitado (sólo por hoy).");
         return true;
+
     } catch (err: any) {
         toast.error("Error: " + err.message);
         return false;

@@ -27,6 +27,7 @@ export interface PlanRowData {
   frequency: number;
   studentsCount: number;
   createdAt: string;
+  isMaster?: boolean;
 }
 
 interface Props {
@@ -43,7 +44,14 @@ export function PlanesTable({ planes, onDelete, onDuplicate }: Props) {
       header: c.columns.name,
       render: (plan) => (
         <div className="flex flex-col">
-          <span className="font-bold text-zinc-950 dark:text-white text-base tracking-tight">{plan.name}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-zinc-950 dark:text-white text-base tracking-tight">{plan.name}</span>
+            {plan.isMaster && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-lime-500 text-black uppercase tracking-widest animate-pulse">
+                Master
+              </span>
+            )}
+          </div>
           <span className="text-xs text-zinc-400 font-medium mt-0.5" suppressHydrationWarning>
             Creado el {new Date(plan.createdAt).toLocaleDateString("es-AR", { day: '2-digit', month: 'short' })}
           </span>
@@ -111,10 +119,11 @@ export function PlanesTable({ planes, onDelete, onDuplicate }: Props) {
               <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
               <DropdownMenuItem
                 onClick={() => onDelete?.(plan)}
-                className="rounded-lg cursor-pointer text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 focus:bg-red-50 focus:text-red-700"
+                disabled={plan.isMaster}
+                className={`rounded-lg cursor-pointer text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 focus:bg-red-50 focus:text-red-700 ${plan.isMaster ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
               >
                 <Trash2 className="w-4 h-4 mr-2 text-red-600" aria-hidden="true" />
-                {c.dropdownMenu.deletePlan}
+                {plan.isMaster ? "Plan bloqueado" : c.dropdownMenu.deletePlan}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import {
   User,
   ExternalLink,
@@ -6,7 +6,8 @@ import {
   Moon,
   LogOut,
   Check,
-  Loader2
+  Loader2,
+  BookOpen
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,8 +36,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
 
   // Initialize theme from localStorage/document
   React.useEffect(() => {
-    const isDarkTheme = document.documentElement.classList.contains("dark") ||
-      localStorage.getItem("theme") === "dark";
+    const isDarkTheme = localStorage.getItem("theme") === "dark";
     setIsDark(isDarkTheme);
   }, []);
 
@@ -122,12 +122,24 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
               <span className="text-sm font-bold">Ver perfil público</span>
             </DropdownMenuItem>
           )}
+
+          <DropdownMenuItem
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-900"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new Event('restore-onboarding'));
+              }
+            }}
+          >
+            <BookOpen className="w-4 h-4 text-lime-500" />
+            <span className="text-sm font-bold">Guía de Inicio</span>
+          </DropdownMenuItem>
         </div>
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
 
         <div className="py-1">
-          <DropdownMenuItem
+          {/* <DropdownMenuItem
             className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-900"
             onClick={copyLandingLink}
           >
@@ -136,15 +148,15 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
               <span className="text-sm font-bold">Copiá tu enlace</span>
             </div>
             {isCopied && <Check className="w-4 h-4 text-lime-500" />}
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
 
-          {/* <div className="flex items-center justify-between px-3 py-2.5 rounded-xl">
+          <div className="flex items-center justify-between px-3 py-2.5 rounded-xl">
             <div className="flex items-center gap-3">
               <Moon className="w-4 h-4 text-zinc-500" />
               <span className="text-sm font-bold">Modo Oscuro</span>
             </div>
             <Switch checked={isDark} onCheckedChange={toggleTheme} />
-          </div> */}
+          </div>
         </div>
 
         <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
@@ -155,11 +167,11 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
           disabled={isLoggingOut}
         >
           {isLoggingOut ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin text-destructive" />
           ) : (
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 text-destructive" />
           )}
-          <span className="text-sm font-bold uppercase tracking-wide">Cerrar Sesión</span>
+          <span className="text-sm font-bold tracking-wide text-destructive">Cerrar Sesión</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -20,6 +20,8 @@ import {
   updateStudentMetricWithPropagationSchema,
   completeSessionByProfessorSchema,
   updateStudentStartDateOffsetSchema,
+  activarPerfilSchema,
+  updateStudentProfileSchema
 } from "../lib/validators";
 import { getDayNumber, getWeekNumber, getTodayISO, getCyclicDayNumber, getCycleInfo, getStructuralDay, convertDaysToNumbers } from "@/lib/schedule";
 
@@ -37,6 +39,86 @@ import { getDayNumber, getWeekNumber, getTodayISO, getCyclicDayNumber, getCycleI
   };
 
 export const alumnoActions = {
+
+  /**
+   * activarPerfilTecnico: (Alumno) Guarda la configuración inicial JIT.
+   */
+  activarPerfilTecnico: defineAction({
+    accept: "json",
+    input: activarPerfilSchema,
+    handler: async (input, context) => {
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+      const supabase = getAuthenticatedClient(context);
+
+      const { error } = await supabase
+        .from("alumnos")
+        .update({
+          peso_actual: input.peso_actual,
+          objetivo_principal: input.objetivo_principal,
+          dias_asistencia: input.dias_asistencia,
+          lesiones: input.lesiones,
+          perfil_completado: true
+        } as any)
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`);
+
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `Error al guardar perfil: ${error.message}` });
+
+      return { success: true, message: "¡HUD configurado exitosamente!" };
+    }
+  }),
+
+  /**
+   * updateStudentProfile: (Alumno) Permite actualizar el perfil técnico y personal.
+   */
+  updateStudentProfile: defineAction({
+    accept: "json",
+    input: updateStudentProfileSchema,
+    handler: async (input, context) => {
+      const user = context.locals.user;
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      const supabase = getAuthenticatedClient(context);
+
+      // Limpieza de inputs si vinieron como string vacío desde el form
+      const cleanInput = Object.fromEntries(
+        Object.entries(input).map(([k, v]) => [k, v === "" ? null : v])
+      ) as any;
+
+      const { data: updated, error } = await supabase
+        .from("alumnos")
+        .update({
+          telefono: cleanInput.telefono,
+          fecha_nacimiento: cleanInput.fecha_nacimiento,
+          peso_actual: cleanInput.peso_actual,
+          altura_cm: cleanInput.altura_cm,
+          objetivo_principal: cleanInput.objetivo_principal,
+          nivel_experiencia: cleanInput.nivel_experiencia,
+          profesion: cleanInput.profesion,
+          lesiones: cleanInput.lesiones,
+          genero: cleanInput.genero,
+          turno_id: cleanInput.turno_id,
+          dias_asistencia: cleanInput.dias_asistencia,
+          perfil_completado: true,
+        })
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("[DEBUG] StudentUpdateError:", {
+          user_id: user.id,
+          input: cleanInput,
+          supabase_error: error
+        });
+        throw new ActionError({ 
+          code: "INTERNAL_SERVER_ERROR", 
+          message: `Error al actualizar: ${error.message}${error.hint ? ' - ' + error.hint : ''}` 
+        });
+      }
+
+      return { success: true, data: updated };
+    },
+  }),
 
   // =============================================
   // CALENDARIO OPERATIVO REAL
@@ -172,7 +254,7 @@ export const alumnoActions = {
         diaParaNombre = rutinaDeHoy.dia_numero;
       } else {
         // MODO AUTOMÁTICO: Siguiendo la agenda de asistencia confirmada
-        const diaEstructural = getStructuralDay(fechaInicio, new Date(fechaReal), availableDiaNumeros, diasAsistencia);
+        const diaEstructural = getStructuralDay(fechaInicio, new Date(fechaReal + "T12:00:00"), availableDiaNumeros, diasAsistencia);
         
         if (diaEstructural === 0) {
           throw new Error("Día de descanso oficial. Para sumar una sesión hoy, debés elegir una rutina manualmente como 'Sesión Extra'.");
@@ -188,8 +270,9 @@ export const alumnoActions = {
 
       const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(
         fechaInicio, 
-        new Date(fechaReal), 
-        planDetalle?.duracion_semanas || 4
+        new Date(fechaReal + "T12:00:00"), 
+        planDetalle?.duracion_semanas || 4,
+        diasAsistencia
       );
 
       // 6. Buscar los ejercicios de esa rutina
@@ -468,7 +551,8 @@ export const alumnoActions = {
       const desdISO = desde.toISOString().split("T")[0];
       const hastaISO = hasta.toISOString().split("T")[0];
 
-      // 2b. Obtener duración del plan para ciclos
+      const fechaInicio = alumno.fecha_inicio || hoyStr;
+
       const { data: planDetalle } = await supabase
         .from("planes")
         .select("duracion_semanas")
@@ -492,8 +576,8 @@ export const alumnoActions = {
       // 3b. Obtener qué días del plan tienen rutinas configuradas para distinguir descansos e identificar copiado
       const { data: rutinasPlan } = await supabase
         .from("rutinas_diarias")
-        .select("id, dia_numero")
-        .eq("plan_id", (alumno as any).plan_id)
+        .select("id, dia_numero, nombre_dia")
+        .eq("plan_id", alumno.plan_id)
         .order("dia_numero", { ascending: true });
       
       const activeDaysMap = new Map(((rutinasPlan as any[]) || []).map(r => [r.dia_numero, r.id]));
@@ -502,7 +586,6 @@ export const alumnoActions = {
       // 4. Construir el array de días con cálculo de numero_dia_plan para los que no existen
       const diasAsistenciaRaw = alumno.dias_asistencia || [];
       const diasAsistencia = convertDaysToNumbers(diasAsistenciaRaw);
-      const fechaInicio = alumno.fecha_inicio || hoyStr;
       const days = [];
       const currentDate = new Date(desde);
 
@@ -515,7 +598,8 @@ export const alumnoActions = {
         const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(
           fechaInicio, 
           currentDate, 
-          (planDetalle as any)?.duracion_semanas || 4
+          (planDetalle as any)?.duracion_semanas || 4,
+          diasAsistencia
         );
 
         const numeroDia = sesion?.numero_dia_plan ?? getDayNumber(fechaInicio, currentDate, diasAsistencia);
@@ -999,7 +1083,7 @@ export const alumnoActions = {
       const { data: a, error: e } = await supabase
         .from("alumnos")
         .select(`
-          id, nombre, fecha_inicio, plan_id, dias_asistencia,
+          id, nombre, fecha_inicio, plan_id, dias_asistencia, perfil_completado,
           planes (id, nombre, duracion_semanas, frecuencia_semanal),
           turnos (id, nombre, hora_inicio, hora_fin)
         `)
@@ -1016,18 +1100,60 @@ export const alumnoActions = {
       const hoyISO = getTodayISO();
 
       // 2. Sesión de hoy (priorizar instanciada)
-      const { data: sesionHoy } = await supabase
+      let sesionHoyRaw: any = null;
+      const { data: sesionHoyData } = await supabase
         .from("sesiones_instanciadas")
         .select(`
           id, estado, nombre_dia, numero_dia_plan, semana_numero,
           sesion_ejercicios_instanciados (
             id, orden, series_plan, reps_plan, peso_plan, descanso_seg, completado,
-            biblioteca_ejercicios (nombre)
+            biblioteca_ejercicios (id, nombre, media_url)
           )
         `)
         .eq("alumno_id", alumno.id)
         .eq("fecha_real", hoyISO)
-        .single();
+        .maybeSingle();
+
+      sesionHoyRaw = sesionHoyData;
+
+      // 2b. Si no hay sesión instanciada, preparar routinePreview si hoy toca entrenar
+      let routinePreview = null;
+      if (!sesionHoyRaw && plan) {
+        const { data: rutinasPlan } = await supabase
+          .from("rutinas_diarias")
+          .select("id, dia_numero, nombre_dia")
+          .eq("plan_id", plan.id)
+          .order("dia_numero", { ascending: true });
+        
+        const available = (rutinasPlan || []).map(r => r.dia_numero);
+        const diaEst = getStructuralDay(fechaInicio, new Date(hoyISO + 'T12:00:00'), available, diasAsistenciaIdx);
+        
+        if (diaEst > 0) {
+          const rutina = (rutinasPlan || []).find(r => r.dia_numero === diaEst);
+          if (rutina) {
+            const { data: ejs } = await supabase
+              .from("ejercicios_plan")
+              .select("id, orden, series, reps_target, peso_target, descanso_seg, biblioteca_ejercicios(id, nombre, media_url)")
+              .eq("rutina_id", rutina.id)
+              .order("orden", { ascending: true });
+
+            routinePreview = {
+              nombre_dia: rutina.nombre_dia || `Día ${diaEst}`,
+              numero_dia_plan: diaEst,
+              ejercicios: (ejs || []).map((ej: any) => ({
+                ejercicio_plan_id: ej.id,
+                nombre: (ej.biblioteca_ejercicios as any)?.nombre || "Ejercicio",
+                media_url: (ej.biblioteca_ejercicios as any)?.media_url,
+                series_plan: ej.series,
+                reps_plan: ej.reps_target,
+                peso_plan: sanitizeWeight(ej.peso_target),
+                descanso_seg: ej.descanso_seg,
+                completado: false
+              }))
+            };
+          }
+        }
+      }
 
       // 3. Lógica inteligente de "Próximo Entrenamiento" (Skip rest days)
       let proximaSesion = null;
@@ -1108,7 +1234,7 @@ export const alumnoActions = {
         const isToday = iso === hoyISO;
         
         const dayNum = sesion?.numero_dia_plan ?? getDayNumber(fechaInicio, iter, diasAsistenciaIdx);
-        const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(fechaInicio, iter, plan?.duracion_semanas || 4);
+        const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(fechaInicio, iter, plan?.duracion_semanas || 4, diasAsistenciaIdx);
 
         let status = "futura";
         if (sesion) status = sesion.estado;
@@ -1140,11 +1266,14 @@ export const alumnoActions = {
           alumno: { 
             id: alumno.id, 
             nombre: alumno.nombre, 
+            plan_id: alumno.plan_id,
             plan_nombre: plan?.nombre,
             has_plan: !!plan,
+            dias_asistencia: alumno.dias_asistencia || []
           },
           turno,
-          sesionHoy: sesionHoy as any,
+          sesionHoy: sesionHoyRaw as any,
+          routinePreview,
           proximaSesion,
           calendarDays,
           semanaActual: getWeekNumber(fechaInicio, new Date(), diasAsistenciaIdx),
@@ -1283,7 +1412,12 @@ export const alumnoActions = {
     }
   }),
 
+  /**
+   * updateStudentProfile: Permite al alumno editar su propia ficha técnica y configuración de turnos.
+   */
+
   // =============================================
+
   // ACCIONES LEGACY 
   // =============================================
   logExercise: defineAction({ accept: "json", input: sessionLogSchema, handler: async () => ({ success: true }) }),

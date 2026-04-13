@@ -11,25 +11,29 @@ const user = userAuth?.user;
 
 if (!user) return Astro.redirect("/login");
 
-// 1. Fetch de Turnos
-const { data: turnos } = await supabase
-  .from("turnos")
-  .select("*, dias_asistencia")
-  .eq("profesor_id", user.id)
-  .order("hora_inicio");
+// 1. Fetch Paralelo Inicial: Turnos y Alumnos
+const [turnosData, rawStudentsData] = await Promise.all([
+  supabase
+    .from("turnos")
+    .select("*, dias_asistencia")
+    .eq("profesor_id", user.id)
+    .order("hora_inicio"),
+  supabase
+    .from("alumnos")
+    .select("id, nombre, turno_id, dias_asistencia")
+    .eq("profesor_id", user.id)
+    .is("deleted_at", null)
+]);
 
-// 2. Fetch de Alumnos con su turno asignado
-const { data: rawStudents } = await supabase
-  .from("alumnos")
-  .select("id, nombre, turno_id, dias_asistencia")
-  .eq("profesor_id", user.id)
-  .is("deleted_at", null);
+const turnos = turnosData.data;
+const rawStudents = rawStudentsData.data;
 
 // Mapeo a BaseEntity (name <-> nombre) para que DashboardConsole funcione SSOT
 const students = ((rawStudents || []) as any[]).map(s => ({
   ...s,
   name: s.nombre
 }));
+
 
 // 3. Fetch de Sesiones e Instancias para calcular progreso HOY
 const today = new Date().toISOString().split('T')[0];

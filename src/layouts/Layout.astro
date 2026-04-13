@@ -17,7 +17,7 @@ const { title, description = 'Gestioná tu gimnasio sin hojas de cálculo. Plane
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content={description} />
-		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="manifest" href="/manifest.json" />
 		
@@ -40,7 +40,7 @@ const { title, description = 'Gestioná tu gimnasio sin hojas de cálculo. Plane
 		<script is:inline>
 			(function() {
 				const theme = localStorage.getItem('theme');
-				if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+				if (theme === 'dark') {
 					document.documentElement.classList.add('dark');
 				} else {
 					document.documentElement.classList.remove('dark');
@@ -48,10 +48,12 @@ const { title, description = 'Gestioná tu gimnasio sin hojas de cálculo. Plane
 			})();
 		</script>
 	</head>
-	<body>
+	<body class="overflow-x-hidden font-sans antialiased bg-background text-foreground">
 		<slot />
-		<Toaster client:load />
-		<PwaManager client:only="react" />
+		<Toaster client:load transition:persist="toaster" />
+		<div transition:persist="pwa-manager">
+			<PwaManager client:only="react" />
+		</div>
 
 		{/* Service Worker Registration */}
 		<script is:inline>

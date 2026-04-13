@@ -60,7 +60,7 @@ const planData = plan as any;
 import { actions } from "astro:actions";
 
 // 3. Fetch exercise library unificada (Personales + MiGym)
-const { data: exercises } = await Astro.callAction(actions.profesor.getExercises, {});
+const { data: exercises } = await Astro.callAction(actions.ejercicios.getExerciseLibrary, {});
 
 // 4. Map DB data to Form Schema and Ensure 365 days with sanitization
 const rutinasMap = new Map(planData.rutinas_diarias.map((r: any) => [r.dia_numero, r]));

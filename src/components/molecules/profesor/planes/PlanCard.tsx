@@ -19,6 +19,7 @@ interface PlanCardProps {
         frequency: number;
         studentsCount: number;
         createdAt: string;
+        isMaster?: boolean;
     };
     onEdit?: (id: string) => void;
     onDelete?: (plan: any) => void;
@@ -82,11 +83,17 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
 
                 {/* Right Action: Delete */}
                 <button 
-                    onClick={() => { onDelete?.(plan); resetSwipe(); }}
-                    className="flex flex-col items-center justify-center w-[70px] h-full bg-red-600 text-white transition-all active:scale-90"
+                    onClick={() => { if (!plan.isMaster) onDelete?.(plan); resetSwipe(); }}
+                    disabled={plan.isMaster}
+                    className={cn(
+                        "flex flex-col items-center justify-center w-[70px] h-full transition-all active:scale-90",
+                        plan.isMaster ? "bg-zinc-200 text-zinc-400 cursor-not-allowed" : "bg-red-600 text-white"
+                    )}
                 >
                     <Trash2 className="w-5 h-5 mb-1" />
-                    <span className="text-[8px] font-black uppercase tracking-tight">Borrar</span>
+                    <span className="text-[8px] font-black uppercase tracking-tight">
+                        {plan.isMaster ? "Bloqueado" : "Borrar"}
+                    </span>
                 </button>
             </div>
 
@@ -117,6 +124,11 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
                             <h3 className="font-bold text-base md:text-xl text-zinc-950 dark:text-zinc-50 line-clamp-1 capitalize tracking-tight leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
                                 <a href={`/profesor/planes/${plan.id}`}>{plan.name}</a>
                             </h3>
+                            {plan.isMaster && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-black bg-lime-500 text-black uppercase tracking-widest animate-pulse">
+                                    Master
+                                </span>
+                            )}
                             <div className="hidden md:block">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>

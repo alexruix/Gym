@@ -20,7 +20,10 @@ import {
   blockSchema 
 } from "@/lib/validators";
 import { baseExercises } from "@/data/es/profesor/biblioteca-base";
+import { masterPlans } from "@/data/es/profesor/plan-master";
 import type { DashboardData } from "@/types/dashboard";
+
+let hasMasterSynced = false;
 
 export const profesorActions = {
   getBlocks: defineAction({
@@ -815,6 +818,7 @@ export const profesorActions = {
       if (input.email) updateData.email = input.email.toLowerCase().trim();
       if (input.telefono !== undefined) updateData.telefono = input.telefono;
       if (input.fecha_inicio) updateData.fecha_inicio = input.fecha_inicio.toISOString().split('T')[0];
+      if (input.fecha_fin !== undefined) updateData.fecha_fin = input.fecha_fin ? input.fecha_fin.toISOString().split('T')[0] : null;
       if (input.dia_pago) updateData.dia_pago = input.dia_pago;
       if (input.monto !== undefined) updateData.monto = input.monto;
       if (input.suscripcion_id !== undefined) updateData.suscripcion_id = input.suscripcion_id;
@@ -1530,18 +1534,31 @@ export const profesorActions = {
       const students = (studentsData as any[]) || [];
       const studentIds = students.map((s) => s.id);
 
-      // 2. Últimas Sesiones
-      const { data: allLastSessions } = studentIds.length > 0
-        ? await supabase
-            .from("sesiones_instanciadas")
-            .select("alumno_id, completed_at, updated_at")
-            .in("alumno_id", studentIds)
-            .eq("estado", "completada")
-            .order("completed_at", { ascending: false })
-        : { data: [] };
+      // 2. Fetch Paralelo de Datos Relacionados (Sincronizado tras tener IDs de alumnos)
+      const [allLastSessions, pagosData, recentSessions] = studentIds.length > 0
+        ? await Promise.all([
+            supabase
+              .from("sesiones_instanciadas")
+              .select("alumno_id, completed_at, updated_at")
+              .in("alumno_id", studentIds)
+              .eq("estado", "completada")
+              .order("completed_at", { ascending: false }),
+            supabase
+              .from("pagos")
+              .select("alumno_id, monto, fecha_vencimiento, fecha_pago, estado")
+              .in("alumno_id", studentIds),
+            supabase
+              .from("sesiones_instanciadas")
+              .select("id, fecha_real, alumno_id, alumnos ( nombre )")
+              .in("alumno_id", studentIds)
+              .order("fecha_real", { ascending: false })
+              .limit(10)
+          ])
+        : [{ data: [] }, { data: [] }, { data: [] }];
 
+      // 3. Procesamiento de Sesiones (Last Session Map)
       const studentLastSessionMap = new Map<string, string>();
-      (allLastSessions || []).forEach(s => {
+      (allLastSessions.data || []).forEach(s => {
         if (!studentLastSessionMap.has(s.alumno_id)) {
           studentLastSessionMap.set(s.alumno_id, s.completed_at || s.updated_at);
         }
@@ -1551,7 +1568,7 @@ export const profesorActions = {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      // 3. Alertas
+      // 4. Alertas (No Plan y At Risk)
       const noPlanStudents = students
         .filter((s) => s.planes === null)
         .map((s) => ({ id: s.id, studentName: s.nombre }));
@@ -1572,15 +1589,8 @@ export const profesorActions = {
             : undefined
         }));
 
-      // 4. Pagos y Cobros
-      const { data: pagosData } = studentIds.length > 0
-        ? await supabase
-            .from("pagos")
-            .select("alumno_id, monto, fecha_vencimiento, fecha_pago, estado")
-            .in("alumno_id", studentIds)
-        : { data: [] };
-
-      const pagos = (pagosData as any[]) || [];
+      // 5. Pagos y Cobros
+      const pagos = (pagosData.data as any[]) || [];
       const expiringPayments = pagos
         .filter((p) => p.estado === "pendiente" || p.estado === "vencido")
         .flatMap((p) => {
@@ -1599,14 +1609,14 @@ export const profesorActions = {
         .filter(p => p.estado === "pagado" && p.fecha_pago && new Date(p.fecha_pago) >= startOfMonth)
         .reduce((sum, p) => sum + (p.monto || 0), 0);
 
-      // 5. Adherencia
+      // 6. Adherencia
       const trainedRecently = activeStudents.filter((s) => {
         const lastSession = studentLastSessionMap.get(s.id);
         return lastSession && new Date(lastSession) >= sevenDaysAgo;
       });
       const adherenceRate = activeStudents.length > 0 ? Math.round((trainedRecently.length / activeStudents.length) * 100) : 0;
 
-      // 6. Alumnos Recientes y Actividad
+      // 7. Alumnos Recientes y Actividad
       const recentStudents = students.slice(0, 5).map((s) => ({
         id: s.id,
         name: s.nombre,
@@ -1615,17 +1625,8 @@ export const profesorActions = {
         status: s.estado
       }));
 
-      const { data: recentSessions } = studentIds.length > 0
-        ? await supabase
-            .from("sesiones_instanciadas")
-            .select("id, fecha_real, alumno_id, alumnos ( nombre )")
-            .in("alumno_id", studentIds)
-            .order("fecha_real", { ascending: false })
-            .limit(10)
-        : { data: [] };
-
       const now = new Date();
-      const activities = (recentSessions || []).map((s: any) => {
+      const activities = (recentSessions.data || []).map((s: any) => {
         const diffDays = Math.floor((now.getTime() - new Date(s.fecha_real).getTime()) / (1000 * 60 * 60 * 24));
         return {
           id: s.id,
@@ -1650,5 +1651,89 @@ export const profesorActions = {
         lastUpdated: new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
       };
     },
+  }),
+
+  /**
+   * Sincroniza los Master Plans desde el archivo estático plan-master.ts.
+   * Utiliza profesor_id: null para que sean plantillas globales del sistema.
+   */
+  getPlanes: defineAction({
+    accept: "json",
+    handler: async (_, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new Error("No autorizado");
+
+      // 1. SILENT SYNC DE MASTER PLANS
+      if (!hasMasterSynced) {
+        hasMasterSynced = true;
+        Promise.resolve().then(async () => {
+          console.log("[Master Sync] Verificando catálogo de planes...");
+          
+          // Obtener IDs de ejercicios base para el mapeo
+          const { data: rawExercises } = await supabaseAdmin
+            .from("biblioteca_ejercicios")
+            .select("id, nombre")
+            .is("profesor_id", null);
+
+          const exercises = (rawExercises || []) as any[];
+          const exMap = new Map<string, string>(exercises.map(e => [e.nombre.toLowerCase().trim(), e.id]));
+
+          for (const planTemplate of masterPlans) {
+            // Verificar si el plan ya existe mediante el nombre
+            const { data: existing } = await supabaseAdmin
+              .from("planes")
+              .select("id")
+              .eq("nombre", planTemplate.nombre)
+              .is("profesor_id", null)
+              .maybeSingle();
+
+            if (!existing) {
+              console.log(`[Master Sync] Sembrando nuevo plan: ${planTemplate.nombre}`);
+              
+              // Mapear rutinas y ejercicios para el RPC
+              const mappedRutinas = planTemplate.rutinas.map(r => ({
+                dia_numero: r.dia_numero,
+                nombre_dia: r.nombre_dia,
+                ejercicios: r.ejercicios.map(e => ({
+                  ejercicio_id: exMap.get(e.nombre.toLowerCase().trim()) || null,
+                  series: e.series,
+                  reps_target: e.reps_target,
+                  descanso_seg: e.descanso_seg,
+                  exercise_type: e.exercise_type || "base"
+                })).filter(e => e.ejercicio_id !== null)
+              }));
+
+              await (supabaseAdmin.rpc as any)('crear_plan_completo', {
+                p_profesor_id: null, // Global Template
+                p_nombre: planTemplate.nombre,
+                p_duracion_semanas: planTemplate.duracion_semanas,
+                p_frecuencia_semanal: planTemplate.frecuencia_semanal,
+                p_rutinas: mappedRutinas
+              });
+            }
+          }
+        }).catch(err => console.error("[Master Sync Error]", err));
+      }
+
+      // 2. FETCH DE PLANES (Propios + Master Globales)
+      const { data, error } = await supabase
+        .from("planes")
+        .select(`
+          *,
+          rutinas_diarias (
+            *,
+            ejercicios_plan (
+              *,
+              biblioteca_ejercicios (*)
+            )
+          )
+        `)
+        .or(`profesor_id.eq.${user.id},profesor_id.is.null`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw new Error(`Error al obtener planes: ${error.message}`);
+      return data || [];
+    }
   }),
 };

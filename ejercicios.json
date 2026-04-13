@@ -1,0 +1,1859 @@
+﻿{
+    "exercises": {
+        "Abdominales": [
+            {
+                "id": "6eaf5e08-d92f-4eb1-992b-bacf84276f2f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Abdominales bicicletas",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/abdominales-bicicletas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/abdominales-bicicletas/video.mp4"
+                },
+                "description": "Ejercicio muy efectivo a la hora de trabajar el abdomen, ya que vamos a realizar dos movimientos, el crunch cruzado y la elevacion de piernas alternadas, podemos trabajarlo con repeticiones altas y lograr un muy buen estimulo en la musculatura abdominal",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f82129ca-0d1a-48d1-abf9-e3d7353cc895",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Abdominales bisagras",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/abdominales-bisagras/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/abdominales-bisagras/video.mp4"
+                },
+                "description": "Es un muy buen ejercicio que combina la flexión y rotación de la columna y ademas lo acompañamos con la elevación de las piernas, nos va a permitir trabajar todo el abdomen de manera muy eficiente",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "83b791c3-53d8-4b8f-873b-9593a8fd5a74",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Crunch corto con peso",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/crunch-corto-con-peso/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/crunch-corto-con-peso/video.mp4"
+                },
+                "description": "Es un ejercicio básico para todo el abdomen, ya que realiza la acción principal que es la de flexionar la columna, lo vamos a sentir mucho mas en la parte mas alta del abdomen",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "64ce71ef-2241-4138-9f2a-9af3b083ac52",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Crunch corto en colchoneta",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/crunch-corto-en-colchoneta/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/crunch-corto-en-colchoneta/video.mp4"
+                },
+                "description": "Es un ejercicio básico para todo el abdomen, ya que realiza la acción principal que es la de flexionar la columna, lo vamos a sentir mucho mas en la parte mas alta del abdomen",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "c604b980-a1ad-4c8d-be1e-63bd9d21462d",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Crunch en polea con soga",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/crunch-en-polea-con-soga/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/crunch-en-polea-con-soga/video.mp4"
+                },
+                "description": "Es un ejercicio básico para todo el abdomen, ya que realiza la acción principal que es la de flexionar la columna, lo vamos a sentir mucho mas en la parte mas alta del abdomen",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "228a9fd0-2306-4191-9f27-4c97db17d944",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Elevacion de piernas acostado",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/elevacion-de-piernas-acostado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/elevacion-de-piernas-acostado/video.mp4"
+                },
+                "description": "Ejercicio muy efectivo para trabajar la parte mas baja del abdomen, lo vamos a trabajar con repeticiones mas altas y generar una tensión continua al no tocar el suelo con las piernas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "dffc51d7-c9e3-4713-b8db-a195330ed6ee",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Plancha extiendiendo brazo",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/plancha-extiendiendo-brazo/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/plancha-extiendiendo-brazo/video.mp4"
+                },
+                "description": "Las planchas son una excelente opción a la hora de trabajar el abdomen de manera isométrica, lo mas importante es mantener una posición estática con el tronco y apretar bien fuerte todo el abdomen",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "3e761b0b-bfb5-4649-abd7-684eeeb8d1e4",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Planchas dinamicas",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/planchas-dinamicas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/planchas-dinamicas/video.mp4"
+                },
+                "description": "Las planchas son una excelente opción a la hora de trabajar el abdomen de manera isométrica, lo mas importante es mantener una posición estática con el tronco y apretar bien fuerte todo el abdomen",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "5d524eea-6df8-490d-9e5c-d67b2f363363",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Planchas estaticas",
+                "category": "Abdominales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/planchas-estaticas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abdominales/planchas-estaticas/video.mp4"
+                },
+                "description": "Las planchas son una excelente opción a la hora de trabajar el abdomen de manera isométrica, lo mas importante es mantener una posición estática con el tronco y apretar bien fuerte todo el abdomen",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Abductores y aductores": [
+            {
+                "id": "ea236064-f028-4a46-8bf5-dcba7d72ec04",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Abduccion en maquina",
+                "category": "Abductores y aductores",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abductores-y-aductores/abduccion-en-maquina/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abductores-y-aductores/abduccion-en-maquina/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio el cual nos va a permitir desarrollar la musculatura del gluteo medio, lo vamos a trabajar con cargas moderadas o bajas, para lograr un aumento en las repeticiones, y de esa manera lograr un mayor tiempo bajo tension",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "d3a17c42-b8d6-4c32-82d5-68c3d68c3b40",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Abduccion en polea",
+                "category": "Abductores y aductores",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abductores-y-aductores/abduccion-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abductores-y-aductores/abduccion-en-polea/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio el cual nos va a permitir desarrollar la musculatura del gluteo medio, lo vamos a trabajar con cargas moderadas o bajas, para lograr un aumento en las repeticiones, y de esa manera lograr un mayor tiempo bajo tension",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "72ee62e9-f711-4487-afc7-284fb34f5aeb",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Aductor en maquina",
+                "category": "Abductores y aductores",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abductores-y-aductores/aductor-en-maquina/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abductores-y-aductores/aductor-en-maquina/video.mp4"
+                },
+                "description": "Es un ejercicio en el cual vamos a trabajar los músculos aductores, son muy importantes ya que nos van a dar forma en la parte interior de la pierna, lo vamos a realizar con carga moderada y realizando repeticiones altas, de esta manera logramos un muy buen trabajo en dicha musculatura ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "1ca442bf-2391-405d-9d22-d7d58e505d20",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Aductor en polea",
+                "category": "Abductores y aductores",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abductores-y-aductores/aductor-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/abductores-y-aductores/aductor-en-polea/video.mp4"
+                },
+                "description": "Es un ejercicio en el cual vamos a trabajar los músculos aductores, son muy importantes ya que nos van a dar forma en la parte interior de la pierna, lo vamos a realizar con carga moderada y realizando repeticiones altas, de esta manera logramos un muy buen trabajo en dicha musculatura ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "06952a72-cf25-4b4a-98d6-679b560cdd6f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla sumo",
+                "category": "Abductores y aductores",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-sumo/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-sumo/video.mp4"
+                },
+                "description": "Este tipo de sentadilla nos va a permitir estimular los cuádriceps, glúteos y aductores, la vamos a trabajar con un rango de repeticiones moderadas y altas,lo mas importante es realizar una posición de pies correcta que nos permita estimular la musculatura involucrada",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Bíceps": [
+            {
+                "id": "e08c2cfe-4069-4e5e-9a36-1fe345dab855",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps alternado con mancuernas",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-alternado-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-alternado-con-mancuernas/video.mp4"
+                },
+                "description": "Es un ejercicio muy eficiente para los bíceps ya que vamos a poder trabajarlo de manera unilateral y concentrarnos bien en la contracción de un brazo y luego el otro, ademas podemos realizar la supinación de la mano y de esta manera lograr una mayor activacion",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "eb741425-5c50-4465-ba88-92ee32d36663",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps con barra prono",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-con-barra-prono/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-con-barra-prono/video.mp4"
+                },
+                "description": "Es un ejercicio muy eficiente para trabajar el biceps braquial y los antebrazos, lo vamos a trabajar con cargas moderadas para poder realizar una muy buena contraccion",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "d9d2f533-0530-4b7c-8163-861529acea6f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps en banco inclinado",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-en-banco-inclinado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-en-banco-inclinado/video.mp4"
+                },
+                "description": "En este ejercicio vamos a trabajar con el hombro retrasado,lo cual nos va a permitir poder estimular la cabeza mas larga del bíceps, lo vamos a trabajar con cargas moderadas o bajas,para poder realizar un rango de movimiento completo",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f7cffaa5-8890-4857-b60a-3bc6dec60abd",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps en banco scott",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-en-banco-scott/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-en-banco-scott/video.mp4"
+                },
+                "description": "Es un excelente ejercicio, ya que al estar con el hombro adelantado, vamos a estimular la cabeza corta del bíceps, lo vamos a realizar con cargas moderadas para realizar una muy buena contraccion durante toda la serie",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "c54462f6-ce5a-4b41-8bea-d4cce82c90e5",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps en banco scott a un brazo",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-en-banco-scott-a-un-brazo/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-en-banco-scott-a-un-brazo/video.mp4"
+                },
+                "description": "Es una excelente opción, ya que al estar con el hombro adelantado, vamos a estimular la cabeza corta del bíceps, lo vamos a realizar con cargas moderadas para realizar una muy buena contraccion durante toda la serie",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "6127f8b4-fdcf-4164-9fd5-e6f66220d945",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps en polea con agarre recto",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-en-polea-con-agarre-recto/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-en-polea-con-agarre-recto/video.mp4"
+                },
+                "description": "Es una excelente opción para trabajar todas las porciones del bíceps y mantener una tensión continua, de esta manera podemos exigirnos lo máximo posible sin ningún riesgo de lesión",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "7ab23998-bed6-40bd-99a5-80ca6313c405",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps martillo con mancuernas",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-martillo-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-martillo-con-mancuernas/video.mp4"
+                },
+                "description": "Es un ejercicio vamos a trabajar con las manos en posición neutra,estimulando así el bíceps braquial,lo vamos a trabajar con cargas moderadas y bajas para poder realizar una buena contracción durante toda su ejecución",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "3335d415-345e-4325-bab6-3418b93301ce",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps martillo en polea con soga",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-martillo-en-polea-con-soga/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-martillo-en-polea-con-soga/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio el cual nos va a permitir trabajar el bíceps braquial y los músculos del antebrazo, podemos tener una tensión continua y lograr series al fallo o muy cerca de el",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f361747d-aa3c-4b2d-9f2a-83421df84f6a",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Biceps parado con barra",
+                "category": "Bíceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-parado-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/biceps/biceps-parado-con-barra/video.mp4"
+                },
+                "description": "Es un ejercicio básico para trabajar por completo los bíceps,lo vamos a trabajar con cargas moderadas y altas gracias a su libertad de movimiento",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Cuádriceps": [
+            {
+                "id": "df975c90-7bfe-47bf-96d3-3c60cf8f48db",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Estocadas alternadas",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/estocadas-alternadas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/estocadas-alternadas/video.mp4"
+                },
+                "description": "Es un excelente ejercicio para los cuádriceps y glúteos, gracias a la estabilidad que debemos tener, genera grandes demandas a nivel biomecánico y una gran activación en toda los músculos de las piernas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "c2797db1-25df-4a3b-889d-1fa6cdca4aba",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Estocadas caminando",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/estocadas-caminando/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/estocadas-caminando/video.mp4"
+                },
+                "description": "Es un excelente ejercicio para los cuádriceps y glúteos, gracias a la estabilidad que debemos tener, genera grandes demandas a nivel biomecánico y una gran activación en toda los músculos de las piernas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "3c5638ed-e2dd-40e5-9a5e-fb4993ee7757",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Estocadas fijas",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/estocadas-fijas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/estocadas-fijas/video.mp4"
+                },
+                "description": "Es un excelente ejercicio para los cuádriceps y glúteos, gracias a la estabilidad que debemos tener, genera grandes demandas a nivel biomecánico y una gran activación en toda los músculos de las piernas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "fde310d9-d2ff-473f-82ab-b828955bf9c7",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Prensa",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/prensa/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/prensa/video.mp4"
+                },
+                "description": "La prensa es una excelente opción a la hora de estimular toda la pierna,ya que vamos a trabajar sentado y cómodo, esto nos va a permitir mover cargas muy altas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "0725ba4e-316b-48ae-8862-57b5a6c65b00",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Prensa horizontal",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/prensa-horizontal/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/prensa-horizontal/video.mp4"
+                },
+                "description": "La prensa es una excelente opción a la hora de estimular toda la pierna,ya que vamos a trabajar sentado y cómodo, esto nos va a permitir mover cargas muy altas, en esta prensa horizontal vamos  lograr un mayor trabajo en los cuadriceps, gracias a su angulo recto, aumenta la flexion y extension de la rodilla",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "10f4fe52-8810-4c62-bf65-c32815eb729f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla búlgara",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-bulgara/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-bulgara/video.mp4"
+                },
+                "description": "Ejercicio accesorio muy bueno a la hora de estimular todo los músculos de la pierna,al trabajarlo de manera unilateral y con el pie contrario apoyado en una base, las demandas de estabilidad son muy grandes, esto va a generar un mayor trabajo y de esa manera optimizar el reclutamiento de fibras musculares",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "a275de73-650c-4850-80fa-bce5b5f9197b",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla copa",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-copa/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-copa/video.mp4"
+                },
+                "description": "La sentadilla es considerada como uno de los mejores ejercicios a la hora de trabajar la pierna,vamos a estimular los cuádriceps y glúteos de una manera muy eficiente, su variabilidad en el movimiento nos permite trabajar con el propio peso corporal, con barra y con cargas altas, moderadas y livianas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "dfb580d6-46da-4059-9c05-6dd48e5f1c0d",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla en Smith",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-en-smith/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-en-smith/video.mp4"
+                },
+                "description": "La sentadilla es considerada como uno de los mejores ejercicios a la hora de trabajar la pierna,vamos a estimular los cuádriceps y glúteos de una manera muy eficiente, su variabilidad en el movimiento nos permite trabajar con el propio peso corporal, con barra y con cargas altas, moderadas y livianas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "ce8e37fc-25f8-4a6d-9be7-b8cbfa7ee988",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla hack",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-hack/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-hack/video.mp4"
+                },
+                "description": "Ejercicio básico para el desarrollo de los cuádriceps, nos va a permitir realizar una sentadilla estable y con un muy buen rango de recorrido, podemos trabajar con repeticiones moderadas, buscando pura y exclusivamente la hipertrofia en los cuádriceps",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "574237ef-660d-4634-9e6e-eff59a06ea25",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla libre con barra",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-libre-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-libre-con-barra/video.mp4"
+                },
+                "description": "La sentadilla es considerada como uno de los mejores ejercicios a la hora de trabajar la pierna,vamos a estimular los cuádriceps y glúteos de una manera muy eficiente, su variabilidad en el movimiento nos permite trabajar con el propio peso corporal, con barra y con cargas altas, moderadas y livianas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "5876cc65-d237-40e2-ac93-b1f4e270c084",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla libre por delante",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-libre-por-delante/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-libre-por-delante/video.mp4"
+                },
+                "description": "Excelente ejercicio para estimular los cuádriceps, gracias a su posición con la barra por delante,nos permite una postura mucho mas recta,lo cual va a estimular muy bien la parte anterior de la pierna",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "82e628de-a131-4f07-a08d-65a377ef85a5",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla sumo",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-sumo/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-sumo/video.mp4"
+                },
+                "description": "Este tipo de sentadilla nos va a permitir estimular los cuádriceps, glúteos y aductores, la vamos a trabajar con un rango de repeticiones moderadas y altas,lo mas importante es realizar una posición de pies correcta que nos permita estimular la musculatura involucrada",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "9297481c-d37d-4558-a983-75f81947cb96",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sillón de cuádriceps",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sillon-de-cuadriceps/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sillon-de-cuadriceps/video.mp4"
+                },
+                "description": "Es un ejercicio de aislamiento excelente para trabajar los cuadriceps por completo, ya que vamos a realizar solamente la extensión de rodilla de manera cómoda y estable, lo vamos a realizar con cargas moderadas o bajas, para generar un mayor tiempo bajo tension ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "56e28fbb-6094-420d-aa5f-2b0fdd26339d",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Subidas al cajón",
+                "category": "Cuádriceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/subidas-al-cajon/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/subidas-al-cajon/video.mp4"
+                },
+                "description": "Ejercicio muy bueno para trabajar los músculos cuádriceps de manera unilateral,si estamos realizando algún deporte, este ejercicio va a ser una excelente opción para sumarlo en la rutina de entrenamiento, ya que con el vamos a estar trabajando la fuerza y a su vez la masa muscular",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Espalda": [
+            {
+                "id": "41b40ed4-182a-4e30-bd34-cb274ab7eb88",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Dominadas agarre abierto",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/dominadas-agarre-abierto/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/dominadas-agarre-abierto/video.mp4"
+                },
+                "description": "Es un excelente ejercicio de fuerza para la espalda en el cual vamos a trabajar con nuestro propio peso corporal. Nos permite trabajar en repeticiones más bajasy así generar mayor tensión mecánica",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "c6893c5e-0532-4f37-b363-1058a29c4730",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Dominadas agarre cerrado",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/dominadas-agarre-cerrado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/dominadas-agarre-cerrado/video.mp4"
+                },
+                "description": "Es un excelente ejercicio de fuerza para la espalda en el cual vamos a trabajar con nuestro propio peso corporal. Nos permite trabajar en repeticiones más bajasy así generar mayor tensión mecánica",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "9f446e45-ce18-4720-a879-f319c752acf7",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Hiperextensiones",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/hiperextensiones/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/hiperextensiones/video.mp4"
+                },
+                "description": "Es un ejercicio muy eficiente a la hora de trabajar la zona baja de nuestra espalda. Vamos a desarrollar a zona de los erectores espinales,contribuyendo a tener mayor estabilidad y fortaleza en la misma",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "1663bda6-a234-4064-8007-905f8dfb5539",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Jalón al pecho agarre abierto",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/jalon-al-pecho-agarre-abierto/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/jalon-al-pecho-agarre-abierto/video.mp4"
+                },
+                "description": "Es un ejercicio básico para el desarrollo de los dorsales,romboides y brazos. Al ser realizado en una polea,podemos generar una tensión continua en todas las repeticiones(punto clave para la hipertofia",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "0e1f6914-0225-4676-891e-b26e4e0ca4c7",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Jalón al pecho agarre cerrado",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/jalon-al-pecho-agarre-cerrado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/jalon-al-pecho-agarre-cerrado/video.mp4"
+                },
+                "description": "Es un ejercicio básico para el desarrollo de los dorsales,romboides y brazos. Al ser realizado en una polea,podemos generar una tensión continua en todas las repeticiones(punto clave para la hipertofia",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "cf8486fc-5982-452d-a16d-812cdae637b8",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Jalón al pecho agarre neutro",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/jalon-al-pecho-agarre-neutro/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/jalon-al-pecho-agarre-neutro/video.mp4"
+                },
+                "description": "Es un ejercicio básico para el desarrollo de los dorsales,romboides y brazos. Al ser realizado en una polea,podemos generar una tensión continua en todas las repeticiones(punto clave para la hipertofia",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "573a312a-93b1-411d-be8a-f5a073247b79",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Pull over con mancuerna",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/pull-over-con-mancuerna/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/pull-over-con-mancuerna/video.mp4"
+                },
+                "description": "Es un excelente ejercicio de aislamiento para los músculos dorsales,nos permiten estirar y contrar la musculatura de una forma muy eficiente. Al ser un ejercicio de aislamiento lo podemos llevar a cabo con repeticiones más altas y así aumentar el tiempo bajo tensión",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "8ee22755-39c8-4896-8303-dc2fbb902a98",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Pull over en polea",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/pull-over-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/pull-over-en-polea/video.mp4"
+                },
+                "description": "Es un excelente ejercicio de aislamiento para los músculos dorsales,nos permiten estirar y contrar la musculatura de una forma muy eficiente. Al ser un ejercicio de aislamiento lo podemos llevar a cabo con repeticiones más altas y así aumentar el tiempo bajo tensión",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "97d154a0-16cc-475f-8536-ef2d457c04c4",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo con barra agarre prono",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-con-barra-agarre-prono/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-con-barra-agarre-prono/video.mp4"
+                },
+                "description": "Es un ejercicio básico para el desarrollo de los músculos dorsales,romboides,erectores espinales y brazos. Al involucrar una gran cantidad de músculos nos permiten trabajar con una carga más elevada",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "eec4f655-a3a4-4a5e-ac5d-f2b79bc95717",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo con barra agarre supino",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-con-barra-agarre-supino/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-con-barra-agarre-supino/video.mp4"
+                },
+                "description": "Es un ejercicio básico para el desarrollo de los músculos dorsales,romboides,erectores espinales y brazos. Al involucrar una gran cantidad de músculos nos permiten trabajar con una carga más elevada",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "84a7185e-fa06-479d-a0c5-1c1f10256d57",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo con mancuerna",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-con-mancuerna/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-con-mancuerna/video.mp4"
+                },
+                "description": "Es un excelente ejercicio que lo vamos a trabajar siempre de manera unilateral(a un brazo). Al realizarlo apoyado en un banco nos va a permitir trabajarlo con una carga alta y poder generar mayor tension en los dorsales ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "188145a1-c83d-4a14-854c-cbae16c48143",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo con mancuernas en banco inclinado",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-con-mancuernas-en-banco-inclinado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-con-mancuernas-en-banco-inclinado/video.mp4"
+                },
+                "description": "Es un ejercicio muy efectivo a la hora de trabajar la espalda, ya que nos vamos a poder enfocar en el estiramiento y acortamiento de los musculos dorsales, lo vamos a realizar con cargas moderadas, ya que lo mas importante es generar una tension constante durante sus dos fases",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "a2e99e82-63d9-4d0d-8bbd-10bd0acb397b",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo en barra t con agarre abierto",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-barra-t-con-agarre-abierto/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-barra-t-con-agarre-abierto/video.mp4"
+                },
+                "description": "Es en ejercicio muy eficiente para trabajar la espalda, ya que nos va a permitir realizar el movimiento con el tronco apoyado, esto nos va ayudar a no generar un mal movimiento o dolencia en otra zona que no queremos. Al trabajar con un agarre abierto,vamos a poder sentir mucho mejor la parte más alta de la espalda        ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "a5698b76-11ee-427e-8b9a-e8f47a22ec57",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo en barra t con agarre cerrado",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-barra-t-con-agarre-cerrado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-barra-t-con-agarre-cerrado/video.mp4"
+                },
+                "description": "Es un ejercicio muy eficiente para trabajar la espalda, ya que nos va a permitir realizar el movimiento con el tronco apoyado, esto nos va ayudar a no generar un mal movimiento o dolencia en otra zona que no queremos. Al trabajar con un agarre cerrado,podemos transferir más fuerza hacia nuestros dorsales",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "02e44f18-8f8c-4448-85db-c3f17860a19d",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo en máquina agarre abierto",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-maquina-agarre-abierto/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-maquina-agarre-abierto/video.mp4"
+                },
+                "description": "Es una excelente opción a la hora de trabajar toda la musculatura de la espalda,ya que nos permiten trabajar de manera cómoda y estable. Podemos trabajar con ambas cargas,altas y moderadas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "d863c60a-113c-4a13-a04b-2866f1685ef1",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo en máquina agarre cerrado",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-maquina-agarre-cerrado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-maquina-agarre-cerrado/video.mp4"
+                },
+                "description": "Es una excelente opción a la hora de trabajar toda la musculatura de la espalda,ya que nos permiten trabajar de manera cómoda y estable. Podemos trabajar con ambas cargas,altas y moderadas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "206d275b-aa1e-46be-9de6-2a3865239d2a",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo en maquina unilateral",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-maquina-unilateral/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-maquina-unilateral/video.mp4"
+                },
+                "description": "Es una excelente opción a la hora de trabajar toda la musculatura de la espalda,ya que nos permiten trabajar de manera cómoda y estable. Podemos trabajar con ambas cargas,altas y moderadas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "d384c213-7de6-4c97-8a77-19c90cbc8f91",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo en polea baja",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-polea-baja/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-polea-baja/video.mp4"
+                },
+                "description": "Es un ejercicio muy eficiente para trabajar la musculatura de la espalda,nos permiten estirar y contraer toda su musculatura gracias a su libertad de movimiento, lo vamos a trabajar con cargas moderadas para generar una tension continua durante toda la serie",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "3a3e3249-53e1-4ba0-b882-3adf5adfb633",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Remo en polea baja a un brazo",
+                "category": "Espalda",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-polea-baja-a-un-brazo/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/espalda/remo-en-polea-baja-a-un-brazo/video.mp4"
+                },
+                "description": "Es un ejercicio muy eficiente para trabajar la musculatura de la espalda,nos permiten estirar y contraer toda su musculatura gracias a su libertad de movimiento, lo vamos a trabajar con cargas moderadas para generar una tension continua durante toda la serie",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Gemelos": [
+            {
+                "id": "46523f27-9fb5-445a-85ac-7f90d9b991e7",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Gemelos en maquina",
+                "category": "Gemelos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gemelos/gemelos-en-maquina/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gemelos/gemelos-en-maquina/video.mp4"
+                },
+                "description": "Las extensiones de tobillos son la mejor opción a la hora de trabajar la musculatura de los gemelos,cuando lo trabajamos con la rodilla en extensión, vamos a estimular todas las porciones del gemelo, el gemelo es un musculo que esta muy estimulado por el caminar de todos los días, por eso debemos estimularlo con una gran cantidad de repeticiones, en conjunto con un peso que nos ayude a generarle un gran estrés",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "a5e4b794-006e-4f6f-b6e0-d40a4be0ef05",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Gemelos en prensa",
+                "category": "Gemelos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gemelos/gemelos-en-prensa/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gemelos/gemelos-en-prensa/video.mp4"
+                },
+                "description": "Las extensiones de tobillos son la mejor opción a la hora de trabajar la musculatura de los gemelos,cuando lo trabajamos con la rodilla en extensión, vamos a estimular todas las porciones del gemelo, el gemelo es un musculo que esta muy estimulado por el caminar de todos los días, por eso debemos estimularlo con una gran cantidad de repeticiones, en conjunto con un peso que nos ayude a generarle un gran estrés",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "79199b51-54f0-46fe-856a-ddfe93ef8f28",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Gemelos parado con mancuernas",
+                "category": "Gemelos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gemelos/gemelos-parado-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gemelos/gemelos-parado-con-mancuernas/video.mp4"
+                },
+                "description": "Las extensiones de tobillos son la mejor opción a la hora de trabajar la musculatura de los gemelos,cuando lo trabajamos con la rodilla en extensión, vamos a estimular todas las porciones del gemelo, el gemelo es un musculo que esta muy estimulado por el caminar de todos los días, por eso debemos estimularlo con una gran cantidad de repeticiones, en conjunto con un peso que nos ayude a generarle un gran estrés",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f3824825-9ccc-4ab0-b8c5-7af2c689553d",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Gemelos sentado",
+                "category": "Gemelos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gemelos/gemelos-sentado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gemelos/gemelos-sentado/video.mp4"
+                },
+                "description": "Cuando queremos estimular el musculo soleo(se encuentra en la parte externa de nuestro gemelo) lo debemos realizar con la rodilla flexionada, en el cual también vamos a trabajarlo con una gran cantidad de repeticiones y una carga que le genere un gran estrés, ya que el gemelo esta muy estimulado por la accion de estar parado y caminar durante todo el transcurso del dia",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Glúteos": [
+            {
+                "id": "51d5b731-abe4-4113-9a0c-11050e537c93",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Abducción con tobilleras",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/abduccion-con-tobilleras/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/abduccion-con-tobilleras/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio, el cual nos va a permitir desarrollar el glúteo medio, lo vamos a trabajar con cargas bajas y repeticiones mucho más altas,para generar esa sensación de quemazón y así aumentar el tiempo bajo tensión",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "75f1dcb2-0047-4a85-8407-ca46c204ae1d",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Abducción en polea",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/abduccion-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/abduccion-en-polea/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio el cual nos va a permitir desarrollar la musculatura del gluteo medio, lo vamos a trabajar con cargas moderadas o bajas, para lograr un aumento en las repeticiones, y de esa manera lograr un mayor tiempo bajo tension",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "88a4805b-a858-4d82-a4ea-1d7b965b1b3d",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Aducción en máquinas",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/aduccion-en-maquinas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/aduccion-en-maquinas/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio el cual nos va a permitir desarrollar la musculatura del gluteo medio, lo vamos a trabajar con cargas moderadas o bajas, para lograr un aumento en las repeticiones, y de esa manera lograr un mayor tiempo bajo tension",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "b97a8793-0497-421f-83d8-52d0e9bb1683",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Elevación de cadera a una pierna",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/elevacion-de-cadera-a-una-pierna/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/elevacion-de-cadera-a-una-pierna/video.mp4"
+                },
+                "description": "Las elevaciones de cadera son excelentes a la hora de trabajar los gluteos, ya que nos van a permitir trabajar la parte del glúteo mayor, al estar en el suelo su recorrido puede ser mas corto, pero el beneficio es que nos va a permitir realizar una progresión para luego llegar a trabajar una elevación de cadera con barra o en maquina",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f9b556bc-7de8-4998-b13d-27b7c861cf86",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Elevación de cadera en el suelo",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/elevacion-de-cadera-en-el-suelo/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/elevacion-de-cadera-en-el-suelo/video.mp4"
+                },
+                "description": "Las elevaciones de cadera son excelentes a la hora de trabajar los gluteos, ya que nos van a permitir trabajar la parte del glúteo mayor, al estar en el suelo su recorrido puede ser mas corto, pero el beneficio es que nos va a permitir realizar una progresión para luego llegar a trabajar una elevación de cadera con barra o en maquina",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "448c3a8a-28de-4813-bf3b-19a1999cb73e",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Elevación de cadera en máquina Smith",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/elevacion-de-cadera-en-maquina-smith/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/elevacion-de-cadera-en-maquina-smith/video.mp4"
+                },
+                "description": "Es un ejercicio básico para el desarrollo de los glúteos, vamos a trabajar la parte del glúteo mayor, gracias a la fuerza del músculo y su corto recorrido vamos a poder trabajarlo con cargas más altas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "52df8ac4-54ff-424a-b1df-4c784ec4b66a",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Elevación de cadera libre",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/elevacion-de-cadera-libre/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/elevacion-de-cadera-libre/video.mp4"
+                },
+                "description": "Es un ejercicio básico para el desarrollo de los glúteos, vamos a trabajar la parte del glúteo mayor, gracias a la fuerza del músculo y su corto recorrido vamos a poder trabajarlo con cargas más altas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "6bb32c07-da42-471e-9117-31d163e316fc",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Empuje de cadera en polea con soga",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/empuje-de-cadera-en-polea-con-soga/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/empuje-de-cadera-en-polea-con-soga/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio muy bueno para el desarrollo de los glúteos, ya que nos va a permitir realizar la extensión de la cadera y poder mantener una tensión constante durante todo el rango de movimiento, lo vamos a trabajar con repeticiones más altas y de esa manera poder aumentar el tiempo bajo tensión",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "8bd64768-5077-4d07-8ad3-8edc1f727525",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Patada de glúteo con tobilleras",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/patada-de-gluteo-con-tobilleras/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/patada-de-gluteo-con-tobilleras/video.mp4"
+                },
+                "description": "Las patadas son un ejercicio accesorio el cual nos va a servir para estimular muy bien los glúteos, lo vamos a realizar con repeticiones mas altas y un peso moderado, son una excelente opción para terminar una rutina de glúteos y buscar esa sensación de quemazón",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "bc0818c8-9ca5-4305-b3ce-60ab56819104",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Patada de glúteo en máquina",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/patada-de-gluteo-en-maquina/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/patada-de-gluteo-en-maquina/video.mp4"
+                },
+                "description": "Las patadas son un ejercicio accesorio el cual nos va a servir para estimular muy bien los glúteos, lo vamos a realizar con repeticiones mas altas y un peso moderado, son una excelente opción para terminar una rutina de glúteos y buscar esa sensación de quemazón",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "ca23642f-f3f3-458a-9c5f-02bd85355f0f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Patada de glúteo en polea",
+                "category": "Glúteos",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/patada-de-gluteo-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/gluteos/patada-de-gluteo-en-polea/video.mp4"
+                },
+                "description": "Las patadas son un ejercicio accesorio el cual nos va a servir para estimular muy bien los glúteos, lo vamos a realizar con repeticiones mas altas y un peso moderado, son una excelente opción para terminar una rutina de glúteos y buscar esa sensación de quemazón",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Hombros y trapecios": [
+            {
+                "id": "6254c28f-dab2-4810-a4bc-f75e50ee16a5",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press arnold",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-arnold/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-arnold/video.mp4"
+                },
+                "description": "Es un excelente ejercicio que nos va ayudar a desarrollar por completo nuestros hombros, gracias a su rotación en el movimiento podemos trabajar diferentes partes de los deltoide",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "0af968d3-515e-42c5-af4f-6002aed42780",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press militar con barra parado",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-con-barra-parado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-con-barra-parado/video.mp4"
+                },
+                "description": "Ejercicio multiarticular el cual nos va a permitir un muy buen desarrollo en la parte anterior del hombro,lo vamos a trabajar con cargas altas y repeticiones mas bajas,aprovechando su libertad de movimiento y la implicancia de otros músculos como los tríceps",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "e5cf17b4-5a98-4c68-b897-6ee5a6f8a7df",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press militar con barra sentado",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-con-barra-sentado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-con-barra-sentado/video.mp4"
+                },
+                "description": "Ejercicio multiarticular el cual nos va a permitir un muy buen desarrollo en la parte anterior del hombro,lo vamos a trabajar con cargas altas y repeticiones mas bajas,aprovechando su libertad de movimiento y la implicancia de otros músculos como los tríceps",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f2d70231-025b-42f6-a9e3-4af48a339304",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press militar con mancuerna",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-con-mancuerna/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-con-mancuerna/video.mp4"
+                },
+                "description": "Ejercicio multiarticular el cual nos va a permitir un muy buen desarrollo en la parte anterior del hombro,lo vamos a trabajar con cargas altas y repeticiones mas bajas,aprovechando su libertad de movimiento y la implicancia de otros músculos como los tríceps",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "51101be8-e01b-46a0-88a1-801d43f21bf4",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press militar en máquina",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-en-maquina/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-en-maquina/video.mp4"
+                },
+                "description": "Ejercicio multiarticular el cual nos va a permitir un muy buen desarrollo en la parte anterior del hombro,lo vamos a trabajar con cargas altas y repeticiones mas bajas,aprovechando su libertad de movimiento y la implicancia de otros músculos como los tríceps",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "1cb2e760-f095-48d6-a918-fa037f0ab21a",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press militar en maquina smith",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-en-maquina-smith/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/press-militar-en-maquina-smith/video.mp4"
+                },
+                "description": "Ejercicio multiarticular el cual nos va a permitir un muy buen desarrollo en la parte anterior del hombro,lo vamos a trabajar con cargas altas y repeticiones mas bajas,aprovechando su libertad de movimiento y la implicancia de otros músculos como los tríceps",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f9727701-8d4c-4e15-ac50-906061f7d030",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Trapecios con barra",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/trapecios-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/trapecios-con-barra/video.mp4"
+                },
+                "description": "Los encogimientos con mancuernas o barra son la mejor opción a la hora de trabajar los trapecios, lo podemos trabajar con cargas moderadas y altas, realizando siempre 2 segundos de contracción cuando llevamos la barra o mancuerna hacia arriba",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "ec6f3dc9-3dee-410f-bf8c-25fe6f3021cb",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Trapecios con mancuernas",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/trapecios-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/trapecios-con-mancuernas/video.mp4"
+                },
+                "description": "Los encogimientos con mancuernas o barra son la mejor opción a la hora de trabajar los trapecios, lo podemos trabajar con cargas moderadas y altas, realizando siempre 2 segundos de contracción cuando llevamos la barra o mancuerna hacia arriba",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "c903d3c8-116e-4a2d-b137-b19d05dcada1",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelo al mentón con barra w",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-al-menton-con-barra-w/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-al-menton-con-barra-w/video.mp4"
+                },
+                "description": "Ejercicio muy eficiente a la hora de trabajar los deltoides y trapecios, lo vamos a trabajar con cargas moderadas, lo mas importante es realizar un buen rango de movimiento para estimular toda la musculatura involucrada",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "0461c5b1-9298-4f76-910a-1ca9cd14f57b",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelo frontal con soga",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-frontal-con-soga/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-frontal-con-soga/video.mp4"
+                },
+                "description": "El vuelo frontal nos va a permitir trabajar de manera especifica la parte anterior del hombro, siempre lo vamos a trabajar con cargas bajas y repeticiones mas altas, y de esta manera lograr un aumento en el tiempo bajo tensió",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "a57c94a3-6c0d-4c09-a745-f551bc90e661",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelo posterior con mancuernas",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-posterior-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-posterior-con-mancuernas/video.mp4"
+                },
+                "description": "Excelente ejercicio para el desarrollo de la parte posterior del hombro,debemos trabajarlo con cargas moderadas o bajas y concentrarnos en su contracción al final del recorrido",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "0e96f3c4-47c1-4052-aa51-47be332e96eb",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelo posterior en polea",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-posterior-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-posterior-en-polea/video.mp4"
+                },
+                "description": "Excelente ejercicio para el desarrollo de la parte posterior del hombro,debemos trabajarlo con cargas moderadas o bajas y concentrarnos en su contracción al final del recorrido",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "0a7dd541-1e56-49ec-8a47-5776a97172ff",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelo posterior en polea cruzado",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-posterior-en-polea-cruzado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelo-posterior-en-polea-cruzado/video.mp4"
+                },
+                "description": "Excelente ejercicio para el desarrollo de la parte posterior del hombro,debemos trabajarlo con cargas moderadas o bajas y concentrarnos en su contracción al final del recorrido",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "8feb8cc9-85bf-4efc-8816-63c364d6ce66",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelos frontales con mancuernas",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelos-frontales-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelos-frontales-con-mancuernas/video.mp4"
+                },
+                "description": "El vuelo frontal nos va a permitir trabajar de manera especifica la parte anterior del hombro, siempre lo vamos a trabajar con cargas bajas y repeticiones mas altas, y de esta manera lograr un aumento en el tiempo bajo tensión",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "3ea82ff5-7c64-4a35-a1c4-01a15405efbb",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelos laterales con mancuernas parado",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelos-laterales-con-mancuernas-parado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelos-laterales-con-mancuernas-parado/video.mp4"
+                },
+                "description": "Son la mejor opción para estimular la porción lateral del hombro, es el ejercicio clave que le va a dar ese aspecto redondo a nuestro hombro, lo podemos trabajar con cargas altas , moderadas y bajas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "96b08b78-0451-4abf-9e72-1c85e778859e",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelos laterales con mancuernas sentado",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelos-laterales-con-mancuernas-sentado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelos-laterales-con-mancuernas-sentado/video.mp4"
+                },
+                "description": "Son la mejor opción para estimular la porción lateral del hombro, es el ejercicio clave que le va a dar ese aspecto redondo a nuestro hombro, lo podemos trabajar con cargas altas , moderadas y bajas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "44ab2122-7647-406e-b6b8-7c818f77bc23",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Vuelos laterales en polea",
+                "category": "Hombros y trapecios",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelos-laterales-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/hombros-y-trapecios/vuelos-laterales-en-polea/video.mp4"
+                },
+                "description": "Son la mejor opción para estimular la porción lateral del hombro, es el ejercicio clave que le va a dar ese aspecto redondo a nuestro hombro, lo podemos trabajar con cargas altas , moderadas y bajas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Isquiotibiales": [
+            {
+                "id": "62fbe2a4-7f50-4156-b141-f9d92bb69964",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Buenos días con barra",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/buenos-dias-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/buenos-dias-con-barra/video.mp4"
+                },
+                "description": "Es un ejercicio excelente para estimular toda la cadena posterior,desde la espalda baja, glúteos e isquiotibiales, debemos trabajarlo con una carga moderada, ya que requiere de una técnica muy bien aplicada, y ademas el exceso de peso puede llegar a generar grandes molestias en la zona lumbar",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "4632c145-63ca-4a4b-95ec-a20e1272d974",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Camilla de isquiotibiales",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/camilla-de-isquiotibiales/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/camilla-de-isquiotibiales/video.mp4"
+                },
+                "description": "Es un ejercicio excelente para trabajar la musculatura posterior de la pierna, ya que nos permite trabajar la flexión de la rodillas en un ángulo donde vamos a estar acostados, lo podemos trabajar con repeticiones moderadas y altas, generando un gran tiempo bajo tensión",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "5e9d6b75-291a-436f-956e-4cafbb72695e",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Estocadas hacia atrás",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/estocadas-hacia-atras/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/estocadas-hacia-atras/video.mp4"
+                },
+                "description": "Es un excelente ejercicio para los isquiotibiales y glúteos, gracias a la estabilidad que debemos tener, genera grandes demandas a nivel biomecánico y una gran activación en toda los músculos de las piernas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "af257b21-743b-407e-ad3c-9ef31a6daaad",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Isquio parado",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/isquio-parado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/isquio-parado/video.mp4"
+                },
+                "description": "En este ejercicio vamos a trabajar de manera unilateral y concentrarnos muy bien en la flexión de una sola pierna, la carga debe ser moderada y las repeticiones también, lo mas importante es apretar bien el isquiotibial cuando llegamos a la flexión completa de la rodilla",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "6e3b3ead-5b10-4695-a4ba-d20b07484fcd",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Isquios acostado con mancuerna",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/isquios-acostado-con-mancuerna/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/isquios-acostado-con-mancuerna/video.mp4"
+                },
+                "description": "Es un muy buen ejercicio para estimular por completos los isquiotibiales, podemos trabajarlo con cargas moderadas y pesadas,lo mas importante es evitar algún otro movimiento con la espalda para su ejecución, Sin duda es de las mejores opciones para este grupo muscular",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "92cc7324-0d8e-4b9d-8961-714e098f59e1",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Peso muerto a una pierna",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/peso-muerto-a-una-pierna/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/peso-muerto-a-una-pierna/video.mp4"
+                },
+                "description": "Es un excelente ejercicio para trabajar los isquiotibiales y gluteos, al trabajarlo de manera unilateral, no vamos a mover cargas muy pesadas, pero si vamos a trabajar de manera especifica sobre una pierna, trabajando en la contraccion y estabilidad del mismo",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "0571994f-f71b-4a74-b83a-58aa021c4162",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Peso muerto convencional",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/peso-muerto-convencional/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/peso-muerto-convencional/video.mp4"
+                },
+                "description": "Es considerado uno de los mejores ejercicios para trabajar todos los músculos de la cadena posterior, espalda, glúteos e isquiotibiales, lo vamos a trabajar con cargas altas y máximas, gracias a la cantidad de musculos involucrados a la hora de realizar el ejercicio",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "fad53589-d14f-4730-998b-1c4fe2e08596",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Peso muerto rumano con barra",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/peso-muerto-rumano-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/peso-muerto-rumano-con-barra/video.mp4"
+                },
+                "description": "Es un ejercicio muy eficiente para trabajar los isquiotibiales desde el estiramiento, lo podemos realizar con cargas altas y moderadas, lo mas importante es aprovechar el momento en que bajamos con la barra, ya que si lo realizamos lento y controlado, vamos a lograr un estimulo muy eficiente",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "fb713929-2306-4f3c-b93f-4af19500611f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Peso muerto rumano con mancuerna",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/peso-muerto-rumano-con-mancuerna/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/peso-muerto-rumano-con-mancuerna/video.mp4"
+                },
+                "description": "Es un ejercicio muy eficiente para trabajar los isquiotibiales desde el estiramiento, lo podemos realizar con cargas altas y moderadas, lo mas importante es aprovechar el momento en que bajamos con la barra, ya que si lo realizamos lento y controlado, vamos a lograr un estimulo muy eficiente",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "09affbfd-b54d-4d17-95af-a8ff0442963f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Prensa con pies arriba",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/prensa-con-pies-arriba/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/prensa-con-pies-arriba/video.mp4"
+                },
+                "description": "La prensa es una excelente opción a la hora de estimular toda la pierna,ya que vamos a trabajar sentado y cómodo, esto nos va a permitir mover cargas muy altas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "a024a57b-a607-46f6-a543-1dfcf28bae73",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sentadilla búlgara",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-bulgara/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/cuadriceps/sentadilla-bulgara/video.mp4"
+                },
+                "description": "Ejercicio accesorio muy bueno a la hora de estimular todo los músculos de la pierna,al trabajarlo de manera unilateral y con el pie contrario apoyado en una base, las demandas de estabilidad son muy grandes, esto va a generar un mayor trabajo y de esa manera optimizar el reclutamiento de fibras musculares",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "1b761296-0d5d-4bd3-b588-3582dc37a2fb",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Sillón de isquiotibiales",
+                "category": "Isquiotibiales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/sillon-de-isquiotibiales/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/isquiotibiales/sillon-de-isquiotibiales/video.mp4"
+                },
+                "description": "En esta maquina vamos a poder trabajar de manera muy eficiente los isquiotibiales, logrando el máximo estimulo en la flexión de rodilla que es su acción principal, vamos a trabajar con cargas moderadas y en rangos de repeticiones optimas para la ganancia de masa muscular",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Pectorales": [
+            {
+                "id": "cbc9a53f-897d-4eb8-bb1d-157ac1e82eb5",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Apertura en máquina",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/apertura-en-maquina/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/apertura-en-maquina/video.mp4"
+                },
+                "description": "Ejercicio de aislamiento en el cual vamos a poder realizar una aducción perfecta de manera segura y estable, debemos aprovechar su seguridad y estabilidad para estirar y apretar al máximo la musculatura,podemos trabajar con repeticiones moderadas y altas con un grado de exigencia muy alto",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "ab6a2529-9235-46c7-8801-b809bfd01a76",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Aperturas en banco declinado",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/aperturas-en-banco-declinado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/aperturas-en-banco-declinado/video.mp4"
+                },
+                "description": "Las aperturas nos van a permitir realizar la aducción de los brazos(movimiento propio de los pectorales) nos permiten estirar y contraer  la musculatura de manera muy eficiente,siempre lo vamos a trabajar con cargas moderadas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "7962d400-f995-494b-9a3e-cb8efb8441b5",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Aperturas en banco inclinado",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/aperturas-en-banco-inclinado/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/aperturas-en-banco-inclinado/video.mp4"
+                },
+                "description": "Las aperturas nos van a permitir realizar la aducción de los brazos(movimiento propio de los pectorales) nos permiten estirar y contraer  la musculatura de manera muy eficiente,siempre lo vamos a trabajar con cargas moderadas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "badb1853-a5e9-4f8f-ad6b-14652d5a7140",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Aperturas en banco plano",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/aperturas-en-banco-plano/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/aperturas-en-banco-plano/video.mp4"
+                },
+                "description": "Las aperturas nos van a permitir realizar la aducción de los brazos(movimiento propio de los pectorales) nos permiten estirar y contraer  la musculatura de manera muy eficiente,siempre lo vamos a trabajar con cargas moderadas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "fe5c9bc2-dbd8-41df-9d51-1f6d3e394ce0",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Aperturas en polea",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/aperturas-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/aperturas-en-polea/video.mp4"
+                },
+                "description": "Ejercicio de aislamiento para trabajar la musculatura del pectoral,nos permiten una tensión constante durante todo su rango de recorrido, podemos trabajarlo en tres ángulos distintos y así estimular por completo el pectoral",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "28002007-43b3-43c9-ba49-639074ba6233",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Banco inclinado con barra",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/banco-inclinado-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/banco-inclinado-con-barra/video.mp4"
+                },
+                "description": "Es un ejercicio básico para el desarrollo de los pectorales,al trabajarlo en un banco inclinado,su incidencia va a ser mayor en la parte superior del pectoral,lo trabajamos con cargas moderadas ya que al trabajarse en un banco inclinado,debemos cuidar la articulación del hombro",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "864d4433-c73f-41ca-9ff2-d0fabe185e5f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Banco plano con barra",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/banco-plano-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/banco-plano-con-barra/video.mp4"
+                },
+                "description": "Es un ejercicio básico en el cual vamos a trabajar los músculos pectorales,hombros y tríceps, su desarrollo muscular va a incidir más en los pectorales y gracias a trabajar con una gran cantidad de músculos,podemos llevarlo a cabo con cargas altas",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "8d3bf487-9a79-49fe-a954-134ce0437b9e",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Flexiones de brazos",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/flexiones-de-brazos/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/flexiones-de-brazos/video.mp4"
+                },
+                "description": "Ejercicio de fuerza con el propio peso corporal donde vamos a trabajar los pectorales,hombros y tríceps, aquí el apoyo de nuestras manos juega un rol fundamental para poder llevar el trabajo hacia la músculos pectorales, las manos van ligeramente separadas del cuerpo con los codos a 45 grados",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "bfacf460-2700-4af7-b47e-db6f5941296e",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Fondo en paralelas",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/fondo-en-paralelas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/fondo-en-paralelas/video.mp4"
+                },
+                "description": "Los fondos en paralelas nos van a permitir trabajar, los pectrales,los hombros y los triceps, para enfatizar mas el trabajo en el pectoral, vamos a realizar un agarre un poco mas amplio y llevar nuestro tronco un poco inclinado hacia adelante, de esta manera vamos a lograr una muy buena activacion y trabajo en el mismo",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "cdcbddf3-3d3c-4727-a78c-76ae6698f18b",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press declinado con mancuernas",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-declinado-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-declinado-con-mancuernas/video.mp4"
+                },
+                "description": "Ejercicio muy eficiente a la hora de trabajar la parte inferior de los músculos pectorales, gracias a su ubicación nos permiten un gran estiramiento y por ende una mayor activacion",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "56eba439-3792-4a5c-af2f-5b11f028aad5",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press declinado en máquina Smith",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-declinado-en-maquina-smith/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-declinado-en-maquina-smith/video.mp4"
+                },
+                "description": "Los press en maquina smith son una muy buena opcion para hipertrofia, ya que nos ofrecen un movimiento con una barra fija, de esa manera podemos mover una mayor carga de manera estable y segura ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "9e05a139-65ab-4af1-b434-0185b0b88037",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press en máquina",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-en-maquina/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-en-maquina/video.mp4"
+                },
+                "description": "Es una excelente opción si de hipertrofia hablamos,ya que nos dan una gran estabilidad a la hora de empujar y poder enfatizarnos en la musculatura específica del pectoral, podemos trabajar de manera muy exigente,gracias a su estabilidad y seguridad",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "3f29e572-0f8b-4f84-bb83-07d3992eb9cc",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press inclinado con mancuernas",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-inclinado-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-inclinado-con-mancuernas/video.mp4"
+                },
+                "description": "Ejercicio muy eficiente para el desarrollo del pectoral superior,al trabajarlo con mancuernas vamos a estirar más la musculatura y así conseguir un mayor estímulo en su fase de contracción excéntrica",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "759b3600-ce48-450a-806e-75a63f626e58",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press inclinado en máquina Smith",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-inclinado-en-maquina-smith/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-inclinado-en-maquina-smith/video.mp4"
+                },
+                "description": "Los press en maquina smith son una muy buena opcion para hipertrofia, ya que nos ofrecen un movimiento con una barra fija, de esa manera podemos mover una mayor carga de manera estable y segura ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "31d7ad80-d962-453c-b7ff-5d99fae73109",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press plano con mancuernas",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-plano-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-plano-con-mancuernas/video.mp4"
+                },
+                "description": "Es un excelente ejercicio para el desarrollo de los pectorales,al trabajarlo con mancuernas nos va a permitir aumentar el rango de recorrido que no nos permite la barra",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "9c6f9d9e-22cb-4d34-8d93-e737d2e49162",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press plano en máquina Smith",
+                "category": "Pectorales",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-plano-en-maquina-smith/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/pectorales/press-plano-en-maquina-smith/video.mp4"
+                },
+                "description": "Los press en maquina smith son una muy buena opcion para hipertrofia, ya que nos ofrecen un movimiento con una barra fija, de esa manera podemos mover una mayor carga de manera estable y segura ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ],
+        "Tríceps": [
+            {
+                "id": "594288bc-81ce-4beb-9d97-799be627990d",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Flexiones cerradas",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/flexiones-cerradas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/flexiones-cerradas/video.mp4"
+                },
+                "description": "Es un ejercicio multiarticular en el cual vamos a trabajar triceps, hombros y pectorales, para lograr una mayor activacion en los triceps debemos realizar una aduccion de los brazos",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "32b5e16f-cab2-4574-94a9-001650005044",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Fondos en banco",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/fondos-en-banco/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/fondos-en-banco/video.mp4"
+                },
+                "description": "Es un ejercicio en el cual vamos a realizar un empuje con los dos brazos en posicion extendida, lo vamos a realizar con el propio peso del cuerpo, esto quiere decir que a medida que aumentamos de nivel, podemos agregar una carga externa ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "543f5caa-9758-4dbd-94f8-e2643c0a51f6",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Fondos en paralelas",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/fondos-en-paralelas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/fondos-en-paralelas/video.mp4"
+                },
+                "description": "Es un ejercicio multiarticular en el cual involucramos, triceps, hombro y pectorales, para lograr un mayor trabajo en los triceps vamos a posicionarnos con el tronco mas recto y que nuestros brazos queden a 90 grados,  de esta manera vamos a lograr una gran extension de codo y optimizar el trabajo en los triceps",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "4acd830f-5aa7-4f59-a4b1-0436ccf7af0e",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Patada de burro con mancuernas",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/patada-de-burro-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/patada-de-burro-con-mancuernas/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio en el cual vamos a trabajar con el hombro en posiicion neutra, de esta manera vamos a generar una mayor activacion en la cabeza mas larga del triceps, lo vamos a realizar con una carga moderada o liviana, para poder generar una contraccion muscular mucho mas controlada ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f1f10c51-2e7a-489a-878c-90ee5cbbd2c3",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Patada de burro en polea a un brazo",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/patada-de-burro-en-polea-a-un-brazo/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/patada-de-burro-en-polea-a-un-brazo/video.mp4"
+                },
+                "description": "Es un ejercicio accesorio en el cual vamos a trabajar con el hombro en posiicion neutra, de esta manera vamos a generar una mayor activacion en la cabeza mas larga del triceps, lo vamos a realizar con una carga moderada o liviana, para poder generar una contraccion muscular mucho mas controlada ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "6eca5e53-f4d2-45f2-83e9-01a01b1043d4",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press cerrado con barra",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/press-cerrado-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/press-cerrado-con-barra/video.mp4"
+                },
+                "description": "Es un ejercicio que trabaja la parte mas medial de los triceps, lo vamosa a realizar con cargas altas y moderadas, logrando un gran desarrollo de la fuerza y masa musclar , estas ganancias son transferibles para otros ejercicios como por ejemplo el press en banco plano de pectorales",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "47c83bc0-48af-449d-ac78-3d04f3047097",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press francés con barra",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/press-frances-con-barra/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/press-frances-con-barra/video.mp4"
+                },
+                "description": "Es un ejercicio que trabaja el triceps con el hombro en flexion, gracias a su posicion nos va a permitir trabajar en mayor medida la porcion larga del triceps braquial y en menor medida la porcion medial y lateral, lo podemos trabajar con cargas altas y moderadas, generando un gran desarrollo en los triceps ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "b68b1fbd-d2ce-498a-89e4-637ab41c9167",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Press francés con mancuernas",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/press-frances-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/press-frances-con-mancuernas/video.mp4"
+                },
+                "description": "Es un ejercicio que trabaja el triceps con el hombro en flexion, gracias a su posicion nos va a permitir trabajar en mayor medida la porcion larga del triceps braquial y en menor medida la porcion medial y lateral, lo podemos trabajar con cargas altas y moderadas, generando un gran desarrollo en los triceps ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "f648cdde-47d4-4b8d-bb13-0543911f24d2",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Tríceps con soga por detrás de la cabeza",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-con-soga-por-detras-de-la-cabeza/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-con-soga-por-detras-de-la-cabeza/video.mp4"
+                },
+                "description": "Es un ejercicio de aislamiento en el cual vamos a trabajar la cabeza larga del triceps, lo vamos a llevar a cabo con cargas moderadas y livianas para poder aumentar el tiempo bajo tension",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "d926ecee-0477-40b1-92a8-f1df9761af3f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Tríceps copa con mancuernas",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-copa-con-mancuernas/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-copa-con-mancuernas/video.mp4"
+                },
+                "description": "Es un ejercicio en el cual vamos a trabajar con una flexion total del hombro, de esta menera vamos a estimular la poricon mas medial del triceps, lo vamos a trabajar con cargas altas y moderadas generando un desarrollo optimo de la masa muscular",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "29bec78d-d083-45c5-a611-99b3a6ce9452",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Tríceps en polea con agarre recto",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-en-polea-con-agarre-recto/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-en-polea-con-agarre-recto/video.mp4"
+                },
+                "description": "Es un ejercicio de aislamiento en el cual vamos a trabajar la cabeza lateral del triceps, lo vamos a llevar a cabo con repeticiones mas altas, de esta manera vamos a aumentar el tiempo bajo tension, uno de los tres principios para la hipertrofia ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "361c83bc-04b3-469a-a6ff-fefb7f48796c",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Tríceps en polea con soga",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-en-polea-con-soga/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-en-polea-con-soga/video.mp4"
+                },
+                "description": "Es un ejercicio de aislamiento en el cual vamos a trabajar la cabeza lateral del triceps, lo vamos a llevar a cabo con repeticiones mas altas, de esta manera vamos a aumentar el tiempo bajo tension, uno de los tres principios para la hipertrofia ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "8fa7d7e9-cb54-437e-9d20-4e2cbabdc59f",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Tríceps unilateral con mancuerna",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-unilateral-con-mancuerna/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-unilateral-con-mancuerna/video.mp4"
+                },
+                "description": "Es un ejercicio de aislamiento, lo vamos a trabajar de manera unilateral, esto nos va a permitir corregir desiquilibrios musculares en los brazos, las cargas van a ser moderadas o livianas, ya que vamos a trabajar sobre una sola articulacion ",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            },
+            {
+                "id": "e5f7d380-376f-4b9a-a203-311510c1821e",
+                "organizationId": "944636ad-b947-4cc7-932c-699baea611b5",
+                "trainerId": "82ec79da-3c8a-4a17-80fa-0d6ac271f99a",
+                "name": "Tríceps unilateral en polea",
+                "category": "Tríceps",
+                "metadata": {
+                    "img_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-unilateral-en-polea/image.jpg",
+                    "video_url": "https://wypnebmtdjfoazgvpvba.supabase.co/storage/v1/object/public/static/exercises/triceps/triceps-unilateral-en-polea/video.mp4"
+                },
+                "description": "Es un ejercicio de aislamiento, al trabajarlo en una polea y de manera unilateral, nos va a permitir aumentar la conexion mente musculo",
+                "createdAt": "2026-04-13T02:47:18.812Z",
+                "updatedAt": "2026-04-13T02:47:18.812Z"
+            }
+        ]
+    },
+    "categories": [
+        "Abdominales",
+        "Abductores y aductores",
+        "Bíceps",
+        "Cuádriceps",
+        "Espalda",
+        "Gemelos",
+        "Glúteos",
+        "Hombros y trapecios",
+        "Isquiotibiales",
+        "Pectorales",
+        "Tríceps"
+    ]
+}

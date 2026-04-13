@@ -6,7 +6,7 @@
 export const planData = {
   header: {
     label: "Estructura del",
-    title: "Plan Detallado",
+    title: "Plan detallado",
   },
   metadata: {
     duration: {
@@ -23,6 +23,15 @@ export const planData = {
     exerciseStatus: {
       unspecifiedWeight: "--",
     },
+  },
+  modal: {
+    title: "Detalle del ejercicio",
+    series: "Series",
+    reps: "Repeticiones",
+    weight: "Peso objetivo",
+    rest: "Descanso",
+    professorNotes: "Notas del profesor",
+    noNotes: "Sin notas adicionales.",
   },
   footer: {
     message: "Este plan fue diseñado por tu profesor como tu hoja de ruta.",

@@ -34,7 +34,12 @@ export function PlanWorkspaceHeader({
           </h3>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{planName}</span>
-            {!isTemplate && (
+            {isTemplate ? (
+              <div className="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest text-zinc-950 dark:text-zinc-50 bg-zinc-950 dark:bg-zinc-900 px-3 py-1 rounded-full border border-zinc-800 shadow-lg">
+                <div className="w-1.5 h-1.5 rounded-full bg-lime-500 shadow-[0_0_8px_rgba(132,204,22,0.6)] animate-pulse" />
+                MASTER
+              </div>
+            ) : (
               <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-lime-600 dark:text-lime-400 bg-lime-500/10 px-2 py-0.5 rounded-full border border-lime-400/20">
                 PERSONALIZADO
               </div>

@@ -5,6 +5,7 @@ import { getTodayISO } from '@/lib/schedule';
 import { ActiveSession } from '@/components/organisms/alumno/ActiveSession';
 import { SessionHeader } from '@/components/molecules/alumno/SessionHeader';
 import { sesionStrings } from '@/data/es/alumno/sesion';
+import Layout from '@/layouts/Layout.astro';
 import '@/styles/global.css';
 
 const supabase = getAuthenticatedClient(Astro);
@@ -41,7 +42,13 @@ if (!rutinasDiarias || rutinasDiarias.length === 0) {
 }
 
 // Seleccionamos la rutina (usando módulo si el número excede la cantidad de rutinas)
-const rutinaActual = rutinasDiarias[sessionOffsetIndex % rutinasDiarias.length];
+// Aseguramos que el índice sea positivo para evitar undefined en el array
+const safeIndex = Math.max(0, sessionOffsetIndex);
+const rutinaActual = rutinasDiarias[safeIndex % rutinasDiarias.length];
+
+if (!rutinaActual) {
+  return Astro.redirect('/alumno/espera');
+}
 
 // 3. Instanciar la sesión usando la ACCIÓN (Seguridad + Unificación)
 // El backend se encarga de resolver JIT y Overrides
@@ -76,31 +83,25 @@ const sesionBase = (sesion.sesion_ejercicios_instanciados || [])
   }));
 ---
 
-<html lang="es" class="dark">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-  <title>{sesionStrings.header.training} – MiGym</title>
-</head>
-<body class="bg-black text-white antialiased selection:bg-lime-400/30 overflow-x-hidden min-h-screen font-sans bg-grid-alumno">
-  
-  <SessionHeader 
-    semanaActual={semanaActual}
-    nombreDia={nombreDia}
-    diaPlan={sesion.numero_dia_plan}
-  />
-
-  <main class="w-full h-full p-4 mt-6">
-    <ActiveSession 
-      client:load 
-      sesionBase={sesionBase}
-      sessionId={sesion.id}
-      alumnoId={alumno.id}
+<Layout title={`${sesionStrings.header.training} – MiGym`}>
+  <div class="bg-black text-white antialiased selection:bg-lime-400/30 overflow-x-hidden min-h-screen font-sans bg-grid-alumno">
+    <SessionHeader 
       semanaActual={semanaActual}
+      nombreDia={nombreDia}
+      diaPlan={sesion.numero_dia_plan}
     />
-  </main>
-</body>
-</html>
+
+    <main class="w-full h-full p-4 mt-6">
+      <ActiveSession 
+        client:load 
+        sesionBase={sesionBase}
+        sessionId={sesion.id}
+        alumnoId={alumno.id}
+        semanaActual={semanaActual}
+      />
+    </main>
+  </div>
+</Layout>
 
 <style is:global>
   .bg-grid-alumno {

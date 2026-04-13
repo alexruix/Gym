@@ -2,7 +2,27 @@
 
 ## Visión General
 
-MiGym es una plataforma SaaS de alto rendimiento para la gestión deportiva. La arquitectura está diseñada para maximizar la velocidad de carga y la simplicidad operativa, utilizando un enfoque híbrido de renderizado (SSR + Static) y una lógica de negocio centralizada en la base de datos (Supabase).
+MiGym es una plataforma SaaS de alto rendimiento para la gestión deportiva. La arquitectura está diseñada para maximizar la velocidad de carga y la simplicidad operativa, basada en la filosofía **"ADN vs. Organismo Vivo"**.
+
+---
+
+## 🧬 Filosofía: ADN vs. Organismo Vivo
+
+Para garantizar la escalabilidad y la integridad de los datos, el sistema se divide en dos capas conceptuales:
+
+### 1. El ADN (Plan Maestro / Template)
+Es la estructura fundamental e inmutable del entrenamiento.
+- **Definición**: Se gestiona desde la sección de **Planes/Templates**.
+- **Propiedad**: Pertenece al Profesor como recurso de diseño.
+- **Regla de Oro**: Ninguna acción desde el dashboard operativo del alumno (Agenda) puede alterar el ADN de forma accidental.
+- **Entidades**: `planes`, `rutinas_diarias`, `ejercicios_plan`.
+
+### 2. El Organismo Vivo (Agenda / Instancia)
+Es la ejecución diaria, adaptativa y reactiva del entrenamiento.
+- **Definición**: Se materializa cuando el alumno "vive" el plan día a día.
+- **Propiedad**: Pertenece a la relación Profesor-Alumno en el tiempo real.
+- **Adaptabilidad**: Permite swaps, omisiones, personalizaciones de peso/reps y ajustes por imprevistos ("Sólo por hoy") sin contaminar el ADN original.
+- **Entidades**: `sesiones_instanciadas`, `sesion_ejercicios_instanciados`, `ejercicio_plan_personalizado`.
 
 ---
 

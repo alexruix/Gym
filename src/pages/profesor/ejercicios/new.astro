@@ -1,4 +1,4 @@
-﻿---
+---
 import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import { ExerciseForm } from "@/components/molecules/profesor/ejercicios/ExerciseForm";
 import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
@@ -11,6 +11,16 @@ const userId = user?.id;
 if (!userId) {
   return Astro.redirect("/login");
 }
+
+import { actions } from "astro:actions";
+const { data: rawExercises } = await Astro.callAction(actions.ejercicios.getExerciseLibrary, {});
+const exercises = (rawExercises || []) as any[];
+
+// Extraer categorías únicas para el selector
+const existingTags = Array.from(new Set((exercises || []).flatMap(ex => ex.tags || []))).sort();
+
+// Ejercicios que pueden ser padres (base)
+const mainExercises = (exercises || []).filter(ex => !ex.parent_id);
 ---
 
 <ProfesorLayout title={`${exerciseLibraryCopy.form.title} | MiGym`}>
@@ -27,6 +37,8 @@ if (!userId) {
         client:load 
         successHref="/profesor/ejercicios" 
         cancelHref="/profesor/ejercicios"
+        existingTags={existingTags}
+        parents={mainExercises}
       />
     </FormContainer>
   </div>

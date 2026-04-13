@@ -130,13 +130,17 @@ export const athleteProfileCopy = {
       actions: {
         complete: "Marcar como realizada",
         addExercise: "Añadir ejercicio a la rutina",
-        addExtraSession: "Sumar sesión extra"
+        addExtraSession: "Sumar sesión extra",
+        copyPlan: "Cargar del Plan",
+        copyLast: "Clonar sesión pasada",
       },
       restDay: {
         title: "Día de Descanso",
-        description: "El plan no tiene actividad hoy. ¿Querés sumar algo?",
+        tag: "RECUPERACIÓN TÉCNICA",
+        description: "El plan no tiene actividad hoy, pero podés activar una rutina desde acá.",
         action: "Sumar sesión extra"
       },
+
       exerciseRow: {
         variant: "Variante",
         real: "Real",

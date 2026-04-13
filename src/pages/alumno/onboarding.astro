@@ -1,0 +1,36 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { StudentOnboardingWizard } from "../../components/organisms/alumno/OnboardingWizard";
+import { getAuthenticatedClient } from "@/lib/supabase-ssr";
+import { onboardingCopy } from "@/data/es/alumno/onboarding";
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect("/login");
+
+const supabase = getAuthenticatedClient(Astro);
+const { data: alumnoData } = await supabase
+  .from("alumnos")
+  .select("id, perfil_completado")
+  .or(`id.eq.${user.id},user_id.eq.${user.id}`)
+  .single();
+
+const alumno = alumnoData as any;
+
+// Si no lo encontramos en la tabla de alumnos, o ya completó el perfil, lo pateamos
+if (!alumno) return Astro.redirect("/login");
+if (alumno.perfil_completado) return Astro.redirect("/alumno");
+---
+
+<Layout title={onboardingCopy.pageTitle}>
+  <main class="min-h-[100dvh] bg-black relative flex flex-col justify-center items-center py-10 px-4 overflow-hidden font-sans">
+    
+    <!-- Ambient glows -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-lime-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute top-1/2 -right-32 w-[600px] h-[600px] bg-fuchsia-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="w-full relative z-10 flex justify-center">
+      <StudentOnboardingWizard client:load />
+    </div>
+
+  </main>
+</Layout>

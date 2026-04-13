@@ -1,15 +1,17 @@
 ---
 import Layout from "./Layout.astro";
-import { Home, Dumbbell, TrendingUp, User } from "lucide-react";
+import { Home, User } from "lucide-react";
 import { globalCopy } from "../data/es/global";
 import { getAuthenticatedClient } from "../lib/supabase-ssr";
 import { cn } from "@/lib/utils";
+import { AlumnoBottomNav } from "@/components/molecules/alumno/AlumnoBottomNav";
 
 interface Props {
   title: string;
+  hideHeader?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, hideHeader = false } = Astro.props;
 const currentPath = Astro.url.pathname;
 const user = Astro.locals.user;
 
@@ -41,7 +43,7 @@ if (!alumno) {
   console.error("AlumnoLayout: Alumno no encontrado para el usuario:", user.id);
 }
 
-const profTel = (alumno.profesores as any)?.telefono?.replace(/\D/g, "");
+const profTel = (alumno?.profesores as any)?.telefono?.replace(/\D/g, "");
 const waLink = profTel ? `https://wa.me/${profTel}` : "#";
 ---
 
@@ -70,94 +72,35 @@ const waLink = profTel ? `https://wa.me/${profTel}` : "#";
       )
     }
 
-    <!-- Header Alumno (Mobile) - Industrial Glass -->
-    <header
-      class={cn(
-        "bg-black/60 backdrop-blur-2xl border-b border-white/5 p-4 sticky z-40 flex justify-between items-center md:px-8",
-        isGuest ? "top-10" : "top-0"
-      )}
-    >
-      <div class="flex items-center gap-2">
-        <span class="font-black text-xl tracking-tighter uppercase text-white">
-          {globalCopy.brand.nameLine1}<span class="text-lime-400">{globalCopy.brand.nameHighlight}</span>
-        </span>
-      </div>
-      <a
-        href="/alumno/perfil"
-        class="w-10 h-10 rounded-2xl bg-zinc-900/50 border border-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/20 transition-all active:scale-95"
+    { !hideHeader && (
+      <header
+        class={cn(
+          "bg-black/60 backdrop-blur-2xl border-b border-white/5 p-4 sticky z-40 flex justify-between items-center md:px-8",
+          isGuest ? "top-10" : "top-0"
+        )}
       >
-        <User className="w-5 h-5" />
-      </a>
-    </header>
+        <div class="flex items-center gap-2">
+          <span class="font-black text-xl tracking-tighter uppercase text-white">
+            {globalCopy.brand.nameLine1}<span class="text-lime-400">{globalCopy.brand.nameHighlight}</span>
+          </span>
+        </div>
+        <a
+          href="/alumno/perfil"
+          class="w-10 h-10 rounded-2xl bg-zinc-900/50 border border-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/20 transition-all active:scale-95"
+        >
+          <User className="w-5 h-5" />
+        </a>
+      </header>
+    )}
 
     <!-- Main Content with Max Width for Phone Layout -->
     <main class="flex-1 p-4 md:p-8 max-w-lg mx-auto md:max-w-4xl min-h-[calc(100vh-140px)]">
       <slot />
     </main>
 
-    <!-- Bottom Navigation (Mobile) - Focus: Thumb Zone & Status Colors -->
-    <nav
-      class="fixed bottom-6 left-6 right-6 bg-zinc-900/80 backdrop-blur-3xl text-white rounded-[2.5rem] h-20 flex items-center justify-around md:hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-50 px-2"
-    >
-      <a
-        href="/alumno"
-        class={cn(
-            "flex flex-col items-center justify-center w-full h-full transition-all group relative",
-            currentPath === "/alumno" ? "text-lime-400" : "text-zinc-500 hover:text-zinc-300"
-        )}
-      >
-        <div class={cn(
-          "relative transition-transform group-active:scale-90",
-          currentPath === "/alumno" && "after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-lime-400 after:rounded-full after:shadow-[0_0_8px_rgba(163,230,53,1)]"
-        )}>
-          <Home className="w-6 h-6 mb-1" />
-        </div>
-        <span class="text-[8px] font-black uppercase tracking-[0.2em]">
-          {globalCopy.layout.alumnoNav.inicio}
-        </span>
-      </a>
-
-      <!-- Central Action Button (The "Lab" Accessory) -->
-      <a
-        href="/alumno/mi-plan"
-        class={cn(
-            "flex flex-col items-center justify-center w-full h-full transition-all group relative",
-            currentPath.includes("/mi-plan") ? "text-lime-400" : "text-zinc-500"
-        )}
-      >
-        <div
-          class={cn(
-            "p-4 rounded-2xl -mt-12 transition-all duration-300 group-active:scale-90 border",
-            currentPath.includes("/mi-plan") 
-                ? "bg-lime-400 text-black border-lime-400 shadow-[0_10px_30px_rgba(163,230,53,0.3)]" 
-                : "bg-zinc-950 text-white border-white/10"
-          )}
-        >
-          <Dumbbell className="w-6 h-6" />
-        </div>
-        <span class="text-[8px] font-black uppercase tracking-[0.2em] mt-2">
-          {globalCopy.layout.alumnoNav.miPlan}
-        </span>
-      </a>
-
-      <a
-        href="/alumno/progreso"
-        class={cn(
-            "flex flex-col items-center justify-center w-full h-full transition-all group relative",
-            currentPath.includes("/progreso") ? "text-fuchsia-400" : "text-zinc-500 hover:text-zinc-300"
-        )}
-      >
-        <div class={cn(
-          "relative transition-transform group-active:scale-90",
-          currentPath.includes("/progreso") && "after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-fuchsia-400 after:rounded-full after:shadow-[0_0_8px_rgba(217,70,239,1)]"
-        )}>
-          <TrendingUp className="w-6 h-6 mb-1" />
-        </div>
-        <span class="text-[8px] font-black uppercase tracking-[0.2em]">
-          {globalCopy.layout.alumnoNav.progreso}
-        </span>
-      </a>
-    </nav>
+    <!-- Bottom Navigation (Mobile) -->
+    <AlumnoBottomNav currentPath={currentPath} client:load />
+    
   </div>
 </Layout>
 

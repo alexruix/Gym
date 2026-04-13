@@ -39,9 +39,20 @@ export const triggerHapticPR = () => {
 
 /**
  * Emite un vibración suave para feedback técnico (Check de serie).
+ * Se siente como un "clic" mecánico de precisión.
  */
 export const triggerHapticSoft = () => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate(40);
+        navigator.vibrate(30);
+    }
+};
+
+/**
+ * Emite una vibración doble corta para avisar bloqueo o error.
+ * "Feedback negativo" para acciones no permitidas.
+ */
+export const triggerHapticWarning = () => {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([50, 50, 50]);
     }
 };

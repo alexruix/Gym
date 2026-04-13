@@ -3,20 +3,33 @@ import { supabase } from "@/lib/supabase";
 import { actions } from "astro:actions";
 import type { Notification } from "./useNotificationState";
 
-/**
- * useNotificationSync: El vigía que escucha la base de datos en tiempo real.
- */
 export function useNotificationSync(
     profesorId: string,
     setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>,
     setLoading: (loading: boolean) => void
 ) {
 
-    const fetchNotifications = useCallback(async () => {
+    const fetchNotifications = useCallback(async (force = false) => {
+        const StorageKey = "MiGym_CachedNotifs";
+
+        if (!force) {
+            const cachedStr = sessionStorage.getItem(StorageKey);
+            if (cachedStr) {
+                try {
+                    setNotifications(JSON.parse(cachedStr));
+                    setLoading(false);
+                    return;
+                } catch(e) {}
+            }
+        }
+
         try {
             const { data, error } = await actions.profesor.getNotifications();
             if (error) throw error;
-            if (data) setNotifications(data as Notification[]);
+            if (data) {
+                sessionStorage.setItem(StorageKey, JSON.stringify(data));
+                setNotifications(data as Notification[]);
+            }
         } catch (err) {
             console.error("[useNotificationSync] Error fetching:", err);
         } finally {
@@ -45,7 +58,11 @@ export function useNotificationSync(
                     // Feedback Sensorial: Nueva alerta
                     if ('vibrate' in navigator) navigator.vibrate(50);
 
-                    setNotifications((prev) => [newNotif, ...prev].slice(0, 30));
+                    setNotifications((prev) => {
+                        const updated = [newNotif, ...prev].slice(0, 30);
+                        sessionStorage.setItem("MiGym_CachedNotifs", JSON.stringify(updated));
+                        return updated;
+                    });
                 }
             )
             .on(
@@ -58,9 +75,11 @@ export function useNotificationSync(
                 },
                 (payload) => {
                     const updatedNotif = payload.new as Notification;
-                    setNotifications((prev) => 
-                        prev.map((n) => (n.id === updatedNotif.id ? updatedNotif : n))
-                    );
+                    setNotifications((prev) => {
+                        const updated = prev.map((n) => (n.id === updatedNotif.id ? updatedNotif : n));
+                        sessionStorage.setItem("MiGym_CachedNotifs", JSON.stringify(updated));
+                        return updated;
+                    });
                 }
             )
             .subscribe();

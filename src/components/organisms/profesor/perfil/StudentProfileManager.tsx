@@ -24,8 +24,10 @@ interface StudentProfileManagerProps {
 }
 
 export function StudentProfileManager({ assignedPlan, student, library }: StudentProfileManagerProps) {
+  const [studentData, setStudentData] = useState(student);
   const [activeTab, setActiveTab] = useState<"plan" | "routine" | "info" | "history" | "notes">("routine");
-  const [notes, setNotes] = useState(student.notas || "");
+  const [notes, setNotes] = useState(studentData.notas || "");
+
   const { openWhatsApp, copyGuestLink } = useStudentActions();
   const planDataEmpty = !assignedPlan || (assignedPlan.rutinas_diarias?.length || 0) === 0;
   
@@ -33,7 +35,8 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
     plan, 
     setPlan,
     selectors: { getGroupedExercises },
-    actions: { updateExerciseMetrics, moveExercise, deleteExercise, addExercise, promotePlan }
+    actions: { updateExerciseMetrics, updateStudentDates, moveExercise, deleteExercise, addExercise, promotePlan, duplicateRoutine, deleteRoutine }
+
   } = useStudentPlanEditor(student.id, assignedPlan);
 
   const handleCalendarPlanChange = (ejercicioPlanId: string, updates: any) => {
@@ -53,27 +56,34 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
 
   const planWorkspace = (
     <StudentRoutineWorkspace 
-      alumnoId={student.id} 
+      alumnoId={studentData.id} 
+      student={studentData}
       planData={plan} 
       library={library} 
       mode="plan"
+
       onUpdateMetrics={updateExerciseMetrics}
+      onUpdateDates={updateStudentDates}
       onMove={moveExercise}
       onDelete={deleteExercise}
       onAdd={addExercise}
+      onDuplicateRoutine={duplicateRoutine}
+      onDeleteRoutine={deleteRoutine}
       promotePlan={promotePlan}
       getGroupedExercises={getGroupedExercises}
     />
+
   );
 
   const routineWorkspace = (
     <StudentCalendarTab
-      alumnoId={student.id}
-      fechaInicio={student.fecha_inicio || null}
+      alumnoId={studentData.id}
+      fechaInicio={studentData.fecha_inicio || null}
       planData={plan}
-      diasAsistencia={student.dias_asistencia || []}
+      diasAsistencia={studentData.dias_asistencia || []}
       onPlanChange={handleCalendarPlanChange}
     />
+
   );
 
   return (
@@ -83,15 +93,19 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
         onTabChange={setActiveTab}
         planContent={planWorkspace}
         routineContent={routineWorkspace}
-        infoContent={<StudentInfoTab student={student} />}
-        notesContent={<StudentNotesTab alumnoId={student.id} notes={notes} onSaveSuccess={setNotes} />}
+        infoContent={<StudentInfoTab student={studentData} onUpdate={setStudentData} />}
+        notesContent={<StudentNotesTab alumnoId={studentData.id} notes={notes} onSaveSuccess={(newNotes) => {
+          setNotes(newNotes);
+          setStudentData(prev => ({ ...prev, notas: newNotes }));
+        }} />}
         historyContent={null}
+
       />
 
       {/* FAB - Quick Actions PWA Zone */}
       <div className="fixed bottom-8 right-6 z-[60] flex flex-col gap-3 items-end">
         {/* Acción Principal Contextual (Si estamos en rutina, añadir ejercicio es prioritario) */}
-        {activeTab === "routine" && !planDataEmpty && (
+        {/* {activeTab === "routine" && !planDataEmpty && (
           <Button
             onClick={() => {
               // Simular click en el botón de añadir del primer día abierto o el primero disponible
@@ -106,7 +120,7 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
           >
             <Dumbbell className="w-6 h-6 group-hover:rotate-12 transition-transform" />
           </Button>
-        )}
+        )} */}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

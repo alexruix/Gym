@@ -72,17 +72,25 @@ export const pagosActions = {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
 
-      // 1. Fetch Students with Payments
-      const { data: alumnosRaw, error: alumnosErr } = await supabase
-        .from('alumnos')
-        .select(`
-          id, nombre, email, telefono, monto, dia_pago, monto_personalizado, ultimo_recordatorio_pago_at,
-          pagos (id, monto, fecha_vencimiento, estado, fecha_pago)
-        `)
-        .eq('profesor_id', user.id)
-        .is('deleted_at', null)
-        .order('nombre');
+      // 1. Fetch Paralelo: Alumnos (con Pagos) y Suscripciones
+      const [alumnosRes, subsRes] = await Promise.all([
+        supabase
+          .from('alumnos')
+          .select(`
+            id, nombre, email, telefono, monto, dia_pago, monto_personalizado, ultimo_recordatorio_pago_at,
+            pagos (id, monto, fecha_vencimiento, estado, fecha_pago)
+          `)
+          .eq('profesor_id', user.id)
+          .is('deleted_at', null)
+          .order('nombre'),
+        supabase
+          .from("suscripciones")
+          .select("*")
+          .eq("profesor_id", user.id)
+          .order("cantidad_dias", { ascending: true })
+      ]);
 
+      const { data: alumnosRaw, error: alumnosErr } = alumnosRes;
       if (alumnosErr) throw new Error("Error cargando alumnos: " + alumnosErr.message);
 
       const today = new Date();
@@ -91,7 +99,7 @@ export const pagosActions = {
       const currentYear = today.getFullYear();
 
       // 2. Process Business Logic (Virtual Injections & Delinquency)
-      const alumnos = alumnosRaw.map((alumno: any) => {
+      const alumnos = (alumnosRaw || []).map((alumno: any) => {
         let historial = (alumno.pagos || []).sort((a: any, b: any) => 
           new Date(b.fecha_vencimiento).getTime() - new Date(a.fecha_vencimiento).getTime()
         );
@@ -139,14 +147,8 @@ export const pagosActions = {
         };
       });
 
-      // 3. Fetch Subscriptions
-      const { data: subsData } = await supabase
-        .from("suscripciones")
-        .select("*")
-        .eq("profesor_id", user.id)
-        .order("cantidad_dias", { ascending: true });
-
-      let subscriptions = subsData || [];
+      // 3. Subscription handling
+      let subscriptions = subsRes.data || [];
 
       // Auto-initialize if empty
       if (subscriptions.length === 0) {

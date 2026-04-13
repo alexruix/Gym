@@ -26,6 +26,7 @@ interface ActiveExerciseCardProps {
   onMarkDone: () => void;
   onStartTimer: () => void;
   onActivate: () => void;
+  isSyncing?: boolean;
 }
 
 export function ActiveExerciseCard({
@@ -43,7 +44,8 @@ export function ActiveExerciseCard({
   onCommentChange,
   onMarkDone,
   onStartTimer,
-  onActivate
+  onActivate,
+  isSyncing = false
 }: ActiveExerciseCardProps) {
   return (
     <div
@@ -135,12 +137,27 @@ export function ActiveExerciseCard({
 
                 <button
                   onClick={(e) => { e.stopPropagation(); onMarkDone(); }}
-                  className="w-full h-20 bg-lime-400 text-black rounded-3xl flex items-center justify-center gap-4 group/done active:scale-[0.98] transition-all shadow-[0_20px_40px_rgba(163,230,53,0.3)]"
+                  disabled={isSyncing}
+                  className={cn(
+                    "w-full h-20 bg-lime-400 text-black rounded-3xl flex items-center justify-center gap-4 group/done active:scale-[0.98] transition-all shadow-[0_20px_40px_rgba(163,230,53,0.3)]",
+                    isSyncing && "opacity-70 cursor-not-allowed"
+                  )}
                 >
-                  <span className="text-xl font-black uppercase tracking-widest leading-none">
-                    {sesionStrings.activeSession.doneButton}
-                  </span>
-                  <Zap className="w-6 h-6 fill-black group-hover/done:scale-125 transition-transform" />
+                  {isSyncing ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                      <span className="text-xl font-black uppercase tracking-widest">
+                        {sesionStrings.activeSession.sync}
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-xl font-black uppercase tracking-widest leading-none">
+                        {sesionStrings.activeSession.doneButton}
+                      </span>
+                      <Zap className="w-6 h-6 fill-black group-hover/done:scale-125 transition-transform" />
+                    </>
+                  )}
                 </button>
               </div>
             </div>

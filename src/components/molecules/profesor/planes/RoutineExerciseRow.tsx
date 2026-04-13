@@ -14,6 +14,7 @@ interface RoutineExerciseRowProps {
     reps_target: string;
     descanso_seg: number;
     peso_target?: string;
+    notas?: string;
     biblioteca_ejercicios: ExerciseInfo | null;
   };
   index: number;
@@ -21,7 +22,7 @@ interface RoutineExerciseRowProps {
   isLast?: boolean;
   className?: string;
   onDelete?: () => void;
-  onChange?: (updates: Partial<{ series: number; reps_target: string; descanso_seg: number; peso_target: string }>) => void;
+  onChange?: (updates: Partial<{ series: number; reps_target: string; descanso_seg: number; peso_target: string; notas: string }>) => void;
   onSwap?: () => void;
   onMove?: (direction: "up" | "down") => void;
   hideMetrics?: boolean;
@@ -98,94 +99,104 @@ export function RoutineExerciseRow({
           <h4 className="font-bold text-zinc-950 dark:text-white text-[13px] sm:text-sm uppercase tracking-tight truncate leading-tight">
             {ej?.nombre || "Ejercicio"}
           </h4>
-          {(!readOnly && onSwap) && (
-            <button
-              onClick={onSwap}
-              className="flex items-center gap-1.5 mt-0.5 sm:mt-1 text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
-            >
-              <Info className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              Variaciones
-            </button>
-          )}
+          <div className="flex items-center gap-3 mt-1">
+            {(!readOnly && onSwap) && (
+              <button
+                onClick={onSwap}
+                className="flex items-center gap-1.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-lime-500 transition-colors"
+              >
+                <Info className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                Variaciones
+              </button>
+            )}
+            {ej?.media_url && (
+               <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-emerald-500">
+                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                  Con Video
+               </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* 2. MÉTRICAS INLINE (MODO EXCEL) */}
-      {!hideMetrics && (
-        <div className="grid grid-cols-4 gap-2 sm:gap-4 shrink-0 sm:pr-4">
-          {/* Series */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Series</label>
-            <input
-              type="number"
-              defaultValue={exercise.series}
-              onBlur={(e) => handleMetricChange("series", parseInt(e.target.value) || 0)}
-              readOnly={readOnly}
-              disabled={readOnly}
-              className={cn(
-                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
-                readOnly && "cursor-not-allowed opacity-60"
-              )}
-            />
-          </div>
+      {/* 2. MÉTRICAS INLINE + NOTAS (SOLO SI NO ESTÁN OCULTAS) */}
+      <div className="flex-1 flex flex-col gap-4">
+        {!hideMetrics && (
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+            {/* Series */}
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Series</label>
+              <input
+                type="number"
+                defaultValue={exercise.series}
+                onBlur={(e) => handleMetricChange("series", parseInt(e.target.value) || 0)}
+                readOnly={readOnly}
+                className="w-full h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-500 focus:ring-0 transition-all shadow-inner"
+              />
+            </div>
 
-          {/* Reps */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Reps</label>
-            <input
-              type="text"
-              defaultValue={exercise.reps_target}
-              onBlur={(e) => handleMetricChange("reps_target", e.target.value)}
-              placeholder="12"
-              readOnly={readOnly}
-              disabled={readOnly}
-              className={cn(
-                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
-                readOnly && "cursor-not-allowed opacity-60"
-              )}
-            />
-          </div>
+            {/* Reps */}
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Reps</label>
+              <input
+                type="text"
+                defaultValue={exercise.reps_target}
+                onBlur={(e) => handleMetricChange("reps_target", e.target.value)}
+                placeholder="10"
+                readOnly={readOnly}
+                className="w-full h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-500 focus:ring-0 transition-all shadow-inner"
+              />
+            </div>
 
-          {/* Peso Target */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Peso</label>
-            <input
-              type="text"
-              defaultValue={exercise.peso_target || ""}
-              onBlur={(e) => handleMetricChange("peso_target", e.target.value)}
-              placeholder="80kg"
-              readOnly={readOnly}
-              disabled={readOnly}
-              className={cn(
-                "w-full sm:w-20 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
-                readOnly && "cursor-not-allowed opacity-60"
-              )}
-            />
-          </div>
+            {/* Peso */}
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Peso (Kg)</label>
+              <input
+                type="text"
+                defaultValue={exercise.peso_target || ""}
+                onBlur={(e) => handleMetricChange("peso_target", e.target.value)}
+                placeholder="60"
+                readOnly={readOnly}
+                className="w-full h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-500 focus:ring-0 transition-all shadow-inner"
+              />
+            </div>
 
-          {/* Descanso */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Desc.</label>
-            <input
-              type="number"
-              defaultValue={exercise.descanso_seg}
-              onBlur={(e) => handleMetricChange("descanso_seg", parseInt(e.target.value) || 0)}
-              readOnly={readOnly}
-              disabled={readOnly}
-              className={cn(
-                "w-full sm:w-16 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-400 focus:ring-0 transition-colors",
-                readOnly && "cursor-not-allowed opacity-60"
-              )}
-            />
+            {/* Descanso */}
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Desc. (min)</label>
+              <input
+                type="text"
+                defaultValue={exercise.descanso_seg}
+                onBlur={(e) => handleMetricChange("descanso_seg", e.target.value)}
+                placeholder="2:00"
+                readOnly={readOnly}
+                className="w-full h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-500 focus:ring-0 transition-all shadow-inner"
+              />
+            </div>
           </div>
+        )}
+
+        {/* NOTAS TÉCNICAS (VOSEO) */}
+        <div className="relative group/notes">
+           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-lime-500 opacity-50 group-hover/notes:opacity-100 transition-opacity">
+              <Info className="w-3.5 h-3.5" />
+           </div>
+           <input
+             type="text"
+             defaultValue={exercise.notas || ""}
+             onBlur={(e) => handleMetricChange("notas", e.target.value)}
+             placeholder="Anotale acá los detalles de la técnica..."
+             readOnly={readOnly}
+             className="w-full pl-9 pr-4 py-2 bg-transparent border-b border-zinc-100 dark:border-zinc-800 text-[11px] text-zinc-500 dark:text-zinc-400 focus:text-zinc-950 dark:focus:text-white focus:border-lime-500 transition-all outline-none italic placeholder:italic"
+           />
         </div>
-      )}
+      </div>
 
       {/* 3. ACCIONES */}
       {(!readOnly && onDelete) && (
         <button
           onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-          className="sm:opacity-0 group-hover/ej:opacity-100 p-2.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-300 ml-2"
+          className="sm:opacity-0 group-hover/ej:opacity-100 p-2.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-300 ml-2 h-fit self-start sm:self-center"
           title="Eliminar de la rutina"
         >
           <Trash2 className="w-4 h-4" />

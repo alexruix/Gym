@@ -187,9 +187,20 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                   <h2 className="industrial-title-lg">
                     Rutina {activeDiaAbsoluto - (currentWeek - 1) * freqSemanal}
                   </h2>
-                
-
                 </div>
+
+                {currentExercises.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsBulkOpen(true)}
+                    className="rounded-xl border-zinc-200 dark:border-zinc-800 text-[10px] font-bold uppercase tracking-widest gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copiar a otros días
+                  </Button>
+                )}
               </div>
 
               {/* Alerta Industrial: Datos Archivados (Hidden Data) */}
@@ -217,25 +228,39 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                     onAction={() => setIsAddElementOpen(true)}
                   />
                 ) : (
-                  currentExercises.map((ex: any, exIdx: number) => (
-                    <ExerciseCard
-                      key={ex.position || exIdx}
-                      form={form}
-                      routineIdx={routineIdx}
-                      exerciseIdx={exIdx}
-                      exercise={ex}
-                      isTemplate={isTemplate}
-                      getExerciseName={actions.getExerciseName}
-                      removeExercise={actions.removeExercise}
-                      onMove={(dir) => actions.moveExercise(routineIdx, exIdx, dir)}
-                      isFirst={exIdx === 0}
-                      isLast={exIdx === currentExercises.length - 1}
-                      onEditRotation={(ri, ei) => setRotationEditing({ routineIdx: ri, exerciseIdx: ei })}
-                      hasRotation={(pos) => form.watch("rotaciones")?.some((r: any) => r.position === pos)}
-                      getRotationForPosition={(pos) => form.watch("rotaciones")?.find((r: any) => r.position === pos)}
-                      removeRotationExercise={actions.handleRemoveRotationExercise}
-                    />
-                  ))
+                  <div className="space-y-4">
+                    {currentExercises.map((ex: any, exIdx: number) => (
+                      <ExerciseCard
+                        key={ex.position || exIdx}
+                        form={form}
+                        routineIdx={routineIdx}
+                        exerciseIdx={exIdx}
+                        exercise={ex}
+                        isTemplate={isTemplate}
+                        getExerciseName={actions.getExerciseName}
+                        removeExercise={actions.removeExercise}
+                        onMove={(dir) => actions.moveExercise(routineIdx, exIdx, dir)}
+                        isFirst={exIdx === 0}
+                        isLast={exIdx === currentExercises.length - 1}
+                        onEditRotation={(ri, ei) => setRotationEditing({ routineIdx: ri, exerciseIdx: ei })}
+                        hasRotation={(pos) => form.watch("rotaciones")?.some((r: any) => r.position === pos)}
+                        getRotationForPosition={(pos) => form.watch("rotaciones")?.find((r: any) => r.position === pos)}
+                        removeRotationExercise={actions.handleRemoveRotationExercise}
+                      />
+                    ))}
+
+                    {/* BOTÓN PARA AÑADIR MÁS ITEMS */}
+                    <button
+                      type="button"
+                      onClick={() => setIsAddElementOpen(true)}
+                      className="w-full py-8 border-2 border-dashed border-zinc-100 dark:border-zinc-900 rounded-[2rem] flex flex-col items-center justify-center gap-2 text-zinc-400 hover:text-lime-500 hover:border-lime-500/50 hover:bg-lime-500/[0.02] transition-all group"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center group-hover:bg-lime-500 group-hover:text-zinc-950 transition-colors">
+                        <Plus className="w-6 h-6" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Añadir elemento</span>
+                    </button>
+                  </div>
                 )}
               </div>
             </section>
@@ -263,7 +288,7 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
                   type="button"
                   variant="ghost"
                   size="icon"
-                  disabled={activeDiaAbsoluto === numWeeks * freqSemanal}
+                  disabled={activeDiaAbsoluto === (numWeeks === 0 ? freqSemanal : numWeeks * freqSemanal)}
                   onClick={() => setActiveDiaAbsoluto(prev => prev + 1)}
                   className="text-white hover:bg-white/10 rounded-xl h-10 w-10"
                 >

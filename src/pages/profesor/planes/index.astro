@@ -2,6 +2,7 @@
 import ProfesorLayout from '../../../layouts/ProfesorLayout.astro';
 import PageHeader from '@/components/molecules/PageHeader.astro';
 import ActionLink from '@/components/atoms/ActionLink.astro';
+import { actions } from "astro:actions";
 import { PlanesDashboard } from '@/components/organisms/profesor/planes/PlanesDashboard';
 import { type PlanRowData } from '@/components/organisms/profesor/planes/PlanesTable';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
@@ -15,19 +16,7 @@ if (!user) {
   return Astro.redirect("/login");
 }
 
-// Fetch planes data with count of current active (non-soft-deleted) students
-const { data: planesData, error } = await supabase
-  .from("planes")
-  .select(`
-    id,
-    nombre,
-    duracion_semanas,
-    frecuencia_semanal,
-    created_at,
-    alumnos(id)
-  `)
-  .eq("profesor_id", user.id)
-  .order("created_at", { ascending: false });
+const { data: planesData, error } = await Astro.callAction(actions.profesor.getPlanes, {});
 
 if (error) {
   console.error("Error cargando planes:", error);
@@ -41,6 +30,7 @@ const mappedPlanes: PlanRowData[] = (planesData || []).map((p: any) => ({
   frequency: p.frecuencia_semanal || 3,
   studentsCount: Array.isArray(p.alumnos) ? p.alumnos.length : 0,
   createdAt: p.created_at,
+  isMaster: p.profesor_id === null
 }));
 
 const c = planesCopy.list.header;

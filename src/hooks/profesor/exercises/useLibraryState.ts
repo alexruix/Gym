@@ -1,14 +1,19 @@
 import { useState, useMemo, useEffect } from "react";
 import { getRecentExercises } from "@/lib/recency";
 
-interface Exercise {
+export interface Exercise {
     id: string;
     nombre: string;
+    descripcion?: string | null;
+    media_url?: string | null;
+    video_url?: string | null;
     parent_id?: string | null;
+    is_template_base?: boolean;
     is_favorite?: boolean;
     usage_count?: number;
     tags?: string[];
     profesor_id?: string | null;
+    created_at?: string;
     [key: string]: any;
 }
 
@@ -19,6 +24,7 @@ export function useLibraryState(initialExercises: Exercise[]) {
     const [exercises, setExercises] = useState<Exercise[]>(initialExercises);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeFilter, setActiveFilter] = useState("todos"); // todos | favoritos | recientes | top | mi-gym | míos
+    const [muscleFilter, setMuscleFilter] = useState<string | null>(null);
     const [recentIds, setRecentIds] = useState<string[]>([]);
 
     // Cargar recencia inicial y escuchar actualizaciones
@@ -39,7 +45,8 @@ export function useLibraryState(initialExercises: Exercise[]) {
         if (activeFilter === "favoritos") {
             list = list.filter(ex => ex.is_favorite);
         } else if (activeFilter === "recientes") {
-            list = list.filter(ex => recentIds.includes(ex.id));
+            const recentSet = new Set(recentIds);
+            list = list.filter(ex => recentSet.has(ex.id));
         } else if (activeFilter === "top") {
             list = list.sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0)).slice(0, 20);
         } else if (activeFilter === "mi-gym") {
@@ -48,26 +55,42 @@ export function useLibraryState(initialExercises: Exercise[]) {
             list = list.filter(ex => ex.profesor_id !== null);
         }
 
-        // 2. Búsqueda Industrial (Zero friction)
-        if (searchQuery) {
-            const q = searchQuery.toLowerCase();
+        const normalize = (s: string) => 
+            s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+        // 2. Filtrado Muscular (Pills)
+        if (muscleFilter) {
+            const m = normalize(muscleFilter);
             list = list.filter(ex => 
-                ex.nombre.toLowerCase().includes(q) || 
-                ex.tags?.some(t => t.toLowerCase().includes(q))
+                ex.tags?.some(t => normalize(t).includes(m))
             );
         }
 
-        // 3. Ordenamiento con Boost de Recencia
+        // 3. Búsqueda Industrial (Zero friction)
+        if (searchQuery) {
+            const q = normalize(searchQuery);
+            list = list.filter(ex => 
+                normalize(ex.nombre).includes(q) || 
+                ex.tags?.some(t => normalize(t).includes(q))
+            );
+        }
+
+        // 4. Ordenamiento con Boost de Recencia
+        // Pre-calculamos un mapa de índices para recencia O(1)
+        const recentMap = new Map<string, number>(recentIds.map((id, index) => [id, index]));
+        const isDefaultFilter = activeFilter === "todos";
+
         return list.sort((a, b) => {
             // Priorizar favoritos si no hay un filtro específico activo
-            if (activeFilter === "todos") {
+            if (isDefaultFilter) {
                 if (a.is_favorite && !b.is_favorite) return -1;
                 if (!a.is_favorite && b.is_favorite) return 1;
             }
 
             // Boost por Recencia (Últimos usados)
-            const indexA = recentIds.indexOf(a.id);
-            const indexB = recentIds.indexOf(b.id);
+            const indexA = recentMap.has(a.id) ? recentMap.get(a.id)! : -1;
+            const indexB = recentMap.has(b.id) ? recentMap.get(b.id)! : -1;
+            
             if (indexA !== -1 || indexB !== -1) {
                 if (indexA !== -1 && indexB === -1) return -1;
                 if (indexA === -1 && indexB !== -1) return 1;
@@ -84,21 +107,32 @@ export function useLibraryState(initialExercises: Exercise[]) {
         return exercises.filter(ex => ex.parent_id === parentId);
     };
 
+
     const mainExercises = useMemo(() => {
-        // En la vista general, solemos mostrar solo los "Padres" (sin parent_id)
-        // a menos que estemos buscando algo específico.
-        if (searchQuery) return filteredExercises;
-        return filteredExercises.filter(ex => !ex.parent_id);
-    }, [filteredExercises, searchQuery]);
+        if (!searchQuery && activeFilter === "todos" && !muscleFilter) {
+            return filteredExercises.filter(ex => !ex.parent_id);
+        }
+        
+        // Búsqueda Inteligente: Si algo matchea (padre o variante), mostramos el PADRE en la grilla
+        const parentIdsToShow = new Set<string>();
+        filteredExercises.forEach(ex => {
+            parentIdsToShow.add(ex.parent_id || ex.id);
+        });
+        
+        return exercises.filter(ex => parentIdsToShow.has(ex.id));
+    }, [filteredExercises, exercises, searchQuery, activeFilter, muscleFilter]);
 
     return {
         exercises: mainExercises,
+        allFiltered: filteredExercises,
         rawExercises: exercises,
         setExercises,
         searchQuery,
         setSearchQuery,
         activeFilter,
         setActiveFilter,
+        muscleFilter,
+        setMuscleFilter,
         recentIds,
         setRecentIds,
         getVariantsOf

@@ -1,6 +1,7 @@
 ---
 import AlumnoLayout from '../../layouts/AlumnoLayout.astro';
 import { actions } from 'astro:actions';
+import { PerformanceAnalytics } from '@/components/organisms/alumno/PerformanceAnalytics';
 import { PerformanceHUD } from '@/components/organisms/alumno/PerformanceHUD';
 import { ConsistencyHeatmap } from '@/components/organisms/alumno/ConsistencyHeatmap';
 import { TechnicalLabel } from '@/components/atoms/alumno/TechnicalLabel';
@@ -8,13 +9,21 @@ import { TrendingUp, Target, Zap, Waves } from 'lucide-react';
 import { progresoData } from '@/data/es/alumno';
 import '@/styles/global.css';
 
+// 1. Fetch de Performance (Charts, PRs, Volumen)
 const { data: response, error } = await Astro.callAction(actions.alumno.getStudentPerformance, {});
+
+// 2. Fetch de Calendario (Para el HUD de Tasa de Cumplimiento y Sparkline)
+const { data: calendarRes } = await Astro.callAction(actions.alumno.getWeeklySessions, {
+    dias_atras: 30,
+    dias_adelante: 0
+});
 
 if (error || !response?.success) {
     console.error("Error cargando performance:", error || response?.message);
 }
 
 const stats = response?.data || { prTrends: {}, volumeTrends: [], heatmapData: {} };
+const calendarDays = calendarRes?.data?.dias || [];
 
 // Obtener los 2 ejercicios con más progreso para mostrar en el HUD
 const topPRs = Object.entries(stats.prTrends || {})
@@ -39,6 +48,9 @@ const volumeLineData = (stats.volumeTrends || []).map((d: any) => ({
             {progresoData.header.title}
         </h1>
     </header>
+
+    <!-- IMPACT HUD -->
+    <PerformanceAnalytics client:load calendarDays={calendarDays} />
 
     <!-- HEATMAP (Consistencia) -->
     <ConsistencyHeatmap data={stats.heatmapData || {}} />

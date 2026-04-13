@@ -10,12 +10,15 @@ export function useExercises(initialExercises: any[]) {
     // 1. Motor de Estado y Búsqueda (Jerarquía + Recencia)
     const {
         exercises,
+        allFiltered,
         rawExercises,
         setExercises,
         searchQuery,
         setSearchQuery,
         activeFilter,
         setActiveFilter,
+        muscleFilter,
+        setMuscleFilter,
         setRecentIds,
         getVariantsOf
     } = useLibraryState(initialExercises);
@@ -37,6 +40,7 @@ export function useExercises(initialExercises: any[]) {
     return {
         // Data
         exercises,
+        allFiltered,
         allExercises: rawExercises, 
         isLoading,
 
@@ -45,6 +49,8 @@ export function useExercises(initialExercises: any[]) {
         setSearchQuery,
         activeFilter,
         setActiveFilter,
+        muscleFilter,
+        setMuscleFilter,
 
         // Intelligence
         getVariantsOf,

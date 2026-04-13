@@ -5,12 +5,14 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { exerciseLibrarySchema } from "@/lib/validators";
 import { baseExercises } from "@/data/es/profesor/biblioteca-base";
 
+let hasSynced = false;
+
 /**
  * Ejercicios Actions: Gestión de la Biblioteca de Ejercicios.
  * Implementa el patrón "Living Cabinet" con soporte para Hybrid Hydration.
  */
 export const ejercicioActions = {
-  
+
   /**
    * Obtiene la biblioteca completa (Publica + Privada).
    * Realiza un Smart Sync silencioso con la base de datos si detecta cambios en el archivo TS.
@@ -22,65 +24,110 @@ export const ejercicioActions = {
       const user = context.locals.user;
       if (!user) throw new Error("No autorizado");
 
-      // 1. SILENT SEEDING & SMART SYNC
-      const { data: rawSystemItems } = await supabaseAdmin
-        .from("biblioteca_ejercicios")
-        .select("*")
-        .is("profesor_id", null);
+      const normalizeStr = (str: string) => 
+        str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() : "";
 
-      const systemItems = (rawSystemItems || []) as any[];
-      const dbMap = new Map<string, any>(systemItems.map(item => [item.nombre, item]));
-      let needsSync = false;
 
-      // Detección de cambios rápida
-      for (const ex of baseExercises) {
-        const dbEx = dbMap.get(ex.nombre);
-        if (!dbEx) { needsSync = true; break; }
-        if (
-          dbEx.descripcion !== (ex.descripcion || null) ||
-          dbEx.media_url !== (ex.media_url || null) ||
-          JSON.stringify(dbEx.tags?.sort()) !== JSON.stringify([...(ex as any).tags || []].sort())
-        ) {
-          needsSync = true;
-          break;
-        }
-      }
+      // 1. SILENT SEEDING & SMART SYNC (Una vez por instancia, NON-BLOCKING)
+      if (!hasSynced) {
+        hasSynced = true;
+        Promise.resolve().then(async () => {
+          const { data: rawSystemItems } = await supabaseAdmin
+            .from("biblioteca_ejercicios")
+            .select("*")
+            .is("profesor_id", null);
 
-      if (needsSync || systemItems.length === 0) {
-        console.log("[Smart Sync] Actualizando catálogo base...");
-        for (const ex of baseExercises) {
-          const { variants, ...parentData } = (ex as any);
-          const dbEx = dbMap.get(ex.nombre);
-          let parentId: string | null = dbEx?.id || null;
+          const systemItems = (rawSystemItems || []) as any[];
+          
+          // Mapa por nombre normalizado para evitar colisiones por acentos
+          const dbMap = new Map<string, any>();
+          systemItems.forEach(item => {
+            const normName = normalizeStr(item.nombre);
+            if (!dbMap.has(normName) || item.parent_id === null) {
+              dbMap.set(normName, item);
+            }
+          });
 
-          if (!dbEx) {
-            const { data: newP } = await (supabaseAdmin.from("biblioteca_ejercicios") as any)
-              .insert({ ...parentData, profesor_id: null, is_template_base: true })
-              .select("id")
-              .single();
-            parentId = newP?.id || null;
-          } else {
-            await (supabaseAdmin.from("biblioteca_ejercicios") as any)
-              .update({ ...parentData })
-              .eq("id", dbEx.id);
-          }
+          let needsSync = false;
 
-          if (variants && variants.length > 0 && parentId) {
-            const currentVariants = systemItems.filter(v => v.parent_id === parentId);
-            const toInsert = (variants as string[]).filter(vName => !currentVariants.some(cv => cv.nombre === vName));
-            if (toInsert.length > 0) {
-              await (supabaseAdmin.from("biblioteca_ejercicios") as any).insert(
-                toInsert.map(vName => ({
-                  nombre: vName,
-                  parent_id: parentId,
-                  profesor_id: null,
-                  is_template_base: false,
-                  tags: parentData.tags || []
-                }))
-              );
+          // Detección de cambios rápida
+          for (const ex of baseExercises) {
+            const dbEx = dbMap.get(normalizeStr(ex.nombre));
+            if (!dbEx) { needsSync = true; break; }
+            const exTags = ((ex as any).tags || []) as string[];
+            if (
+              dbEx.descripcion !== (ex.descripcion || null) ||
+              dbEx.media_url !== (ex.media_url || null) ||
+              dbEx.video_url !== (ex.video_url || null) ||
+              JSON.stringify((dbEx.tags || []).sort()) !== JSON.stringify([...exTags].sort())
+            ) {
+              needsSync = true;
+              break;
             }
           }
-        }
+
+          if (needsSync || systemItems.length === 0) {
+            console.log("[Smart Sync] Actualizando catálogo base...");
+            for (const ex of baseExercises) {
+              const { variants, category, ...parentData } = (ex as any);
+              const dbEx = dbMap.get(normalizeStr(ex.nombre));
+              let parentId: string | null = dbEx?.id || null;
+
+              if (!dbEx) {
+                const { data: newP } = await (supabaseAdmin.from("biblioteca_ejercicios") as any)
+                  .insert({ ...parentData, profesor_id: null, is_template_base: true })
+                  .select("id")
+                  .single();
+                parentId = newP?.id || null;
+              } else {
+                await (supabaseAdmin.from("biblioteca_ejercicios") as any)
+                  .update({ ...parentData })
+                  .eq("id", dbEx.id);
+              }
+
+              if (variants && variants.length > 0 && parentId) {
+                const variantData = variants as any[];
+                const variantNamesNorm = new Set(variantData.map(v => normalizeStr(v.nombre)));
+
+                // Encontrar ejercicios en la DB que deberían ser variantes de este padre
+                const toUpdate = systemItems.filter(v => {
+                   const normV = normalizeStr(v.nombre);
+                   return variantNamesNorm.has(normV) && v.parent_id !== parentId;
+                });
+
+                const existingInDbNorm = new Set(
+                  systemItems.filter(v => v.parent_id === parentId).map(v => normalizeStr(v.nombre))
+                );
+
+                const toInsert = variantData.filter(v =>
+                  !existingInDbNorm.has(normalizeStr(v.nombre)) &&
+                  !toUpdate.some(tu => normalizeStr(tu.nombre) === normalizeStr(v.nombre))
+                );
+
+                if (toUpdate.length > 0) {
+                  await (supabaseAdmin.from("biblioteca_ejercicios") as any)
+                    .update({ parent_id: parentId, is_template_base: false })
+                    .in("id", toUpdate.map(tu => tu.id));
+                }
+
+                if (toInsert.length > 0) {
+                  await (supabaseAdmin.from("biblioteca_ejercicios") as any).insert(
+                    toInsert.map(v => ({
+                      nombre: v.nombre,
+                      descripcion: v.descripcion || null,
+                      media_url: v.media_url || null,
+                      video_url: v.video_url || null,
+                      parent_id: parentId,
+                      profesor_id: null,
+                      is_template_base: false,
+                      tags: parentData.tags || []
+                    }))
+                  );
+                }
+              }
+            }
+          }
+        }).catch(err => console.error("[Smart Sync Error]", err));
       }
 
       // 2. FETCH UNIFICADO
@@ -91,14 +138,28 @@ export const ejercicioActions = {
         .order("nombre", { ascending: true });
 
       if (error) throw new Error(`Error al sincronizar biblioteca: ${error.message}`);
-      
-      return (data || []).filter(item => {
-        if (item.profesor_id !== null) return true;
-        const validSystemNames = new Set(baseExercises.map(ex => ex.nombre));
-        if (!item.parent_id) return validSystemNames.has(item.nombre);
-        const parent = data.find(p => p.id === item.parent_id);
-        return parent && validSystemNames.has(parent.nombre);
+
+      const allItems = (data || []) as any[];
+      const itemMap = new Map<string, any>(allItems.map(item => [item.id, item]));
+
+      // 3. FILTRADO DE SEGURIDAD (Nombres válidos del archivo base)
+      const validNames = new Set<string>();
+      baseExercises.forEach(ex => {
+        validNames.add(normalizeStr(ex.nombre));
+        (ex.variants || []).forEach((v: any) => validNames.add(normalizeStr(v.nombre)));
       });
+
+      const filteredItems = allItems.filter(item => {
+        // Si es un ejercicio propio, siempre es válido
+        if (item.profesor_id !== null) return true;
+
+        // Si es de sistema, su nombre debe estar en el catálogo maestro
+        return validNames.has(normalizeStr(item.nombre));
+      });
+
+      console.log(`[Diagnostic] DB Items: ${allItems.length} | Filtered: ${filteredItems.length}`);
+      
+      return filteredItems;
     },
   }),
 
@@ -121,6 +182,7 @@ export const ejercicioActions = {
           nombre: input.nombre,
           descripcion: input.descripcion || null,
           media_url: input.media_url || null,
+          video_url: input.video_url || null,
           tags: normalizedTags,
           is_template_base: !input.parent_id,
         })
@@ -175,6 +237,7 @@ export const ejercicioActions = {
             nombre: input.nombre,
             descripcion: input.descripcion || null,
             media_url: input.media_url || null,
+            video_url: input.video_url || null,
             tags: normalizedTags,
             is_template_base: false,
           })
@@ -192,6 +255,7 @@ export const ejercicioActions = {
           nombre: input.nombre,
           descripcion: input.descripcion || null,
           media_url: input.media_url || null,
+          video_url: input.video_url || null,
           tags: normalizedTags,
         })
         .eq("id", input.id)

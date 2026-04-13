@@ -2,7 +2,7 @@ import React from "react";
 import { User, Mail, Phone, Calendar, CreditCard, Activity, Pencil, MapPin, BadgeInfo } from "lucide-react";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, calculateAge, formatDateLatam } from "@/lib/utils";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 
 interface StudentInfoTabProps {
@@ -13,15 +13,23 @@ interface StudentInfoTabProps {
     telefono: string | null;
     fecha_inicio: string;
     dia_pago: number;
+    dias_asistencia?: string[] | null;
+    fecha_nacimiento?: string | null;
+    genero?: string | null;
+    profesion?: string | null;
+    nivel_experiencia?: string | null;
     notas?: string | null;
   };
+  onUpdate?: (updated: any) => void;
 }
+
 
 /**
  * StudentInfoTab: Ficha técnica del alumno.
  * Centraliza datos de contacto y administrativos en un layout de rejilla industrial.
  */
-export function StudentInfoTab({ student }: StudentInfoTabProps) {
+export function StudentInfoTab({ student, onUpdate }: StudentInfoTabProps) {
+
   const { sidebar } = athleteProfileCopy;
 
   const formatDate = (dateString: string) => {
@@ -66,6 +74,67 @@ export function StudentInfoTab({ student }: StudentInfoTabProps) {
             <div className="space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-widest leading-none text-emerald-600">Teléfono (WhatsApp)</p>
               <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100">{student.telefono || "No registrado"}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sección 1.1: Identidad (Personal) */}
+      <section className="space-y-6 pt-6 border-t border-zinc-100 dark:border-zinc-900">
+        <div className="flex items-center gap-3">
+          <User className="w-5 h-5 text-lime-500" />
+          <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-zinc-400">Identidad y Biometría</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Fecha Nacimiento / Edad */}
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800 flex items-start gap-4 hover:border-lime-400/30 transition-colors group">
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-lime-500 transition-colors">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Nacimiento / Edad</p>
+              <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100">
+                {student.fecha_nacimiento ? (
+                  <>
+                    {formatDateLatam(student.fecha_nacimiento, 'full')} 
+                    <span className="ml-2 text-lime-600 dark:text-lime-400">({calculateAge(student.fecha_nacimiento)} años)</span>
+                  </>
+                ) : "No especificado"}
+              </p>
+            </div>
+          </div>
+
+          {/* Genero */}
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800 flex items-start gap-4 hover:border-lime-400/30 transition-colors group">
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-lime-500 transition-colors">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Género</p>
+              <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100 capitalize">{student.genero || "No especificado"}</p>
+            </div>
+          </div>
+
+          {/* Profesión */}
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800 flex items-start gap-4 hover:border-lime-400/30 transition-colors group">
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-lime-500 transition-colors">
+              <Pencil className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Profesión</p>
+              <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100 capitalize">{student.profesion || "No especificado"}</p>
+            </div>
+          </div>
+
+          {/* Nivel */}
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800 flex items-start gap-4 hover:border-lime-400/30 transition-colors group">
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-lime-500 transition-colors">
+              <BadgeInfo className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Nivel de Experiencia</p>
+              <p className="text-sm font-bold text-zinc-950 dark:text-zinc-100 capitalize">{student.nivel_experiencia || "No especificado"}</p>
             </div>
           </div>
         </div>

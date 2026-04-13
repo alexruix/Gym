@@ -14,7 +14,7 @@ if (!userId) {
 }
 
 // Fetch exercise library unificada (Personales + MiGym)
-const { data: exercises, error } = await Astro.callAction(actions.profesor.getExercises, {});
+const { data: exercises, error } = await Astro.callAction(actions.ejercicios.getExerciseLibrary, {});
 
 if (error) {
   console.error("Error cargando ejercicios:", error);

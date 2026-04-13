@@ -25,7 +25,8 @@ export function useStudentCalendar(
     stats, setStats,
     savingIds, setSavingIds,
     hasOmissions, setHasOmissions
-  } = useCalendarState(initialPlan, getTodayISO());
+  } = useCalendarState(initialPlan);
+
 
   const [isRealigning, setIsRealigning] = useState(false);
   const [isClosingSession, setIsClosingSession] = useState(false);
@@ -113,7 +114,20 @@ export function useStudentCalendar(
   // Ciclo de Vida inicial
   useEffect(() => { loadAll(); }, [loadAll]);
 
+  // Selección inicial diferida (Solo Cliente para evitar mismatch)
+  useEffect(() => {
+    if (!selectedDay) {
+        setSelectedDay(getTodayISO());
+    }
+  }, []);
+
+  // Reset inmediato al cambiar de día para evitar ghosting
+  useEffect(() => {
+    setSelectedSesion(null);
+  }, [selectedDay]);
+
   // Reactividad ante navegación de días
+
   useEffect(() => {
     if (!selectedDay) return;
     const dia = calendarDays.find((d) => d.fecha === selectedDay);

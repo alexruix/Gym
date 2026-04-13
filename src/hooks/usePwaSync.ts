@@ -20,20 +20,22 @@ export function usePwaSync() {
       }
 
       try {
-        // @ts-ignore - API moderna puede no estar en tipos estándar aún
+        // @ts-ignore
         const tags = await registration.periodicSync.getTags();
         
         if (!tags.includes('warm-up-agenda')) {
           // @ts-ignore
           await registration.periodicSync.register('warm-up-agenda', {
-            // Intervalo mínimo sugerido: 24 horas (en ms)
-            // Nota: El OS decidirá cuándo ejecutarlo basado en el uso.
             minInterval: 24 * 60 * 60 * 1000, 
           });
           console.log("[MiGym PWA] Periodic Sync 'warm-up-agenda' registrado.");
         }
-      } catch (err) {
-        console.error("[MiGym PWA] No se pudo registrar Periodic Sync:", err);
+      } catch (err: any) {
+        if (err.name === 'NotAllowedError') {
+          console.warn("[MiGym PWA] Periodic Sync denegado. Esto es normal si la PWA no está instalada o no tiene permisos de fondo.");
+        } else {
+          console.error("[MiGym PWA] Error inesperado en Periodic Sync:", err);
+        }
       }
     };
 

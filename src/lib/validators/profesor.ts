@@ -56,11 +56,12 @@ export const exerciseLibrarySchema = z.object({
   nombre: z.string().min(2, "Mínimo 2 caracteres").max(120, "Máximo 120 caracteres"),
   descripcion: z.string().max(1000, "Máximo 1000 caracteres").optional(),
   media_url: z.string().url("Debe ser una URL válida").optional().or(z.literal("")),
+  video_url: z.string().url("Debe ser una URL válida").optional().or(z.literal("")),
   tags: z.array(z.string()).max(6, "Máximo 6 etiquetas"),
   is_template_base: z.boolean().optional(),
   variants: z.array(z.string()).optional(),
-  is_favorite: z.boolean().optional().default(false),
-  usage_count: z.number().int().optional().default(0),
+  is_favorite: z.boolean().default(false),
+  usage_count: z.number().int().default(0),
 });
 
 export type ExerciseLibraryFormData = z.infer<typeof exerciseLibrarySchema> & {
@@ -118,6 +119,7 @@ export const updateStudentSchema = z.object({
   email: z.string().email("Email inválido").optional(),
   telefono: z.string().optional().nullable(),
   fecha_inicio: z.coerce.date().optional(),
+  fecha_fin: z.coerce.date().optional().nullable(),
   dia_pago: z.number().min(1).max(31).optional(),
   monto: z.number().min(0).optional().nullable(),
   suscripcion_id: z.string().uuid().optional().nullable(),

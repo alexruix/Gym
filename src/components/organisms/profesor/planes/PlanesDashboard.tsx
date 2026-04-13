@@ -93,7 +93,7 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
 
   const filteredPlanes = planes.filter(p => {
     if (activeCategory === "all") return true;
-    if (activeCategory === "master") return p.studentsCount > 5; // Simulación: Master son los más usados
+    if (activeCategory === "master") return p.isMaster;
     if (activeCategory === "recent") {
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);

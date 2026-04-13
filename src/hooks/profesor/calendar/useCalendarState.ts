@@ -5,12 +5,13 @@ import type { SesionDetalle } from "@/types/calendar";
 /**
  * useCalendarState: Gestión de UI y estado del Calendario del Alumno.
  */
-export function useCalendarState(initialPlan: any, initialSelectedDay: string | null) {
+export function useCalendarState(initialPlan: any) {
   const [loading, setLoading] = useState(true);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
-  const [selectedDay, setSelectedDay] = useState<string | null>(initialSelectedDay);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedSesion, setSelectedSesion] = useState<SesionDetalle | null>(null);
+
   const [planData, setPlanData] = useState(initialPlan);
   const [stats, setStats] = useState({ completadas: 0, total: 0 });
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());

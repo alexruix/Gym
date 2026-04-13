@@ -19,29 +19,29 @@ interface StatCardProps {
 
 const variantStyles: Record<Variant, string> = {
   default:
-    "bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 hover:shadow-xl hover:shadow-zinc-900/5",
+    "bg-card border-border hover:shadow-xl hover:shadow-zinc-900/5",
   accent:
     "bg-lime-500 border-lime-500/20 shadow-lg shadow-lime-500/20 hover:shadow-2xl hover:shadow-lime-500/30",
   alert:
-    "bg-white dark:bg-zinc-950 border-red-200 dark:border-red-800/50 hover:shadow-xl hover:shadow-red-900/5",
+    "bg-error/10 border-error/20 hover:shadow-xl",
 };
 
 const iconStyles: Record<Variant, string> = {
-  default: "bg-zinc-50 dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100",
+  default: "bg-secondary text-secondary-foreground",
   accent: "bg-lime-300 text-zinc-950",
-  alert: "bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400",
+  alert: "bg-error/20 text-error",
 };
 
 const labelStyles: Record<Variant, string> = {
-  default: "text-zinc-500 dark:text-zinc-400",
+  default: "text-ui-muted",
   accent: "text-zinc-800",
-  alert: "text-red-500 dark:text-red-400",
+  alert: "text-error/80",
 };
 
 const valueStyles: Record<Variant, string> = {
-  default: "text-zinc-950 dark:text-zinc-50",
+  default: "text-card-foreground",
   accent: "text-zinc-950",
-  alert: "text-red-600 dark:text-red-400",
+  alert: "text-error",
 };
 
 /**
@@ -122,7 +122,7 @@ export function StatCard({
       {href && (
         <a
           href={href}
-          className="absolute inset-0 rounded-[inherit]"
+          className="absolute inset-0 z-20 rounded-[inherit]"
           aria-label={label}
         />
       )}

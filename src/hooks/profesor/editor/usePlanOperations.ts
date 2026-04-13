@@ -138,10 +138,68 @@ export function usePlanOperations(
     return newPlan;
   }, [plan, setPlan, isInteracting]);
 
+
+  // 5. Acción: Duplicar Rutina (Optimista)
+  const duplicateRoutine = useCallback(async (rutinaId: string) => {
+    if (isInteracting) isInteracting.current = true;
+
+    const routinesKey = plan.rutinas ? 'rutinas' : 'rutinas_diarias';
+    const sourceRoutine = plan[routinesKey].find((r: any) => r.id === rutinaId);
+    if (!sourceRoutine) return plan;
+
+    // Determinar el próximo número de día disponible
+    const maxDia = Math.max(...plan[routinesKey].map((r: any) => r.dia_numero), 0);
+    
+    const newRoutine = {
+      ...sourceRoutine,
+      id: crypto.randomUUID(),
+      dia_numero: maxDia + 1,
+      nombre_dia: sourceRoutine.nombre_dia ? `${sourceRoutine.nombre_dia} (Copia)` : `Día ${maxDia + 1}`,
+      ejercicios_plan: (sourceRoutine.ejercicios_plan || []).map((e: any) => ({
+        ...e,
+        id: crypto.randomUUID()
+      }))
+    };
+
+    const newPlan = {
+      ...plan,
+      [routinesKey]: [...plan[routinesKey], newRoutine]
+    };
+
+    setPlan(newPlan);
+    toast.success("¡Rutina duplicada!");
+    return newPlan;
+  }, [plan, setPlan, isInteracting]);
+
+  // 6. Acción: Eliminar Rutina Completa (Optimista)
+  const deleteRoutine = useCallback(async (rutinaId: string) => {
+    if (isInteracting) isInteracting.current = true;
+
+    const routinesKey = plan.rutinas ? 'rutinas' : 'rutinas_diarias';
+    const newRoutines = plan[routinesKey]
+      .filter((r: any) => r.id !== rutinaId)
+      .map((r: any, idx: number) => ({
+        ...r,
+        dia_numero: idx + 1 // Reordenar números de día para mantener consistencia
+      }));
+
+    const newPlan = {
+      ...plan,
+      [routinesKey]: newRoutines
+    };
+
+    setPlan(newPlan);
+    toast.info("Día eliminado del plan");
+    return newPlan;
+  }, [plan, setPlan, isInteracting]);
+
   return {
     getUpdatePayload,
     removeExercise,
     addExercise,
-    reorderExercise
+    reorderExercise,
+    duplicateRoutine,
+    deleteRoutine
   };
 }
+

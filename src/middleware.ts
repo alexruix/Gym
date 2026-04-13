@@ -35,9 +35,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
          .single();
        
        if (guestStudent) {
+         const student = guestStudent as { id: string, email: string | null };
          context.locals.user = {
-           id: guestStudent.id,
-           email: guestStudent.email || "",
+           id: student.id,
+           email: student.email || "",
            role: "invitado"
          };
        } else {
@@ -58,31 +59,31 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const localUser = context.locals.user;
 
   // 🛡️ ESCUDO GLOBAL (RBAC)
-
-  // 1. SI NO HAY SESIÓN (NI GUEST NI AUTH)
   if (!localUser) {
     if (path.startsWith('/alumno')) return context.redirect('/login?error=no_token');
     if (path.startsWith('/profesor') || path.startsWith('/onboarding')) return context.redirect('/login?error=unauthorized');
     return next();
   }
 
-  // 2. BLINDAJE DE ONBOARDING: Prohibido para Alumnos o Profesores ya registrados
-  if (path.startsWith('/onboarding')) {
-    if (localUser.role === 'invitado') return context.redirect('/alumno');
-    
-    const { data: isProfesor } = await supabase.from('profesores').select('id').eq('id', localUser.id).maybeSingle();
-    if (isProfesor) return context.redirect('/profesor');
+  // 🌩️ Verificación de Integridad de Profesor (Una sola vez si es necesario)
+  let isProfesorInDb = false;
+  if (localUser.role === 'profesor' || path.startsWith('/profesor') || path.startsWith('/onboarding')) {
+    const { data } = await supabase.from('profesores').select('id').eq('id', localUser.id).maybeSingle();
+    isProfesorInDb = !!data;
   }
 
-  // 3. PROTECCIÓN DE RUTA PROFESOR
+  // 1. BLINDAJE DE ONBOARDING: Prohibido para Alumnos o Profesores ya registrados
+  if (path.startsWith('/onboarding')) {
+    if (localUser.role === 'invitado') return context.redirect('/alumno');
+    if (isProfesorInDb) return context.redirect('/profesor');
+  }
+
+  // 2. PROTECCIÓN DE RUTA PROFESOR
   if (path.startsWith('/profesor')) {
-    if (localUser.role !== 'profesor') {
+    if (localUser.role !== 'profesor' || !isProfesorInDb) {
       if (localUser.role === 'invitado' || localUser.role === 'alumno') return context.redirect('/alumno');
       return context.redirect('/onboarding');
     }
-    // Verificación final de integridad de profesor
-    const { data: isProf } = await supabase.from('profesores').select('id').eq('id', localUser.id).maybeSingle();
-    if (!isProf) return context.redirect('/onboarding');
   }
 
   // 4. PROTECCIÓN DE RUTA ALUMNO

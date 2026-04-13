@@ -18,9 +18,11 @@ export function usePwaBadging() {
         const overdueCount = data.metrics.totalMorosos || 0;
         
         if (overdueCount > 0) {
+          // @ts-ignore
           await navigator.setAppBadge(overdueCount);
           console.log(`[MiGym PWA] Badge actualizado: ${overdueCount} deudas.`);
         } else {
+          // @ts-ignore
           await navigator.clearAppBadge();
         }
       } catch (err) {
@@ -28,8 +30,16 @@ export function usePwaBadging() {
       }
     };
 
-    // Actualización inicial
-    updateBadge();
+    // Actualización inicial basada en SessionStorage (Caché por 5 minutos)
+    const StorageKey = "MiGym_PwaFetch_Time";
+    const cachedStr = sessionStorage.getItem(StorageKey);
+    const cachedTime = cachedStr ? parseInt(cachedStr) : 0;
+    const isFresh = Date.now() - cachedTime < 5 * 60 * 1000;
+
+    if (!isFresh) {
+      updateBadge();
+      sessionStorage.setItem(StorageKey, Date.now().toString());
+    }
 
     // Listener para eventos de actualización de pagos
     const handleUpdate = () => updateBadge();

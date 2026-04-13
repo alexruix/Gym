@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import { actions } from 'astro:actions';
 import { toast } from 'sonner';
 import { triggerHapticSoft, triggerHapticPR } from '@/lib/performance';

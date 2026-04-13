@@ -34,36 +34,36 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
 
   return (
     <DashboardCard variant="base" className="h-full">
-      <div className="px-5 py-4 sm:p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 flex items-center gap-4">
+      <div className="px-5 py-4 sm:p-8 border-b border-border bg-ui-soft flex items-center gap-4">
         <IconWrapper icon={AlertTriangle} color="destructive" size="sm" shape="rounded" />
         <div className="flex flex-col">
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50 leading-none">{c.title}</h2>
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-1 sm:mt-1.5">{totalAlerts} {totalAlerts === 1 ? 'pendiente' : 'pendientes'}</span>
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground leading-none">{c.title}</h2>
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-ui-muted mt-1 sm:mt-1.5">{totalAlerts} {totalAlerts === 1 ? 'pendiente' : 'pendientes'}</span>
         </div>
       </div>
 
       <Accordion type="single" collapsible className="w-full">
         {expiringPayments.length > 0 && (
-          <AccordionItem value="payments" className="border-b border-zinc-100 px-5 sm:px-6">
+          <AccordionItem value="payments" className="border-b border-border px-5 sm:px-6">
             <AccordionTrigger className="hover:no-underline py-4 sm:py-6">
               <div className="flex items-center gap-3 group">
                 <IconWrapper icon={DollarSign} color="destructive" size="sm" shape="circle" />
-                <span className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-100 group-hover:text-red-500 transition-colors">{c.types.payment.title}</span>
-                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">{expiringPayments.length}</span>
+                <span className="font-bold text-sm sm:text-base text-foreground group-hover:text-red-500 transition-colors">{c.types.payment.title}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{expiringPayments.length}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
               <div className="space-y-3 pt-2">
                 {expiringPayments.map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 hover:border-red-400/30 transition-all duration-300 group">
+                  <div key={alert.id} className="flex items-center justify-between p-4 bg-ui-soft rounded-2xl border border-border hover:border-red-400/30 transition-all duration-300 group">
                     <div className="space-y-1">
-                      <p className="font-bold text-zinc-950 dark:text-zinc-100 leading-none">{alert.studentName}</p>
+                      <p className="font-bold text-card-foreground leading-none">{alert.studentName}</p>
                       <p className="text-[9px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full inline-block">
                         {alert.daysLate} {alert.daysLate === 1 ? 'día' : 'días'} vencido
                       </p>
                     </div>
                     {alert.phone && (
-                      <Button size="sm" variant="outline" className="rounded-xl border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-red-600 hover:border-red-400 active:scale-95 transition-all h-10 px-4" asChild>
+                      <Button size="sm" variant="outline" className="rounded-xl border-border text-ui-muted hover:text-red-600 hover:border-red-400 active:scale-95 transition-all h-10 px-4" asChild>
                         <a href={`https://wa.me/${alert.phone}?text=Hola%20${alert.studentName},%20te%20escribo%20por%20la%20cuota`} target="_blank" rel="noreferrer">
                           <WhatsappLogoIcon size={18} className="mr-2" />
                           <span className="text-[10px] font-bold uppercase tracking-widest">{c.types.payment.action}</span>
@@ -78,26 +78,26 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
         )}
 
         {atRiskStudents.length > 0 && (
-          <AccordionItem value="risk" className="border-b border-zinc-100 px-6">
+          <AccordionItem value="risk" className="border-b border-border px-6">
             <AccordionTrigger className="hover:no-underline py-6">
               <div className="flex items-center gap-3 group">
                 <IconWrapper icon={Frown} color="warning" size="md" shape="circle" />
-                <span className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-100 group-hover:text-amber-500 transition-colors">{c.types.risk.title}</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">{atRiskStudents.length}</span>
+                <span className="font-bold text-sm sm:text-base text-foreground group-hover:text-amber-500 transition-colors">{c.types.risk.title}</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{atRiskStudents.length}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
               <div className="space-y-3 pt-2">
                 {atRiskStudents.map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 hover:border-amber-400/30 transition-all duration-300 group">
+                  <div key={alert.id} className="flex items-center justify-between p-4 bg-ui-soft rounded-2xl border border-border hover:border-amber-400/30 transition-all duration-300 group">
                     <div className="space-y-1">
-                      <p className="font-bold text-zinc-950 dark:text-zinc-100 leading-none">{alert.studentName}</p>
+                      <p className="font-bold text-card-foreground leading-none">{alert.studentName}</p>
                       <p className="text-[9px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full inline-block">
                         Inactivo hace {alert.daysInactive} días
                       </p>
                     </div>
                     {alert.phone && (
-                      <Button size="sm" variant="outline" className="rounded-xl border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-amber-600 hover:border-amber-400 active:scale-95 transition-all h-10 px-4" asChild>
+                      <Button size="sm" variant="outline" className="rounded-xl border-border text-ui-muted hover:text-amber-600 hover:border-amber-400 active:scale-95 transition-all h-10 px-4" asChild>
                         <a href={`https://wa.me/${alert.phone}?text=Hola%20${alert.studentName},%20hace%20${alert.daysInactive}%20días%20que%20no%20entrenás.%20¿Pasó%20algo?`} target="_blank" rel="noreferrer">
                           <WhatsappLogoIcon size={18} className="mr-2" />
                           <span className="text-[10px] font-bold uppercase tracking-widest">{c.types.risk.action}</span>
@@ -116,21 +116,21 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
             <AccordionTrigger className="hover:no-underline py-6">
               <div className="flex items-center gap-3 group">
                 <IconWrapper icon={FilePlus} color="info" size="md" shape="circle" />
-                <span className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-100 group-hover:text-blue-500 transition-colors">{c.types.noPlan.title}</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">{noPlanStudents.length}</span>
+                <span className="font-bold text-sm sm:text-base text-foreground group-hover:text-blue-500 transition-colors">{c.types.noPlan.title}</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{noPlanStudents.length}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
               <div className="space-y-3 pt-2">
                 {noPlanStudents.map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 hover:border-blue-400/30 transition-all duration-300 group">
+                  <div key={alert.id} className="flex items-center justify-between p-4 bg-ui-soft rounded-2xl border border-border hover:border-blue-400/30 transition-all duration-300 group">
                     <div className="space-y-1">
-                      <p className="font-bold text-zinc-950 dark:text-zinc-100 leading-none">{alert.studentName}</p>
+                      <p className="font-bold text-card-foreground leading-none">{alert.studentName}</p>
                       <p className="text-[9px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full inline-block">
                         Sin rutina asignada
                       </p>
                     </div>
-                    <Button size="sm" variant="outline" className="rounded-xl border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 hover:border-blue-400 active:scale-95 transition-all h-10 px-4" asChild>
+                    <Button size="sm" variant="outline" className="rounded-xl border-border text-ui-muted hover:text-blue-600 hover:border-blue-400 active:scale-95 transition-all h-10 px-4" asChild>
                       <a href={`/profesor/planes/new?alumno=${alert.id}`}>
                         <FilePlus className="w-4 h-4 mr-2" />
                         <span className="text-[10px] font-bold uppercase tracking-widest">{c.types.noPlan.action}</span>

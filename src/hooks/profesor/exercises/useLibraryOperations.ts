@@ -2,12 +2,7 @@ import { useCallback } from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { trackExerciseUsage } from "@/lib/recency";
-
-interface Exercise {
-    id: string;
-    nombre: string;
-    [key: string]: any;
-}
+import type { Exercise } from "./useLibraryState";
 
 /**
  * useLibraryOperations: Motor de mutaciones e inteligencia de recencia.
@@ -60,7 +55,10 @@ export function useLibraryOperations(
         }
     }, [exercises, setExercises]);
 
-    const duplicateExercise = useCallback(async (ex: Exercise) => {
+    const duplicateExercise = useCallback(async (id: string) => {
+        const ex = exercises.find(e => e.id === id);
+        if (!ex) return;
+
         const toastId = toast.loading("Duplicando...");
         try {
             const { data: result, error } = await actions.ejercicios.createExercise({
@@ -68,7 +66,7 @@ export function useLibraryOperations(
                 descripcion: ex.descripcion || "",
                 media_url: ex.media_url || "",
                 tags: ex.tags || [],
-                parent_id: ex.id 
+                parent_id: ex.parent_id || ex.id 
             });
 
             if (error) throw error;
@@ -79,7 +77,7 @@ export function useLibraryOperations(
         } catch (err) {
             toast.error("Error al duplicar", { id: toastId });
         }
-    }, [setExercises]);
+    }, [exercises, setExercises]);
 
     return {
         toggleFavorite,

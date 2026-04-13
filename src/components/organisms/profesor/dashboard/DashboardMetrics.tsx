@@ -42,16 +42,18 @@ export function DashboardMetrics({
         />
       </div>
 
-      <div className="min-w-[160px] flex-1 snap-start">
-        <StatCard
-          label={c.pendingRoutines.label}
-          value={pendingRoutines}
-          icon={FilePlus}
-          variant={pendingRoutines > 0 ? "accent" : "default"}
-          tooltip={c.pendingRoutines.tooltip}
-          href="/profesor/planes/new"
-        />
-      </div>
+      {pendingRoutines > 0 && (
+        <div className="min-w-[160px] flex-1 snap-start">
+          <StatCard
+            label={c.pendingRoutines.label}
+            value={pendingRoutines}
+            icon={FilePlus}
+            variant="accent"
+            tooltip={c.pendingRoutines.tooltip}
+            href="/profesor/planes/new"
+          />
+        </div>
+      )}
 
       <div className="min-w-[160px] flex-1 snap-start">
         <StatCard

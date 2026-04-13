@@ -1,15 +1,16 @@
 ---
-import Layout from "../../layouts/Layout.astro";
+import AlumnoLayout from "../../layouts/AlumnoLayout.astro";
 import { actions } from "astro:actions";
 import { formatFechaHumana } from "@/lib/schedule";
 import { DayCalendarStrip } from "@/components/molecules/DayCalendarStrip";
 import { UpcomingSessionPreview } from "@/components/molecules/UpcomingSessionPreview";
-import { PerformanceAnalytics } from "@/components/organisms/alumno/PerformanceAnalytics";
 import { TechnicalLabel } from "@/components/atoms/alumno/TechnicalLabel";
 import { dashboardStrings } from "@/data/es/alumno/dashboard";
 import { Zap, LogOut, TrendingUp, Clock, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import '@/styles/global.css';
+
+import { DashboardRoutinePreview } from "@/components/organisms/alumno/DashboardRoutinePreview";
 
 const user = Astro.locals.user;
 if (!user) return Astro.redirect("/login");
@@ -22,7 +23,11 @@ if (error || !response?.success) {
   return Astro.redirect("/alumno/espera");
 }
 
-const { alumno, turno, sesionHoy, proximaSesion, calendarDays, semanaActual, fechaHoyISO } = response.data;
+// 1b. Si el plan es nulo
+if (!response.data.alumno) return Astro.redirect('/login');
+if (!response.data.alumno.has_plan) return Astro.redirect('/alumno/espera');
+
+const { alumno, turno, sesionHoy, routinePreview, proximaSesion, calendarDays, semanaActual, fechaHoyISO } = response.data;
 
 const sesionCompletada = sesionHoy?.estado === "completada";
 const fechaHumana = formatFechaHumana(new Date());
@@ -41,25 +46,20 @@ const mappedCalendar = calendarDays.map((d: any) => ({
 
 ---
 
-<Layout title="Dashboard - MiGym Alumno">
-  <div class="min-h-screen bg-black text-white px-5 py-10 overflow-hidden relative font-sans bg-grid-alumno">
+<AlumnoLayout title="Dashboard - MiGym Alumno">
+  <div class="px-5 pb-24 overflow-hidden relative font-sans bg-grid-alumno">
     
     <!-- Ambient glows (DSAlumno Style) -->
     <div class="absolute -top-32 -left-32 w-96 h-96 bg-lime-500/10 rounded-full blur-[100px] pointer-events-none"></div>
     <div class="absolute top-1/2 -right-32 w-[500px] h-[500px] bg-fuchsia-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-    <!-- Header -->
-    <header class="flex justify-between items-start mb-10 relative z-10 w-full max-w-lg mx-auto">
-      <div>
-        <TechnicalLabel className="text-zinc-500 mb-1">
-          {dashboardStrings.header.greeting}
-        </TechnicalLabel>
-        <h1 class="text-4xl font-black tracking-tighter uppercase leading-none">
-          {alumno.nombre.split(" ")[0]}
+    <header class="flex justify-between items-center mb-10 pt-10 relative z-10 w-full max-w-lg mx-auto">
+      <div class="flex flex-col">
+        <h1 class="industrial-title-xl">
+          {dashboardStrings.header.greeting}{" "}
+          <span class="text-lime-500">{alumno.nombre.split(" ")[0]}</span>
         </h1>
-        <p class="text-zinc-600 font-bold text-[10px] mt-2 uppercase tracking-[0.2em]">
-          {alumno.plan_nombre || dashboardStrings.header.noPlan}
-        </p>
+        <p class="industrial-description mt-1">{fechaHumana}</p>
       </div>
 
       <div class="flex items-center gap-3">
@@ -76,34 +76,47 @@ const mappedCalendar = calendarDays.map((d: any) => ({
 
     <main class="w-full max-w-lg mx-auto flex flex-col gap-6 relative z-10 pb-20">
       
-      <!-- PERFORMANCE ANALYTICS (Impact Stats) -->
-      <PerformanceAnalytics client:idle calendarDays={calendarDays} />
+      <!-- MI TURNO / AGENDA (Industrial HUD) -->
+      <section class="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-xl group overflow-hidden relative">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-lime-400/5 blur-[50px] pointer-events-none rounded-full" />
+          
+          <div class="grid grid-cols-2 gap-6 relative z-10">
+              {/* Bloque: Agenda */}
+              <div class="space-y-2">
+                  <p class="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Calendar className="w-3 h-3 text-lime-400" />
+                      Agenda
+                  </p>
+                  <div class="flex flex-col">
+                      <p class="text-sm font-black text-white uppercase tracking-tight">
+                          {(alumno.dias_asistencia || []).length > 0 
+                            ? (alumno.dias_asistencia || []).map((d: string) => d.slice(0, 3).toUpperCase()).join(" - ")
+                            : "Sin días"}
+                      </p>
+                      <!-- <TechnicalLabel className="text-[9px] text-zinc-600 mt-0.5">
+                          Agenda
+                      </TechnicalLabel> -->
+                  </div>
+              </div>
 
-      <!-- MI TURNO (Sync Visibility) -->
-      <section class="bg-zinc-900/30 border border-white/5 rounded-[2rem] p-6 backdrop-blur-md">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-lime-400 flex items-center justify-center shadow-lg shadow-lime-500/20">
-                    <Clock className="w-5 h-5 text-black" />
-                </div>
-                <div>
-                    <TechnicalLabel>{dashboardStrings.shift.title}</TechnicalLabel>
-                    <p class="text-lg font-black uppercase tracking-tight">
-                        {turno ? `${turno.nombre}` : dashboardStrings.shift.noShift}
-                    </p>
-                </div>
-            </div>
-            {turno && (
-                <div class="text-right">
-                    <p class="text-xl font-black text-lime-400 tabular-nums leading-none">
-                        {turno.hora_inicio}
-                    </p>
-                    <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mt-1">
-                        a {turno.hora_fin}
-                    </p>
-                </div>
-            )}
-        </div>
+              {/* Bloque: Horario */}
+              <div class="space-y-2 text-right">
+                  <p class="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center justify-end gap-2">
+                      {dashboardStrings.shift.title}
+                      <Clock className="w-3 h-3 text-lime-400" />
+                  </p>
+                  <div class="flex flex-col items-end">
+                      <!-- <p class="text-sm font-black text-white uppercase tracking-tight">
+                          {turno ? `${turno.nombre}` : dashboardStrings.shift.noShift}
+                      </p> -->
+                      {turno && (
+                          <p class="text-xs font-bold text-lime-400 tabular-nums mt-0.5">
+                              {turno.hora_inicio.slice(0, 5)} <span class="text-zinc-600 font-medium tracking-widest text-[9px] uppercase">a</span> {turno.hora_fin.slice(0, 5)}
+                          </p>
+                      )}
+                  </div>
+              </div>
+          </div>
       </section>
 
       <!-- AGENDA / CALENDARIO -->
@@ -130,71 +143,13 @@ const mappedCalendar = calendarDays.map((d: any) => ({
         />
       </section>
 
-      <!-- TARJETA SESIÓN ACTUAL -->
-      <section class="relative group overflow-hidden bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 shadow-2xl transition-all hover:border-lime-500/30">
-        <div class="absolute -top-24 -right-24 w-48 h-48 bg-lime-400/10 rounded-full blur-[60px] pointer-events-none group-hover:bg-lime-400/20 transition-all duration-700"></div>
-
-        <div class="flex items-center justify-between mb-8">
-          <div>
-            <TechnicalLabel className="text-zinc-500">
-                {dashboardStrings.today.dayLabel} {sesionHoy?.numero_dia_plan || "--"} · {dashboardStrings.today.todayLabel}
-            </TechnicalLabel>
-            <h2 class="text-3xl font-black text-white tracking-tighter mt-1 uppercase leading-none">
-              {sesionHoy?.nombre_dia || dashboardStrings.today.noSession}
-            </h2>
-          </div>
-          {sesionCompletada && (
-              <div class="flex items-center gap-2 bg-lime-500/10 border border-lime-500/20 px-4 py-2 rounded-full">
-                <div class="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse"></div>
-                <span class="text-[10px] font-bold text-lime-400 uppercase tracking-widest">{dashboardStrings.today.completed}</span>
-              </div>
-          )}
-        </div>
-
-        {ejerciciosHoy.length > 0 && !sesionCompletada && (
-            <div class="space-y-4 mb-8">
-              {ejerciciosHoy.map((ej: any, idx: number) => (
-                <div class="flex items-center gap-4 group/item">
-                  <div class={cn(
-                    "w-8 h-8 rounded-xl flex items-center justify-center font-bold text-[10px] transition-all",
-                    ej.completado ? "bg-lime-400 text-black" : "bg-black border border-white/10 text-zinc-500"
-                  )}>
-                    {ej.completado ? "✓" : idx + 1}
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class={cn(
-                        "font-bold text-sm truncate uppercase tracking-tight",
-                        ej.completado ? "text-zinc-600 line-through" : "text-white"
-                    )}>
-                        {ej.biblioteca_ejercicios?.nombre}
-                    </p>
-                    <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
-                        {ej.series_plan} × {ej.reps_plan} {ej.peso_plan ? `@ ${ej.peso_plan}kg` : ""}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-        )}
-
-        {/* BOTÓN DE ACCIÓN PRINCIPAL (Premium Glow) */}
-        {sesionCompletada ? (
-            <a href="/alumno/sesion/hoy" class="flex items-center justify-center gap-3 w-full h-16 bg-zinc-950 border border-zinc-800 rounded-2xl text-zinc-500 font-bold uppercase tracking-widest text-[10px] hover:text-white hover:border-zinc-600 transition-all active:scale-95">
-                {dashboardStrings.today.viewSummary}
-                <TrendingUp className="w-4 h-4 opacity-50" />
-            </a>
-        ) : (
-            <a href="/alumno/sesion/hoy" class="relative block group/btn active:scale-[0.98] transition-all">
-                <div class="absolute inset-0 bg-lime-400 blur-xl opacity-20 group-hover/btn:opacity-40 transition-opacity"></div>
-                <div class="relative w-full h-20 bg-lime-400 text-black rounded-[2rem] flex items-center justify-center gap-4">
-                    <Zap className="w-6 h-6 fill-black" />
-                    <span class="text-xl font-black uppercase tracking-[0.2em]">
-                        {sesionHoy ? dashboardStrings.today.continueSession : dashboardStrings.today.startSession}
-                    </span>
-                </div>
-            </a>
-        )}
-      </section>
+      <!-- CONSOLA DE PREPARACIÓN / RUTINA DEL DÍA -->
+      <DashboardRoutinePreview 
+        client:load 
+        sesionHoy={sesionHoy} 
+        routinePreview={routinePreview} 
+        alumnoId={alumno.id} 
+      />
 
       <!-- PRÓXIMA SESIÓN INTELIGENTE -->
       {proximaSesion && (
@@ -209,7 +164,8 @@ const mappedCalendar = calendarDays.map((d: any) => ({
 
     </main>
   </div>
-</Layout>
+  </div>
+</AlumnoLayout>
 
 <script>
   const copyBtn = document.getElementById("copyLinkBtn");

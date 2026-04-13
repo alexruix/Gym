@@ -10,19 +10,22 @@
  * en un array de índices numéricos de JavaScript (0=Domingo, 1=Lunes, ...).
  */
 export function convertDaysToNumbers(days: string[]): number[] {
+  if (!days) return [];
   const mapping: Record<string, number> = {
-    "Domingo": 0,
-    "Lunes": 1,
-    "Martes": 2,
-    "Miércoles": 3,
-    "Jueves": 4,
-    "Viernes": 5,
-    "Sábado": 6
+    "domingo": 0, "dom": 0, "do": 0,
+    "lunes": 1, "lun": 1, "lu": 1,
+    "martes": 2, "mar": 2, "ma": 2,
+    "miércoles": 3, "miercoles": 3, "mie": 3, "mi": 3,
+    "jueves": 4, "jue": 4, "ju": 4,
+    "viernes": 5, "vie": 5, "vi": 5,
+    "sábado": 6, "sabado": 6, "sab": 6, "sa": 6
   };
+
   return days
+    .map(d => d.toLowerCase().trim())
     .map(d => mapping[d])
     .filter(v => v !== undefined)
-    .sort((a, b) => a - b);
+    .sort((a, b) => a - b) as number[];
 }
 
 /**
@@ -38,6 +41,9 @@ export function getDayNumber(
 ): number {
   const getISO = (d: string | Date) => {
     if (typeof d === "string") return d.split("T")[0];
+    // Evitamos aplicar offset si ya es una fecha al mediodía (normalizada)
+    if (d.getUTCHours() === 12) return d.toISOString().split("T")[0];
+    // Si no, aplicamos el ajuste de Argentina para seguridad
     const arg = new Date(d.getTime() - (3 * 60 * 60 * 1000));
     return arg.toISOString().split("T")[0];
   };
@@ -104,8 +110,8 @@ export function getWeekNumber(
  * Calcula la información de ciclo para planes que se repiten.
  * @returns { absoluteWeek, cycleNumber, relativeWeek }
  */
-export function getCycleInfo(fechaInicio: string | Date, fechaHoy: Date | string = new Date(), duracionSemanas: number = 4) {
-  const absoluteWeek = getWeekNumber(fechaInicio, fechaHoy);
+export function getCycleInfo(fechaInicio: string | Date, fechaHoy: Date | string = new Date(), duracionSemanas: number = 4, diasAsistencia?: number[]) {
+  const absoluteWeek = getWeekNumber(fechaInicio, fechaHoy, diasAsistencia);
   if (duracionSemanas <= 0) return { absoluteWeek, cycleNumber: 1, relativeWeek: absoluteWeek };
   
   const cycleNumber = Math.ceil(absoluteWeek / duracionSemanas);
@@ -132,6 +138,7 @@ export function getStructuralDay(
   if (!ignoreAttendance && diasAsistencia && diasAsistencia.length > 0) {
     const getISO = (d: string | Date) => {
       if (typeof d === "string") return d.split("T")[0];
+      if (d.getUTCHours() === 12) return d.toISOString().split("T")[0];
       const arg = new Date(d.getTime() - (3 * 60 * 60 * 1000));
       return arg.toISOString().split("T")[0];
     };

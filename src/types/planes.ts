@@ -40,7 +40,9 @@ export interface PlanData {
   duracion_semanas: number;
   frecuencia_semanal: number;
   created_at: string;
-  rutinas: RutinaDiaria[];
+  profesor_id: string | null;
+  is_template: boolean;
+  rutinas_diarias: RutinaDiaria[];
   alumnos: AlumnoDePlan[];
 }
 

@@ -48,6 +48,11 @@ const initialValues = {
   existing_variants: existingVariants
 };
 
+import { actions } from "astro:actions";
+const { data: exercises } = await Astro.callAction(actions.ejercicios.getExerciseLibrary, {});
+const existingTags = Array.from(new Set(((exercises || []) as any[]).flatMap(ex => ex.tags || []))).sort() as string[];
+const mainExercises = (exercises || []).filter(ex => !ex.parent_id);
+
 const title = `Editar ${exerciseData.nombre} | MiGym`;
 ---
 
@@ -66,6 +71,8 @@ const title = `Editar ${exerciseData.nombre} | MiGym`;
         initialValues={initialValues} 
         successHref="/profesor/ejercicios" 
         cancelHref="/profesor/ejercicios"
+        existingTags={existingTags}
+        parents={mainExercises}
       />
     </FormContainer>
   </div>

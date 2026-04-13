@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { actions } from "astro:actions";
-import { getDayNumber, getWeekNumber, getCyclicDayNumber, getStructuralDay, getTodayISO } from "@/lib/schedule";
+import { getDayNumber, getWeekNumber, getCyclicDayNumber, getStructuralDay, getTodayISO, getCycleInfo } from "@/lib/schedule";
 import type { CalendarDay, DayStatus } from "@/components/molecules/DayCalendarStrip";
 import type { SesionDetalle, EjercicioDetail } from "@/types/calendar";
 
@@ -58,7 +58,11 @@ export function useCalendarLoader(
 
       const numeroDia = sesion?.numero_dia_plan ?? (sesion?.numeroDiaPlan ?? getDayNumber(ancla, new Date(cur), diasAsistencia));
       const semana = sesion?.semana_numero ?? getWeekNumber(ancla, new Date(cur), diasAsistencia);
-      const status = (sesion?.status as DayStatus) || (esFuturo && !esHoy ? "futura" : "pendiente");
+      
+      // Determinación de status industrial: Si no es día de asistencia, es descanso.
+      const isAttendanceDay = diasAsistencia.length === 0 || diasAsistencia.includes(cur.getUTCDay());
+      const status = (sesion?.status as DayStatus) || (!isAttendanceDay ? "descanso" : (esFuturo && !esHoy ? "futura" : "pendiente"));
+
 
       days.push({
         fecha: fechaISO,
@@ -90,19 +94,43 @@ export function useCalendarLoader(
       .sort((a,b) => a-b);
     
     const diaEstructural = getStructuralDay(ancla, new Date(fecha + "T12:00:00"), availableDiaNumeros, diasAsistencia);
-    if (diaEstructural === 0) return null; 
+    
+    // Si es un día de descanso, devolvemos un objeto técnico con el flag isRestDay
+    if (diaEstructural === 0) {
+      const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(
+        ancla, 
+        new Date(fecha + "T12:00:00"), 
+        planData.duracion_semanas || 4, 
+        diasAsistencia
+      );
+
+      return {
+        id: "",
+        fecha_real: fecha,
+        nombre_dia: "Descanso",
+        estado: "descanso",
+        isRestDay: true,
+        numero_dia_plan: dia.numeroDiaPlan,
+        semana_numero: absoluteWeek,
+        cycle_number: cycleNumber,
+        relative_week: relativeWeek,
+        ejercicios: []
+      };
+    }
+
 
     const rutina = planData.rutinas_diarias.find((r: any) => r.dia_numero === diaEstructural);
     if (!rutina) return null;
 
     const maxWeeks = planData.duracion_semanas || 4;
     
-    // Calcular Semana Relativa para el Preview
-    const fechaObj = new Date(fecha + "T12:00:00");
-    const diffTime = Math.abs(fechaObj.getTime() - new Date(ancla + "T12:00:00").getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const absoluteWeek = Math.floor(diffDays / 7) + 1;
-    const currentRelativeWeek = ((absoluteWeek - 1) % maxWeeks) + 1;
+    // Calcular Semana Relativa para el Preview usando el motor centralizado
+    const { absoluteWeek, cycleNumber, relativeWeek } = getCycleInfo(
+      ancla, 
+      new Date(fecha + "T12:00:00"), 
+      maxWeeks, 
+      diasAsistencia
+    );
 
     return {
       id: "",
@@ -111,10 +139,12 @@ export function useCalendarLoader(
       estado: dia.status,
       numero_dia_plan: dia.numeroDiaPlan,
       semana_numero: absoluteWeek,
+      cycle_number: cycleNumber,
+      relative_week: relativeWeek,
       ejercicios: (rutina.ejercicios_plan || []).map((ej: any) => {
         const bib = Array.isArray(ej.biblioteca_ejercicios) ? ej.biblioteca_ejercicios[0] : ej.biblioteca_ejercicios;
         const personalizaciones = ej.ejercicio_plan_personalizado || [];
-        const override = personalizaciones.find((p: any) => p.semana_numero === currentRelativeWeek);
+        const override = personalizaciones.find((p: any) => p.semana_numero === relativeWeek);
 
         return {
           id: ej.id,
