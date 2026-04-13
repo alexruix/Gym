@@ -48,9 +48,9 @@ export function PersonalDataCard({ alumno, onEdit }: PersonalDataProps) {
         <h2 className="text-3xl font-black tracking-tighter text-white mb-1 relative z-10 text-center uppercase">
           {alumno.nombre}
         </h2>
-        <div className="flex items-center gap-1.5 text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] relative z-10">
+        {/* <div className="flex items-center gap-1.5 text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] relative z-10">
           <MapPin className="w-3 h-3 text-fuchsia-400" /> {alumno.gym_nombre || "Atleta independiente"}
-        </div>
+        </div> */}
       </div>
 
       {/* Tarjeta de Lista Industrial */}

@@ -47,29 +47,29 @@ const mappedCalendar = calendarDays.map((d: any) => ({
 ---
 
 <AlumnoLayout title="Dashboard - MiGym Alumno">
-  <div class="px-5 pb-24 overflow-hidden relative font-sans bg-grid-alumno">
+  <div class="px-5 pb-24 overflow-hidden relative font-sans">
     
     <!-- Ambient glows (DSAlumno Style) -->
-    <div class="absolute -top-32 -left-32 w-96 h-96 bg-lime-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-    <div class="absolute top-1/2 -right-32 w-[500px] h-[500px] bg-fuchsia-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <!-- <div class="absolute -top-32 -left-32 w-96 h-96 bg-lime-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute top-1/2 -right-32 w-[500px] h-[500px] bg-fuchsia-500/5 rounded-full blur-[120px] pointer-events-none"></div> -->
 
     <header class="flex justify-between items-center mb-10 pt-10 relative z-10 w-full max-w-lg mx-auto">
       <div class="flex flex-col">
-        <h1 class="industrial-title-xl">
+        <h1 class="industrial-title-xl text-white">
           {dashboardStrings.header.greeting}{" "}
           <span class="text-lime-500">{alumno.nombre.split(" ")[0]}</span>
         </h1>
-        <p class="industrial-description mt-1">{fechaHumana}</p>
+        <!-- <p class="industrial-description mt-1">{fechaHumana}</p> -->
       </div>
 
       <div class="flex items-center gap-3">
-        <button id="copyLinkBtn" data-email={user.email} class="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-lime-400 transition-all active:scale-95 shadow-xl">
+        <!-- <button id="copyLinkBtn" data-email={user.email} class="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-lime-400 transition-all active:scale-95 shadow-xl">
           <Zap className="w-5 h-5" />
-        </button>
+        </button> -->
         <form action="/api/auth/signout" method="POST">
-          <button type="submit" class="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-red-400 transition-all active:scale-95 shadow-xl">
+          <!-- <button type="submit" class="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-red-400 transition-all active:scale-95 shadow-xl">
             <LogOut className="w-5 h-5" />
-          </button>
+          </button> -->
         </form>
       </div>
     </header>
@@ -128,12 +128,12 @@ const mappedCalendar = calendarDays.map((d: any) => ({
               {fechaHumana}
             </p>
           </div>
-          <div class="text-right">
+          <!-- <div class="text-right">
             <TechnicalLabel>{dashboardStrings.agenda.week}</TechnicalLabel>
             <p class="text-3xl font-black text-lime-400 leading-none">
               {semanaActual}
             </p>
-          </div>
+          </div> -->
         </div>
 
         <DayCalendarStrip

@@ -49,10 +49,10 @@ const waLink = profTel ? `https://wa.me/${profTel}` : "#";
 
 <Layout title={title}>
   <!-- INDUSTRIAL DARK WRAPPER -->
-  <div class="min-h-screen bg-black text-white pb-24 md:pb-0 font-sans selection:bg-lime-400 selection:text-black">
+  <div class="min-h-screen bg-black text-white font-sans selection:bg-lime-400 selection:text-black">
     
     <!-- BANNER DE INVITADO (Aesthetics Industrial) -->
-    {
+    <!-- {
       isGuest && (
         <div class="bg-zinc-950 text-white px-4 py-2 flex items-center justify-between gap-4 border-b border-white/10 sticky top-0 z-50 overflow-hidden">
           <div class="absolute inset-0 bg-lime-500/5 mix-blend-overlay pointer-events-none" />
@@ -70,13 +70,13 @@ const waLink = profTel ? `https://wa.me/${profTel}` : "#";
           </a>
         </div>
       )
-    }
+    } -->
 
     { !hideHeader && (
       <header
         class={cn(
           "bg-black/60 backdrop-blur-2xl border-b border-white/5 p-4 sticky z-40 flex justify-between items-center md:px-8",
-          isGuest ? "top-10" : "top-0"
+          isGuest ? "top-0" : "top-0"
         )}
       >
         <div class="flex items-center gap-2">

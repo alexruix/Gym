@@ -5,7 +5,7 @@ export const dashboardStrings = {
     guestLink: "Copiar mi link de acceso",
   },
   agenda: {
-    title: "Tu progreso semanal",
+    title: "Tu agenda",
     week: "Semana",
     cycle: "Ciclo",
     relWeek: "Sem",
