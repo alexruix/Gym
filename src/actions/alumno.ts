@@ -206,9 +206,19 @@ export const alumnoActions = {
         .single();
 
       if (sesionExistente) {
-        // Sesión ya instanciada → devolver directamente
-        return { sesion: sesionExistente, creada: false };
+        // Si ya tiene ejercicios y no estamos forzando una rutina, devolvemos.
+        // Si estamos forzando una rutina (input.rutina_id) y la sesión está vacía, permitimos continuar.
+        const tieneEjercicios = sesionExistente.sesion_ejercicios_instanciados?.length > 0;
+        
+        if (!input.rutina_id || tieneEjercicios) {
+          return { sesion: sesionExistente, creada: false };
+        }
+        
+        // Si llegamos acá, la sesión existe pero está vacía y queremos cargar una rutina.
+        // Usamos la sesión existente pero seguiremos adelante para insertar ejercicios.
+        // Seteamos una bandera para saber que no hay que hacer upsert de la cabecera.
       }
+
 
       // 3. Calcular qué día del plan le corresponde hoy
       const creada = true; // Si llegamos aquí, la sesión no existía

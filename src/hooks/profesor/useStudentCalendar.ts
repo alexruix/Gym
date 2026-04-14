@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { actions } from "astro:actions";
 import { getTodayISO, convertDaysToNumbers } from "@/lib/schedule";
+import { toast } from "sonner";
+
 import { useCalendarState } from "./calendar/useCalendarState";
 import { useCalendarLoader } from "./calendar/useCalendarLoader";
 import { useCalendarOperations } from "./calendar/useCalendarOperations";
@@ -166,10 +168,33 @@ export function useStudentCalendar(
     removeExercise: (ejId: string, perm: boolean) => wrappedAction(coreRemove)(ejId, perm),
     addExtraSession: async (fecha: string, rutinaId: string) => {
         setIsInstantiatingExtra(true);
-        const { error } = await actions.alumno.instanciarSesion({ alumno_id: alumnoId, fecha_real: fecha, rutina_id: rutinaId });
-        if (!error) await loadAll();
-        setIsInstantiatingExtra(false);
+        try {
+          const { data, error } = await actions.alumno.instanciarSesion({ 
+            alumno_id: alumnoId, 
+            fecha_real: fecha, 
+            rutina_id: rutinaId 
+          });
+          
+          if (error) throw error;
+          
+          if ('vibrate' in navigator) navigator.vibrate(20);
+          toast.success("Rutina asignada correctamente.");
+          
+          // 1. Recargar el strip (status de los días)
+          await loadAll();
+          
+          // 2. Forzar carga de detalle si es el día seleccionado actual
+          if (data?.sesion && fecha === selectedDay) {
+            const diaFound = calendarDays.find(d => d.fecha === fecha);
+            await loadSesionDetalle(data.sesion.id, diaFound || { fecha, status: 'pendiente' } as any);
+          }
+        } catch (err: any) {
+          toast.error("Error al asignar rutina: " + err.message);
+        } finally {
+          setIsInstantiatingExtra(false);
+        }
     },
+
     realignCalendar: async () => { setIsRealigning(true); await coreRealign(); setIsRealigning(false); },
     refreshCalendar: loadAll
   };
