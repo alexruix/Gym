@@ -38,7 +38,11 @@ const { data: plan, error } = await supabase
         peso_target,
         notas,
         grupo_bloque_id,
-        grupo_nombre
+        grupo_nombre,
+        grupo_tipo_bloque,
+        grupo_vueltas,
+        grupo_descanso_ronda,
+        grupo_descanso_final
       )
     ),
     plan_rotaciones (
@@ -91,7 +95,11 @@ const initialValues = {
                     peso_target: ej.peso_target ?? "",
                     notas: ej.notas ?? "",
                     grupo_bloque_id: ej.grupo_bloque_id || undefined,
-                    grupo_nombre: ej.grupo_nombre || undefined
+                    grupo_nombre: ej.grupo_nombre || undefined,
+                    grupo_tipo_bloque: ej.grupo_tipo_bloque || 'agrupador',
+                    grupo_vueltas: ej.grupo_vueltas || 1,
+                    grupo_descanso_ronda: ej.grupo_descanso_ronda || 0,
+                    grupo_descanso_final: ej.grupo_descanso_final || 0
                 }))
         };
     }),

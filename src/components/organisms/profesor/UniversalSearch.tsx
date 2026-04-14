@@ -64,7 +64,7 @@ export function UniversalSearch() {
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        if (isExpanded && window.innerWidth < 768) {
+        if (isExpanded && window.innerWidth < 1024) {
           // On mobile, only close if we are not typing
           if (query.length === 0) handleDeactivate();
         } else {
@@ -126,7 +126,7 @@ export function UniversalSearch() {
       ref={containerRef}
       className={cn(
         "relative z-50 transition-all duration-300 ease-in-out",
-        isExpanded ? "w-full md:max-w-md" : "w-10 md:w-full md:max-w-md"
+        isExpanded ? "w-full lg:max-w-md" : "w-10 lg:w-full lg:max-w-md"
       )}
     >
       {/* Input de Búsqueda Industrial */}
@@ -135,7 +135,7 @@ export function UniversalSearch() {
         {!isExpanded && (
           <button
             onClick={handleActivate}
-            className="md:hidden flex items-center justify-center w-10 h-10 text-zinc-400 hover:text-zinc-950 transition-colors"
+            className="lg:hidden flex items-center justify-center w-10 h-10 text-zinc-400 hover:text-zinc-950 transition-colors haptic-click"
           >
             <Search className="w-5 h-5" />
           </button>
@@ -143,7 +143,7 @@ export function UniversalSearch() {
 
         <div className={cn(
           "relative w-full h-full flex items-center transition-all duration-300",
-          !isExpanded && "hidden md:flex"
+          !isExpanded && "hidden lg:flex"
         )}>
           <Search className={cn(
             "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200",
@@ -210,7 +210,7 @@ export function UniversalSearch() {
                               key={item.id}
                               href={item.href}
                               className={cn(
-                                "flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-200 group",
+                                "flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-200 group haptic-click",
                                 active ? "bg-zinc-950 text-white shadow-xl" : "hover:bg-ui-soft dark:hover:bg-zinc-900"
                               )}
                               onMouseEnter={() => setActiveItem(index)}

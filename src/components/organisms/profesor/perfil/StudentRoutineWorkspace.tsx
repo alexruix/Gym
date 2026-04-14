@@ -14,12 +14,15 @@ import {
   ChevronDown
 } from "lucide-react";
 import { RestDayHUD } from "@/components/molecules/profesor/calendar/RestDayHUD";
+import { NoPlanAssignedHUD } from "@/components/molecules/profesor/perfil/NoPlanAssignedHUD";
 
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 import { Button } from "@/components/ui/button";
 import { RoutineExerciseRow } from "@/components/molecules/profesor/planes/RoutineExerciseRow";
 import { MasterPlanAssignmentDialog } from "@/components/molecules/profesor/perfil/MasterPlanAssignmentDialog";
-import { ExerciseSearchDialog } from "@/components/molecules/profesor/planes/ExerciseSearchDialog";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { PlanLibraryPanel } from "@/components/organisms/profesor/planes/PlanLibraryPanel";
+
 import { PlanBlueprintReel } from "@/components/organisms/profesor/perfil/PlanBlueprintReel";
 import { MasterPlanGuardDialog } from "@/components/molecules/profesor/perfil/MasterPlanGuardDialog";
 import { PlanWorkspaceHeader } from "@/components/molecules/profesor/perfil/PlanWorkspaceHeader";
@@ -41,6 +44,7 @@ interface Props {
   onMove: (id: string, dir: "up" | "down") => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onAdd: (rutinaId: string, exId: string) => Promise<void>;
+  onAddBlock: (rutinaId: string, blockId: string) => Promise<void>;
   onDuplicateRoutine?: (rutinaId: string) => Promise<void>;
   onDeleteRoutine?: (rutinaId: string) => Promise<void>;
   promotePlan: () => Promise<void>;
@@ -59,6 +63,7 @@ export function StudentRoutineWorkspace({
   onMove,
   onDelete,
   onAdd,
+  onAddBlock,
   onDuplicateRoutine,
   onDeleteRoutine,
   promotePlan,
@@ -162,12 +167,11 @@ export function StudentRoutineWorkspace({
   return (
     <div className="space-y-6 animate-in fade-in duration-700 pb-20">
       {isEmpty ? (
-        <RestDayHUD 
+        <NoPlanAssignedHUD 
           title={workspace.routine.emptyState.title}
           description={workspace.routine.emptyState.description}
-          tag="PLANIFICACIÓN VACÍA"
-          planRoutines={[]}
-          onAddExtra={() => setIsAssignDialogOpen(true)}
+          tag="SIN PLAN ACTIVO"
+          onAssign={() => setIsAssignDialogOpen(true)}
         />
       ) : (
 
@@ -404,16 +408,23 @@ export function StudentRoutineWorkspace({
         open={isAssignDialogOpen}
         onOpenChange={setIsAssignDialogOpen}
         alumnoId={alumnoId}
+        student={student}
+        currentPlanName={planData?.nombre}
         onSuccess={() => window.location.reload()}
       />
 
-      <ExerciseSearchDialog
-        open={isSearchOpen}
-        onOpenChange={setIsSearchOpen}
-        library={library}
-        onSelect={(id) => activeRoutineTarget && onAdd(activeRoutineTarget, id)}
-        onExerciseCreated={() => {}}
-      />
+      <Sheet open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <SheetContent side="right" className="p-0 sm:max-w-md bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900">
+           <PlanLibraryPanel
+                onSelectExercise={(id) => { if (activeRoutineTarget) { onAdd(activeRoutineTarget, id); setIsSearchOpen(false); } }}
+                onSelectBlock={(id) => { if (activeRoutineTarget) { onAddBlock(activeRoutineTarget, id); setIsSearchOpen(false); } }}
+                library={library}
+                allowCreate={false}
+                className="h-full border-0"
+              />
+        </SheetContent>
+      </Sheet>
+
 
       <MasterPlanGuardDialog 
         open={isGuardOpen}

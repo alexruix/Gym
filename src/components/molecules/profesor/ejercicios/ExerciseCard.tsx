@@ -95,9 +95,9 @@ export function ExerciseCard({
 
       <Card
         className={cn(
-          "relative bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-3xl transition-all duration-300 flex flex-row md:flex-col group/card shadow-sm hover:shadow-md",
+          "relative bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-3xl transition-all duration-300 flex flex-row md:flex-col group/card shadow-sm hover:shadow-md haptic-click",
           (showInfo || expanded) ? "h-auto" : "h-28 md:h-auto",
-          "z-10 touch-pan-y active:scale-[0.98]",
+          "z-10 touch-pan-y",
           (swipeX !== 0) && "duration-0 transition-none",
           expanded && "ring-2 ring-lime-500 dark:ring-lime-400 border-transparent shadow-xl"
         )}
@@ -318,20 +318,27 @@ export function ExerciseCard({
           </div>
         </div>
 
-        {/* Info & Description Expansion */}
-        {showInfo && exercise.descripcion && (
-          <div className="px-6 pb-6 pt-2 border-t border-zinc-100 dark:border-zinc-900 animate-in slide-in-from-top-2 duration-300">
-            <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-              <div className="flex items-center gap-2 mb-2 text-zinc-900 dark:text-zinc-100">
-                <Info className="w-4 h-4 text-lime-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Técnica y notas</span>
+        {/* Info & Description Expansion - CSS Grid Based */}
+        <div className={cn(
+          "grid-accordion",
+          showInfo && "grid-accordion-open"
+        )}>
+          <div className="grid-accordion-content">
+            {exercise.descripcion && (
+              <div className="px-6 pb-6 pt-2 border-t border-zinc-100 dark:border-zinc-900">
+                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                  <div className="flex items-center gap-2 mb-2 text-zinc-900 dark:text-zinc-100">
+                    <Info className="w-4 h-4 text-lime-500" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Técnica y notas</span>
+                  </div>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium whitespace-pre-wrap">
+                    {exercise.descripcion}
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium whitespace-pre-wrap">
-                {exercise.descripcion}
-              </p>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </Card>
     </div>
   );

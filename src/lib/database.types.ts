@@ -810,6 +810,45 @@ export type Database = {
         }
         Returns: Json
       }
+      get_professor_dashboard_stats: {
+        Args: {
+          p_profesor_id: string
+        }
+        Returns: Json
+      }
+      get_student_dashboard_data: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      instanciar_sesion_alumno: {
+        Args: {
+          p_alumno_id: string
+          p_fecha_real: string
+          p_force_rutina_id?: string | null
+        }
+        Returns: Json
+      }
+      propagar_metrica_ejercicio: {
+        Args: {
+          p_alumno_id: string
+          p_ejercicio_plan_id: string
+          p_semana_desde: number
+          p_series?: number
+          p_reps_target?: string
+          p_descanso_seg?: number
+          p_peso_target?: string
+        }
+        Returns: Json
+      }
+      sustituir_ejercicio_permanente: {
+        Args: {
+          p_instancia_id: string
+          p_nuevo_biblioteca_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       exercise_type: "base" | "complementary" | "accessory"

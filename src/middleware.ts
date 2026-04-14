@@ -65,11 +65,29 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  // 🌩️ Verificación de Integridad de Profesor (Una sola vez si es necesario)
+  // 🌩️ Verificación de Integridad de Profesor — cacheada en cookie (30 min TTL)
+  // Evita un round-trip a DB en cada request de rutas /profesor/*.
   let isProfesorInDb = false;
   if (localUser.role === 'profesor' || path.startsWith('/profesor') || path.startsWith('/onboarding')) {
-    const { data } = await supabase.from('profesores').select('id').eq('id', localUser.id).maybeSingle();
-    isProfesorInDb = !!data;
+    const CACHE_COOKIE = `_gym_prof_ok_${localUser.id.slice(0, 8)}`;
+    const cached = context.cookies.get(CACHE_COOKIE)?.value;
+
+    if (cached === '1') {
+      // Cache hit: omitir consulta a DB
+      isProfesorInDb = true;
+    } else {
+      // Cache miss: consultar DB y guardar resultado
+      const { data } = await supabase.from('profesores').select('id').eq('id', localUser.id).maybeSingle();
+      isProfesorInDb = !!data;
+      if (isProfesorInDb) {
+        context.cookies.set(CACHE_COOKIE, '1', {
+          path: '/',
+          maxAge: 60 * 30, // 30 minutos
+          httpOnly: true,
+          sameSite: 'lax',
+        });
+      }
+    }
   }
 
   // 1. BLINDAJE DE ONBOARDING: Prohibido para Alumnos o Profesores ya registrados

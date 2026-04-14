@@ -20,20 +20,33 @@ const query = supabase
     duracion_semanas,
     frecuencia_semanal,
     created_at,
+    profesor_id,
+    is_template,
     rutinas_diarias (
       id,
       dia_numero,
       nombre_dia,
       orden,
-      ejercicios_plan (
-        id,
-        orden,
-        biblioteca_ejercicios (
+        ejercicios_plan (
           id,
-          nombre,
-          media_url
+          orden,
+          series,
+          reps_target,
+          descanso_seg,
+          peso_target,
+          exercise_type,
+          grupo_bloque_id,
+          grupo_nombre,
+          grupo_tipo_bloque,
+          grupo_vueltas,
+          grupo_descanso_ronda,
+          grupo_descanso_final,
+          biblioteca_ejercicios (
+            id,
+            nombre,
+            media_url
+          )
         )
-      )
     ),
     alumnos (
       id,
@@ -84,7 +97,9 @@ const { data: exercises } = await supabase
         duracion_semanas: plan.duracion_semanas,
         frecuencia_semanal: plan.frecuencia_semanal,
         created_at: plan.created_at,
-        rutinas: sortedRutinas as any,
+        profesor_id: plan.profesor_id,
+        is_template: plan.is_template,
+        rutinas_diarias: sortedRutinas as any,
         alumnos: (plan.alumnos || []) as any,
       }} />
     </section>

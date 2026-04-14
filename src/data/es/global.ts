@@ -18,7 +18,8 @@ export const globalCopy = {
     alumnoNav: {
       inicio: "Inicio",
       miPlan: "Mi Plan",
-      progreso: "Progreso"
+      progreso: "Progreso",
+      salir: "Cerrar sesión"
     },
     profesorHeader: {
       role: "Profesor",

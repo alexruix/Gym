@@ -21,6 +21,13 @@ interface ExerciseCardProps {
   getRotationForPosition?: (position: number) => any;
   removeRotationExercise?: (position: number, exerciseId: string) => void;
   readOnly?: boolean;
+
+  // Block Protocol Props (Visual Rail)
+  isInBlock?: boolean;
+  isPrevInSameBlock?: boolean;
+  isNextInSameBlock?: boolean;
+  blockType?: 'superserie' | 'circuito' | 'agrupador';
+  blockLaps?: number;
 }
 
 /**
@@ -43,7 +50,12 @@ export function ExerciseCard({
   hasRotation,
   getRotationForPosition,
   removeRotationExercise,
-  readOnly = false
+  readOnly = false,
+  isInBlock = false,
+  isPrevInSameBlock = false,
+  isNextInSameBlock = false,
+  blockType = 'agrupador',
+  blockLaps = 1
 }: ExerciseCardProps) {
   const ejId = ex.ejercicio_id || ex.ejercicio_plan?.ejercicio_id || ex.biblioteca_ejercicios?.id;
   const rotationActive = hasRotation?.(ex.position);
@@ -58,10 +70,40 @@ export function ExerciseCard({
   return (
     <Card
       className={cn(
-        "industrial-card-md group relative overflow-visible",
-        rotationActive && "border-lime-500/30 bg-lime-500/[0.02]"
+        "industrial-card-md group relative overflow-visible transition-all duration-500",
+        rotationActive && "border-lime-500/30 bg-lime-500/[0.02]",
+        isInBlock && "ml-4 border-l-0 rounded-l-none"
       )}
     >
+      {/* Visual Rail Side (Intensity Connector) */}
+      {isInBlock && (
+        <div className={cn(
+          "absolute -left-4 top-0 bottom-0 w-4 flex flex-col items-center",
+          isPrevInSameBlock && "-top-4",
+          isNextInSameBlock && "-bottom-4"
+        )}>
+          {/* Connector Line */}
+          <div className={cn(
+            "w-1.5 h-full transition-colors duration-700",
+            blockType === 'superserie' ? "bg-fuchsia-500 shadow-[0_0_10px_rgba(232,28,210,0.3)]" : 
+            blockType === 'circuito' ? "bg-lime-500 border-x border-lime-500/30 bg-repeat-y bg-[length:1px_8px] bg-gradient-to-b from-lime-500 to-transparent" : 
+            "bg-zinc-200 dark:bg-zinc-800",
+            !isPrevInSameBlock && "rounded-t-full h-[calc(100%-12px)] mt-3",
+            !isNextInSameBlock && "rounded-b-full h-[calc(100%-12px)] mb-3",
+            isPrevInSameBlock && isNextInSameBlock && "h-full"
+          )} />
+          
+          {/* Rail Indicator for Laps or Protocol */}
+          {!isPrevInSameBlock && (
+             <div className={cn(
+               "absolute -left-1 top-3 px-2 py-0.5 rounded-full text-[6px] font-black uppercase tracking-tighter whitespace-nowrap shadow-xl border z-30",
+               blockType === 'superserie' ? "bg-zinc-950 text-fuchsia-400 border-fuchsia-500/50" : "bg-zinc-950 text-lime-400 border-lime-500/50"
+             )}>
+               {blockType === 'circuito' ? `CIRCUITO x${blockLaps}` : blockType?.toUpperCase()}
+             </div>
+          )}
+        </div>
+      )}
       {/* Botón Eliminar (Contextual) */}
       {!readOnly && (
         <button
@@ -157,6 +199,20 @@ export function ExerciseCard({
               <span className="industrial-label flex items-center gap-1.5 opacity-70 shrink-0">
                 <Box className="w-3 h-3 text-lime-500" /> {ex.grupo_nombre}
               </span>
+            )}
+            {isInBlock && !isNextInSameBlock && (
+              <div className="flex gap-2 shrink-0">
+                {blockType === 'circuito' && (ex.grupo_descanso_ronda > 0) && (
+                   <span className="px-2 py-0.5 bg-amber-500/10 text-amber-600 text-[7px] font-black uppercase rounded-full border border-amber-500/20">
+                     Ronda: {ex.grupo_descanso_ronda}s
+                   </span>
+                )}
+                {ex.grupo_descanso_final > 0 && (
+                   <span className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-[7px] font-black uppercase rounded-full border border-zinc-200 dark:border-zinc-700">
+                     Final: {ex.grupo_descanso_final}s
+                   </span>
+                )}
+              </div>
             )}
           </div>
 

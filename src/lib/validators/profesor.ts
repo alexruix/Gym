@@ -29,6 +29,10 @@ export const planSchema = z.object({
           peso_target: z.string().optional().default(""),
           grupo_bloque_id: z.string().uuid().optional().nullable(),
           grupo_nombre: z.string().optional().nullable(),
+          grupo_tipo_bloque: z.enum(["superserie", "circuito", "agrupador"]).optional().default("agrupador"),
+          grupo_vueltas: z.number().int().min(1).optional().default(1),
+          grupo_descanso_ronda: z.number().int().min(0).optional().default(0),
+          grupo_descanso_final: z.number().int().min(0).optional().default(0),
         })
       )
     })
@@ -73,6 +77,10 @@ export const blockSchema = z.object({
   id: z.string().uuid().optional(),
   nombre: z.string().min(2, "Mínimo 2 caracteres").max(100, "Máximo 100 caracteres"),
   tags: z.array(z.string()),
+  tipo_bloque: z.enum(["superserie", "circuito", "agrupador"]).default("agrupador"),
+  vueltas: z.number().int().min(1).default(1),
+  descanso_ronda: z.number().int().min(0).default(0),
+  descanso_final: z.number().int().min(0).default(0),
   ejercicios: z.array(
     z.object({
       ejercicio_id: z.string().uuid(),
@@ -187,6 +195,10 @@ export const updatePrivacySchema = z.object({
   permitir_contacto: z.boolean().default(true),
   mostrar_foto: z.boolean().default(true),
 });
+
+export type UpdatePublicProfileData = z.infer<typeof updatePublicProfileSchema>;
+export type UpdateNotificationsData = z.infer<typeof updateNotificationsSchema>;
+export type UpdatePrivacyData = z.infer<typeof updatePrivacySchema>;
 
 export const importPlansSchema = z.array(z.object({
   nombre: z.string().min(2).max(100),

@@ -11,7 +11,7 @@ export {
   changePasswordSchema
 } from "./common";
 
-export type { ActionResponse } from "./common";
+export type { ActionResponse, UpdateAccountData, ChangePasswordData } from "./common";
 
 // PROFESOR
 export {
@@ -39,7 +39,10 @@ export type {
   StudentFormData,
   TurnoFormData,
   PaymentFormData,
-  BulkAssignData
+  BulkAssignData,
+  UpdatePublicProfileData,
+  UpdateNotificationsData,
+  UpdatePrivacyData
 } from "./profesor";
 
 // ALUMNO

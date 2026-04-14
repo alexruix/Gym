@@ -5,6 +5,11 @@ import { DashboardMetrics } from "./DashboardMetrics";
 import { AlertCenter } from "./AlertCenter";
 import { ActivityFeed } from "./ActivityFeed";
 import { StudentList } from "../StudentList";
+import {
+  MetricsSkeleton,
+  StudentListSkeleton,
+  ActivityFeedSkeleton,
+} from "@/components/atoms/profesor/dashboard/DashboardSkeleton";
 import type { DashboardData } from "@/types/dashboard";
 import { cn } from "@/lib/utils";
 
@@ -29,10 +34,10 @@ export function DashboardConsole({ initialData }: Props) {
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isPulling.current || touchStart.current === null) return;
-    
+
     const currentY = e.touches[0].clientY;
     const distance = currentY - touchStart.current;
-    
+
     if (distance > 0 && window.scrollY === 0) {
       // Aplicar resistencia
       setPullDistance(Math.min(distance * 0.4, 80));
@@ -48,17 +53,21 @@ export function DashboardConsole({ initialData }: Props) {
     touchStart.current = null;
   };
 
-  const hasAlerts = data.expiringPayments.length > 0 || data.atRiskStudents.length > 0 || data.noPlanStudents.length > 0;
+  const hasAlerts =
+    data.expiringPayments.length > 0 ||
+    data.atRiskStudents.length > 0 ||
+    data.noPlanStudents.length > 0;
 
   return (
-    <div 
-      className="space-y-4 md:space-y-8 relative"
+    <div
+      className="space-y-4 lg:space-y-8 relative"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      aria-busy={isRefreshing}
     >
       {/* Pull-to-refresh Indicator */}
-      <div 
+      <div
         className="absolute top-0 left-0 right-0 flex justify-center pointer-events-none transition-transform duration-200 z-50"
         style={{ transform: `translateY(${pullDistance - 40}px)`, opacity: pullDistance / 60 }}
       >
@@ -67,49 +76,74 @@ export function DashboardConsole({ initialData }: Props) {
         </div>
       </div>
 
-      {/* Metrics */}
-      <DashboardMetrics
-        activeStudents={data.stats.activeStudents}
-        pendingRoutines={data.stats.pendingRoutines}
-        adherenceRate={data.stats.adherenceRate}
-        monthlyRevenue={data.stats.monthlyRevenue}
-      />
+      {/* Metrics — skeleton durante refresco */}
+      {isRefreshing ? (
+        <MetricsSkeleton />
+      ) : (
+        <DashboardMetrics
+          activeStudents={data.stats.activeStudents}
+          adherenceRate={data.stats.adherenceRate}
+          monthlyRevenue={data.stats.monthlyRevenue}
+        />
+      )}
 
-      {/* Alerts */}
-      {hasAlerts && (
+      {/* Alerts — solo visible si hay alertas y no está refrescando */}
+      {!isRefreshing && hasAlerts && (
         <AlertCenter
           expiringPayments={data.expiringPayments}
           atRiskStudents={data.atRiskStudents}
           noPlanStudents={data.noPlanStudents}
+          onRefresh={refresh}
         />
       )}
 
-      {/* Students & Activity */}
+      {/* Students & Activity — skeleton durante refresco */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-           <StudentList students={data.recentStudents} isDashboard={true} />
+          {isRefreshing ? (
+            <StudentListSkeleton />
+          ) : (
+            <StudentList students={data.recentStudents} isDashboard={true} />
+          )}
         </div>
         <div>
-          <ActivityFeed activities={data.activities} />
+          {isRefreshing ? (
+            <ActivityFeedSkeleton />
+          ) : (
+            <ActivityFeed activities={data.activities} />
+          )}
         </div>
       </div>
 
       {/* Footer / Status */}
       <div className="flex flex-col items-center justify-center pt-8 pb-12 gap-3">
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={() => refresh()}
             disabled={isRefreshing}
             className="group flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all active:scale-95 disabled:opacity-50"
           >
-            <RefreshCcw className={cn("w-3 h-3 text-zinc-400 group-hover:text-lime-500 transition-colors", isRefreshing && "animate-spin text-lime-500")} />
+            <RefreshCcw
+              className={cn(
+                "w-3 h-3 text-zinc-400 group-hover:text-lime-500 transition-colors",
+                isRefreshing && "animate-spin text-lime-500"
+              )}
+            />
             <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
               {isRefreshing ? "Actualizando..." : "Actualizar ahora"}
             </span>
           </button>
         </div>
         <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
-          Actualizado {lastUpdated.includes("T") ? new Date(lastUpdated).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : lastUpdated}
+          Actualizado{" "}
+          {lastUpdated.includes("T")
+            ? new Date(lastUpdated).toLocaleTimeString("es-AR", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+              })
+            : lastUpdated}
         </p>
       </div>
     </div>

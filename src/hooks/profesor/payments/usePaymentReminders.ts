@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useCallback } from "react";
 import { actions } from "astro:actions";
 import { whatsappMessages } from "@/data/es/profesor/mensajes";
@@ -23,7 +24,7 @@ export function usePaymentReminders(
 ) {
     const { openWhatsApp } = useStudentActions();
 
-    const enviarRecordatorio = useCallback((alumno: AlumnoPago) => {
+    const enviarRecordatorio = React.useCallback((alumno: AlumnoPago) => {
         const monto = alumno.pago_activo?.monto || alumno.monto || 0;
         const nombrePila = alumno.nombre.split(" ")[0];
 

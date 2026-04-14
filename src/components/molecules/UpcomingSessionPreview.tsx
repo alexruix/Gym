@@ -86,10 +86,10 @@ export function UpcomingSessionPreview({ sesion, className }: UpcomingSessionPre
         </div>
 
         {/* Badge tiempo estimado */}
-        <div className="flex items-center gap-1.5 bg-zinc-800/80 border border-zinc-700/50 px-3 py-1.5 rounded-full">
+        {/* <div className="flex items-center gap-1.5 bg-zinc-800/80 border border-zinc-700/50 px-3 py-1.5 rounded-full">
           <Clock className="w-3 h-3 text-zinc-400" />
           <span className="text-xs font-bold text-zinc-400">~{tiempo} min</span>
-        </div>
+        </div> */}
       </div>
 
       {/* Ejercicios preview (top 3) */}

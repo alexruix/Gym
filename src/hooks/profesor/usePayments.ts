@@ -1,4 +1,4 @@
-import { useState } from "react";
+import * as React from "react";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import type { PaymentsData } from "@/types/pagos";
 
@@ -12,8 +12,8 @@ import { usePaymentReminders } from "./payments/usePaymentReminders";
  * Desacopla la sincronización, las operaciones bancarias y la telemetría de avisos.
  */
 export function usePayments(initialData: PaymentsData) {
-    const [data, setData] = useState<PaymentsData>(initialData);
-    const [selectedAlumno, setSelectedAlumno] = useState<any>(null);
+    const [data, setData] = React.useState<PaymentsData>(initialData);
+    const [selectedAlumno, setSelectedAlumno] = React.useState<any>(null);
     const { execute: run, isPending } = useAsyncAction();
 
     // 1. Motor de Sincronización (Consola Viva)
@@ -21,7 +21,7 @@ export function usePayments(initialData: PaymentsData) {
 
     // 2. Motor de Operaciones Financieras (Mutaciones + Métricas Reactivas)
     const { registrarCobro, syncStudentData } = usePaymentOperations(
-        setData as React.Dispatch<React.SetStateAction<any>>, 
+        setData, 
         run, 
         refreshData
     );

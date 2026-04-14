@@ -17,6 +17,7 @@ import {
   SheetTitle,
   SheetTrigger
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 import { globalCopy } from "@/data/es/global";
 
 interface NavItem {
@@ -45,8 +46,9 @@ export function MobileNav({ currentPath }: MobileNavProps) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <button
-          className="p-2 md:hidden text-zinc-500 hover:text-zinc-900 transition-colors"
+          className="p-2 lg:hidden text-zinc-500 hover:text-zinc-900 transition-colors haptic-click"
           aria-label="Abrir menú"
+          type="button"
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -68,10 +70,12 @@ export function MobileNav({ currentPath }: MobileNavProps) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${isActive
-                    ? 'bg-zinc-950 text-white shadow-lg shadow-zinc-200'
-                    : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
-                  }`}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 haptic-click",
+                  isActive
+                    ? "bg-zinc-950 text-white shadow-lg shadow-zinc-200"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                )}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-lime-400' : ''}`} aria-hidden="true" />
                 <span className="text-sm font-bold uppercase tracking-wide">{item.name}</span>
@@ -84,7 +88,7 @@ export function MobileNav({ currentPath }: MobileNavProps) {
           <a
             href="/profesor/configuracion"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 rounded-2xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all"
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all haptic-click"
           >
             <Settings className="w-5 h-5" aria-hidden="true" />
             <span className="text-sm font-bold uppercase tracking-wide">{globalCopy.layout.profesorNav.configuracion}</span>

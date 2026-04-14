@@ -26,7 +26,9 @@ import { StudentCompactCard } from "@/components/molecules/profesor/planes/Stude
 import { ViewToggle } from "@/components/molecules/ViewToggle";
 import { StudentAssignmentDialog } from "@/components/molecules/profesor/planes/StudentAssignmentDialog";
 import { StandardTable, type TableColumn } from "@/components/organisms/StandardTable";
-import { ExerciseSearchDialog } from "@/components/molecules/profesor/planes/ExerciseSearchDialog";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { PlanLibraryPanel } from "@/components/organisms/profesor/planes/PlanLibraryPanel";
+
 import { BackButton } from "@/components/atoms/profesor/BackButton";
 import { cn } from "@/lib/utils";
 import { PlanPill } from "@/components/atoms/profesor/planes/PlanPill";
@@ -60,6 +62,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
       toggleRutina,
       removeExercise,
       addExercise,
+      addBlockToRoutine,
       handleDuplicate,
       handleAssignmentSuccess,
     }
@@ -131,7 +134,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                 <Dumbbell className="w-7 h-7 md:w-10 md:h-10 text-lime-400 group-hover:scale-110 transition-transform" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl md:text-4xl font-bold capitalize tracking-tighter text-zinc-950 dark:text-white leading-none mb-2 truncate">
+                <h1 className="text-xl md:text-4xl font-bold tracking-tighter text-zinc-950 dark:text-white leading-none mb-2 truncate">
                   {localPlan.nombre}
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
@@ -272,15 +275,27 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                             <div className="border-t border-zinc-100 dark:border-zinc-900 divide-y divide-zinc-50 dark:divide-zinc-900/50 animate-in fade-in slide-in-from-top-4 duration-500">
                               {rutina.ejercicios_plan.length > 0 ? (
                                 <>
-                                  {rutina.ejercicios_plan.map((ej: any, idx: number) => (
-                                    <RoutineExerciseRow
-                                      key={ej.id}
-                                      exercise={ej}
-                                      index={idx}
-                                      hideMetrics={true}
-                                      onDelete={() => removeExercise(rutina.id, ej.id)}
-                                    />
-                                  ))}
+                                  {rutina.ejercicios_plan.map((ej: any, idx: number) => {
+                                    const isPrevInSameBlock = idx > 0 && rutina.ejercicios_plan[idx - 1]?.grupo_bloque_id === ej.grupo_bloque_id && !!ej.grupo_bloque_id;
+                                    const isNextInSameBlock = idx < rutina.ejercicios_plan.length - 1 && rutina.ejercicios_plan[idx + 1]?.grupo_bloque_id === ej.grupo_bloque_id && !!ej.grupo_bloque_id;
+
+                                    return (
+                                      <RoutineExerciseRow
+                                        key={ej.id}
+                                        exercise={ej}
+                                        index={idx}
+                                        hideMetrics={true}
+                                        onDelete={() => removeExercise(rutina.id, ej.id)}
+                                        
+                                        // Block Protocol Props
+                                        isInBlock={!!ej.grupo_bloque_id}
+                                        isPrevInSameBlock={isPrevInSameBlock}
+                                        isNextInSameBlock={isNextInSameBlock}
+                                        blockType={ej.grupo_tipo_bloque}
+                                        blockLaps={ej.grupo_vueltas}
+                                      />
+                                    );
+                                  })}
                                   <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
                                     <Button
                                       variant="ghost"
@@ -291,7 +306,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
                                       }}
                                     >
                                       <Plus className="w-4 h-4" />
-                                      {c.routines.emptyDay.split(' ')[0]} ejercicio
+                                      Agregar ejercicio
                                     </Button>
                                   </div>
                                 </>
@@ -395,13 +410,18 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
         onSuccess={handleAssignmentSuccess}
       />
 
-      <ExerciseSearchDialog
-        open={isSearchOpen}
-        onOpenChange={setIsSearchOpen}
-        onSelect={addExercise}
-        library={library}
-        onExerciseCreated={() => window.location.reload()}
-      />
+      <Sheet open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <SheetContent side="right" className="p-0 sm:max-w-md bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900">
+           <PlanLibraryPanel
+                onSelectExercise={(id) => { addExercise(id); setIsSearchOpen(false); }}
+                onSelectBlock={(id) => { addBlockToRoutine(id); setIsSearchOpen(false); }}
+                library={library}
+                allowCreate={true}
+                className="h-full border-0"
+              />
+        </SheetContent>
+      </Sheet>
+
     </div>
   );
 }

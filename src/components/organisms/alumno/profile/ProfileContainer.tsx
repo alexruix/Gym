@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { PersonalDataCard } from "./PersonalDataCard";
 import { FitnessDataCard } from "./FitnessDataCard";
 import { TeacherContactCard } from "./TeacherContactCard";
-import { Clock } from "lucide-react";
+import { Clock, LogOut } from "lucide-react";
 import { perfilCopy } from "@/data/es/alumno/perfil";
+import { globalCopy } from "@/data/es/global";
 import { actions } from "astro:actions";
 import { triggerHapticSoft, triggerHapticWarning } from "@/lib/performance";
 import { cn, toInputDate } from "@/lib/utils";
@@ -148,6 +149,26 @@ export function ProfileContainer({ alumno: initialAlumno, profesor, turnos, occu
       <FitnessDataCard alumno={alumno} onEdit={() => handleEdit("fitness")} />
 
       <TeacherContactCard profesor={profesor} fechaInicio={alumno.fecha_inicio} />
+
+      {/* CERRAR SESIÓN (Industrial Minimalist) */}
+      <div className="pt-4 pb-10">
+        <form action="/api/auth/signout" method="POST">
+          <button 
+            type="submit"
+            className="w-full flex items-center justify-center gap-3 py-5 rounded-3xl border border-white/5 bg-zinc-900/20 text-zinc-500 hover:text-white hover:bg-zinc-900/40 hover:border-white/10 transition-all active:scale-95 group"
+          >
+            <LogOut className="w-5 h-5 text-zinc-600 group-hover:text-fuchsia-400 transition-colors" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+              {globalCopy.layout.alumnoNav.salir}
+            </span>
+          </button>
+        </form>
+        
+        <div className="mt-8 flex flex-col items-center gap-1 opacity-20 group">
+          <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">{globalCopy.brand.nameLine1}{globalCopy.brand.nameHighlight} CORE v1.32</p>
+          <p className="text-[8px] font-medium text-zinc-600 uppercase tracking-[0.3em]">Build 2024.04.14</p>
+        </div>
+      </div>
 
       {isEditing && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-in fade-in duration-300">

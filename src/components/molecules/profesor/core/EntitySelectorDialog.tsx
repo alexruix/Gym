@@ -54,6 +54,12 @@ interface Props<T extends BaseEntity> {
     /** Opción para añadir entidad inline */
     onCreateNew?: () => void;
     createNewLabel?: string;
+    /** Slot para inyectar filtros especializados (Molecules) */
+    topFilters?: React.ReactNode;
+    /** Slot para inyectar acciones al lado del buscador (ej: Filter Button) */
+    extraActions?: React.ReactNode;
+    /** Callback disparado al cambiar la selección en tiempo real */
+    onSelectionChange?: (selectedIds: string[]) => void;
     children?: React.ReactNode;
 }
 
@@ -79,6 +85,9 @@ export function EntitySelectorDialog<T extends BaseEntity>({
     allTags = [],
     onCreateNew,
     createNewLabel = "Crear Nuevo",
+    topFilters,
+    extraActions,
+    onSelectionChange,
     children
 }: Props<T>) {
     const [search, setSearch] = useState("");
@@ -122,13 +131,16 @@ export function EntitySelectorDialog<T extends BaseEntity>({
 
     const handleToggle = (id: string) => {
         if (!multiple) {
-            setSelectedIds(new Set([id]));
+            const next = new Set([id]);
+            setSelectedIds(next);
+            onSelectionChange?.(Array.from(next));
             return;
         }
 
         const next = new Set(selectedIds);
         next.has(id) ? next.delete(id) : next.add(id);
         setSelectedIds(next);
+        onSelectionChange?.(Array.from(next));
     };
 
     const handleSelectAll = () => {
@@ -139,10 +151,12 @@ export function EntitySelectorDialog<T extends BaseEntity>({
         const next = new Set(selectedIds);
         allIds.forEach(id => next.add(id));
         setSelectedIds(next);
+        onSelectionChange?.(Array.from(next));
     };
 
     const handleClearSelection = () => {
         setSelectedIds(new Set());
+        onSelectionChange?.([]);
     };
 
     const addTag = (tag: string) => {
@@ -183,18 +197,27 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                 </DialogHeader>
 
                 {/* Buscador Universal */}
-                <div className="p-4 border-b border-zinc-100 dark:border-zinc-900 relative group bg-white dark:bg-zinc-950">
-                    <Search className={cn(
-                        "absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
-                        search ? "text-lime-500" : "text-zinc-400 group-focus-within:text-lime-500"
-                    )} />
-                    <Input
-                        ref={searchInputRef}
-                        placeholder="Buscar por nombre..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-12 h-12 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-sm font-bold placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-lime-400/20"
-                    />
+                <div className="p-4 border-b border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                    <div className="flex gap-3">
+                        <div className="relative flex-1 group">
+                            <Search className={cn(
+                                "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
+                                search ? "text-lime-500" : "text-zinc-400 group-focus-within:text-lime-500"
+                            )} />
+                            <Input
+                                ref={searchInputRef}
+                                placeholder="Buscar por nombre..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-12 h-14 bg-zinc-100/50 dark:bg-zinc-900/50 border-none rounded-2xl text-sm font-bold placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-lime-400/20"
+                            />
+                        </div>
+                        {extraActions && (
+                            <div className="shrink-0">
+                                {extraActions}
+                            </div>
+                        )}
+                    </div>
                     {/* {multiple && hasResults && (
                         <div className="flex items-center gap-4 mt-3 px-2">
                            <button onClick={handleSelectAll} className="text-[9px] font-bold uppercase tracking-widest text-lime-600 hover:text-lime-500 transition-colors">Seleccionar todos</button>
@@ -219,6 +242,13 @@ export function EntitySelectorDialog<T extends BaseEntity>({
                         </div>
                     )}
                 </div>
+
+                {/* Slot para Filtros Especializados */}
+                {topFilters && (
+                    <div className="bg-zinc-50/10 dark:bg-zinc-900/5">
+                        {topFilters}
+                    </div>
+                )}
 
                 {/* Etiquetas Activas */}
                 {activeTags.length > 0 && (

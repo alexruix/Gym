@@ -16,6 +16,9 @@ interface RoutineExerciseRowProps {
     peso_target?: string;
     notas?: string;
     biblioteca_ejercicios: ExerciseInfo | null;
+    grupo_vueltas?: number;
+    grupo_descanso_ronda?: number;
+    grupo_descanso_final?: number;
   };
   index: number;
   isFirst?: boolean;
@@ -27,6 +30,13 @@ interface RoutineExerciseRowProps {
   onMove?: (direction: "up" | "down") => void;
   hideMetrics?: boolean;
   readOnly?: boolean;
+
+  // Block Protocol Props
+  isInBlock?: boolean;
+  isPrevInSameBlock?: boolean;
+  isNextInSameBlock?: boolean;
+  blockType?: 'superserie' | 'circuito' | 'agrupador';
+  blockLaps?: number;
 }
 
 /**
@@ -44,7 +54,12 @@ export function RoutineExerciseRow({
   onSwap,
   onMove,
   hideMetrics = false,
-  readOnly = false
+  readOnly = false,
+  isInBlock = false,
+  isPrevInSameBlock = false,
+  isNextInSameBlock = false,
+  blockType = 'agrupador',
+  blockLaps = 1
 }: RoutineExerciseRowProps) {
   const ej = exercise.biblioteca_ejercicios;
 
@@ -55,8 +70,37 @@ export function RoutineExerciseRow({
   return (
     <div className={cn(
       "flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 bg-white dark:bg-zinc-950 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/40 transition-all duration-300 group/ej border-l-2 border-transparent hover:border-lime-400 relative",
-      className
+      isInBlock && "ml-4 border-l-0"
     )}>
+      {/* Visual Rail Side (Intensity Connector) Detail View */}
+      {isInBlock && (
+        <div className={cn(
+          "absolute -left-4 top-0 bottom-0 w-4 flex flex-col items-center z-10",
+          isPrevInSameBlock && "-top-2",
+          isNextInSameBlock && "-bottom-2"
+        )}>
+          {/* Connector Line */}
+          <div className={cn(
+            "w-1.5 h-full transition-colors duration-700",
+            blockType === 'superserie' ? "bg-fuchsia-500 shadow-[0_0_8px_rgba(232,28,210,0.2)]" : 
+            blockType === 'circuito' ? "bg-lime-500 border-x border-lime-500/10" : 
+            "bg-zinc-200 dark:bg-zinc-800",
+            !isPrevInSameBlock && "rounded-t-full h-[calc(100%-16px)] mt-4",
+            !isNextInSameBlock && "rounded-b-full h-[calc(100%-16px)] mb-4",
+            isPrevInSameBlock && isNextInSameBlock && "h-full"
+          )} />
+          
+          {/* Rail Indicator */}
+          {!isPrevInSameBlock && (
+             <div className={cn(
+               "absolute -left-1 top-4 px-1.5 py-0.5 rounded-full text-[5px] font-black uppercase tracking-tighter whitespace-nowrap shadow-lg border z-30",
+               blockType === 'superserie' ? "bg-zinc-950 text-fuchsia-400 border-fuchsia-500/40" : "bg-zinc-950 text-lime-400 border-lime-500/40"
+             )}>
+               {blockType === 'circuito' ? `CIRC x${blockLaps}` : blockType?.toUpperCase()}
+             </div>
+          )}
+        </div>
+      )}
       {/* 1. INFO BASE + REORDER */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {(!readOnly && onMove) && (
@@ -115,6 +159,20 @@ export function RoutineExerciseRow({
                   Con Video
                </div>
             )}
+            {isInBlock && !isNextInSameBlock && (
+              <div className="flex items-center gap-2">
+                {blockType === 'circuito' && exercise.grupo_descanso_ronda ? (
+                   <span className="text-[8px] font-black bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                     Desc. Ronda: {exercise.grupo_descanso_ronda}s
+                   </span>
+                ) : null}
+                {exercise.grupo_descanso_final ? (
+                   <span className="text-[8px] font-black bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                     Desc. Final: {exercise.grupo_descanso_final}s
+                   </span>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -161,18 +219,20 @@ export function RoutineExerciseRow({
               />
             </div>
 
-            {/* Descanso */}
-            <div className="space-y-1">
-              <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Desc. (min)</label>
-              <input
-                type="text"
-                defaultValue={exercise.descanso_seg}
-                onBlur={(e) => handleMetricChange("descanso_seg", e.target.value)}
-                placeholder="2:00"
-                readOnly={readOnly}
-                className="w-full h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-500 focus:ring-0 transition-all shadow-inner"
-              />
-            </div>
+            {/* Descanso - Friction Zero: Hidden in Superseries */}
+            {(blockType !== 'superserie') && (
+              <div className="space-y-1">
+                <label className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">Desc. (seg)</label>
+                <input
+                  type="number"
+                  defaultValue={exercise.descanso_seg}
+                  onBlur={(e) => handleMetricChange("descanso_seg", parseInt(e.target.value) || 0)}
+                  placeholder="60"
+                  readOnly={readOnly}
+                  className="w-full h-10 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 text-center font-bold text-xs text-zinc-950 dark:text-white focus:border-lime-500 focus:ring-0 transition-all shadow-inner"
+                />
+              </div>
+            )}
           </div>
         )}
 

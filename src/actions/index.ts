@@ -1,15 +1,14 @@
 import { profesorActions } from "./profesor";
 import { alumnoActions } from "./alumno";
 import { authActions } from "./auth";
-import { pagosActions } from "./pagos";
-import { suscripcionesActions } from "./suscripciones";
-import { ejercicioActions } from "./ejercicios";
 
+/**
+ * MiGym Actions Hub (V2.0)
+ * Arquitectura modular y escalable para la Consola Deportiva.
+ * Todas las mutaciones de estado se orquestan aquí vía Astro Actions.
+ */
 export const server = {
   profesor: profesorActions,
   alumno: alumnoActions,
   auth: authActions,
-  pagos: pagosActions,
-  suscripcion: suscripcionesActions,
-  ejercicios: ejercicioActions,
 };

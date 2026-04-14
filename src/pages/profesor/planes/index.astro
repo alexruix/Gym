@@ -5,16 +5,11 @@ import ActionLink from '@/components/atoms/ActionLink.astro';
 import { actions } from "astro:actions";
 import { PlanesDashboard } from '@/components/organisms/profesor/planes/PlanesDashboard';
 import { type PlanRowData } from '@/components/organisms/profesor/planes/PlanesTable';
-import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { planesCopy } from "@/data/es/profesor/planes";
 
-const supabase = createSupabaseServerClient(Astro);
-const { data: userAuth } = await supabase.auth.getUser();
-const user = userAuth?.user;
-
-if (!user) {
-  return Astro.redirect("/login");
-}
+// El middleware ya validó la sesión y la inyectó en locals — sin round-trip extra.
+const user = Astro.locals.user;
+if (!user) return Astro.redirect("/login");
 
 const { data: planesData, error } = await Astro.callAction(actions.profesor.getPlanes, {});
 

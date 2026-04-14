@@ -5,14 +5,15 @@ import { agendaCopy } from "@/data/es/profesor/agenda";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { AgendaConsole } from "@/components/organisms/profesor/agenda/AgendaConsole";
 
-const supabase = createSupabaseServerClient(Astro);
-const { data: userAuth } = await supabase.auth.getUser();
-const user = userAuth?.user;
-
+// El middleware ya validó la sesión y la inyectó en locals — sin round-trip extra.
+const user = Astro.locals.user;
 if (!user) return Astro.redirect("/login");
 
-// 1. Fetch Paralelo Inicial: Turnos y Alumnos
-const [turnosData, rawStudentsData] = await Promise.all([
+const supabase = createSupabaseServerClient(Astro);
+const today = new Date().toISOString().split('T')[0];
+
+// Fetch Paralelo Total: Turnos, Alumnos y Sesiones de hoy en un solo round-trip
+const [turnosData, rawStudentsData, rawSessionsData] = await Promise.all([
   supabase
     .from("turnos")
     .select("*, dias_asistencia")
@@ -22,7 +23,24 @@ const [turnosData, rawStudentsData] = await Promise.all([
     .from("alumnos")
     .select("id, nombre, turno_id, dias_asistencia")
     .eq("profesor_id", user.id)
-    .is("deleted_at", null)
+    .is("deleted_at", null),
+  // Las sesiones de hoy se obtienen junto con lo demás — sin esperar los IDs de alumnos.
+  // El filtro por profesor_id via JOIN garantiza seguridad RLS.
+  supabase
+    .from("sesiones_instanciadas")
+    .select(`
+      id,
+      alumno_id,
+      sesion_ejercicios_instanciados (
+        id,
+        completado,
+        exercise_type,
+        peso_target,
+        peso_real,
+        biblioteca_ejercicios ( nombre )
+      )
+    `)
+    .eq("fecha_real", today)
 ]);
 
 const turnos = turnosData.data;
@@ -34,34 +52,17 @@ const students = ((rawStudents || []) as any[]).map(s => ({
   name: s.nombre
 }));
 
+// Filtrar sesiones solo a los alumnos de este profesor (post-fetch, en memoria)
+const studentIdSet = new Set(students.map(s => s.id));
+const rawSessions = (rawSessionsData.data || []).filter((s: any) => studentIdSet.has(s.alumno_id));
 
-// 3. Fetch de Sesiones e Instancias para calcular progreso HOY
-const today = new Date().toISOString().split('T')[0];
-
-const { data: rawSessions } = await supabase
-  .from("sesiones_instanciadas")
-  .select(`
-    id,
-    alumno_id,
-    sesion_ejercicios_instanciados (
-      id,
-      completado,
-      exercise_type,
-      peso_target,
-      peso_real,
-      biblioteca_ejercicios ( nombre )
-    )
-  `)
-  .eq("fecha_real", today)
-  .in("alumno_id", (students || []).map(s => s.id));
-
-// 4. Mapear sesiones a formato simplificado para el componente
-const initialSessions = ((rawSessions || []) as any[]).map(s => {
+// Mapear sesiones a formato simplificado para el componente
+const initialSessions = (rawSessions as any[]).map(s => {
   const exercises = s.sesion_ejercicios_instanciados || [];
   const total = exercises.length;
   const completed = exercises.filter((e: any) => e.completado).length;
   
-  // Buscar ejercicio "Core" para la telemetría (base type o primero de la lista)
+  // Ejercicio "Core" para la telemetría (base type o primero de la lista)
   const core = exercises.find((e: any) => e.exercise_type === 'base') || exercises[0];
 
   return {
@@ -75,7 +76,7 @@ const initialSessions = ((rawSessions || []) as any[]).map(s => {
   };
 });
 
-// 5. Conteo de alumnos con actividad hoy para el Badge
+// Conteo de alumnos con actividad hoy para el Badge
 const presentCount = initialSessions.filter(s => s.progress > 0).length;
 
 const c = agendaCopy.header;

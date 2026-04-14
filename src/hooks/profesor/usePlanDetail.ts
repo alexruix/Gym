@@ -40,7 +40,8 @@ export function usePlanDetail({ initialPlan, library }: UsePlanDetailProps) {
   const { 
     getUpdatePayload, 
     removeExercise: coreRemove, 
-    addExercise: coreAdd 
+    addExercise: coreAdd,
+    addBlockToRoutine: coreAddBlock 
   } = usePlanOperations(localPlan, setLocalPlan, isInteracting);
 
   // 3. Selectores (Lógica de Vista)
@@ -69,6 +70,12 @@ export function usePlanDetail({ initialPlan, library }: UsePlanDetailProps) {
       coreAdd(activeRoutineTarget, exercise);
       setActiveRoutineTarget(null);
     }
+  };
+
+  const addBlockToRoutine = (block: any) => {
+    if (!activeRoutineTarget) return;
+    coreAddBlock(activeRoutineTarget, block);
+    setActiveRoutineTarget(null);
   };
 
   const handleDuplicate = async () => {
@@ -127,6 +134,7 @@ export function usePlanDetail({ initialPlan, library }: UsePlanDetailProps) {
       toggleRutina,
       removeExercise: coreRemove,
       addExercise,
+      addBlockToRoutine,
       handleDuplicate,
       handleAssignmentSuccess,
     }

@@ -11,7 +11,7 @@ import type { AssignedPlanMetric as AssignedPlan } from "@/types/student";
  * useStudentPlanEditor: Fachada refinada para la edición de planes asignados a alumnos.
  * Maneja la distinción entre "Master Plan" (Overrides) y "Plan Bifurcado" (Edición Directa).
  */
-export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan | null) {
+export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan | null, library: any[]) {
   
   // 1. Motor de Estado
   const {
@@ -34,6 +34,7 @@ export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan
     getUpdatePayload, 
     removeExercise: coreRemove, 
     addExercise: coreAdd,
+    addBlockToRoutine: coreAddBlock,
     reorderExercise: coreReorder,
     duplicateRoutine,
     deleteRoutine
@@ -92,23 +93,38 @@ export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan
 
   // --- Operaciones Estructurales sin Reload ---
 
-  const addExercise = useCallback(async (rutinaId: string, libraryExercise: any) => {
-    // 1. Update optimista local
+  const addExercise = useCallback(async (rutinaId: string, exId: string) => {
+    const libraryExercise = library.find(e => e.id === exId);
+    if (!libraryExercise) return;
+
     const updatedPlan = await coreAdd(rutinaId, libraryExercise);
     
-    // 2. Persistir en servidor (sin reload)
     try {
        const payload = getUpdatePayload(updatedPlan);
        const { error } = await actions.profesor.updatePlan(payload as any);
        if (error) throw error;
-       // Al usar IDs virtuales/reales mixtos en el cliente, la próxima vez que el 
-       // componente se hidrate desde el servidor (vía el refresh silencioso del dashboard) 
-       // los IDs se normalizarán.
     } catch (err) {
        toast.error("Error al persistir ejercicio");
        setLocalPlan(initialPlan);
     }
-  }, [coreAdd, getUpdatePayload, initialPlan]);
+  }, [coreAdd, getUpdatePayload, initialPlan, library]);
+
+  const addBlock = useCallback(async (rutinaId: string, blockId: string) => {
+     try {
+       const { data: blocks } = await actions.profesor.getBlocks();
+       const block = Array.isArray(blocks) ? (blocks as any[]).find(b => b.id === blockId) : null;
+       if (!block) throw new Error("Bloque no encontrado");
+
+       const updatedPlan = await coreAddBlock(rutinaId, block);
+
+       const payload = getUpdatePayload(updatedPlan);
+       const { error } = await actions.profesor.updatePlan(payload as any);
+       if (error) throw error;
+     } catch (err) {
+       console.error("[useStudentPlanEditor] Add block failed:", err);
+       toast.error("Error al importar bloque");
+     }
+  }, [coreAddBlock, getUpdatePayload, initialPlan]);
 
   const removeExercise = useCallback(async (exerciseId: string) => {
     if (!localPlan) return;
@@ -198,6 +214,7 @@ export function useStudentPlanEditor(alumnoId: string, initialPlan: AssignedPlan
       updateExerciseMetrics,
       deleteExercise: removeExercise,
       addExercise,
+      addBlock,
       moveExercise,
       promotePlan,
       duplicateRoutine: async (rutinaId: string) => {

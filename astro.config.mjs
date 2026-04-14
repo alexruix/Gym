@@ -10,12 +10,5 @@ export default defineConfig({
   
   vite: {
     plugins: [tailwind()],
-    server: {
-      hmr: {
-        protocol: 'ws',
-        host: 'localhost',
-      },
-    },
-
   },
 });

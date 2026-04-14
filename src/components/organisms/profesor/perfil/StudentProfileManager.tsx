@@ -25,19 +25,21 @@ interface StudentProfileManagerProps {
 
 export function StudentProfileManager({ assignedPlan, student, library }: StudentProfileManagerProps) {
   const [studentData, setStudentData] = useState(student);
-  const [activeTab, setActiveTab] = useState<"plan" | "routine" | "info" | "history" | "notes">("routine");
+  
+  const hasNoPlan = !assignedPlan || (assignedPlan.rutinas_diarias?.length || 0) === 0;
+  const [activeTab, setActiveTab] = useState<"plan" | "routine" | "info" | "history" | "notes">(hasNoPlan ? "plan" : "routine");
+  
   const [notes, setNotes] = useState(studentData.notas || "");
 
   const { openWhatsApp, copyGuestLink } = useStudentActions();
-  const planDataEmpty = !assignedPlan || (assignedPlan.rutinas_diarias?.length || 0) === 0;
   
   const { 
     plan, 
     setPlan,
     selectors: { getGroupedExercises },
-    actions: { updateExerciseMetrics, updateStudentDates, moveExercise, deleteExercise, addExercise, promotePlan, duplicateRoutine, deleteRoutine }
+    actions: { updateExerciseMetrics, updateStudentDates, moveExercise, deleteExercise, addExercise, addBlock, promotePlan, duplicateRoutine, deleteRoutine }
 
-  } = useStudentPlanEditor(student.id, assignedPlan);
+  } = useStudentPlanEditor(student.id, assignedPlan, library);
 
   const handleCalendarPlanChange = (ejercicioPlanId: string, updates: any) => {
     setPlan(prev => {
@@ -67,6 +69,7 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
       onMove={moveExercise}
       onDelete={deleteExercise}
       onAdd={addExercise}
+      onAddBlock={addBlock}
       onDuplicateRoutine={duplicateRoutine}
       onDeleteRoutine={deleteRoutine}
       promotePlan={promotePlan}
@@ -99,7 +102,8 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
           setStudentData(prev => ({ ...prev, notas: newNotes }));
         }} />}
         historyContent={null}
-
+        isRoutineDisabled={hasNoPlan}
+        isHistoryDisabled={hasNoPlan}
       />
 
       {/* FAB - Quick Actions PWA Zone */}

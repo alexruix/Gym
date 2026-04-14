@@ -7,8 +7,6 @@ interface UseFormOperationsProps {
     form: UseFormReturn<any>;
     activeDiaAbsoluto: number;
     historyRef: React.MutableRefObject<any>;
-    setIsSearchOpen: (val: boolean) => void;
-    setIsBlockSearchOpen: (val: boolean) => void;
     setIsBulkOpen: (val: boolean) => void;
 }
 
@@ -19,8 +17,6 @@ export function useFormOperations({
     form,
     activeDiaAbsoluto,
     historyRef,
-    setIsSearchOpen,
-    setIsBlockSearchOpen,
     setIsBulkOpen
 }: UseFormOperationsProps) {
 
@@ -47,9 +43,8 @@ export function useFormOperations({
         };
         
         form.setValue(`rutinas.${routineIdx}.ejercicios`, [...currentExercises, newExercise]);
-        setIsSearchOpen(false);
         toast.success("Agregaste un ejercicio nuevo");
-    }, [form, activeDiaAbsoluto, setIsSearchOpen]);
+    }, [form, activeDiaAbsoluto]);
 
     const addBlockToRoutine = useCallback((block: any) => {
         const routineIdx = getRoutineIdx();
@@ -65,13 +60,15 @@ export function useFormOperations({
             position: Math.floor(Math.random() * 1000000000),
             peso_target: "",
             grupo_bloque_id: block.id,
-            grupo_nombre: block.nombre
+            grupo_nombre: block.nombre,
+            grupo_tipo_bloque: block.tipo_bloque,
+            grupo_vueltas: block.vueltas,
+            grupo_descanso_final: block.descanso_final
         }));
         
         form.setValue(`rutinas.${routineIdx}.ejercicios`, [...currentExercises, ...newExercises]);
-        setIsBlockSearchOpen(false);
         toast.success(`Importaste el bloque "${block.nombre}"`);
-    }, [form, activeDiaAbsoluto, setIsBlockSearchOpen]);
+    }, [form, activeDiaAbsoluto]);
 
     const removeExercise = useCallback((ri: number, ei: number) => {
         const updated = [...form.getValues(`rutinas.${ri}.ejercicios`)];

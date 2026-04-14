@@ -34,9 +34,6 @@ interface UsePlanFormProps {
 export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormProps) {
     const [localLibrary, setLocalLibrary] = useState<Exercise[]>(library);
     const [rotationEditing, setRotationEditing] = useState<{ routineIdx: number; exerciseIdx: number } | null>(null);
-    const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const [isBlockSearchOpen, setIsBlockSearchOpen] = useState(false);
-    const [isAddElementOpen, setIsAddElementOpen] = useState(false);
     const [isBulkOpen, setIsBulkOpen] = useState(false);
     
     const historyRef = useRef<any>(null);
@@ -94,8 +91,6 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         form,
         activeDiaAbsoluto,
         historyRef,
-        setIsSearchOpen,
-        setIsBlockSearchOpen,
         setIsBulkOpen
     });
 
@@ -200,11 +195,6 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
         numWeeks: form.watch("duracion_semanas"),
         freqSemanal,
         localLibrary,
-        isSearchOpen, setIsSearchOpen,
-        isBlockSearchOpen, setIsBlockSearchOpen,
-        isAddElementOpen, setIsAddElementOpen,
-        isBulkOpen, setIsBulkOpen,
-        rotationEditing, setRotationEditing,
         actions: {
             onSubmit: form.handleSubmit(onSubmit, (err) => {
                 console.error("Zod Submit Errors:", err);
@@ -219,7 +209,9 @@ export function usePlanForm({ library, initialValues, onSuccess }: UsePlanFormPr
             handleExerciseCreated,
             handleSetRotation,
             handleRemoveRotationExercise,
-            getExerciseName
+            getExerciseName,
+            isBulkOpen, setIsBulkOpen,
+            rotationEditing, setRotationEditing,
         }
     };
 }

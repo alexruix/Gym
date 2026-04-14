@@ -20,7 +20,8 @@ import { Button } from "@/components/ui/button";
 
 // Componentes del Dominio (Molecules/Atoms)
 import { DayCalendarStrip } from "@/components/molecules/DayCalendarStrip";
-import { ExerciseSelectorDialog } from "@/components/molecules/profesor/ejercicios/ExerciseSelectorDialog";
+import { toast } from "sonner";
+
 import { StatBadge } from "@/components/atoms/profesor/StatBadge";
 import { SessionStatusBadge } from "@/components/atoms/profesor/SessionStatusBadge";
 import { LoaderState } from "@/components/atoms/LoaderState";
@@ -117,6 +118,11 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
     setIsSelectorOpen(false);
   };
 
+  const handleBlockSelected = (blockId: string) => {
+    toast.info("La importación de bloques en el calendario (sólo por hoy) estará disponible próximamente.");
+    setIsSelectorOpen(false);
+  };
+
 
   const variacionesCount = selectedSesion?.ejercicios.filter(e => e.is_variation).length || 0;
   const showStructuralWarning = variacionesCount >= 2;
@@ -188,7 +194,7 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
 
       {/* Detalle del Día o HUD de Descanso (Fallback Industrial) */}
       {selectedDay && (
-        (selectedSesion?.isRestDay || !selectedSesion) && !loadingDetalle ? (
+        (selectedSesion?.isRestDay || !selectedSesion) && !loadingDetalle && planData ? (
 
           <RestDayHUD
             title={copy.restDay.title}
@@ -318,15 +324,8 @@ export function StudentCalendarTab({ alumnoId, fechaInicio, planData, diasAsiste
           </div>
         ) : null)}
 
-      {/* Selector de Ejercicios de Biblioteca */}
-      <ExerciseSelectorDialog
-        isOpen={isSelectorOpen}
-        onOpenChange={setIsSelectorOpen}
-        onSelect={handleExerciseSelected}
-        currentExerciseId={selectorMode === "swap" ? swapExId : null}
-        title={selectorMode === "add" ? copy.dialogs.selector.addTitle : copy.dialogs.selector.swapTitle}
-        description={selectorMode === "add" ? copy.dialogs.selector.addDesc : copy.dialogs.selector.swapDesc}
-      />
+      {/* Selector de Ejercicios de Biblioteca (Deshabilitado temporalmente: refactorización a panel lateral) */}
+
 
       {/* Selector de Alcance (ELIMINADO: ahora es siempre Solo Hoy) */}
 

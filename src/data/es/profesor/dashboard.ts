@@ -103,5 +103,11 @@ export const dashboardCopy = {
     newStudent: "Nuevo alumno",
     createPlan: "Crear plan nuevo",
     registerPayment: "Registrar pago manual"
+  },
+  vigia: {
+    noPlan: {
+      title: "Alumnos sin plan",
+      subtitle: "Están listos para entrenar. Asignales una rutina cuanto antes.",
+    }
   }
 } as const;

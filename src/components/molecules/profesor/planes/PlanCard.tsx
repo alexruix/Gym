@@ -121,7 +121,7 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
                     {/* Name & ID Section */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-bold text-base md:text-xl text-zinc-950 dark:text-zinc-50 line-clamp-1 capitalize tracking-tight leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                            <h3 className="font-bold text-base md:text-xl text-zinc-950 dark:text-zinc-50 line-clamp-1 tracking-tight leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
                                 <a href={`/profesor/planes/${plan.id}`}>{plan.name}</a>
                             </h3>
                             {plan.isMaster && (

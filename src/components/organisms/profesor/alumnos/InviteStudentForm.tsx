@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
@@ -62,13 +62,13 @@ interface Turno {
 }
 
 export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turnos?: Turno[] }) {
-    const [isMounted, setIsMounted] = useState(false);
+    const [isMounted, setIsMounted] = React.useState(false);
     const { execute, isPending } = useAsyncAction();
     const { copyGuestLink, openWhatsApp } = useStudentActions();
-    const [successData, setSuccessData] = useState<{ id: string; email: string; name: string; date: string; phone?: string } | null>(null);
+    const [successData, setSuccessData] = React.useState<{ id: string; email: string; name: string; date: string; phone?: string } | null>(null);
 
     // Evitar desajustes de hidratación inicializando fechas solo en el cliente
-    useEffect(() => {
+    React.useEffect(() => {
         setIsMounted(true);
     }, []);
 
@@ -90,18 +90,18 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
     const selectedDate = form.watch("fecha_inicio");
 
     // Ajustar el día de pago inicial una vez montado para asegurar sincronía
-    useEffect(() => {
+    React.useEffect(() => {
         if (isMounted && !form.getValues("dia_pago")) {
             form.setValue("dia_pago", new Date().getDate());
         }
     }, [isMounted]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         console.log("InviteStudentForm - Planes recibidos:", plans);
     }, [plans]);
 
     // 2. Sincronización Inteligente de Fechas (Día de Pago = Día de Inicio)
-    useEffect(() => {
+    React.useEffect(() => {
         if (isMounted && selectedDate instanceof Date && !isNaN(selectedDate.getTime())) {
             form.setValue("dia_pago", selectedDate.getDate(), { shouldValidate: true });
         }
@@ -176,7 +176,12 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                             required
                                         >
                                             <FormControl>
-                                                <Input placeholder={inviteStudentCopy.placeholders.nombre} {...field} className="font-bold h-14 rounded-2xl bg-white dark:bg-zinc-950" />
+                                                <Input 
+                                                    placeholder={inviteStudentCopy.placeholders.nombre} 
+                                                    {...field} 
+                                                    autoComplete="name"
+                                                    className="font-bold h-14 rounded-2xl bg-white dark:bg-zinc-950" 
+                                                />
                                             </FormControl>
                                         </StandardField>
                                     )}
@@ -192,7 +197,13 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                             required
                                         >
                                             <FormControl>
-                                                <Input type="email" placeholder={inviteStudentCopy.placeholders.email} {...field} className="h-14 rounded-2xl bg-white dark:bg-zinc-950" />
+                                                <Input 
+                                                    type="email" 
+                                                    placeholder={inviteStudentCopy.placeholders.email} 
+                                                    {...field} 
+                                                    autoComplete="email"
+                                                    className="h-14 rounded-2xl bg-white dark:bg-zinc-950" 
+                                                />
                                             </FormControl>
                                         </StandardField>
                                     )}
@@ -210,7 +221,13 @@ export function InviteStudentForm({ plans, turnos = [] }: { plans: Plan[], turno
                                             <FormControl>
                                                 <div className="relative group/phone">
                                                     <WhatsappLogoIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within/phone:text-lime-500 transition-colors" />
-                                                    <Input type="tel" placeholder={inviteStudentCopy.placeholders.telefono} {...field} className="pl-11 h-14 rounded-2xl bg-white dark:bg-zinc-950" />
+                                                    <Input 
+                                                        type="tel" 
+                                                        placeholder={inviteStudentCopy.placeholders.telefono} 
+                                                        {...field} 
+                                                        autoComplete="tel"
+                                                        className="pl-11 h-14 rounded-2xl bg-white dark:bg-zinc-950" 
+                                                    />
                                                 </div>
                                             </FormControl>
                                         </StandardField>

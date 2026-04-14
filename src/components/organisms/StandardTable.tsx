@@ -115,7 +115,7 @@ export function StandardTable<T extends { id: string | number }>({
                     className={cn(
                       "group transition-colors relative",
                       responsiveMode === "stack" ? "block md:table-row border-b-8 border-zinc-50/50 dark:border-zinc-900/20 md:border-b-0 last:border-b-0" : "",
-                      (onRowClick || rowHref) && "hover:bg-zinc-50/80 dark:hover:bg-lime-500/[0.02] cursor-pointer"
+                      (onRowClick || rowHref) && "hover:bg-zinc-50/80 dark:hover:bg-lime-500/[0.02] cursor-pointer haptic-click-sm"
                     )}
                     onClick={(e) => {
                       const target = e.target as HTMLElement;

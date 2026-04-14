@@ -1,13 +1,13 @@
-import { useState, useCallback, useEffect } from "react";
+import * as React from "react";
 import { actions } from "astro:actions";
 
 /**
  * usePaymentSync: El "pulso" financiero del dashboard.
  */
 export function usePaymentSync(setData: (data: any) => void) {
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isRefreshing, setIsRefreshing] = React.useState(false);
 
-    const refreshData = useCallback(async (silent = false) => {
+    const refreshData = React.useCallback(async (silent = false) => {
         if (!silent) setIsRefreshing(true);
         try {
             const { data, error } = await actions.pagos.getPaymentsData();
@@ -21,7 +21,7 @@ export function usePaymentSync(setData: (data: any) => void) {
     }, [setData]);
 
     // Auto-Refresh al recuperar foco (Consola Viva)
-    useEffect(() => {
+    React.useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === "visible") {
                 refreshData(true);

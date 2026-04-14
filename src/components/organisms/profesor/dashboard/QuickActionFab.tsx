@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import * as React from "react";
 import { Plus, UserPlus, FilePlus, X } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
+import { cn } from "@/lib/utils";
 
 /**
  * QuickActionFab: FAB mobile para acciones rápidas del dashboard.
@@ -8,7 +9,7 @@ import { dashboardCopy } from "@/data/es/profesor/dashboard";
  * El botón de "Registrar pago" fue removido por carecer de implementación.
  */
 export function QuickActionFab() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = React.useState(false);
   const c = dashboardCopy.fab;
 
   return (
@@ -43,10 +44,12 @@ export function QuickActionFab() {
       {/* Botón principal FAB */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 active:scale-95 ${isOpen
+        className={cn(
+          "w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 haptic-click",
+          isOpen
             ? "bg-zinc-900 text-white rotate-45 shadow-zinc-900/20"
             : "bg-lime-500 text-zinc-950 shadow-lime-500/30"
-          }`}
+        )}
         aria-label={isOpen ? "Cerrar menú de acciones" : "Abrir menú de acciones rápidas"}
         aria-expanded={isOpen}
       >

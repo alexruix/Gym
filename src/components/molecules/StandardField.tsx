@@ -1,9 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Label } from "@/components/ui/label"
+import { FormItem, FormLabel } from "../ui/form"
 import { cn } from "@/lib/utils"
-import { FormItem } from "../ui/form"
 
 interface StandardFieldProps {
   label: string;
@@ -12,7 +11,6 @@ interface StandardFieldProps {
   required?: boolean;
   className?: string;
   children: React.ReactNode;
-  id?: string;
 }
 
 /**
@@ -25,21 +23,19 @@ export function StandardField({
   hint, 
   required, 
   className, 
-  children,
-  id
+  children
 }: StandardFieldProps) {
   return (
     <FormItem className={cn("space-y-1.5 w-full", className)}>
       <div className="flex justify-between items-end px-1">
-        <Label 
-          htmlFor={id}
+        <FormLabel 
           className={cn(
             "industrial-label select-none",
             error && "text-red-500"
           )}
         >
           {label} {required && <span className="text-lime-500 ml-0.5">*</span>}
-        </Label>
+        </FormLabel>
         
         {hint && !error && (
           <span className="industrial-metadata">

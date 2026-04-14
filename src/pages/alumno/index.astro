@@ -76,68 +76,35 @@ const mappedCalendar = calendarDays.map((d: any) => ({
 
     <main class="w-full max-w-lg mx-auto flex flex-col gap-6 relative z-10 pb-20">
       
-      <!-- MI TURNO / AGENDA (Industrial HUD) -->
-      <section class="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-xl group overflow-hidden relative">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-lime-400/5 blur-[50px] pointer-events-none rounded-full" />
-          
-          <div class="grid grid-cols-2 gap-6 relative z-10">
-              {/* Bloque: Agenda */}
-              <div class="space-y-2">
-                  <p class="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Calendar className="w-3 h-3 text-lime-400" />
-                      Agenda
-                  </p>
-                  <div class="flex flex-col">
-                      <p class="text-sm font-black text-white uppercase tracking-tight">
-                          {(alumno.dias_asistencia || []).length > 0 
-                            ? (alumno.dias_asistencia || []).map((d: string) => d.slice(0, 3).toUpperCase()).join(" - ")
-                            : "Sin días"}
-                      </p>
-                      <!-- <TechnicalLabel className="text-[9px] text-zinc-600 mt-0.5">
-                          Agenda
-                      </TechnicalLabel> -->
-                  </div>
-              </div>
 
-              {/* Bloque: Horario */}
-              <div class="space-y-2 text-right">
-                  <p class="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center justify-end gap-2">
-                      {dashboardStrings.shift.title}
-                      <Clock className="w-3 h-3 text-lime-400" />
-                  </p>
-                  <div class="flex flex-col items-end">
-                      <!-- <p class="text-sm font-black text-white uppercase tracking-tight">
-                          {turno ? `${turno.nombre}` : dashboardStrings.shift.noShift}
-                      </p> -->
-                      {turno && (
-                          <p class="text-xs font-bold text-lime-400 tabular-nums mt-0.5">
-                              {turno.hora_inicio.slice(0, 5)} <span class="text-zinc-600 font-medium tracking-widest text-[9px] uppercase">a</span> {turno.hora_fin.slice(0, 5)}
-                          </p>
-                      )}
-                  </div>
-              </div>
-          </div>
-      </section>
-
-      <!-- AGENDA / CALENDARIO -->
-      <section class="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-xl">
-        <div class="flex items-center justify-between mb-6 px-2">
-          <div>
+      <!-- AGENDA / CALENDARIO (Simplified Industrial) -->
+      <section class="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-xl relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-lime-400/5 blur-[50px] pointer-events-none rounded-full" />
+        
+        <div class="flex items-center justify-between mb-5 px-1 relative z-10">
+          <div class="flex flex-col gap-0.5">
             <TechnicalLabel>{dashboardStrings.agenda.title}</TechnicalLabel>
-            <p class="text-sm font-bold text-white capitalize mt-1 opacity-60">
-              {fechaHumana}
+            <p class="text-xs font-black text-white uppercase opacity-40 tabular-nums">
+              {fechaHumana.split(",")[0]}
             </p>
           </div>
-          <!-- <div class="text-right">
-            <TechnicalLabel>{dashboardStrings.agenda.week}</TechnicalLabel>
-            <p class="text-3xl font-black text-lime-400 leading-none">
-              {semanaActual}
+          
+          <div class="flex flex-col items-end gap-1">
+            <div class="flex items-center gap-2 bg-zinc-950/50 border border-white/5 px-3 py-1 rounded-full">
+              <Clock className="w-2.5 h-2.5 text-lime-400" />
+              <span class="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                {turno ? `${turno.hora_inicio.slice(0, 5)} - ${turno.hora_fin.slice(0, 5)}` : dashboardStrings.shift.noShift}
+              </span>
+            </div>
+            <p class="text-[8px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-1">
+              {alumno.dias_asistencia?.map((d: string) => d.slice(0, 3).toUpperCase()).join(" · ")}
             </p>
-          </div> -->
+          </div>
         </div>
 
         <DayCalendarStrip
           client:idle
+          minimal={true}
           dias={mappedCalendar}
           diaSeleccionado={fechaHoyISO}
         />

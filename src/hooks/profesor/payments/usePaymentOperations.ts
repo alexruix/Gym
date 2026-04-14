@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import * as React from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 
@@ -31,7 +31,7 @@ export function usePaymentOperations(
     refreshData: (silent?: boolean) => void
 ) {
 
-    const registrarCobro = useCallback(async (alumnoId: string, pagoId: string) => {
+    const registrarCobro = React.useCallback(async (alumnoId: string, pagoId: string) => {
         await runAction(async () => {
             const { error } = await actions.pagos.registrarCobro({ 
                 alumno_id: alumnoId, 
@@ -79,7 +79,7 @@ export function usePaymentOperations(
         });
     }, [runAction, refreshData, setData]);
 
-    const syncStudentData = useCallback((alumnoId: string, updates: Partial<AlumnoPago>) => {
+    const syncStudentData = React.useCallback((alumnoId: string, updates: Partial<AlumnoPago>) => {
         setData(prev => ({
             ...prev,
             alumnos: prev.alumnos.map(a => a.id === alumnoId ? { ...a, ...updates } : a)

@@ -107,11 +107,6 @@ export function DashboardRoutinePreview({ sesionHoy, routinePreview, alumnoId }:
           </div>
         </div>
 
-        {/* Technical HUD Details */}
-        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-12 opacity-10">
-           <div className="text-[8px] font-bold text-white uppercase tracking-[0.3em]">Status: Recovery</div>
-           <div className="text-[8px] font-bold text-white uppercase tracking-[0.3em]">Mode: Passive</div>
-        </div>
       </section>
     );
   }

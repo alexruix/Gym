@@ -164,7 +164,7 @@ export function DashboardConsole<T extends BaseEntity>({
                         {/* SELECTOR DE ORDEN (RADIX) */}
                         {sortOptions.length > 0 && (
                             <Select value={sortOrder} onValueChange={setSortOrder}>
-                                <SelectTrigger className="industrial-select-trigger h-11 md:h-14 pl-9 pr-3 min-w-[130px] md:min-w-[180px] relative border-none bg-zinc-100 dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                                <SelectTrigger className="industrial-select-trigger flex gap-2 h-11 md:h-14 pl-9 pr-3 min-w-[130px] md:min-w-[180px] relative border-none bg-zinc-100 dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800">
                                     <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                                     <SelectValue placeholder="Ordenar por" />
                                 </SelectTrigger>

@@ -3,15 +3,10 @@ import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import PageHeader from "@/components/molecules/PageHeader.astro";
 import { ExerciseLibrary } from "@/components/organisms/profesor/ejercicios/ExerciseLibrary";
 import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
-import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 
-const supabase = createSupabaseServerClient(Astro);
-const { data: userData } = await supabase.auth.getUser();
-const userId = userData.user?.id;
-
-if (!userId) {
-  return Astro.redirect("/login");
-}
+// El middleware ya validó la sesión y la inyectó en locals — sin round-trip extra.
+const user = Astro.locals.user;
+if (!user) return Astro.redirect("/login");
 
 import { actions } from "astro:actions";
 

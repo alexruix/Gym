@@ -1,7 +1,10 @@
-import React from "react";
-import { AlertTriangle, DollarSign, Frown, FilePlus } from "lucide-react";
+import * as React from "react";
+import { AlertTriangle, DollarSign, Frown, FilePlus, CheckCircle2, Loader2 } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
+import { whatsappMessages } from "@/data/es/profesor/mensajes";
+import { actions } from "astro:actions";
+import { toast } from "sonner";
 import {
   Accordion,
   AccordionContent,
@@ -11,23 +14,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "@/components/molecules/DashboardCard";
 import { IconWrapper } from "@/components/atoms/IconWrapper";
-
-export interface AlertData {
-  id: string;
-  studentName: string;
-  phone?: string;
-  daysLate?: number;
-  daysInactive?: number;
-}
+import type { AlertData } from "@/types/dashboard";
 
 interface Props {
   expiringPayments: AlertData[];
   atRiskStudents: AlertData[];
   noPlanStudents: AlertData[];
+  onRefresh?: () => void;
 }
 
-export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }: Props) {
+export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents, onRefresh }: Props) {
   const c = dashboardCopy.alerts;
+  const [loadingId, setLoadingId] = React.useState<string | null>(null);
   const totalAlerts = expiringPayments.length + atRiskStudents.length + noPlanStudents.length;
 
   if (totalAlerts === 0) return null;
@@ -62,14 +60,53 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
                         {alert.daysLate} {alert.daysLate === 1 ? 'día' : 'días'} vencido
                       </p>
                     </div>
-                    {alert.phone && (
-                      <Button size="sm" variant="outline" className="rounded-xl border-border text-ui-muted hover:text-red-600 hover:border-red-400 active:scale-95 transition-all h-10 px-4" asChild>
-                        <a href={`https://wa.me/${alert.phone}?text=Hola%20${alert.studentName},%20te%20escribo%20por%20la%20cuota`} target="_blank" rel="noreferrer">
-                          <WhatsappLogoIcon size={18} className="mr-2" />
-                          <span className="text-[10px] font-bold uppercase tracking-widest">{c.types.payment.action}</span>
-                        </a>
-                      </Button>
-                    )}
+                    
+                    <div className="flex items-center gap-2">
+                        {alert.pagoId && (
+                            <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-10 rounded-xl text-emerald-600 hover:bg-emerald-500/10 active:scale-95 transition-all"
+                                onClick={async () => {
+                                    setLoadingId(alert.id);
+                                    try {
+                                        const { error } = await actions.pagos.registrarCobro({ 
+                                            alumno_id: alert.id, 
+                                            pago_id: alert.pagoId 
+                                        });
+                                        if (error) throw error;
+                                        toast.success("Pago registrado correctamente");
+                                        if (onRefresh) onRefresh();
+                                    } catch (err: any) {
+                                        toast.error(err.message || "Error al registrar pago");
+                                    } finally {
+                                        setLoadingId(null);
+                                    }
+                                }}
+                                disabled={loadingId === alert.id}
+                            >
+                                {loadingId === alert.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                )}
+                                <span className="text-[10px] font-bold uppercase tracking-widest">Cobrar</span>
+                            </Button>
+                        )}
+
+                        {alert.phone && (
+                            <Button size="sm" variant="outline" className="rounded-xl border-border text-ui-muted hover:text-red-600 hover:border-red-400 active:scale-95 transition-all h-10 px-4" asChild>
+                                <a 
+                                    href={`https://wa.me/${alert.phone}?text=${encodeURIComponent(whatsappMessages.payments.overdue(alert.studentName.split(' ')[0]))}`} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                >
+                                    <WhatsappLogoIcon size={18} className="mr-2" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">{c.types.payment.action}</span>
+                                </a>
+                            </Button>
+                        )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -98,7 +135,11 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents }
                     </div>
                     {alert.phone && (
                       <Button size="sm" variant="outline" className="rounded-xl border-border text-ui-muted hover:text-amber-600 hover:border-amber-400 active:scale-95 transition-all h-10 px-4" asChild>
-                        <a href={`https://wa.me/${alert.phone}?text=Hola%20${alert.studentName},%20hace%20${alert.daysInactive}%20días%20que%20no%20entrenás.%20¿Pasó%20algo?`} target="_blank" rel="noreferrer">
+                        <a 
+                            href={`https://wa.me/${alert.phone}?text=${encodeURIComponent(whatsappMessages.payments.reminder(alert.studentName.split(' ')[0]))}`} 
+                            target="_blank" 
+                            rel="noreferrer"
+                        >
                           <WhatsappLogoIcon size={18} className="mr-2" />
                           <span className="text-[10px] font-bold uppercase tracking-widest">{c.types.risk.action}</span>
                         </a>

@@ -154,7 +154,7 @@ export function ExerciseForm({
 
   return (
     <Form {...(form as any)}>
-      <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8">
+      <div className="space-y-8">
         {/* Warning de Forking para Ejercicios Base de Sistema */}
         {initialValues?.id && (initialValues as any).profesor_id === null && (
           <div className="p-4 rounded-2xl bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-500 shadow-xl border border-white/10">
@@ -496,6 +496,11 @@ export function ExerciseForm({
             disabled={isPending}
             variant="industrial"
             size="xl"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit(onSubmit as any)();
+            }}
             className="px-12 shadow-2xl shadow-lime-400/10 h-16"
           >
             {isPending ? (
@@ -510,7 +515,7 @@ export function ExerciseForm({
             )}
           </Button>
         </div>
-      </form>
+      </div>
     </Form>
   );
 }

@@ -60,14 +60,14 @@ export const athleteProfileCopy = {
       title: "Rutina Asignada",
       emptyState: {
         title: "Sin plan asignado",
-        description: "Esta persona aún no tiene rutinas activas. Podés asignarle una pre-definida o crear una desde cero.",
-        assignBtn: "Asignar de mis Planes",
+        description: "Esta persona aún no tiene rutinas activas, debes asignarle una.",
+        assignBtn: "Asignar de planificación",
         createBtn: "Crear nuevo Plan",
         changeBtn: "Cambiar de plan",
         promoteBtn: "Promover a maestro"
       },
       masterPlan: {
-        bannerTitle: "Planificación (Lectura)",
+        bannerTitle: "Planificación",
         bannerDesc: "Los cambios en esta planificación afectarán a todos los alumnos vinculados.",
         editMasterBtn: "Editar planificación",
         personalizeBtn: "Personalizar para este alumno",
@@ -99,7 +99,8 @@ export const athleteProfileCopy = {
         title: "Asignar planificación",
         description: "Elegí una planificación de tu biblioteca para este alumno.",
         confirmBtn: "Asignar",
-        warning: "Al asignar esta planificación, se reemplazará la rutina actual del alumno (si tiene una).",
+        frequencyMismatch: "El plan seleccionado es de {p} días, pero el alumno tiene registrados {s} días de asistencia. Esto podría causar desajustes en la agenda.",
+        overwrite: "Vas a reemplazar la planificación actual: {name}. El progreso de esta semana se perderá.",
         success: "Planificación asignada correctamente",
         error: "No se pudieron cargar las planificaciones",
         saveError: "Error al asignar la planificación"

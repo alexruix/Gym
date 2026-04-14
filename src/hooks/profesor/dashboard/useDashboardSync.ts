@@ -1,14 +1,26 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { actions } from "astro:actions";
+
+// Cooldown mínimo entre refrescos silenciosos (30 segundos)
+const SILENT_REFRESH_COOLDOWN_MS = 30_000;
 
 /**
  * useDashboardSync: El "pulso" global de MiGym.
  */
 export function useDashboardSync(setData: (data: any) => void) {
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const lastSilentRefresh = useRef<number>(0);
 
     const refresh = useCallback(async (silent = false) => {
         if (!silent) setIsRefreshing(true);
+
+        // Debounce: si es silencioso y se refrescó recientemente, ignorar
+        if (silent) {
+            const elapsed = Date.now() - lastSilentRefresh.current;
+            if (elapsed < SILENT_REFRESH_COOLDOWN_MS) return;
+            lastSilentRefresh.current = Date.now();
+        }
+
         try {
             const { data: newData, error } = await actions.profesor.getDashboardData();
             if (error) throw error;
@@ -37,7 +49,7 @@ export function useDashboardSync(setData: (data: any) => void) {
         }
     }, [setData]);
 
-    // Refresco al recuperar foco (Consola Viva)
+    // Refresco al recuperar foco (Consola Viva) — con debounce de 30s para evitar request storms
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === "visible") {

@@ -20,6 +20,7 @@ import { DashboardConsole } from "@/components/molecules/profesor/DashboardConso
 import { DaySelector } from "@/components/molecules/profesor/agenda/DaySelector";
 import { TurnoPills } from "@/components/molecules/profesor/agenda/TurnoPills";
 import { TurnoBlock } from "./TurnoBlock";
+import { AgendaConsoleSkeleton } from "./AgendaConsoleSkeleton";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,10 +39,16 @@ interface AgendaConsoleProps {
 const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
 export function AgendaConsole({ turnos: initialTurnos, students: initialStudents, initialSessions, presentCount }: AgendaConsoleProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const realTodayName = dayNames[new Date().getDay()];
   const [activeDay, setActiveDay] = useState(realTodayName);
   const [currentTurnos, setCurrentTurnos] = useState<Turno[]>(initialTurnos);
   const [currentStudents, setCurrentStudents] = useState<Student[]>(initialStudents);
+
+  // Mostrar skeleton durante el flash de hidratación inicial
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // FILTRADO INTELIGENTE POR DÍA (Contexto Temporal) - Moviendo a renderGrid para mantener listado global
   const {
@@ -254,6 +261,10 @@ export function AgendaConsole({ turnos: initialTurnos, students: initialStudents
 
   return (
     <>
+      {/* Skeleton durante hidratación inicial */}
+      {!isMounted ? (
+        <AgendaConsoleSkeleton />
+      ) : (
       <DashboardConsole
         items={dashboardItems}
         itemLabel="Alumnos"
@@ -307,6 +318,7 @@ export function AgendaConsole({ turnos: initialTurnos, students: initialStudents
           </div>
         )}
       />
+      )}
 
       {/* FAB (Floating Action Button) for Mobile PWA */}
       <div className="fixed bottom-8 right-6 flex flex-col items-end gap-3 z-50 md:hidden">

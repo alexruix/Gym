@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, Copy, ChevronRight, Plus, Mail, Phone, ArrowLeft } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
@@ -52,16 +52,32 @@ export function AthleteHeader({ alumno, planName }: Props) {
   const { header } = athleteProfileCopy;
   const [isPaymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const headerRef = useRef<HTMLDivElement>(null);
   const { copyGuestLink, openWhatsApp } = useStudentActions();
 
-  // Handle scroll for PWA sticky effect
+  // Measure header height and handle scroll
   useEffect(() => {
-    const handleScroll = () => {
-      setIsSticky(window.scrollY > 80);
+    const measureHeight = () => {
+      if (headerRef.current && !isSticky) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
     };
+
+    measureHeight();
+    
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 120);
+    };
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    window.addEventListener("resize", measureHeight);
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", measureHeight);
+    };
+  }, [isSticky]);
 
   const lastSessionText = useMemo(() => {
     if (!alumno.ultima_sesion) return header.metrics.never;
@@ -78,15 +94,21 @@ export function AthleteHeader({ alumno, planName }: Props) {
 
   return (
     <>
-      {/* Spacer to prevent layout jump when header sticks */}
-      <div className={cn("h-32 md:h-48 transition-all", isSticky ? "block" : "hidden")} />
+      {/* Dynamic Spacer to prevent ANY layout jump */}
+      <div 
+        style={{ height: isSticky ? `${headerHeight}px` : "0px" }} 
+        className="transition-all duration-300 pointer-events-none" 
+      />
 
-      <div className={cn(
-        "z-50 transition-all duration-500",
-        isSticky 
-          ? "fixed top-0 left-0 right-0 px-4 py-2 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-200 dark:border-zinc-800 shadow-xl" 
-          : "relative"
-      )}>
+      <div 
+        ref={headerRef}
+        className={cn(
+          "transition-all duration-300",
+          isSticky 
+            ? "fixed top-0 left-0 right-0 z-50 px-4 py-2 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-200 dark:border-zinc-800 shadow-xl animate-in slide-in-from-top-4" 
+            : "relative z-30"
+        )}
+      >
         <div className={cn(
           "max-w-7xl mx-auto flex items-center justify-between gap-4 transition-all duration-300",
           isSticky 
@@ -119,7 +141,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
             <div className="min-w-0">
               <h1 className={cn(
                 "font-bold tracking-tight text-zinc-950 dark:text-white uppercase truncate",
-                isSticky ? "text-base" : "text-xl md:text-4xl"
+                isSticky ? "text-base max-w-[120px] sm:max-w-none" : "text-xl md:text-4xl"
               )}>
                 {alumno.nombre}
               </h1>
@@ -148,7 +170,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
           {/* Quick Stats (Mobile Inline Telemetry) */}
           {!isSticky && (
             <div className="flex md:flex-row flex-col gap-3 w-full md:w-auto">
-              <div className="flex items-center gap-4 sm:gap-8 bg-zinc-50 dark:bg-zinc-900/40 p-3 sm:p-6 rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-4 sm:gap-8 bg-zinc-50 dark:bg-zinc-900/40 p-4 sm:p-6 rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-800">
                 <div className="flex-1 sm:flex-none space-y-0.5 sm:space-y-1">
                    <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{header.metrics.payDay}</p>
                    <p className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
@@ -169,10 +191,10 @@ export function AthleteHeader({ alumno, planName }: Props) {
 
                 {alumno.turno && (
                   <>
-                    <div className="h-6 sm:h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
-                    <div className="flex-1 sm:flex-none space-y-0.5 sm:space-y-1">
+                    <div className="col-span-2 sm:flex-none h-px sm:h-8 w-full sm:w-px bg-zinc-200 dark:bg-zinc-800 sm:block hidden" />
+                    <div className="col-span-2 sm:flex-none space-y-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-200/50 dark:border-zinc-800/50">
                       <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Agenda</p>
-                      <div className="flex flex-col gap-0.5 md:gap-1">
+                      <div className="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1">
                         <p className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-1.5 whitespace-nowrap">
                            <CalendarIcon className="w-3 h-3 text-lime-500 shrink-0" />
                            {alumno.dias_asistencia.map(d => d.slice(0, 2)).join(" - ")}
@@ -189,7 +211,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
 
               {/* HUD Rendimiento (Solo visible si completó el onboarding) */}
               {alumno.perfil_completado && (
-                <div className="flex items-center gap-4 sm:gap-6 bg-zinc-50 dark:bg-zinc-900/40 p-3 sm:p-6 rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-4 sm:gap-6 bg-zinc-50 dark:bg-zinc-900/40 p-4 sm:p-6 rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-800">
                   <div className="space-y-0.5 sm:space-y-1">
                      <p className="text-[7px] sm:text-[8px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Peso</p>
                      <p className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white tabular-nums">
@@ -203,17 +225,14 @@ export function AthleteHeader({ alumno, planName }: Props) {
                         {alumno.objetivo_principal || "--"}
                      </p>
                   </div>
-                  {alumno.lesiones && (
-                    <>
-                      <div className="h-6 sm:h-8 w-px bg-zinc-200 dark:bg-zinc-800" />
-                      <div className="space-y-0.5 sm:space-y-1">
-                         <p className="text-[7px] sm:text-[8px] font-bold text-fuchsia-500 uppercase tracking-[0.2em]">Alertas</p>
-                         <p className="text-[10px] sm:text-xs font-bold text-fuchsia-500 bg-fuchsia-500/10 px-2 py-0.5 rounded border border-fuchsia-500/20 truncate max-w-[120px]" title={alumno.lesiones}>
-                            [!] {alumno.lesiones}
-                         </p>
-                      </div>
-                    </>
-                  )}
+                    {alumno.lesiones && (
+                    <div className="col-span-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-200/50 dark:border-zinc-800/50 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                       <p className="text-[7px] sm:text-[8px] font-bold text-fuchsia-500 uppercase tracking-[0.2em]">Alertas Médicas</p>
+                       <p className="text-[10px] sm:text-xs font-bold text-fuchsia-500 bg-fuchsia-500/10 px-2 py-1 rounded border border-fuchsia-500/20 truncate" title={alumno.lesiones}>
+                          {alumno.lesiones}
+                       </p>
+                    </div>
+                    )}
                 </div>
               )}
             </div>

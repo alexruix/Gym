@@ -35,24 +35,24 @@ export function PlanBannerManager({
                 {workspace.routine.masterPlan.bannerTitle}
               </h4>
               <p className="text-zinc-400 text-xs md:text-sm max-w-xl font-medium leading-relaxed">
-                Estamos trabajando sobre la planificación maestra. Los cambios estructurales requieren personalización.
+                Para realizar cambios estructurales para este alumno, debes crear una copia personalizada.
               </p>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10 w-full md:w-auto">
-            <Button
+            {/* <Button
               onClick={() => window.location.href = `/profesor/planes/${planId}`}
               variant="outline"
               className="h-12 px-6 rounded-xl border-white/10 font-bold uppercase text-[10px] tracking-widest w-full md:w-auto"
             >
               <ExternalLink className="w-3.5 h-3.5 mr-2" />
               {workspace.routine.masterPlan.editMasterBtn}
-            </Button>
+            </Button> */}
             <Button
               onClick={onPersonalize}
               className="h-12 px-8 rounded-xl bg-lime-500 hover:bg-lime-500 text-zinc-950 font-bold uppercase text-[10px] tracking-widest w-full md:w-auto shadow-xl shadow-lime-500/20"
             >
-              Personalizar
+              Crear copia
             </Button>
           </div>
         </div>

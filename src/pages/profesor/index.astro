@@ -8,17 +8,16 @@ import { Plus } from "lucide-react";
 
 // Organismos
 import { DashboardConsole } from "@/components/organisms/profesor/dashboard/DashboardConsole";
-import { DashboardOnboarding } from "@/components/organisms/profesor/dashboard/DashboardOnboarding";
 import { QuickActionFab } from "@/components/organisms/profesor/dashboard/QuickActionFab";
-import { DashboardCard } from "@/components/molecules/DashboardCard";
-import { AlertCircle, ChevronRight } from "lucide-react";
+import { VigiaAlerts } from "@/components/organisms/profesor/dashboard/VigiaAlerts";
 import { actions } from "astro:actions";
 
 // ─── Autenticación y Saludo ──────────────────────────────────────────────────
-const supabase = createSupabaseServerClient(Astro);
-const { data: userAuth } = await supabase.auth.getUser();
-const user = userAuth?.user;
+// El middleware ya validó la sesión y la inyectó en locals — sin round-trip extra.
+const user = Astro.locals.user;
 if (!user) return Astro.redirect("/login");
+
+const supabase = createSupabaseServerClient(Astro);
 
 // ─── Hidratación Híbrida: Fetch Paralelo ──────────────────────────────────────
 const [profesorData, initialData, planesCountData] = await Promise.all([
@@ -31,10 +30,21 @@ if (initialData.error) {
   console.error("[Dashboard] Error inicial:", initialData.error);
 }
 
+// Fallback robusto para evitar crash de página
+const emptyData: any = {
+  stats: { activeStudents: 0, adherenceRate: 0, monthlyRevenue: 0 },
+  expiringPayments: [],
+  atRiskStudents: [],
+  noPlanStudents: [],
+  recentStudents: [],
+  activities: [],
+  lastUpdated: "--:--"
+};
+
 const profesorNombre = (profesorData.data as any)?.nombre?.split(" ")[0] ?? "profe";
-const data = initialData.data!;
+const data = initialData.data ?? emptyData;
 const hasPlans = (planesCountData.count || 0) > 0;
-const hasStudents = data.stats.activeStudents > 0;
+const hasStudents = (data.stats?.activeStudents || 0) > 0;
 
 const c = dashboardCopy.header;
 ---
@@ -57,41 +67,9 @@ const c = dashboardCopy.header;
       </ActionLink>
     </PageHeader>
 
-    <!-- Onboarding (solo si aplica) -->
-    <DashboardOnboarding
-      client:only="react"
-      hasPlans={hasPlans}
-      hasStudents={hasStudents}
-    />
 
     <!-- Vigía: Alertas Operativas -->
-    {data.noPlanStudents?.length > 0 && (
-      <DashboardCard className="border border-red-500/20 bg-red-500/5 backdrop-blur-md">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-            </div>
-            <div>
-              <h3 class="font-bold text-red-500 text-sm md:text-lg">¡Atención! {data.noPlanStudents.length} {data.noPlanStudents.length === 1 ? 'Alumno sin plan' : 'Alumnos sin plan'}</h3>
-              <p class="text-zinc-400 text-xs md:text-sm font-medium">Están listos para entrenar. Asignales una rutina cuanto antes.</p>
-            </div>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            {data.noPlanStudents.slice(0, 3).map((s: any) => (
-              <a href={`/profesor/alumnos/${s.id}`} class="text-[10px] font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full text-zinc-300 transition-colors flex items-center gap-1 border border-white/5">
-                {s.studentName.split(' ')[0]} <ChevronRight className="w-3 h-3" />
-              </a>
-            ))}
-            {data.noPlanStudents.length > 3 && (
-              <span class="text-[10px] font-bold uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-full text-zinc-500">
-                +{data.noPlanStudents.length - 3} más
-              </span>
-            )}
-          </div>
-        </div>
-      </DashboardCard>
-    )}
+    <VigiaAlerts client:visible students={data.noPlanStudents} />
 
     <!-- Dashboard Console (Reactive Orchestrator) -->
     <DashboardConsole 
@@ -101,5 +79,5 @@ const c = dashboardCopy.header;
 
   </div>
 
-  <QuickActionFab client:load />  
+  <QuickActionFab client:idle />  
 </ProfesorLayout>

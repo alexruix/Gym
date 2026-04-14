@@ -38,3 +38,6 @@ export const changePasswordSchema = z.object({
   message: "Las contraseñas no coinciden",
   path: ["confirmPassword"],
 });
+
+export type UpdateAccountData = z.infer<typeof updateAccountSchema>;
+export type ChangePasswordData = z.infer<typeof changePasswordSchema>;

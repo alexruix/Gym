@@ -37,7 +37,11 @@ export function usePlanOperations(
             position: idx + 1,
             peso_target: e.peso_target || "",
             grupo_bloque_id: e.grupo_bloque_id || null,
-            grupo_nombre: e.grupo_nombre || null
+            grupo_nombre: e.grupo_nombre || null,
+            grupo_tipo_bloque: e.grupo_tipo_bloque || 'agrupador',
+            grupo_vueltas: e.grupo_vueltas || 1,
+            grupo_descanso_ronda: e.grupo_descanso_ronda || 0,
+            grupo_descanso_final: e.grupo_descanso_final || 0
           }))
       }))
     };
@@ -82,7 +86,13 @@ export function usePlanOperations(
         id: exercise.id,
         nombre: exercise.nombre,
         media_url: exercise.media_url
-      }
+      },
+      grupo_bloque_id: null,
+      grupo_nombre: null,
+      grupo_tipo_bloque: 'agrupador',
+      grupo_vueltas: 1,
+      grupo_descanso_ronda: 0,
+      grupo_descanso_final: 0
     };
 
     const newPlan = {
@@ -98,6 +108,49 @@ export function usePlanOperations(
 
     setPlan(newPlan);
     toast.success("¡Agregaste un ejercicio nuevo!");
+    return newPlan;
+  }, [plan, setPlan, isInteracting]);
+
+  // 3b. Acción: Agregar Bloque (Optimista)
+  const addBlockToRoutine = useCallback(async (rutinaId: string, block: any) => {
+    if (isInteracting) isInteracting.current = true;
+
+    const routinesKey = plan.rutinas ? 'rutinas' : 'rutinas_diarias';
+    
+    const newExercises: EjercicioPlan[] = (block.bloques_ejercicios || []).map((item: any, idx: number) => ({
+      id: crypto.randomUUID(),
+      orden: (plan[routinesKey].find((r: any) => r.id === rutinaId)?.ejercicios_plan?.length || 0) + idx,
+      series: item.series,
+      reps_target: item.reps_target,
+      descanso_seg: item.descanso_seg,
+      peso_target: "",
+      exercise_type: "base",
+      grupo_bloque_id: block.id,
+      grupo_nombre: block.nombre,
+      grupo_tipo_bloque: block.tipo_bloque,
+      grupo_vueltas: block.vueltas,
+      grupo_descanso_ronda: block.descanso_ronda || 0,
+      grupo_descanso_final: block.descanso_final,
+      biblioteca_ejercicios: {
+        id: item.ejercicio_id,
+        nombre: item.ejercicio_nombre || "Ejercicio",
+        media_url: item.ejercicio_media_url || null
+      }
+    }));
+
+    const newPlan = {
+      ...plan,
+      [routinesKey]: plan[routinesKey].map((r: any) => {
+        if (r.id !== rutinaId) return r;
+        return {
+          ...r,
+          ejercicios_plan: [...(r.ejercicios_plan || []), ...newExercises]
+        };
+      })
+    };
+
+    setPlan(newPlan);
+    toast.success(`¡Importaste el bloque "${block.nombre}"!`);
     return newPlan;
   }, [plan, setPlan, isInteracting]);
 
@@ -197,6 +250,7 @@ export function usePlanOperations(
     getUpdatePayload,
     removeExercise,
     addExercise,
+    addBlockToRoutine,
     reorderExercise,
     duplicateRoutine,
     deleteRoutine

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import * as React from 'react';
 import { actions } from 'astro:actions';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,10 +50,10 @@ const isRecentlyNotified = (dateString: string | null | undefined) => {
 };
 
 export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuccess, onStudentUpdate }: StudentPaymentSheetProps) {
-  const [isCharging, setIsCharging] = useState(false);
-  const [isEditingMonto, setIsEditingMonto] = useState(false);
-  const [tempMonto, setTempMonto] = useState(alumno.monto?.toString() || "0");
-  const [isSavingMonto, setIsSavingMonto] = useState(false);
+  const [isCharging, setIsCharging] = React.useState(false);
+  const [isEditingMonto, setIsEditingMonto] = React.useState(false);
+  const [tempMonto, setTempMonto] = React.useState(alumno.monto?.toString() || "0");
+  const [isSavingMonto, setIsSavingMonto] = React.useState(false);
   const { openWhatsApp } = useStudentActions();
 
   // Si no hay is_moroso inyectado, calculamos rudimentario basado en el pago_activo

@@ -30,8 +30,8 @@ interface Session {
 
 const DAYS_OF_WEEK = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
-export function useAgenda(initialTurnos: Turno[], initialStudents: Student[], initialSessions: Session[]) {
-  const [sessions, setSessions] = useState<Session[]>(initialSessions);
+export function useAgenda(initialTurnos: Turno[] = [], initialStudents: Student[] = [], initialSessions: Session[] = []) {
+  const [sessions, setSessions] = useState<Session[]>(initialSessions || []);
   const [currentTime, setCurrentTime] = useState(new Date());
   
   const pendingRefreshes = useRef<Set<string>>(new Set());
@@ -114,9 +114,9 @@ export function useAgenda(initialTurnos: Turno[], initialStudents: Student[], in
   }, [currentTime]);
 
   const activeTurnoId = useMemo(() => {
-    return initialTurnos.find(t => {
-      const [hStart, mStart] = t.hora_inicio.split(':').map(Number);
-      const [hEnd, mEnd] = t.hora_fin.split(':').map(Number);
+    return (initialTurnos || []).find(t => {
+      const [hStart, mStart] = (t.hora_inicio || "00:00").split(':').map(Number);
+      const [hEnd, mEnd] = (t.hora_fin || "23:59").split(':').map(Number);
       const startMins = hStart * 60 + mStart;
       const endMins = hEnd * 60 + mEnd;
       return currentTotalMins >= startMins && currentTotalMins < endMins;
@@ -125,9 +125,9 @@ export function useAgenda(initialTurnos: Turno[], initialStudents: Student[], in
 
   const studentsByTurno = useMemo(() => {
     const map: Record<string, Student[]> = {};
-    initialTurnos.forEach(t => map[t.id] = []);
+    (initialTurnos || []).forEach(t => map[t.id] = []);
     
-    initialStudents.forEach(s => {
+    (initialStudents || []).forEach(s => {
       // Filtrado por día de asistencia
       // Si no tiene días definidos (vacio o null), se muestra siempre (Legacy)
       const matchesDay = !s.dias_asistencia || 

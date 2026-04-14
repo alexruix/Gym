@@ -36,4 +36,12 @@ export const planData = {
   footer: {
     message: "Este plan fue diseñado por tu profesor como tu hoja de ruta.",
   },
+  emptyState: {
+    title: "Sin planificación activa",
+    description: "Tu profesor todavía está diseñando tu hoja de ruta.",
+  },
+  toggle: {
+    grid: "Blueprint",
+    table: "Lista",
+  }
 };

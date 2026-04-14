@@ -1,10 +1,9 @@
-import { Users, FilePlus, Activity, DollarSign } from "lucide-react";
+import { Users, Activity, DollarSign } from "lucide-react";
 import { dashboardCopy } from "@/data/es/profesor/dashboard";
 import { StatCard } from "@/components/atoms/profesor/dashboard/StatCard";
 
 interface Props {
   activeStudents: number;
-  pendingRoutines: number;
   adherenceRate: number;
   /** Ingresos cobrados en el mes actual en ARS */
   monthlyRevenue: number;
@@ -17,7 +16,6 @@ interface Props {
  */
 export function DashboardMetrics({
   activeStudents,
-  pendingRoutines,
   adherenceRate,
   monthlyRevenue,
 }: Props) {
@@ -25,14 +23,24 @@ export function DashboardMetrics({
 
   const formatCurrency = (amount: number) => {
     if (amount === 0) return "—";
-    if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-    if (amount >= 1_000) return `$${Math.round(amount / 1_000)}K`;
-    return `$${amount.toLocaleString("es-AR")}`;
+    
+    // NODO: Estándar de Contabilidad de Precisión
+    if (amount >= 1_000_000) {
+      return `$${(amount / 1_000_000).toFixed(1)}M`;
+    }
+    
+    // Si es > $10.000: Redondeo inteligente con un decimal (12.5K)
+    if (amount >= 10_000) {
+      return `$${(amount / 1_000).toFixed(1)}K`;
+    }
+    
+    // Si es < $10.000: Monto exacto ($8.450)
+    return `$${Math.floor(amount).toLocaleString("es-AR")}`;
   };
 
   return (
-    <div className="flex overflow-x-auto overflow-y-hidden md:grid md:grid-cols-4 gap-4 pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide snap-x snap-mandatory">
-      <div className="min-w-[160px] flex-1 snap-start">
+    <div className="flex overflow-x-auto overflow-y-hidden lg:grid lg:grid-cols-4 gap-4 pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 scrollbar-hide snap-x snap-mandatory">
+      <div className="min-w-[160] flex-1 snap-start">
         <StatCard
           label={c.activeStudents.label}
           value={activeStudents}
@@ -42,20 +50,7 @@ export function DashboardMetrics({
         />
       </div>
 
-      {pendingRoutines > 0 && (
-        <div className="min-w-[160px] flex-1 snap-start">
-          <StatCard
-            label={c.pendingRoutines.label}
-            value={pendingRoutines}
-            icon={FilePlus}
-            variant="accent"
-            tooltip={c.pendingRoutines.tooltip}
-            href="/profesor/planes/new"
-          />
-        </div>
-      )}
-
-      <div className="min-w-[160px] flex-1 snap-start">
+      <div className="min-w-[160] flex-1 snap-start">
         <StatCard
           label={c.adherenceRate.label}
           value={adherenceRate}
@@ -65,7 +60,7 @@ export function DashboardMetrics({
         />
       </div>
 
-      <div className="min-w-[160px] flex-1 snap-start">
+      <div className="min-w-[160] flex-1 snap-start">
         <StatCard
           label={c.monthlyRevenue.label}
           value={formatCurrency(monthlyRevenue)}

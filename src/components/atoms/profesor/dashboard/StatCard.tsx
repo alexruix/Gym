@@ -63,7 +63,7 @@ export function StatCard({
       className={cn(
         "relative p-4 sm:p-6 overflow-hidden hover:-translate-y-1 transition-all duration-300 group",
         variantStyles[variant],
-        href && "cursor-pointer"
+        href && "cursor-pointer haptic-click"
       )}
       title={tooltip}
     >

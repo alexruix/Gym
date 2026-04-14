@@ -71,7 +71,7 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                 }
             }}
             className={cn(
-                "group relative p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-3xl transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-950/5 hover:-translate-y-1 cursor-pointer overflow-hidden active:scale-[0.98]",
+                "group relative p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-3xl transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-950/5 hover:-translate-y-1 cursor-pointer overflow-hidden haptic-click",
                 className
             )}
         >
@@ -86,7 +86,7 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-zinc-500 dark:text-zinc-300 text-lg border border-zinc-100 dark:border-zinc-700 group-hover:bg-lime-500 group-hover:text-zinc-950 group-hover:rotate-3 transition-all duration-300 shadow-sm">
-                            {student.nombre.charAt(0).toUpperCase()}
+                            {student.nombre.charAt(0)}
                         </div>
                         <div className="space-y-0.5">
                             <h4 className="font-bold text-zinc-950 dark:text-white text-base uppercase tracking-tight group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate max-w-[150px]">
@@ -126,7 +126,7 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                         <button
                             onClick={handleCopyMagicLink}
                             title="Copiar link de acceso"
-                            className="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-xl hover:bg-zinc-950 hover:text-white dark:hover:bg-white dark:hover:text-zinc-950 transition-all border border-transparent shadow-sm"
+                            className="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-xl hover:bg-zinc-950 hover:text-white dark:hover:bg-white dark:hover:text-zinc-950 transition-all border border-transparent shadow-sm haptic-click-sm"
                         >
                             <Zap className="w-4 h-4" />
                         </button>
@@ -136,7 +136,7 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                             <button
                                 onClick={handleWhatsApp}
                                 title="Enviar WhatsApp"
-                                className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
+                                className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-xl hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm haptic-click-sm"
                             >
                                 <WhatsappLogoIcon size={18} weight="light" />
                             </button>

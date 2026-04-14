@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from "react";
+import * as React from "react";
 import { 
   RefreshCcw, 
   ArrowDown, 
@@ -12,6 +12,7 @@ import {
   CreditCard
 } from "lucide-react";
 import { usePayments } from "@/hooks/profesor/usePayments";
+import { useStudentActions } from "@/hooks/useStudentActions";
 import { StudentPaymentSheet } from "./StudentPaymentSheet";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,9 +72,9 @@ export function PaymentsConsole({ initialData }: Props) {
   } = usePayments(initialData);
 
   // 1. Pull-to-refresh Logic
-  const [pullDistance, setPullDistance] = useState(0);
-  const touchStart = useRef<number | null>(null);
-  const isPulling = useRef(false);
+  const [pullDistance, setPullDistance] = React.useState(0);
+  const touchStart = React.useRef<number | null>(null);
+  const isPulling = React.useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (window.scrollY === 0) {
@@ -102,7 +103,7 @@ export function PaymentsConsole({ initialData }: Props) {
   const formatCurrency = (amount: number) => 
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(amount);
 
-  const lastUpdatedText = useMemo(() => {
+  const lastUpdatedText = React.useMemo(() => {
     if (!data.lastUpdated) return "";
     const date = new Date(data.lastUpdated);
     return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
@@ -123,6 +124,12 @@ export function PaymentsConsole({ initialData }: Props) {
       }
     });
   };
+
+  const { openWhatsApp } = useStudentActions();
+
+  const handleEnviarRecordatorio = React.useCallback((alumno: AlumnoPago) => {
+    enviarRecordatorio(alumno);
+  }, [enviarRecordatorio]);
 
   // 3. Render Helpers
   const renderItemCard = (alumno: AlumnoPago) => {
@@ -233,7 +240,9 @@ export function PaymentsConsole({ initialData }: Props) {
         ) : (
           <>
             <Card className="p-6 bg-white dark:bg-zinc-950/40 border-none rounded-3xl shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Recaudado (Enero)</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                Recaudado ({new Intl.DateTimeFormat('es-AR', { month: 'long' }).format(new Date())})
+              </p>
               <p className="text-3xl font-bold text-zinc-950 dark:text-zinc-50 tracking-tighter">
                 {formatCurrency(data.metrics.ingresosPagados)}
               </p>

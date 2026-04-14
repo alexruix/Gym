@@ -12,6 +12,7 @@ export interface AlertData {
   phone?: string;
   daysLate?: number;
   daysInactive?: number;
+  pagoId?: string;
 }
 
 export interface RecentStudent {
@@ -24,7 +25,6 @@ export interface RecentStudent {
 
 export interface DashboardStats {
   activeStudents: number;
-  pendingRoutines: number;
   adherenceRate: number;
   monthlyRevenue: number;
 }
