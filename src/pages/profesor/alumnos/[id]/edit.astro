@@ -9,38 +9,36 @@ const { id } = Astro.params;
 const supabase = createSupabaseServerClient(Astro);
 
 // 1. Auth & Safety check
-const { data: { user } } = await supabase.auth.getUser();
+const user = Astro.locals.user;
 if (!user) return Astro.redirect("/login");
 
-// 2. Fetch Alumno (SSR)
-const { data: alumnoData, error } = await supabase
-  .from("alumnos")
-  .select("*")
-  .eq("id", id)
-  .eq("profesor_id", user.id)
-  .single();
+// 2. Fetch Paralelo: Alumno, Turnos y Suscripciones
+const [alumnoRes, turnosRes, subsRes] = await Promise.all([
+  supabase
+    .from("alumnos")
+    .select("*")
+    .eq("id", id)
+    .eq("profesor_id", user.id)
+    .single(),
+  supabase
+    .from("turnos")
+    .select("id, nombre, hora_inicio, hora_fin")
+    .eq("profesor_id", user.id)
+    .order("hora_inicio", { ascending: true }),
+  supabase
+    .from("suscripciones")
+    .select("id, nombre, monto, cantidad_dias")
+    .eq("profesor_id", user.id)
+    .order("cantidad_dias", { ascending: true })
+]);
 
-const alumno = alumnoData as any;
-
-if (error || !alumno) {
+const alumno = alumnoRes.data as any;
+if (alumnoRes.error || !alumno) {
   return Astro.redirect("/profesor/alumnos?error=not-found");
 }
 
-const { data: turnos, error: turnosError } = await supabase
-  .from("turnos")
-  .select("id, nombre, hora_inicio, hora_fin")
-  .eq("profesor_id", user.id)
-  .order("hora_inicio", { ascending: true });
-
-if (turnosError) {
-  console.error("Error cargando turnos:", turnosError);
-}
-
-const { data: subscriptions } = await supabase
-  .from("suscripciones")
-  .select("id, nombre, monto, cantidad_dias")
-  .eq("profesor_id", user.id)
-  .order("cantidad_dias", { ascending: true });
+const turnos = turnosRes.data;
+const subscriptions = subsRes.data;
 
 const athleteData = {
     id: alumno.id,

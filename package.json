@@ -68,6 +68,10 @@
     "vitest": "^4.1.2"
   },
   "overrides": {
-    "vite": "^7.0.0"
+    "react": "$react",
+    "react-dom": "$react-dom",
+    "@types/react": "$@types/react",
+    "@types/react-dom": "$@types/react-dom",
+    "vite": "^6.0.0"
   }
 }

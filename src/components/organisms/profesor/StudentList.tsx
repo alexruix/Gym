@@ -1,5 +1,5 @@
 import React from "react";
-import { User as UserIcon, Archive, Zap } from "lucide-react";
+import { User as UserIcon, Archive, Zap, Link } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { alumnosListCopy } from "@/data/es/profesor/alumnos";
 import type { StatusType } from "@/components/molecules/StatusBadge";
@@ -113,7 +113,7 @@ export function StudentList({ students }: Props) {
   const getActions = (s: typeof studentsWithTags[0]) => [
     {
       label: cMenu.copyMagicLink,
-      icon: <Zap className="w-4 h-4" />,
+      icon: <Link className="w-4 h-4" />,
       onClick: () => copyGuestLink(s.id)
     },
     {

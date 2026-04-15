@@ -8,9 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { type StatusType } from '@/components/molecules/StatusBadge';
 
 const supabase = createSupabaseServerClient(Astro);
-const { data: userAuth } = await supabase.auth.getUser();
-const user = userAuth?.user;
-
+const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect("/login");
 }

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
-import { Loader2, ExternalLink, X, Award } from "lucide-react";
+import { Loader2, ExternalLink, X, Award, Link } from "lucide-react";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { updatePublicProfileSchema, type UpdatePublicProfileData } from "@/lib/validators";
@@ -121,7 +121,7 @@ export function PublicProfileSection({ profesor }: { profesor: PublicPerfilProps
         {profesor.slug && isPublic && (
           <Button variant="default" size="lg" asChild className="shrink-0 shadow-lg shadow-primary/20">
             <a href={`/p/${profesor.slug}`} target="_blank" rel="noreferrer">
-              {copy.banner.cta} <ExternalLink className="ml-2 h-4 w-4" />
+              {copy.banner.cta} <Link className="ml-2 h-4 w-4" />
             </a>
           </Button>
         )}

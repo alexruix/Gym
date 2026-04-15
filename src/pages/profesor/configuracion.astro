@@ -14,16 +14,18 @@ if (!user) {
   return Astro.redirect("/login");
 }
 
-const { data: authUser } = await supabase.auth.getUser();
-const lastPasswordUpdate = authUser.user?.updated_at;
+// 2. Fetch Paralelo: Datos de Auth (para fecha update pass) y Perfil Profesor
+const [authRes, profesorRes] = await Promise.all([
+  supabase.auth.getUser(),
+  supabase
+    .from("profesores")
+    .select("*")
+    .eq("id", user.id)
+    .single()
+]);
 
-const { data: profesorData } = await supabase
-  .from("profesores")
-  .select("*")
-  .eq("id", user.id)
-  .single();
-
-const profesor = profesorData as any;
+const lastPasswordUpdate = authRes.data.user?.updated_at;
+const profesor = profesorRes.data as any;
 
 const safeProfesor = {
   id: user.id,

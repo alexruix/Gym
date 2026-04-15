@@ -1,4 +1,3 @@
-import React from "react";
 import { Copy, Plus, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExerciseCard } from "@/components/molecules/profesor/planes/ExerciseCard";
@@ -14,8 +13,8 @@ interface Props {
   isTemplate: boolean;
   actions: {
     addExercise: (id: string) => void;
-    removeExercise: (id: string) => void;
-    moveExercise: (rIdx: number, eIdx: number, dir: number) => void;
+    removeExercise: (rIdx: number, eIdx: number) => void;
+    moveExercise: (rIdx: number, eIdx: number, dir: "up" | "down") => void;
     getExerciseName: (id: string) => string;
     setIsBulkOpen: (val: boolean) => void;
     setRotationEditing: (val: any) => void;
@@ -99,7 +98,7 @@ export function PlanRoutineEditor({
                   isTemplate={isTemplate}
                   getExerciseName={actions.getExerciseName}
                   removeExercise={actions.removeExercise}
-                  onMove={(dir) => actions.moveExercise(routineIdx, exIdx, dir)}
+                  onMove={(dir: "up" | "down") => actions.moveExercise(routineIdx, exIdx, dir)}
                   isFirst={exIdx === 0}
                   isLast={exIdx === currentExercises.length - 1}
                   onEditRotation={(ri, ei) => actions.setRotationEditing({ routineIdx: ri, exerciseIdx: ei })}

@@ -41,7 +41,7 @@ export const dashboardActions = {
 
       const { data, error } = await supabase
         .from("notificaciones")
-        .select("*")
+        .select("id, tipo, mensaje, leido, created_at, alumno_id, referencia_id")
         .eq("profesor_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);

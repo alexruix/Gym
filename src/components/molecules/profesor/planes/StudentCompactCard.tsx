@@ -1,12 +1,10 @@
 import React from "react";
-import { User, Mail, Phone, ChevronRight, Zap, Activity, AlertCircle } from "lucide-react";
+import { ChevronRight, Zap, AlertCircle, ExternalLink, Link } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
-import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
-import { cn, copyToClipboard, calculateAge } from "@/lib/utils";
+import { cn, calculateAge } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import { actions } from "astro:actions";
-import { toast } from "sonner";
 import { ResourceActionMenu, type Action } from "@/components/molecules/profesor/core/ResourceActionMenu";
+import { useStudentActions } from "@/hooks/useStudentActions";
 
 interface StudentCompactCardProps {
     student: {
@@ -30,36 +28,16 @@ interface StudentCompactCardProps {
  * Nombre, Plan, Salud y Acciones Operativas.
  */
 export function StudentCompactCard({ student, onClick, href, customActions, className }: StudentCompactCardProps) {
+    const { copyGuestLink, openWhatsApp } = useStudentActions();
 
-    const handleCopyMagicLink = async (e: React.MouseEvent) => {
+    const handleCopyMagicLink = (e: React.MouseEvent) => {
         e.stopPropagation();
-        toast.loading("Generando acceso...");
-        try {
-            const { data, error } = await actions.profesor.getStudentGuestLink({ id: student.id });
-            if (error || !data?.link) throw new Error("Error al generar link");
-
-            await copyToClipboard(data.link);
-            toast.dismiss();
-            toast.success("¡Link de acceso copiado!");
-        } catch (err: any) {
-            toast.dismiss();
-            toast.error(err.message || "No se pudo copiar el link");
-        }
+        copyGuestLink(student.id);
     };
 
-    const handleWhatsApp = async (e: React.MouseEvent) => {
+    const handleWhatsApp = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!student.telefono) {
-            toast.error("El alumno no tiene teléfono registrado");
-            return;
-        }
-        const cleanPhone = student.telefono.replace(/\D/g, "");
-        const link = `https://wa.me/${cleanPhone}`;
-        const win = window.open(link, "_blank");
-        if (!win || win.closed || typeof win.closed == 'undefined') {
-            await navigator.clipboard.writeText(link);
-            toast.success("Link generado y copiado al portapapeles. Ya podés pegarlo en el chat del alumno");
-        }
+        openWhatsApp(student.nombre, student.telefono, { type: 'general' });
     };
 
     return (
@@ -128,7 +106,7 @@ export function StudentCompactCard({ student, onClick, href, customActions, clas
                             title="Copiar link de acceso"
                             className="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-xl hover:bg-zinc-950 hover:text-white dark:hover:bg-white dark:hover:text-zinc-950 transition-all border border-transparent shadow-sm haptic-click-sm"
                         >
-                            <Zap className="w-4 h-4" />
+                            <Link className="w-4 h-4" />
                         </button>
 
                         {/* WHATSAPP BUTTON */}

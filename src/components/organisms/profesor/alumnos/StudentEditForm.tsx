@@ -1,558 +1,149 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { actions } from "astro:actions";
-import { updateStudentSchema } from "@/lib/validators";
-import type { z } from "zod";
-import { toast } from "sonner";
-import { Calendar as CalendarIcon, Phone, Loader2, Save, X, Archive, CreditCard, Clock } from "lucide-react";
-import { cn, toInputDate, formatDateLatam } from "@/lib/utils";
-import { DatePicker } from "@/components/molecules/profesor/core/DatePicker";
+import React from "react";
+import { Calendar as CalendarIcon, Loader2, Save, X, Archive, CreditCard, Clock } from "lucide-react";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
+import { cn } from "@/lib/utils";
 
-import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useStudentActions } from "@/hooks/useStudentActions";
+// UI Components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { StandardField } from "@/components/molecules/StandardField";
-import { QuickOptionsGroup } from "@/components/molecules/QuickOptionsGroup";
-import { DeleteConfirmDialog } from "@/components/molecules/DeleteConfirmDialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-
+import { StandardField } from "@/components/molecules/StandardField";
+import { QuickOptionsGroup } from "@/components/molecules/QuickOptionsGroup";
+import { DatePicker } from "@/components/molecules/profesor/core/DatePicker";
 import { DaySelector } from "@/components/atoms/profesor/DaySelector";
-import { WhatsappLogoIcon } from "@phosphor-icons/react";
+import { DeleteConfirmDialog } from "@/components/molecules/DeleteConfirmDialog";
 
+// Hooks
+import { useStudentEditForm } from "@/hooks/profesor/alumnos/useStudentEditForm";
 
-type FormValues = z.infer<typeof updateStudentSchema>;
-
-interface Student {
-    id: string;
-    nombre: string;
-    email: string | null;
-    telefono: string | null;
-    fecha_inicio: string;
-    dia_pago: number;
-    monto?: number | null;
-    suscripcion_id?: string | null;
-    monto_personalizado: boolean;
-    notas?: string | null;
-    turno_id?: string | null;
-    dias_asistencia?: string[];
-    fecha_nacimiento?: string | null;
-}
-
-interface Turno {
-    id: string;
-    nombre: string;
-    hora_inicio: string;
-    hora_fin: string;
-}
-
-interface StudentEditFormProps {
-    alumno: Student;
-    turnos?: Turno[];
-    subscriptions?: { id: string, nombre: string, monto: number }[];
+interface Props {
+    alumno: any;
+    turnos?: any[];
+    subscriptions?: any[];
     onSuccess?: () => void;
     onCancel?: () => void;
 }
 
-export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuccess, onCancel }: StudentEditFormProps) {
-    const [isMounted, setIsMounted] = useState(false);
-    const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
-    const { execute, isPending } = useAsyncAction();
-    const { isArchiving, archiveStudent } = useStudentActions();
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    const form = useForm<FormValues>({
-        resolver: zodResolver(updateStudentSchema) as any,
-        defaultValues: {
-            id: alumno.id,
-            nombre: alumno.nombre,
-            email: alumno.email || "",
-            telefono: alumno.telefono || "",
-            fecha_inicio: new Date(alumno.fecha_inicio),
-            dia_pago: alumno.dia_pago,
-            monto: alumno.monto || 0,
-            suscripcion_id: alumno.suscripcion_id || null,
-            monto_personalizado: alumno.monto_personalizado || false,
-            notas: alumno.notas || "",
-            turno_id: alumno.turno_id || null,
-            dias_asistencia: alumno.dias_asistencia || [],
-            fecha_nacimiento: alumno.fecha_nacimiento ? new Date(alumno.fecha_nacimiento) : null,
-        },
-    });
-
-    const montoPersonalizado = form.watch("monto_personalizado");
-
-    // Lógica de sincronización de monto
-    const handleSuscripcionChange = (subId: string) => {
-        form.setValue("suscripcion_id", subId);
-        if (!montoPersonalizado) {
-            const sub = subscriptions.find(s => s.id === subId);
-            if (sub) {
-                form.setValue("monto", sub.monto);
-            }
-        }
-    };
-
-    const onSubmit = async (data: FormValues) => {
-        execute(async () => {
-            const { data: result, error } = await actions.profesor.updateStudent(data);
-            if (error) throw error;
-            if (result?.success) {
-                if (onSuccess) onSuccess();
-                else window.location.assign(`/profesor/alumnos/${alumno.id}`);
-            }
-        }, {
-            successMsg: "Alumno actualizado correctamente",
-        });
-    };
+/**
+ * StudentEditForm: Editor unificado de perfiles de alumnos.
+ * Fragmentado en secciones modulares sincronizadas por useStudentEditForm.
+ */
+export function StudentEditForm({ alumno, turnos = [], subscriptions = [], onSuccess, onCancel }: Props) {
+    const {
+        form,
+        isMounted,
+        isPending,
+        isArchiving,
+        isArchiveDialogOpen,
+        setIsArchiveDialogOpen,
+        montoPersonalizado,
+        handleSuscripcionChange,
+        handleArchive,
+        onSubmit
+    } = useStudentEditForm({ alumno, subscriptions: subscriptions || [], onSuccess });
 
     if (!isMounted) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
                 <Loader2 className="w-8 h-8 animate-spin text-zinc-300" />
-                <p className="industrial-label text-zinc-300">Cargando Formulario...</p>
+                <p className="industrial-label text-zinc-300 uppercase text-[10px]">Cargando Edición...</p>
             </div>
         );
     }
 
     return (
-        <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-8"
-            >
+        <Form {...(form as any)}>
+            <form onSubmit={onSubmit} className="space-y-12">
+                {/* 1. IDENTIDAD */}
                 <div className="grid gap-6 sm:grid-cols-2">
-                    <FormField
-                        control={form.control}
-                        name="nombre"
-                        render={({ field, fieldState }) => (
-                            <StandardField
-                                label="Nombre Completo"
-                                error={fieldState.error?.message}
-                                required
-                            >
-                                <FormControl>
-                                    <Input placeholder="Ej: Juan Pérez" {...field} className="font-bold" />
-                                </FormControl>
-                            </StandardField>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field, fieldState }) => (
-                            <StandardField
-                                label="Email"
-                                error={fieldState.error?.message}
-                                required
-                            >
-                                <FormControl>
-                                    <Input type="email" placeholder="email@ejemplo.com" {...field} />
-                                </FormControl>
-                            </StandardField>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="telefono"
-                        render={({ field, fieldState }) => (
-                            <StandardField
-                                label="Teléfono"
-                                error={fieldState.error?.message}
-                                hint="Fundamental para WhatsApp"
-                            >
-                                <FormControl>
-                                    <div className="relative group/phone">
-                                        <WhatsappLogoIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within/phone:text-lime-500 transition-colors" />
-                                        <Input type="tel" placeholder="+54 9..." {...field} value={field.value || ""} className="pl-11" />
-                                    </div>
-                                </FormControl>
-                            </StandardField>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="fecha_nacimiento"
-                        render={({ field, fieldState }) => (
-                            <StandardField
-                                label="Fecha de nacimiento"
-                                error={fieldState.error?.message}
-                                hint="Para cálculo de edad"
-                            >
-                                <FormControl>
-                                    <DatePicker
-                                        date={field.value}
-                                        setDate={field.onChange}
-                                        label="Fecha de nacimiento"
-                                        placeholder="Opcional"
-                                        error={!!fieldState.error}
-                                    />
-                                </FormControl>
-                            </StandardField>
-                        )}
-                    />
-                </div>
-
-                <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 pt-4">
-                    <FormField
-                        control={form.control}
-                        name="fecha_inicio"
-                        render={({ field, fieldState }) => (
-                            <FormItem className="space-y-1.5 w-full">
-                                <div className="flex justify-between items-end px-1">
-                                    <FormLabel className="industrial-label">
-                                        Fecha de Inicio <span className="text-lime-500 ml-0.5">*</span>
-                                    </FormLabel>
-                                </div>
-                                <div className="flex gap-3">
-                                    <FormControl>
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={field.onChange}
-                                            label="Fecha de Inicio"
-                                            error={!!fieldState.error}
-                                            required
-                                        />
-                                    </FormControl>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="industrial-label h-14 px-5 rounded-2xl border-zinc-200 hover:text-lime-600 hover:border-lime-500 transition-all active:scale-95 shrink-0"
-                                        onClick={() => form.setValue("fecha_inicio", new Date(), { shouldValidate: true })}
-                                    >
-                                        <CalendarIcon className="w-4 h-4 mr-2" /> Hoy
-                                    </Button>
-                                </div>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="dia_pago"
-                        render={({ field, fieldState }) => (
-                            <StandardField
-                                label="Día de Pago"
-                                error={fieldState.error?.message}
-                                hint="Se ajusta cada mes"
-                                required
-                            >
-                                <div className="space-y-4">
-                                    <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value ? String(field.value) : undefined}>
-                                        <FormControl>
-                                            <SelectTrigger className="industrial-select-trigger">
-                                                <SelectValue placeholder="Elegí día" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent className="max-h-[300px] rounded-2xl border-zinc-200 shadow-2xl z-[100]">
-                                            {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                                                <SelectItem key={day} value={String(day)} className="rounded-xl font-bold">
-                                                    Día {day}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-
-                                    <QuickOptionsGroup
-                                        options={["1", "5", "10", "15"]}
-                                        selectedOptions={[String(field.value)]}
-                                        onToggle={(day) => field.onChange(parseInt(day))}
-                                    />
-                                </div>
-                            </StandardField>
-                        )}
-                    />
-                </div>
-                {/* GRUPO 3: AGENDA Y HORARIOS */}
-                <div className="space-y-6">
-                    <div className="industrial-section-header">
-                        <Clock className="w-4 h-4" />
-                        <h3 className="industrial-label">
-                            Agenda y Horarios
-                        </h3>
-                    </div>
-
-                    <div className="rounded-3xl bg-ui-soft/30 border border-zinc-100 dark:border-zinc-800 p-6 sm:p-8 space-y-10">
-                        <FormField
-                            control={form.control}
-                            name="turno_id"
-                            render={({ field, fieldState }) => (
-                                <StandardField
-                                    label="Turno principal"
-                                    error={fieldState.error?.message}
-                                    hint="Define en qué bloque horario aparecerá en la agenda"
-                                >
-                                    <FormControl>
-                                        <Select onValueChange={field.onChange} value={field.value || undefined}>
-                                            <SelectTrigger className="industrial-select-trigger">
-                                                <SelectValue placeholder="Seleccioná un bloque" />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-2xl border-zinc-200 shadow-2xl z-[100]">
-                                                {turnos.length > 0 ? (
-                                                    turnos.map((turno) => (
-                                                        <SelectItem key={turno.id} value={turno.id} className="rounded-xl py-3 font-bold">
-                                                            {turno.nombre} ({turno.hora_inicio.slice(0, 5)} a {turno.hora_fin.slice(0, 5)})
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    <div className="p-6 text-center space-y-4">
-                                                        <p className="industrial-description">No hay bloques horarios creados</p>
-                                                    </div>
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    </FormControl>
-                                </StandardField>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="dias_asistencia"
-                            render={({ field }) => (
-                                <StandardField
-                                    label="Días de asistencia"
-                                    hint="Filtrará la visibilidad del alumno en la agenda diaria"
-                                >
-                                    <div className="space-y-6">
-                                        <FormControl>
-                                            <DaySelector
-                                                selectedDays={field.value || []}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-
-                                        <div className="flex flex-wrap gap-2">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="rounded-xl industrial-label h-8 border-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-                                                onClick={() => field.onChange(["Lunes", "Miércoles", "Viernes"])}
-                                            >
-                                                L-M-V
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="rounded-xl industrial-label h-8 border-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-                                                onClick={() => field.onChange(["Martes", "Jueves"])}
-                                            >
-                                                M-J
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="rounded-xl industrial-label h-8 border-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-                                                onClick={() => field.onChange(["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"])}
-                                            >
-                                                Lu a Vi
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </StandardField>
-                            )}
-                        />
-                    </div>
-                </div>
-
-
-                {/* GRUPO 4: FINANZAS Y SUSCRIPCIÓN */}
-                <div className="space-y-6">
-                    <div className="industrial-section-header">
-                        <CreditCard className="w-4 h-4" />
-                        <h3 className="industrial-label">
-                            Finanzas y Suscripción
-                        </h3>
-                    </div>
-
-                    <div className="rounded-3xl bg-ui-soft/30 border border-zinc-100 dark:border-zinc-800 p-6 sm:p-8 space-y-8">
-                        <div className="grid gap-8 sm:grid-cols-2">
-                            <FormField
-                                control={form.control}
-                                name="suscripcion_id"
-                                render={({ field, fieldState }) => (
-                                    <StandardField
-                                        label="Plan mensual"
-                                        error={fieldState.error?.message}
-                                        hint="Determina el monto mensual base"
-                                    >
-                                        <FormControl>
-                                            <Select onValueChange={handleSuscripcionChange} value={field.value || undefined}>
-                                                <SelectTrigger className="industrial-select-trigger">
-                                                    <SelectValue placeholder="Seleccioná un plan" />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-2xl border-zinc-200 shadow-2xl z-[100]">
-                                                    {subscriptions.length > 0 ? (
-                                                        subscriptions.map((sub) => (
-                                                            <SelectItem key={sub.id} value={sub.id} className="rounded-xl py-3 font-bold">
-                                                                {sub.nombre} (${sub.monto.toLocaleString('es-AR')})
-                                                            </SelectItem>
-                                                        ))
-                                                    ) : (
-                                                        <div className="p-4 text-center">
-                                                            <p className="text-xs font-bold text-zinc-500">No hay planes configurados</p>
-                                                        </div>
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                    </StandardField>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="monto"
-                                render={({ field, fieldState }) => (
-                                    <StandardField
-                                        label="Monto de cuota"
-                                        error={fieldState.error?.message}
-                                        hint={montoPersonalizado ? "Editando monto manualmente" : "Monto fijado por el plan"}
-                                    >
-                                        <FormControl>
-                                            <div className="relative">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-400">$</span>
-                                                <Input
-                                                    type="number"
-                                                    {...field}
-                                                    onChange={e => field.onChange(parseFloat(e.target.value))}
-                                                    disabled={!montoPersonalizado}
-                                                    className={cn(
-                                                        "industrial-input pl-8",
-                                                        !montoPersonalizado ? "bg-zinc-100 dark:bg-zinc-900 border-transparent opacity-70" : "bg-white dark:bg-zinc-950 border-zinc-200"
-                                                    )}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                    </StandardField>
-                                )}
-                            />
-                        </div>
-
-                        <FormField
-                            control={form.control}
-                            name="monto_personalizado"
-                            render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                    <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 flex items-center justify-between shadow-sm">
-                                        <div className="space-y-0.5">
-                                            <Label className="industrial-label text-zinc-900 dark:text-zinc-50">Monto personalizado</Label>
-                                            <p className="industrial-description">Activalo para ignorar aumentos masivos de este plan</p>
-                                        </div>
-                                        <FormControl>
-                                            <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                </div>
-
-                <FormField
-                    control={form.control}
-                    name="notas"
-                    render={({ field, fieldState }) => (
-                        <StandardField
-                            label="Notas"
-                            error={fieldState.error?.message}
-                        >
-                            <FormControl>
-                                <Input
-                                    placeholder="Aclaraciones sobre lesiones, objetivos o cuidado especial..."
-                                    {...field}
-                                    value={field.value || ""}
-                                    className="industrial-input h-14"
-                                />
-                            </FormControl>
+                    <FormField control={form.control} name="nombre" render={({ field, fieldState }) => (
+                        <StandardField label="Nombre Completo" error={fieldState.error?.message} required>
+                            <FormControl><Input placeholder="Ej: Juan Pérez" {...field} className="font-bold h-12 rounded-xl" /></FormControl>
                         </StandardField>
-                    )}
-                />
+                    )} />
+                    <FormField control={form.control} name="email" render={({ field, fieldState }) => (
+                        <StandardField label="Email" error={fieldState.error?.message} required>
+                            <FormControl><Input type="email" placeholder="email@ejemplo.com" {...field} className="h-12 rounded-xl" /></FormControl>
+                        </StandardField>
+                    )} />
+                    <FormField control={form.control} name="telefono" render={({ field, fieldState }) => (
+                        <StandardField label="Teléfono" error={fieldState.error?.message} hint="Fundamental para WhatsApp">
+                            <FormControl><div className="relative group/phone">
+                                <WhatsappLogoIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within/phone:text-lime-500 transition-all" />
+                                <Input type="tel" placeholder="+54 9..." {...field} value={field.value || ""} className="pl-11 h-12 rounded-xl" />
+                            </div></FormControl>
+                        </StandardField>
+                    )} />
+                    <FormField control={form.control} name="fecha_nacimiento" render={({ field, fieldState }) => (
+                        <StandardField label="Fecha de nacimiento" error={fieldState.error?.message} hint="Para el cálculo de edad">
+                            <FormControl><DatePicker date={field.value} setDate={field.onChange} label="Nacimiento" placeholder="Opcional" error={!!fieldState.error} /></FormControl>
+                        </StandardField>
+                    )} />
+                </div>
 
-                <div className="flex flex-wrap gap-3 pt-10 justify-between items-center border-t border-zinc-100 dark:border-zinc-800">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsArchiveDialogOpen(true)}
-                        className="rounded-xl industrial-label h-11 px-4 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
-                    >
-                        <Archive className="w-4 h-4 mr-2" /> Archivar alumno
-                    </Button>
-
-                    <div className="flex gap-3 items-center">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="lg"
-                            onClick={onCancel || (() => window.location.assign(`/profesor/alumnos/${alumno.id}`))}
-                            className="rounded-2xl industrial-label h-14 px-8"
-                        >
-                            <X className="w-4 h-4 mr-2" /> Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="industrial"
-                            size="xl"
-                            disabled={isPending}
-                            className="px-12"
-                        >
-                            {isPending ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <>
-                                    <Save className="w-5 h-5 mr-3" />
-                                    <span className="text-sm">Guardar Cambios</span>
-                                </>
-                            )}
-                        </Button>
+                {/* 2. AGENDA */}
+                <div className="space-y-6">
+                    <div className="industrial-section-header"><Clock className="w-4 h-4" /><h3 className="industrial-label">Agenda y Horarios</h3></div>
+                    <div className="grid gap-8 sm:grid-cols-2 bg-zinc-50/50 dark:bg-zinc-900/10 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
+                        <FormField control={form.control} name="turno_id" render={({ field, fieldState }) => (
+                            <StandardField label="Turno Principal" error={fieldState.error?.message}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}><FormControl><SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="Bloque horario" /></SelectTrigger></FormControl>
+                                <SelectContent className="rounded-2xl">{turnos.map(t => <SelectItem key={t.id} value={t.id} className="rounded-lg">{t.nombre} ({t.hora_inicio.slice(0,5)} a {t.hora_fin.slice(0,5)})</SelectItem>)}</SelectContent></Select>
+                            </StandardField>
+                        )} />
+                        <FormField control={form.control} name="dias_asistencia" render={({ field }) => (
+                            <StandardField label="Días de asistencia" hint="Visibilidad en la agenda semanal">
+                                <FormControl><DaySelector selectedDays={field.value || []} onChange={field.onChange} /></FormControl>
+                            </StandardField>
+                        )} />
                     </div>
+                </div>
+
+                {/* 3. FINANZAS */}
+                <div className="space-y-6">
+                    <div className="industrial-section-header"><CreditCard className="w-4 h-4" /><h3 className="industrial-label">Ciclo y Finanzas</h3></div>
+                    <div className="grid gap-8 sm:grid-cols-2 bg-zinc-50/50 dark:bg-zinc-900/10 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
+                        <FormField control={form.control} name="fecha_inicio" render={({ field, fieldState }) => (
+                            <FormItem className="space-y-1.5"><FormLabel className="industrial-label">Fecha de Inicio</FormLabel>
+                                <div className="flex gap-2"><FormControl><DatePicker date={field.value} setDate={field.onChange} label="Inicio" error={!!fieldState.error} required /></FormControl>
+                                <Button type="button" variant="outline" className="h-12 px-4 rounded-xl text-[9px] uppercase font-bold" onClick={() => form.setValue("fecha_inicio", new Date())}><CalendarIcon className="w-3.5 h-3.5 mr-1" /> Hoy</Button></div><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="dia_pago" render={({ field, fieldState }) => (
+                            <StandardField label="Día de Pago" error={fieldState.error?.message} required>
+                                <div className="space-y-4"><Select onValueChange={(v) => field.onChange(parseInt(v))} value={String(field.value)}><FormControl><SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="Día" /></SelectTrigger></FormControl>
+                                <SelectContent className="max-h-[300px] rounded-2xl">{Array.from({length:31},(_,i)=>i+1).map(d=><SelectItem key={d} value={String(d)} className="rounded-lg">Día {d}</SelectItem>)}</SelectContent></Select>
+                                <QuickOptionsGroup options={["1","5","10","15"]} selectedOptions={[String(field.value)]} onToggle={(d)=>field.onChange(parseInt(d))} /></div>
+                            </StandardField>
+                        )} />
+                        <FormField control={form.control} name="suscripcion_id" render={({ field, fieldState }) => (
+                            <StandardField label="Plan base" error={fieldState.error?.message}>
+                                <Select onValueChange={handleSuscripcionChange} value={field.value || undefined}><FormControl><SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="Seleccioná plan" /></SelectTrigger></FormControl>
+                                <SelectContent className="rounded-2xl">{subscriptions.map(s=><SelectItem key={s.id} value={s.id} className="rounded-lg">{s.nombre} (${s.monto})</SelectItem>)}</SelectContent></Select>
+                            </StandardField>
+                        )} />
+                        <FormField control={form.control} name="monto" render={({ field, fieldState }) => (
+                            <StandardField label="Monto cuota" error={fieldState.error?.message} hint={montoPersonalizado ? "Editado manualmente" : "Fijado por plan"}>
+                                <FormControl><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-400">$</span><Input type="number" {...field} onChange={e=>field.onChange(parseFloat(e.target.value))} disabled={!montoPersonalizado} className={cn("pl-8 h-12 rounded-xl", !montoPersonalizado && "bg-zinc-100 opacity-70")} /></div></FormControl>
+                            </StandardField>
+                        )} />
+                        <FormField control={form.control} name="monto_personalizado" render={({ field }) => (
+                            <FormItem className="col-span-full"><div className="p-4 rounded-xl bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 flex items-center justify-between"><div className="space-y-0.5"><Label className="text-[10px] uppercase font-bold tracking-widest">Monto personalizado</Label><p className="text-[10px] text-zinc-400">Ignora aumentos globales</p></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></div></FormItem>
+                        )} />
+                    </div>
+                </div>
+
+                {/* FOOTER ACCIONES */}
+                <div className="flex flex-wrap gap-4 pt-10 border-t border-zinc-100 dark:border-zinc-800 justify-between items-center">
+                    <Button type="button" variant="outline" size="sm" onClick={()=>setIsArchiveDialogOpen(true)} className="rounded-xl h-11 px-4 text-red-500 hover:bg-red-50 hover:border-red-100"><Archive className="w-4 h-4 mr-2" /> Archivar alumno</Button>
+                    <div className="flex gap-3"><Button type="button" variant="outline" size="lg" onClick={onCancel || (()=>window.history.back())} className="rounded-xl h-14 px-8 border-zinc-200">Cancelar</Button>
+                    <Button type="submit" variant="industrial" size="xl" disabled={isPending} className="px-12 h-14 rounded-2xl">{isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5 mr-3" /> Guardar</>}</Button></div>
                 </div>
             </form>
 
-            <DeleteConfirmDialog
-                isOpen={isArchiveDialogOpen}
-                onOpenChange={setIsArchiveDialogOpen}
-                onConfirm={async () => {
-                    await archiveStudent(alumno.id, {
-                        onSuccess: () => {
-                            window.location.assign("/profesor/alumnos");
-                        }
-                    });
-                }}
-                title="Archivar"
-                description={<>¿Estás seguro que querés archivar a <strong>{alumno.nombre}</strong>?</>}
-                isDeleting={isArchiving}
-            />
+            <DeleteConfirmDialog isOpen={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen} title="Archivar Alumno" description={<>¿Confirmás que deseás archivar a <strong>{alumno.nombre}</strong>?</>} onConfirm={handleArchive} isDeleting={isArchiving} />
         </Form>
     );
 }

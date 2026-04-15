@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Zap, Target, BookHeart, Calendar, ChevronRight } from "lucide-react";
+import { Zap, Target, BookHeart, Calendar, ChevronRight, Link } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DIAS_SEMANA = [
@@ -115,7 +115,7 @@ export function StudentOnboarding({ nombreAlumno }: { nombreAlumno: string }) {
                         <div className="animate-in fade-in slide-in-from-right-8 duration-500">
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center">
-                                    <Zap className="w-5 h-5 text-lime-400" />
+                                    <Link className="w-5 h-5 text-lime-400" />
                                 </div>
                                 <h2 className="text-xl font-bold">Objetivo Principal</h2>
                             </div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Settings2, Share2, ClipboardList, Dumbbell } from "lucide-react";
+import { Plus, Settings2, Link, ClipboardList, Dumbbell } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { ProfileWorkspaceTabs } from "./ProfileWorkspaceTabs";
 import { StudentRoutineWorkspace } from "./StudentRoutineWorkspace";
@@ -146,7 +146,7 @@ export function StudentProfileManager({ assignedPlan, student, library }: Studen
              </DropdownMenuItem>
              <DropdownMenuItem onClick={() => copyGuestLink(student.id)} className="py-4 font-bold text-[10px] uppercase tracking-widest gap-4 rounded-2xl cursor-pointer">
                <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
-                 <Share2 size={20} className="text-blue-500" />
+                 <Link size={20} className="text-blue-500" />
                </div>
                Compartir Acceso
              </DropdownMenuItem>

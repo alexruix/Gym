@@ -10,61 +10,62 @@ const { id } = Astro.params;
 const supabase = createSupabaseServerClient(Astro);
 
 // 1. Auth check
-const { data: { user } } = await supabase.auth.getUser();
+const user = Astro.locals.user;
 if (!user) return Astro.redirect("/login");
-
-// 2. Fetch plan completo con rutinas, ejercicios y rotaciones
-const { data: plan, error } = await supabase
-  .from("planes")
-  .select(`
-    id,
-    nombre,
-    duracion_semanas,
-    frecuencia_semanal,
-    is_template,
-    rutinas_diarias (
-      id,
-      dia_numero,
-      nombre_dia,
-      orden,
-      ejercicios_plan (
-        ejercicio_id,
-        series,
-        reps_target,
-        descanso_seg,
-        orden,
-        exercise_type,
-        position,
-        peso_target,
-        notas,
-        grupo_bloque_id,
-        grupo_nombre,
-        grupo_tipo_bloque,
-        grupo_vueltas,
-        grupo_descanso_ronda,
-        grupo_descanso_final
-      )
-    ),
-    plan_rotaciones (
-      position,
-      applies_to_days,
-      cycles
-    )
-  `)
-  .eq("id", id)
-  .eq("profesor_id", user.id)
-  .single();
-
-if (error || !plan) {
-  return Astro.redirect("/profesor/planes?error=not-found");
-}
-
-const planData = plan as any;
 
 import { actions } from "astro:actions";
 
-// 3. Fetch exercise library unificada (Personales + MiGym)
-const { data: exercises } = await Astro.callAction(actions.profesor.getExerciseLibrary, {});
+// 2. Fetch Paralelo: Plan completo y Biblioteca
+const [planRes, libraryRes] = await Promise.all([
+  supabase
+    .from("planes")
+    .select(`
+      id,
+      nombre,
+      duracion_semanas,
+      frecuencia_semanal,
+      is_template,
+      rutinas_diarias (
+        id,
+        dia_numero,
+        nombre_dia,
+        orden,
+        ejercicios_plan (
+          ejercicio_id,
+          series,
+          reps_target,
+          descanso_seg,
+          orden,
+          exercise_type,
+          position,
+          peso_target,
+          notas,
+          grupo_bloque_id,
+          grupo_nombre,
+          grupo_tipo_bloque,
+          grupo_vueltas,
+          grupo_descanso_ronda,
+          grupo_descanso_final
+        )
+      ),
+      plan_rotaciones (
+        position,
+        applies_to_days,
+        cycles
+      )
+    `)
+    .eq("id", id)
+    .eq("profesor_id", user.id)
+    .single(),
+  Astro.callAction(actions.profesor.getExerciseLibrary, {})
+]);
+
+if (planRes.error || !planRes.data) {
+  return Astro.redirect("/profesor/planes?error=not-found");
+}
+
+const planData = planRes.data as any;
+const exercises = libraryRes.data || [];
 
 // 4. Map DB data to Form Schema and Ensure 365 days with sanitization
 const rutinasMap = new Map(planData.rutinas_diarias.map((r: any) => [r.dia_numero, r]));

@@ -1,6 +1,6 @@
 import React from "react";
 import { Trash2, Dumbbell } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import type { BlockFormData } from "@/lib/validators/profesor";
 

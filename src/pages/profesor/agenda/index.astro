@@ -31,6 +31,7 @@ const [turnosData, rawStudentsData, rawSessionsData] = await Promise.all([
     .select(`
       id,
       alumno_id,
+      alumnos!inner(profesor_id),
       sesion_ejercicios_instanciados (
         id,
         completado,
@@ -41,6 +42,7 @@ const [turnosData, rawStudentsData, rawSessionsData] = await Promise.all([
       )
     `)
     .eq("fecha_real", today)
+    .eq("alumnos.profesor_id", user.id)
 ]);
 
 const turnos = turnosData.data;
@@ -52,9 +54,7 @@ const students = ((rawStudents || []) as any[]).map(s => ({
   name: s.nombre
 }));
 
-// Filtrar sesiones solo a los alumnos de este profesor (post-fetch, en memoria)
-const studentIdSet = new Set(students.map(s => s.id));
-const rawSessions = (rawSessionsData.data || []).filter((s: any) => studentIdSet.has(s.alumno_id));
+const rawSessions = rawSessionsData.data || [];
 
 // Mapear sesiones a formato simplificado para el componente
 const initialSessions = (rawSessions as any[]).map(s => {

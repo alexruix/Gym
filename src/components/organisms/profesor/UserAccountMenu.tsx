@@ -7,7 +7,8 @@ import {
   LogOut,
   Check,
   Loader2,
-  BookOpen
+  BookOpen,
+  Link
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -118,7 +119,7 @@ export function UserAccountMenu({ profesor }: UserAccountMenuProps) {
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-900"
               onClick={() => window.open(`/p/${profesor.slug}`, "_blank")}
             >
-              <ExternalLink className="w-4 h-4 text-zinc-500" />
+              <Link className="w-4 h-4 text-zinc-500" />
               <span className="text-sm font-bold">Ver perfil público</span>
             </DropdownMenuItem>
           )}

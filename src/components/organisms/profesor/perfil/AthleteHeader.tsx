@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ExternalLink, CreditCard, MoreHorizontal, Pencil, ArrowLeft } from "lucide-react";
+import { ExternalLink, CreditCard, MoreHorizontal, Pencil, ArrowLeft, Link } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -126,7 +126,7 @@ export function AthleteHeader({ alumno, planName }: Props) {
                     isSticky ? "w-10 h-10 rounded-full" : "h-12 md:h-14 px-6"
                 )}
              >
-                <ExternalLink className={isSticky ? "w-5 h-5 text-zinc-400" : "w-4 h-4 md:w-5 md:h-5"} />
+                <Link className={isSticky ? "w-5 h-5 text-zinc-400" : "w-4 h-4 md:w-5 md:h-5"} />
                 {!isSticky && <span className="hidden sm:inline">Link acceso</span>}
              </Button>
              

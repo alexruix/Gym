@@ -9,113 +9,105 @@ const { id } = Astro.params;
 const supabase = createSupabaseServerClient(Astro);
 
 // 1. Auth & Safety check
-const { data: { user } } = await supabase.auth.getUser();
+const user = Astro.locals.user;
 if (!user) return Astro.redirect("/login");
 
-// 2. Fetch Alumno Completo con todo el árbol de su plan (SSR)
-const query = supabase
-  .from("alumnos")
-  .select(`
-    *,
-    suscripciones (*),
-    turnos (*),
-    pagos (
-      id,
-      monto,
-      estado,
-      fecha_vencimiento,
-      fecha_pago
-    ),
-    planes (
-      id,
-      nombre,
-      is_template,
-      duracion_semanas,
-      rutinas_diarias (
+// 2. Fetch Paralelo Total: Alumno, Suscripciones, Biblioteca y Última Sesión
+const [alumnoRes, subRes, libraryRes, lastSessionRes] = await Promise.all([
+  supabase
+    .from("alumnos")
+    .select(`
+      *,
+      suscripciones (*),
+      turnos (*),
+      pagos (
         id,
-        dia_numero,
-        nombre_dia,
-        orden,
-        ejercicios_plan (
+        monto,
+        estado,
+        fecha_vencimiento,
+        fecha_pago
+      ),
+      planes (
+        id,
+        nombre,
+        is_template,
+        duracion_semanas,
+        rutinas_diarias (
           id,
+          dia_numero,
+          nombre_dia,
           orden,
-          series,
-          reps_target,
-          descanso_seg,
-          exercise_type,
-          position,
-          grupo_bloque_id,
-          grupo_nombre,
-          biblioteca_ejercicios (
+          ejercicios_plan (
             id,
-            nombre,
-            media_url
-          ),
-          ejercicio_plan_personalizado (
-            alumno_id,
-            semana_numero,
+            orden,
             series,
             reps_target,
             descanso_seg,
-            peso_target
+            exercise_type,
+            position,
+            grupo_bloque_id,
+            grupo_nombre,
+            biblioteca_ejercicios (
+              id,
+              nombre,
+              media_url
+            ),
+            ejercicio_plan_personalizado (
+              alumno_id,
+              semana_numero,
+              series,
+              reps_target,
+              descanso_seg,
+              peso_target
+            )
           )
         )
       )
-    )
-  `)
-  .eq("id", id)
-  .eq("profesor_id", user.id)
-  .single();
+    `)
+    .eq("id", id)
+    .eq("profesor_id", user.id)
+    .single(),
+    
+  supabase
+    .from("suscripciones")
+    .select("*")
+    .eq("profesor_id", user.id)
+    .order("cantidad_dias", { ascending: true }),
 
-type AlumnoResult = any;
-const { data, error } = await query;
-const alumno = data as AlumnoResult;
+  supabase
+    .from("biblioteca_ejercicios")
+    .select("id, nombre, media_url, parent_id, is_template_base, tags")
+    .eq("profesor_id", user.id)
+    .order("nombre", { ascending: true }),
 
-if (error || !alumno) {
-  return Astro.redirect("/profesor/alumnos?error=not-found");
-}
+  supabase
+    .from("sesiones_instanciadas")
+    .select("updated_at, completed_at")
+    .eq("alumno_id", id)
+    .eq("estado", "completada")
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+]);
 
-// 2.3 Fetch todas las suscripciones para alertar inconsistencias
-const { data: subData } = await supabase
-  .from("suscripciones")
-  .select("*")
-  .eq("profesor_id", user.id)
-  .order("cantidad_dias", { ascending: true });
+const alumno = alumnoRes.data as any;
+if (alumnoRes.error || !alumno) return Astro.redirect("/profesor/alumnos?error=not-found");
 
-const allSubscriptions = (subData as any[]) || [];
+const allSubscriptions = (subRes.data as any[]) || [];
+const exercises = (libraryRes.data as any[]) || [];
+const ultimaSesion = lastSessionRes.data as any;
 
-// 2.4 Calculamos inconsistencia
+// 3. Lógica de Negocio (Inconsistencias)
 const actualDays = (alumno.dias_asistencia || []).length;
 const currentSub = alumno.suscripciones;
 const planDays = currentSub?.cantidad_dias || 0;
 const isInconsistent = !alumno.monto_personalizado && actualDays > planDays;
 
 let targetPlan = null;
-if (isInconsistent && allSubscriptions) {
-  // Buscamos el plan más cercano que cubra sus días (o el de mayor días)
+if (isInconsistent && allSubscriptions.length > 0) {
   targetPlan = allSubscriptions.find(s => s.cantidad_dias >= actualDays) || allSubscriptions[allSubscriptions.length - 1];
-  // Si encontramos el mismo plan, no hay target
   if (targetPlan?.id === currentSub?.id) targetPlan = null;
 }
-
-// 2.5 Fetch biblioteca completa para búsqueda rápida
-// ... rest remains same but I'll return the full set of variables
-const { data: exercises } = await supabase
-  .from("biblioteca_ejercicios")
-  .select("id, nombre, media_url, parent_id, is_template_base, tags")
-  .eq("profesor_id", user.id)
-  .order("nombre", { ascending: true });
-
-const { data: ultimaSesionData } = await supabase
-  .from("sesiones_instanciadas")
-  .select("updated_at, completed_at")
-  .eq("alumno_id", id)
-  .eq("estado", "completada")
-  .order("completed_at", { ascending: false })
-  .limit(1)
-  .single();
-
-const ultimaSesion = ultimaSesionData as any;
 
 // 3. Mapeo de datos para componentes
 const sortedPagos = (alumno.pagos || []).sort((a: any, b: any) => new Date(b.fecha_vencimiento).getTime() - new Date(a.fecha_vencimiento).getTime());
