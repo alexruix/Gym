@@ -1,7 +1,19 @@
-import { z } from "zod";
 import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
-import { planSchema, blockSchema } from "@/lib/validators";
+import { 
+  planSchema, 
+  blockSchema, 
+  idParamSchema, 
+  updatePlanSchema, 
+  forkPlanSchema,
+  importPlansSchema 
+} from "@/lib/validators/profesor";
+import { planesCopy } from "@/data/es/profesor/planes";
+import { masterPlans } from "@/data/es/profesor/plan-master";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+const normalizeStr = (str: string) =>
+  str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() : "";
 
 /**
  * Profesor: Planning Actions
@@ -13,9 +25,10 @@ export const plansActions = {
   getBlocks: defineAction({
     accept: "json",
     handler: async (_, context) => {
+      const copy = planesCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data, error } = await supabase
         .from("bloques")
@@ -29,7 +42,7 @@ export const plansActions = {
         .eq("profesor_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `Error al obtener bloques: ${error.message}` });
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `${copy.error.loadBlocksError}${error.message}` });
 
       // Limpieza asíncrona de bloques vacíos (Optimización silenciosa)
       const emptyBlocks = (data || []).filter((b: any) => (b.bloques_ejercicios?.length || 0) === 0);
@@ -49,7 +62,7 @@ export const plansActions = {
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
 
       const { data: block, error: blockError } = await (supabase
         .from("bloques") as any)
@@ -89,11 +102,11 @@ export const plansActions = {
   /** deleteBlock: Elimina un bloque. */
   deleteBlock: defineAction({
     accept: "json",
-    input: z.object({ id: z.string().uuid() }),
+    input: idParamSchema,
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
 
       const { error } = await supabase
         .from("bloques")
@@ -113,7 +126,7 @@ export const plansActions = {
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
 
       const { data: planId, error } = await (supabase as any).rpc('crear_plan_completo', {
         p_profesor_id: user.id,
@@ -132,11 +145,11 @@ export const plansActions = {
   /** updatePlan: Actualiza la estructura de un plan (RPC). */
   updatePlan: defineAction({
     accept: "json",
-    input: planSchema.extend({ id: z.string().uuid() }),
+    input: updatePlanSchema,
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
 
       const { error } = await (supabase as any).rpc('actualizar_plan_completo', {
         p_plan_id: input.id,
@@ -156,15 +169,11 @@ export const plansActions = {
   /** forkPlan: Crea una copia privada para un alumno específico. */
   forkPlan: defineAction({
     accept: "json",
-    input: z.object({
-      planId: z.string().uuid(),
-      alumnoId: z.string().uuid(),
-      nombre: z.string().min(2),
-    }),
+    input: forkPlanSchema,
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
 
       const { data: newPlanId, error } = await (supabase as any).rpc('fork_plan', {
         p_plan_id: input.planId,
@@ -180,11 +189,12 @@ export const plansActions = {
   /** duplicatePlan: Clonación de planes existentes. */
   duplicatePlan: defineAction({
     accept: "json",
-    input: z.object({ id: z.string().uuid() }),
+    input: idParamSchema,
     handler: async (input, context) => {
+      const copy = planesCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data: source, error: fetchError } = await (supabase
         .from("planes") as any)
@@ -199,7 +209,7 @@ export const plansActions = {
         .eq("profesor_id", user.id)
         .single();
 
-      if (fetchError || !source) throw new ActionError({ code: "NOT_FOUND", message: "Plan no encontrado" });
+      if (fetchError || !source) throw new ActionError({ code: "NOT_FOUND", message: copy.error.planNotFound });
 
       const mappedRutinas = (source.rutinas_diarias || []).map((r: any) => ({
         dia_numero: r.dia_numero,
@@ -216,22 +226,23 @@ export const plansActions = {
       });
 
       if (createError) throw new ActionError({ code: "BAD_REQUEST", message: createError.message });
-      return { success: true, plan_id: newId };
+      return { success: true, plan_id: newId, mensaje: copy.success.planDuplicated };
     },
   }),
 
   /** promotePlan: Convierte un plan privado en una plantilla reusable. */
   promotePlan: defineAction({
     accept: "json",
-    input: z.object({ id: z.string().uuid() }),
+    input: idParamSchema,
     handler: async (input, context) => {
+      const copy = planesCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { error } = await (supabase.from("planes") as any).update({ is_template: true }).eq("id", input.id).eq("profesor_id", user.id);
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
-      return { success: true, mensaje: "Plan convertido en plantilla." };
+      return { success: true, mensaje: copy.success.planPromoted };
     },
   }),
 
@@ -241,7 +252,7 @@ export const plansActions = {
     handler: async (_, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
 
       const { data, error } = await supabase
         .from("planes")
@@ -255,13 +266,84 @@ export const plansActions = {
     }
   }),
 
+  /** importPlans: Carga masiva de cabeceras de planes maestros. */
+  importPlans: defineAction({
+    accept: "json",
+    input: importPlansSchema,
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
+
+      const items = input.map(item => ({
+        profesor_id: user.id,
+        nombre: item.nombre,
+        descripcion: item.descripcion,
+        duracion_semanas: item.duracion_semanas,
+        frecuencia_semanal: item.frecuencia_semanal,
+        is_template: true
+      }));
+
+      const { data, error } = await (supabase.from("planes") as any).insert(items).select();
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
+      
+      return { success: true, count: data?.length || 0 };
+    }
+  }),
+
   /** getPlanes: Fetch unificado (Propios + Master Globales) con Silent Sync. */
   getPlanes: defineAction({
     accept: "json",
     handler: async (_, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
+
+      // Silent Sync for Master Plans
+      const runMasterPlansSync = async () => {
+        // 1. Obtener ejercicios maestros para resolución de IDs
+        const { data: exercises } = await supabase.from("biblioteca_ejercicios").select("id, nombre").is("profesor_id", null);
+        if (!exercises?.length) return;
+        const exMap = new Map((exercises as any[]).map(ex => [normalizeStr(ex.nombre), ex.id]));
+
+        // 2. Verificar planes maestros existentes
+        const { data: existingMasterPlanes } = await supabase.from("planes").select("nombre").is("profesor_id", null);
+        const existingNames = new Set(((existingMasterPlanes || []) as any[]).map(p => normalizeStr(p.nombre)));
+
+        const missingMasterPlanes = masterPlans.filter(p => !existingNames.has(normalizeStr(p.nombre)));
+
+        if (missingMasterPlanes.length > 0) {
+          console.log(`[Plans Sync] Detectados ${missingMasterPlanes.length} planes maestros faltantes.`);
+          
+          for (const plan of missingMasterPlanes) {
+            // Mapear rutinas con IDs de ejercicios resueltos
+            const mappedRutinas = plan.rutinas.map(r => ({
+              ...r,
+              ejercicios: r.ejercicios.map(e => ({
+                ...e,
+                ejercicio_id: exMap.get(normalizeStr(e.nombre))
+              })).filter(e => !!e.ejercicio_id) // Solo si pudimos resolver el ID
+            })).filter(r => r.ejercicios.length > 0);
+
+            if (mappedRutinas.length > 0) {
+              const { error: rpcErr } = await (supabaseAdmin as any).rpc('crear_plan_completo', {
+                p_profesor_id: null, // Global
+                p_nombre: plan.nombre,
+                p_duracion_semanas: plan.duracion_semanas,
+                p_frecuencia_semanal: plan.frecuencia_semanal,
+                p_rutinas: mappedRutinas,
+                p_rotaciones: plan.rotaciones || []
+              });
+
+              if (rpcErr) console.error(`[Plans Sync] Error al crear plan ${plan.nombre}:`, rpcErr.message);
+            }
+          }
+          console.log("[Plans Sync] Sincronización de planes maestros finalizada.");
+        }
+      };
+
+      // Ejecutar sync de forma silenciosa
+      runMasterPlansSync().catch(console.error);
 
       // Fetch de Planes (Propios + Globales)
       const { data, error } = await supabase

@@ -1,27 +1,26 @@
-import { defineAction } from "astro:actions";
-import { z } from "astro:content";
-import { createSupabaseServerClient } from "../lib/supabase-ssr";
+import { defineAction, ActionError } from "astro:actions";
+import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { completeOnboardingSchema } from "@/lib/validators/profesor";
+import { authCopy } from "@/data/es/auth";
 
 export const authActions = {
   completeOnboarding: defineAction({
     accept: "json",
-    input: z.object({
-      publicName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-    }),
+    input: completeOnboardingSchema,
     handler: async (input, context) => {
-      // Usamos el cliente servidor pasándole el contexto de Astro (cookies)
+      const copy = authCopy.onboarding.actions;
       const supabase = createSupabaseServerClient(context);
       
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
-         throw new Error("No estás autenticado o la sesión expiró.");
+         throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
       }
 
       const userId = user.id;
       const userEmail = user.email;
 
-      // 2. Guardar los datos en la tabla profesores
+      // 2. Guardar los datos en la tabla profesores (Atomic SSOT)
       const { error: upsertError } = await (supabase
         .from("profesores") as any)
         .upsert({
@@ -32,12 +31,12 @@ export const authActions = {
         }, { onConflict: 'id' });
 
       if (upsertError) {
-        throw new Error(`Error guardando onboarding: ${upsertError.message}`);
+        throw new ActionError({ code: "BAD_REQUEST", message: `${copy.error.save_failed}${upsertError.message}` });
       }
 
       return {
         success: true,
-        mensaje: "¡Espacio creado con éxito!",
+        mensaje: copy.success,
       };
     },
   }),

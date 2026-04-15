@@ -21,11 +21,29 @@ export interface Exercise {
  * useLibraryState: Motor de búsqueda, filtrado y jerarquía.
  */
 export function useLibraryState(initialExercises: Exercise[]) {
-    const [exercises, setExercises] = useState<Exercise[]>(initialExercises);
+    // Definimos la función de normalización fuera para reutilizarla
+    const normalize = (s: string) => 
+        s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+    // Enriquecemos los ejercicios con datos pre-normalizados para búsqueda Zero Friction
+    const prepareExercises = (list: Exercise[]) => list.map(ex => ({
+        ...ex,
+        _searchable: `${normalize(ex.nombre)} ${ex.tags?.map(t => normalize(t)).join(" ") || ""}`
+    }));
+
+    const [exercises, setExercisesState] = useState<Exercise[]>(() => prepareExercises(initialExercises));
     const [searchQuery, setSearchQuery] = useState("");
     const [activeFilter, setActiveFilter] = useState("todos"); // todos | favoritos | recientes | top | mi-gym | míos
     const [muscleFilter, setMuscleFilter] = useState<string | null>(null);
     const [recentIds, setRecentIds] = useState<string[]>([]);
+
+    const setExercises = (newList: Exercise[] | ((prev: Exercise[]) => Exercise[])) => {
+        if (typeof newList === "function") {
+            setExercisesState(prev => prepareExercises(newList(prev)));
+        } else {
+            setExercisesState(prepareExercises(newList));
+        }
+    };
 
     // Cargar recencia inicial y escuchar actualizaciones
     useEffect(() => {
@@ -55,39 +73,28 @@ export function useLibraryState(initialExercises: Exercise[]) {
             list = list.filter(ex => ex.profesor_id !== null);
         }
 
-        const normalize = (s: string) => 
-            s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-
         // 2. Filtrado Muscular (Pills)
         if (muscleFilter) {
             const m = normalize(muscleFilter);
-            list = list.filter(ex => 
-                ex.tags?.some(t => normalize(t).includes(m))
-            );
+            list = list.filter(ex => (ex as any)._searchable.includes(m));
         }
 
         // 3. Búsqueda Industrial (Zero friction)
         if (searchQuery) {
             const q = normalize(searchQuery);
-            list = list.filter(ex => 
-                normalize(ex.nombre).includes(q) || 
-                ex.tags?.some(t => normalize(t).includes(q))
-            );
+            list = list.filter(ex => (ex as any)._searchable.includes(q));
         }
 
         // 4. Ordenamiento con Boost de Recencia
-        // Pre-calculamos un mapa de índices para recencia O(1)
         const recentMap = new Map<string, number>(recentIds.map((id, index) => [id, index]));
         const isDefaultFilter = activeFilter === "todos";
 
         return list.sort((a, b) => {
-            // Priorizar favoritos si no hay un filtro específico activo
             if (isDefaultFilter) {
                 if (a.is_favorite && !b.is_favorite) return -1;
                 if (!a.is_favorite && b.is_favorite) return 1;
             }
 
-            // Boost por Recencia (Últimos usados)
             const indexA = recentMap.has(a.id) ? recentMap.get(a.id)! : -1;
             const indexB = recentMap.has(b.id) ? recentMap.get(b.id)! : -1;
             
@@ -97,10 +104,9 @@ export function useLibraryState(initialExercises: Exercise[]) {
                 if (indexA !== -1 && indexB !== -1) return indexA - indexB;
             }
 
-            // Default: Alfabético
             return a.nombre.localeCompare(b.nombre);
         });
-    }, [exercises, searchQuery, activeFilter, recentIds]);
+    }, [exercises, searchQuery, activeFilter, recentIds, muscleFilter]);
 
     // Herramientas de Jerarquía
     const getVariantsOf = (parentId: string) => {
@@ -113,7 +119,6 @@ export function useLibraryState(initialExercises: Exercise[]) {
             return filteredExercises.filter(ex => !ex.parent_id);
         }
         
-        // Búsqueda Inteligente: Si algo matchea (padre o variante), mostramos el PADRE en la grilla
         const parentIdsToShow = new Set<string>();
         filteredExercises.forEach(ex => {
             parentIdsToShow.add(ex.parent_id || ex.id);

@@ -34,8 +34,15 @@ export const authCopy = {
       btn: "Completar perfil"
     },
     states: {
-      loading: "Guardando perfil...",
-      error: "Error al guardar el perfil. Reintentá."
+      loading: "Completando...",
+      error: "No pudimos guardar tu perfil. Reintentá en un momento."
+    },
+    actions: {
+      success: "¡Espacio creado con éxito!",
+      error: {
+        unauthorized: "No estás autenticado o la sesión expiró.",
+        save_failed: "Error al guardar el perfil: "
+      }
     }
   }
 } as const;

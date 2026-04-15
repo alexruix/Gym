@@ -137,5 +137,17 @@ export const planesCopy = {
       success: "¡Planificación creada exitosamente!",
       error: "Hubo un error al crear la planificación.",
     }
+  },
+  actions: {
+    success: {
+      planPromoted: "Plan convertido en plantilla.",
+      planDuplicated: "Plan duplicado con éxito.",
+    },
+    error: {
+      unauthorized: "No autorizado",
+      planNotFound: "Plan no encontrado",
+      createError: "Error al crear la planificación.",
+      loadBlocksError: "Error al obtener bloques: ",
+    }
   }
 } as const;

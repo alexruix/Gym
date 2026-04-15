@@ -1,6 +1,12 @@
-import { z } from "zod";
 import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { 
+  upsertStudentMetricOverrideSchema, 
+  getExerciseHistorySchema, 
+  copyMetricsToNextWeekSchema, 
+  exerciseIdParamSchema 
+} from "@/lib/validators/profesor";
+import { trainingCopy } from "@/data/es/profesor/ejercicios";
 
 /**
  * Profesor: Training Actions
@@ -11,19 +17,12 @@ export const trainingActions = {
   /** upsertStudentMetricOverride: Personalización JIT de ejercicios para un alumno. */
   upsertStudentMetricOverride: defineAction({ 
     accept: "json", 
-    input: z.object({ 
-      alumno_id: z.string().uuid(), 
-      ejercicio_plan_id: z.string().uuid(), 
-      series: z.number().int().optional(), 
-      reps_target: z.string().optional(), 
-      descanso_seg: z.number().int().optional(), 
-      peso_target: z.string().optional(),
-      semana_numero: z.number().int().default(1)
-    }), 
+    input: upsertStudentMetricOverrideSchema, 
     handler: async (input, context) => { 
+      const copy = trainingCopy.actions;
       const supabase = createSupabaseServerClient(context); 
       const user = context.locals.user; 
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" }); 
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized }); 
 
       const { data, error } = await (supabase
         .from("ejercicio_plan_personalizado") as any)
@@ -47,15 +46,12 @@ export const trainingActions = {
   /** getExerciseHistory: Auditoría de carga para un ejercicio y alumno específico. */
   getExerciseHistory: defineAction({
     accept: "json",
-    input: z.object({
-      alumno_id: z.string().uuid(),
-      ejercicio_id: z.string().uuid(),
-      limit: z.number().int().default(3)
-    }),
+    input: getExerciseHistorySchema,
     handler: async (input, context) => {
+      const copy = trainingCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data, error } = await supabase
         .from("ejercicio_logs")
@@ -65,7 +61,7 @@ export const trainingActions = {
         .order("created_at", { ascending: false })
         .limit(input.limit);
 
-      if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: copy.error.loadHistoryError });
 
       const filteredData = (data || []).filter((log: any) => (log.sesion as any)?.alumno_id === input.alumno_id);
 
@@ -84,15 +80,12 @@ export const trainingActions = {
   /** copyMetricsToNextWeek: Clonación masiva de mejoras (RPC-based). */
   copyMetricsToNextWeek: defineAction({
     accept: "json",
-    input: z.object({
-      alumno_id: z.string().uuid(),
-      from_week: z.number().int(),
-      to_week: z.number().int()
-    }),
+    input: copyMetricsToNextWeekSchema,
     handler: async (input, context) => {
+      const copy = trainingCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data, error } = await (supabase as any).rpc('clonar_metrica_semanal', {
         p_alumno_id: input.alumno_id,
@@ -101,21 +94,22 @@ export const trainingActions = {
       });
 
       if (error || (data && data.error)) {
-        throw new ActionError({ code: "BAD_REQUEST", message: data?.error || "Error al clonar métricas." });
+        throw new ActionError({ code: "BAD_REQUEST", message: `${copy.error.cloneError}${data?.error || "Error al clonar métricas."}` });
       }
 
-      return { success: true, mensaje: `✅ Métricas clonadas a la Semana ${input.to_week}` };
+      return { success: true, mensaje: copy.success.metricsCloned.replace("{week}", input.to_week.toString()) };
     }
   }),
 
   /** getExerciseVariants: Sugerencias de sustitución inteligente basadas en parentesco. */
   getExerciseVariants: defineAction({
     accept: "json",
-    input: z.object({ exercise_id: z.string().uuid() }),
+    input: exerciseIdParamSchema,
     handler: async (input, context) => {
+      const copy = trainingCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data: current } = await (supabase
         .from("biblioteca_ejercicios") as any)
@@ -123,7 +117,7 @@ export const trainingActions = {
         .eq("id", input.exercise_id)
         .single();
 
-      if (!current) throw new ActionError({ code: "NOT_FOUND", message: "Ejercicio no encontrado" });
+      if (!current) throw new ActionError({ code: "NOT_FOUND", message: copy.error.exerciseNotFound });
 
       const query = (supabase
         .from("biblioteca_ejercicios") as any)

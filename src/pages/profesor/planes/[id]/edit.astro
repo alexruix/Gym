@@ -55,7 +55,7 @@ const [planRes, libraryRes] = await Promise.all([
       )
     `)
     .eq("id", id)
-    .eq("profesor_id", user.id)
+    .or(`profesor_id.eq.${user.id},profesor_id.is.null`)
     .single(),
   Astro.callAction(actions.profesor.getExerciseLibrary, {})
 ]);

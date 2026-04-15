@@ -20,19 +20,23 @@ export interface MasterPlanRoutine {
 }
 
 export interface MasterPlanTemplate {
+  id_maestro: string; // ID único para tracking de sincronización (slug/technical name)
   nombre: string;
   descripcion: string;
   duracion_semanas: number;
   frecuencia_semanal: number;
   rutinas: MasterPlanRoutine[];
+  rotaciones?: any[]; // Requerido por el esquema de planes
 }
 
 export const masterPlans: MasterPlanTemplate[] = [
   {
+    id_maestro: "plan-3-dias-mujer-tonificacion",
     nombre: "Plan de entrenamiento 3 días Mujer",
     descripcion: "Rutina de 3 días por semana diseñada para tonificar y fortalecer glúteos, piernas y tren superior.",
     duracion_semanas: 4,
     frecuencia_semanal: 3,
+    rotaciones: [],
     rutinas: [
       {
         dia_numero: 1,
@@ -74,3 +78,4 @@ export const masterPlans: MasterPlanTemplate[] = [
     ]
   }
 ];
+

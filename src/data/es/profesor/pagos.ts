@@ -43,4 +43,12 @@ export const pagosCopy = {
     errorRegistering: "Hubo un error al registrar el cobro",
     connectionError: "Error de conexión",
   },
+  actions: {
+    error: {
+      unauthorized: "No autorizado",
+      load_failed: "Error cargando finanzas",
+      general: "Error al procesar el cobro.",
+      planNotFound: "Plan no encontrado"
+    }
+  }
 };

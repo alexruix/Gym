@@ -1,5 +1,4 @@
 import * as React from "react";
-import * as XLSX from "xlsx";
 import {
   Upload,
   FileSpreadsheet,
@@ -59,8 +58,9 @@ export function ImportPlansModal({ isOpen, onOpenChange, onSuccess }: ImportPlan
     setProcessing(true);
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
+        const XLSX = await import("xlsx");
         const bstr = evt.target?.result;
         const wb = XLSX.read(bstr, { type: "binary" });
         const wsname = wb.SheetNames[0];

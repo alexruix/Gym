@@ -1,6 +1,7 @@
-import { z } from "zod";
 import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import { idParamSchema, alumnoIdParamSchema } from "@/lib/validators/profesor";
+import { alumnosListCopy } from "@/data/es/profesor/alumnos";
 import type { DashboardData } from "@/types/dashboard";
 
 /**
@@ -13,9 +14,10 @@ export const dashboardActions = {
   getDashboardData: defineAction({
     accept: "json",
     handler: async (_, context): Promise<DashboardData> => {
+      const copy = alumnosListCopy.management.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data, error } = await (supabase as any).rpc('get_professor_dashboard_stats', { 
         p_profesor_id: user.id 
@@ -37,32 +39,32 @@ export const dashboardActions = {
     handler: async (_, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: alumnosListCopy.management.actions.error.unauthorized });
 
       const { data, error } = await supabase
         .from("notificaciones")
-        .select("id, tipo, mensaje, leido, created_at, alumno_id, referencia_id")
+        .select("id, tipo, mensaje, leida, created_at, alumno_id, referencia_id")
         .eq("profesor_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
 
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: "Error al obtener notificaciones" });
-      return (data || []).map((n: any) => ({ ...n, leido: !!n.leido }));
+      return (data || []).map((n: any) => ({ ...n, leido: !!n.leida }));
     },
   }),
 
   /** markNotificationAsRead: Marca una alerta específica como vista. */
   markNotificationAsRead: defineAction({
     accept: "json",
-    input: z.object({ id: z.string().uuid() }),
+    input: idParamSchema,
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: alumnosListCopy.management.actions.error.unauthorized });
 
       const { error } = await (supabase as any)
         .from("notificaciones")
-        .update({ leido: true })
+        .update({ leida: true })
         .eq("id", input.id)
         .eq("profesor_id", user.id);
 
@@ -77,13 +79,13 @@ export const dashboardActions = {
     handler: async (_, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: alumnosListCopy.management.actions.error.unauthorized });
 
       const { error } = await (supabase as any)
         .from("notificaciones")
-        .update({ leido: true })
+        .update({ leida: true })
         .eq("profesor_id", user.id)
-        .eq("leido", false);
+        .eq("leida", false);
 
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: "Error al limpiar notificaciones" });
       return { success: true };
@@ -93,7 +95,7 @@ export const dashboardActions = {
   /** getStudentSessionProgress: Monitoreo en tiempo real de la sesión de un alumno. */
   getStudentSessionProgress: defineAction({
     accept: "json",
-    input: z.object({ alumno_id: z.string().uuid() }),
+    input: alumnoIdParamSchema,
     handler: async (input, context) => {
         const supabase = createSupabaseServerClient(context);
         const today = new Date().toISOString().split('T')[0];

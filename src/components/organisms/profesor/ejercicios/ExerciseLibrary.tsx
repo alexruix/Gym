@@ -318,57 +318,64 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
       </div>
 
       {/* 2. Content */}
-      {(isPending || (isLoading && gridList.length === 0)) ? (
+      {(isLoading && gridList.length === 0) ? (
         <ExerciseLibrarySkeleton />
-      ) : (gridList.length === 0 && allFiltered.length === 0) ? (
-        <div className="py-32 flex flex-col items-center justify-center text-center space-y-4 animate-in zoom-in-95 duration-500">
-          <div className="p-8 bg-zinc-50 dark:bg-zinc-900 rounded-[3rem] border-2 border-dashed border-zinc-100 dark:border-zinc-800">
-            <Dumbbell className="w-16 h-16 text-zinc-200 dark:text-zinc-800" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-xl font-bold text-zinc-400 uppercase tracking-widest">{copy.list.noResults}</h3>
-            <p className="text-sm text-zinc-500 font-medium tracking-tight">Probá con otros términos o ajustá los filtros.</p>
-          </div>
-        </div>
-      ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 pb-32">
-          {displayParents.map((parent) => (
-            <div key={parent.id} className="space-y-4 group">
-              <ExerciseCard
-                exercise={parent}
-                onDelete={deleteFlow.setItemToDelete}
-                onToggleFavorite={toggleFavorite}
-                onDuplicate={duplicateExercise}
-                expanded={expandedParents.has(parent.id)}
-                onToggleExpand={() => toggleParent(parent.id)}
-              />
-
-              {/* Variants Dropdown */}
-              {expandedParents.has(parent.id) && variantsMap[parent.id] && (
-                <div className="pl-6 md:pl-10 space-y-4 border-l-2 border-lime-500/20 animate-in slide-in-from-top-4 duration-500">
-                  {variantsMap[parent.id].map(variant => (
-                    <ExerciseCard
-                      key={variant.id}
-                      exercise={variant}
-                      onDelete={deleteFlow.setItemToDelete}
-                      onToggleFavorite={toggleFavorite}
-                      onDuplicate={duplicateExercise}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
       ) : (
-        <div className="pb-32 animate-in slide-in-from-bottom-4 duration-500">
-          <StandardTable
-            data={allFiltered}
-            columns={columns}
-            entityName="Ejercicios"
-            hideSearch={true}
-            responsiveMode="scroll"
-          />
+        <div className={cn(
+          "transition-all duration-300",
+          isPending ? "opacity-30 blur-[1px] pointer-events-none scale-[0.995]" : "opacity-100 blur-0 scale-100"
+        )}>
+          {(gridList.length === 0 && allFiltered.length === 0) ? (
+            <div className="py-32 flex flex-col items-center justify-center text-center space-y-4 animate-in zoom-in-95 duration-500">
+              <div className="p-8 bg-zinc-50 dark:bg-zinc-900 rounded-[3rem] border-2 border-dashed border-zinc-100 dark:border-zinc-800">
+                <Dumbbell className="w-16 h-16 text-zinc-200 dark:text-zinc-800" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold text-zinc-400 uppercase tracking-widest">{copy.list.noResults}</h3>
+                <p className="text-sm text-zinc-500 font-medium tracking-tight">Probá con otros términos o ajustá los filtros.</p>
+              </div>
+            </div>
+          ) : viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 pb-32">
+              {displayParents.map((parent) => (
+                <div key={parent.id} className="space-y-4 group">
+                  <ExerciseCard
+                    exercise={parent}
+                    onDelete={deleteFlow.setItemToDelete}
+                    onToggleFavorite={toggleFavorite}
+                    onDuplicate={duplicateExercise}
+                    expanded={expandedParents.has(parent.id)}
+                    onToggleExpand={() => toggleParent(parent.id)}
+                  />
+
+                  {/* Variants Dropdown */}
+                  {expandedParents.has(parent.id) && variantsMap[parent.id] && (
+                    <div className="pl-6 md:pl-10 space-y-4 border-l-2 border-lime-500/20 animate-in slide-in-from-top-4 duration-500">
+                      {variantsMap[parent.id].map(variant => (
+                        <ExerciseCard
+                          key={variant.id}
+                          exercise={variant}
+                          onDelete={deleteFlow.setItemToDelete}
+                          onToggleFavorite={toggleFavorite}
+                          onDuplicate={duplicateExercise}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="pb-32 animate-in slide-in-from-bottom-4 duration-500">
+              <StandardTable
+                data={allFiltered}
+                columns={columns}
+                entityName="Ejercicios"
+                hideSearch={true}
+                responsiveMode="scroll"
+              />
+            </div>
+          )}
         </div>
       )}
 

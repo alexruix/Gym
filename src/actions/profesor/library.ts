@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
-import { supabaseAdmin } from "@/lib/supabase-admin";
-import { exerciseLibrarySchema } from "@/lib/validators";
+import { exerciseLibrarySchema, importExercisesSchema, toggleFavoriteSchema } from "@/lib/validators/profesor";
 import { baseExercises } from "@/data/es/profesor/biblioteca-base";
+import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 let hasSynced = false;
 
@@ -26,24 +27,59 @@ export const libraryActions = {
   getExerciseLibrary: defineAction({
     accept: "json",
     handler: async (_, context) => {
+      const copy = exerciseLibraryCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       // Silent Sync Logic (Abstracted for modularity)
       const runSync = async () => {
-        const { data: systemItems } = await supabaseAdmin.from("biblioteca_ejercicios").select("*").is("profesor_id", null);
+        // Obtenemos ejercicios del sistema (Globales)
+        const { data: systemItems } = await supabase.from("biblioteca_ejercicios").select("id, nombre").is("profesor_id", null);
         const dbMap = new Map((systemItems || []).map((item: any) => [normalizeStr(item.nombre), item]));
 
-        let needsSync = false;
-        for (const ex of (baseExercises as any[])) {
-          const dbEx = dbMap.get(normalizeStr(ex.nombre));
-          if (!dbEx) { needsSync = true; break; }
-        }
+        const missingExercises = baseExercises.filter(ex => !dbMap.get(normalizeStr(ex.nombre)));
 
-        if (needsSync) {
-           // Basic seeding if needed - In a real scenario, this would be a more complex merge
-           console.log("[Library Sync] Sincronización requerida detectada.");
+        if (missingExercises.length > 0) {
+          console.log(`[Library Sync] Insertando ${missingExercises.length} ejercicios maestros.`);
+          
+          for (const ex of missingExercises) {
+            // 1. Insertar Ejercicio Base
+            const { data: insertedBase, error: baseErr } = await (supabaseAdmin as any)
+              .from("biblioteca_ejercicios")
+              .insert({
+                nombre: ex.nombre,
+                descripcion: ex.descripcion,
+                media_url: ex.media_url,
+                video_url: ex.video_url,
+                tags: ex.tags,
+                is_template_base: true,
+                profesor_id: null // Global
+              })
+              .select("id")
+              .single();
+
+            if (baseErr) {
+              console.error(`[Library Sync] Error al insertar base ${ex.nombre}:`, baseErr.message);
+              continue;
+            }
+
+            // 2. Insertar Variantes vinculadas
+            if (ex.variants && ex.variants.length > 0) {
+              const variantsToInsert = ex.variants.map(v => ({
+                nombre: v.nombre,
+                descripcion: v.descripcion,
+                media_url: v.media_url,
+                video_url: v.video_url,
+                parent_id: insertedBase.id,
+                is_template_base: false,
+                profesor_id: null
+              }));
+
+              await (supabaseAdmin as any).from("biblioteca_ejercicios").insert(variantsToInsert);
+            }
+          }
+          console.log("[Library Sync] Sincronización completada con éxito.");
         }
       };
 
@@ -58,7 +94,7 @@ export const libraryActions = {
         .or(`profesor_id.eq.${user.id},profesor_id.is.null`)
         .order("nombre", { ascending: true });
 
-      if (error) throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: "Error al cargar biblioteca" });
+      if (error) throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: copy.error.load_failed });
 
       return (data || []).filter((item: any) => item.profesor_id !== null || validBaseNames.has(normalizeStr(item.nombre)));
     },
@@ -71,7 +107,7 @@ export const libraryActions = {
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: exerciseLibraryCopy.actions.error.unauthorized });
 
       const { data: exercise, error } = await (supabase as any)
         .from("biblioteca_ejercicios")
@@ -95,16 +131,11 @@ export const libraryActions = {
   /** importExercises: Carga masiva desde CSV/JSON. */
   importExercises: defineAction({
     accept: "json",
-    input: z.array(z.object({
-      nombre: z.string().min(1),
-      descripcion: z.string().optional().nullable(),
-      media_url: z.string().optional().nullable(),
-      tags: z.array(z.string()).optional().default([]),
-    })),
+    input: importExercisesSchema,
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: exerciseLibraryCopy.actions.error.unauthorized });
 
       const items = input.map(item => ({
         profesor_id: user.id,
@@ -122,11 +153,11 @@ export const libraryActions = {
 
   toggleFavorite: defineAction({
     accept: "json",
-    input: z.object({ id: z.string().uuid(), isFavorite: z.boolean() }),
+    input: toggleFavoriteSchema,
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: exerciseLibraryCopy.actions.error.unauthorized });
 
       const { error } = await (supabase as any)
         .from("biblioteca_ejercicios")
@@ -134,7 +165,7 @@ export const libraryActions = {
         .eq("id", input.id)
         .or(`profesor_id.eq.${user.id},profesor_id.is.null`);
 
-      if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `${exerciseLibraryCopy.actions.error.general}${error.message}` });
       return { success: true };
     },
   }),

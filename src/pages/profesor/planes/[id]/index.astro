@@ -59,13 +59,13 @@ const [planRes, libraryRes] = await Promise.all([
       )
     `)
     .eq("id", id)
-    .eq("profesor_id", user.id)
+    .or(`profesor_id.eq.${user.id},profesor_id.is.null`)
     .single(),
   
   supabase
     .from("biblioteca_ejercicios")
     .select("id, nombre, media_url, parent_id, is_template_base, tags")
-    .eq("profesor_id", user.id)
+    .or(`profesor_id.eq.${user.id},profesor_id.is.null`)
     .order("nombre", { ascending: true })
 ]);
 

@@ -53,6 +53,13 @@ export const exerciseLibraryCopy = {
     success: "✅ {count} ejercicios importados exitosamente",
     error: "❌ Error al procesar el archivo. Verificá el formato.",
     empty: "No se encontraron datos válidos en el archivo.",
+  },
+  actions: {
+    error: {
+      unauthorized: "No autorizado",
+      load_failed: "Error al cargar biblioteca",
+      general: "Hubo un error: "
+    }
   }
 } as const;
 
@@ -105,6 +112,20 @@ export const addElementCopy = {
     block: {
       title: "Bloque",
       description: "Secuencias de ejercicios que se realizan en orden (Superseries, circuitos).",
+    }
+  }
+} as const;
+
+export const trainingCopy = {
+  actions: {
+    success: {
+      metricsCloned: "✅ Métricas clonadas a la Semana {week}",
+    },
+    error: {
+      unauthorized: "No autorizado",
+      loadHistoryError: "Error al obtener historial",
+      cloneError: "Error al clonar métricas: ",
+      exerciseNotFound: "Ejercicio no encontrado"
     }
   }
 } as const;

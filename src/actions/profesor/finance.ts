@@ -1,11 +1,13 @@
-import { z } from "zod";
 import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { 
   subscriptionSchema, 
   linkSubscriptionSchema, 
-  updateMassivePricesSchema 
-} from "@/lib/validators";
+  updateMassivePricesSchema,
+  registrarCobroSchema,
+  idParamSchema
+} from "@/lib/validators/profesor";
+import { pagosCopy } from "@/data/es/profesor/pagos";
 
 /**
  * Profesor: Finance Actions
@@ -16,15 +18,12 @@ export const financeActions = {
   /** registrarCobro: Transacción atómica de pago (RPC-based). */
   registrarCobro: defineAction({
     accept: "json",
-    input: z.object({
-      pago_id: z.string(),
-      alumno_id: z.string().uuid(),
-      monto_cobrado: z.number().optional()
-    }),
+    input: registrarCobroSchema,
     handler: async (input, context) => {
+      const copy = pagosCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       let finalMonto = input.monto_cobrado;
       if (finalMonto === undefined) {
@@ -40,12 +39,12 @@ export const financeActions = {
       });
 
       if (error) {
-        throw new ActionError({ code: "BAD_REQUEST", message: "Error al procesar el cobro." });
+        throw new ActionError({ code: "BAD_REQUEST", message: copy.error.general });
       }
 
       const pagoData = data as any;
       if (!pagoData?.success) {
-        throw new ActionError({ code: "BAD_REQUEST", message: pagoData?.mensaje || "Error al procesar el cobro." });
+        throw new ActionError({ code: "BAD_REQUEST", message: pagoData?.mensaje || copy.error.general });
       }
 
       return { success: true, mensaje: pagoData.mensaje };
@@ -56,9 +55,10 @@ export const financeActions = {
   getPaymentsData: defineAction({
     accept: "json",
     handler: async (_, context) => {
+      const copy = pagosCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const [alumnosRes, subsRes] = await Promise.all([
         supabase
@@ -77,7 +77,7 @@ export const financeActions = {
           .order("cantidad_dias", { ascending: true })
       ]);
 
-      if (alumnosRes.error) throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: "Error cargando finanzas" });
+      if (alumnosRes.error) throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: copy.error.load_failed });
 
       // Argentina Time Context
       const now = new Date();
@@ -145,9 +145,10 @@ export const financeActions = {
     accept: "json",
     input: subscriptionSchema,
     handler: async (input, context) => {
+      const copy = pagosCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data, error } = await (supabase as any)
         .from("suscripciones")
@@ -164,9 +165,10 @@ export const financeActions = {
     accept: "json",
     input: subscriptionSchema.pick({ id: true }),
     handler: async (input, context) => {
+      const copy = pagosCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user || !input.id) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user || !input.id) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       // Blindaje de montos
       await (supabase as any).from("alumnos").update({ monto_personalizado: true }).eq("suscripcion_id", input.id).eq("profesor_id", user.id);
@@ -182,9 +184,10 @@ export const financeActions = {
     accept: "json",
     input: linkSubscriptionSchema,
     handler: async (input, context) => {
+      const copy = pagosCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const updateData: any = { suscripcion_id: input.suscripcion_id, monto_personalizado: input.monto_personalizado };
 
@@ -206,12 +209,13 @@ export const financeActions = {
     accept: "json",
     input: updateMassivePricesSchema,
     handler: async (input, context) => {
+      const copy = pagosCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data: sub } = await (supabase as any).from("suscripciones").select("cantidad_dias, nombre").eq("id", input.suscripcion_id).eq("profesor_id", user.id).single();
-      if (!sub) throw new ActionError({ code: "NOT_FOUND", message: "Plan no encontrado" });
+      if (!sub) throw new ActionError({ code: "NOT_FOUND", message: copy.error.planNotFound });
 
       const nombreFinal = input.nuevo_nombre?.trim() || ((sub as any).cantidad_dias === 0 ? "Pase Libre" : `Plan ${(sub as any).cantidad_dias} días`);
 
@@ -229,16 +233,17 @@ export const financeActions = {
   /** registrarNotificacion: Actualiza el timestamp del último recordatorio de pago. */
   registrarNotificacion: defineAction({
     accept: "json",
-    input: z.object({ alumno_id: z.string().uuid() }),
+    input: idParamSchema,
     handler: async (input, context) => {
+      const copy = pagosCopy.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { error } = await (supabase as any)
         .from("alumnos")
         .update({ ultimo_recordatorio_pago_at: new Date().toISOString() })
-        .eq("id", input.alumno_id)
+        .eq("id", input.id)
         .eq("profesor_id", user.id);
 
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });

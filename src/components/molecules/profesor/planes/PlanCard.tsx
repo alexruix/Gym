@@ -127,7 +127,7 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
                             </h3>
                             {plan.isMaster && (
                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-black bg-lime-500 text-black uppercase tracking-widest animate-pulse">
-                                    Master
+                                    MiGym
                                 </span>
                             )}
                             <div className="hidden md:block">

@@ -234,3 +234,78 @@ export const updateMassivePricesSchema = z.object({
   nuevo_monto: z.number().min(0),
   nuevo_nombre: z.string().min(2).optional(),
 });
+
+export const completeOnboardingSchema = z.object({
+  publicName: z.string().min(2, "Mínimo 2 caracteres"),
+});
+
+export const importExercisesSchema = z.array(z.object({
+  nombre: z.string().min(1),
+  descripcion: z.string().optional().nullable(),
+  media_url: z.string().optional().nullable(),
+  tags: z.array(z.string()).optional().default([]),
+}));
+
+export const toggleFavoriteSchema = z.object({
+  id: z.string().uuid(),
+  isFavorite: z.boolean(),
+});
+
+export const idParamSchema = z.object({ id: z.string().uuid() });
+export const alumnoIdParamSchema = z.object({ alumno_id: z.string().uuid() });
+
+export const assignPlanToStudentsSchema = z.object({
+  plan_id: z.string().uuid(),
+  student_ids: z.array(z.string().uuid()),
+});
+
+export const updatePlanSchema = planSchema.extend({ id: z.string().uuid() });
+export const forkPlanSchema = z.object({
+  planId: z.string().uuid(),
+  alumnoId: z.string().uuid(),
+  nombre: z.string().min(2),
+});
+
+export const upsertStudentMetricOverrideSchema = z.object({ 
+  alumno_id: z.string().uuid(), 
+  ejercicio_plan_id: z.string().uuid(), 
+  series: z.number().int().optional(), 
+  reps_target: z.string().optional(), 
+  descanso_seg: z.number().int().optional(), 
+  peso_target: z.string().optional(),
+  semana_numero: z.number().int().default(1)
+});
+
+export const getExerciseHistorySchema = z.object({
+  alumno_id: z.string().uuid(),
+  ejercicio_id: z.string().uuid(),
+  limit: z.number().int().default(3)
+});
+
+export const copyMetricsToNextWeekSchema = z.object({
+  alumno_id: z.string().uuid(),
+  from_week: z.number().int(),
+  to_week: z.number().int()
+});
+
+export const exerciseIdParamSchema = z.object({ exercise_id: z.string().uuid() });
+
+export const registrarCobroSchema = z.object({
+  pago_id: z.string(),
+  alumno_id: z.string().uuid(),
+  monto_cobrado: z.number().optional()
+});
+
+export type CompleteOnboardingData = z.infer<typeof completeOnboardingSchema>;
+export type ImportExercisesData = z.infer<typeof importExercisesSchema>;
+export type ToggleFavoriteData = z.infer<typeof toggleFavoriteSchema>;
+export type IdParamData = z.infer<typeof idParamSchema>;
+export type AlumnoIdParamData = z.infer<typeof alumnoIdParamSchema>;
+export type AssignPlanToStudentsData = z.infer<typeof assignPlanToStudentsSchema>;
+export type UpdatePlanData = z.infer<typeof updatePlanSchema>;
+export type ForkPlanData = z.infer<typeof forkPlanSchema>;
+export type UpsertStudentMetricOverrideData = z.infer<typeof upsertStudentMetricOverrideSchema>;
+export type GetExerciseHistoryData = z.infer<typeof getExerciseHistorySchema>;
+export type CopyMetricsToNextWeekData = z.infer<typeof copyMetricsToNextWeekSchema>;
+export type ExerciseIdParamData = z.infer<typeof exerciseIdParamSchema>;
+export type RegistrarCobroData = z.infer<typeof registrarCobroSchema>;

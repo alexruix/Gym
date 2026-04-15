@@ -113,6 +113,20 @@ export const alumnosListCopy = {
         phone: "WhatsApp"
       }
     }
+  },
+  management: {
+    actions: {
+      success: {
+        organized: "Alumnos organizados correctamente.",
+        planAssigned: "Plan asignado correctamente.",
+      },
+      error: {
+        unauthorized: "No autorizado",
+        studentNotFound: "Alumno no encontrado",
+        createError: "Error al crear alumno",
+        general: "Error: "
+      }
+    }
   }
 } as const;
 

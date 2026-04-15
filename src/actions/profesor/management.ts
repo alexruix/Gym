@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { defineAction, ActionError } from "astro:actions";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { 
@@ -6,8 +5,11 @@ import {
   updateStudentSchema, 
   inviteStudentSchema, 
   turnoSchema, 
-  bulkAssignSchema 
-} from "@/lib/validators";
+  bulkAssignSchema,
+  idParamSchema,
+  assignPlanToStudentsSchema
+} from "@/lib/validators/profesor";
+import { alumnosListCopy } from "@/data/es/profesor/alumnos";
 
 /**
  * Profesor: Management Actions
@@ -19,9 +21,10 @@ export const managementActions = {
   getProfessorStudentsWithPlans: defineAction({
     accept: "json",
     handler: async (_, context) => {
+      const copy = alumnosListCopy.management.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data, error } = await supabase
         .from("alumnos")
@@ -50,9 +53,10 @@ export const managementActions = {
     accept: "json",
     input: updateStudentSchema,
     handler: async (input, context) => {
+      const copy = alumnosListCopy.management.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const updateData: any = { ...input };
       if (input.email) updateData.email = input.email.toLowerCase().trim();
@@ -68,7 +72,7 @@ export const managementActions = {
         .eq("profesor_id", user.id)
         .select().single();
 
-      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `Error: ${error.message}` });
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: `${copy.error.general}${error.message}` });
       return { success: true, student };
     },
   }),
@@ -76,11 +80,12 @@ export const managementActions = {
   /** deleteStudent: Maneja el borrado físico o archivado (Soft Delete). */
   deleteStudent: defineAction({
     accept: "json",
-    input: z.object({ id: z.string().uuid() }),
+    input: idParamSchema,
     handler: async (input, context) => {
+      const copy = alumnosListCopy.management.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data: student } = await supabase
         .from("alumnos")
@@ -88,7 +93,7 @@ export const managementActions = {
         .eq("id", input.id)
         .eq("profesor_id", user.id).single();
 
-      if (!student) throw new ActionError({ code: "NOT_FOUND", message: "Alumno no encontrado" });
+      if (!student) throw new ActionError({ code: "NOT_FOUND", message: copy.error.studentNotFound });
 
       if (!(student as any).plan_id) {
         await (supabase as any).from("alumnos").delete().eq("id", input.id);
@@ -106,11 +111,12 @@ export const managementActions = {
   /** getStudentGuestLink: Genera el Magic Link (Modo Barrio) para acceso sin login. */
   getStudentGuestLink: defineAction({
     accept: "json",
-    input: z.object({ id: z.string().uuid() }),
+    input: idParamSchema,
     handler: async (input, context) => {
+      const copy = alumnosListCopy.management.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { data: student } = await supabase
         .from("alumnos")
@@ -118,7 +124,7 @@ export const managementActions = {
         .eq("id", input.id)
         .eq("profesor_id", user.id).single();
 
-      if (!student) throw new ActionError({ code: "NOT_FOUND", message: "Alumno no encontrado" });
+      if (!student) throw new ActionError({ code: "NOT_FOUND", message: copy.error.studentNotFound });
 
       let token = (student as any).access_token;
       if (!token) {
@@ -135,9 +141,10 @@ export const managementActions = {
     accept: "json",
     input: inviteStudentSchema,
     handler: async (input, context) => {
+      const copy = alumnosListCopy.management.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const dbDate = input.fecha_inicio.toISOString().split('T')[0];
       const { data: student, error } = await (supabase as any)
@@ -159,7 +166,7 @@ export const managementActions = {
         .select().single();
 
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
-      if (!student) throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: "Error al crear alumno" });
+      if (!student) throw new ActionError({ code: "INTERNAL_SERVER_ERROR", message: copy.error.createError });
       return { success: true, student_id: (student as any).id };
     },
   }),
@@ -170,7 +177,7 @@ export const managementActions = {
     handler: async (_, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: alumnosListCopy.management.actions.error.unauthorized });
 
       const { data, error } = await supabase
         .from("turnos")
@@ -190,7 +197,7 @@ export const managementActions = {
     handler: async (input, context) => {
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: alumnosListCopy.management.actions.error.unauthorized });
 
       const dataToUpsert = {
         profesor_id: user.id,
@@ -216,9 +223,10 @@ export const managementActions = {
     accept: "json",
     input: bulkAssignSchema,
     handler: async (input, context) => {
+      const copy = alumnosListCopy.management.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { error } = await (supabase as any)
         .from("alumnos")
@@ -230,21 +238,19 @@ export const managementActions = {
         .eq("profesor_id", user.id);
 
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
-      return { success: true, mensaje: "Alumnos organizados correctamente." };
+      return { success: true, mensaje: copy.success.organized };
     },
   }),
 
   /** assignPlanToStudents: Vinculación masiva de plan a alumnos. */
   assignPlanToStudents: defineAction({
     accept: "json",
-    input: z.object({
-        plan_id: z.string().uuid(),
-        student_ids: z.array(z.string().uuid())
-    }),
+    input: assignPlanToStudentsSchema,
     handler: async (input, context) => {
+      const copy = alumnosListCopy.management.actions;
       const supabase = createSupabaseServerClient(context);
       const user = context.locals.user;
-      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: copy.error.unauthorized });
 
       const { error } = await (supabase as any)
         .from("alumnos")
@@ -253,7 +259,7 @@ export const managementActions = {
         .eq("profesor_id", user.id);
 
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
-      return { success: true, mensaje: "Plan asignado correctamente." };
+      return { success: true, mensaje: copy.success.planAssigned };
     }
   }),
 };
