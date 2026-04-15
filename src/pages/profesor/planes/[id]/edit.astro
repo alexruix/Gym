@@ -4,7 +4,6 @@ import { PlanForm } from '@/components/organisms/profesor/planes/PlanForm.tsx';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import CreationHeader from "@/components/molecules/profesor/CreationHeader.astro";
 import FormContainer from "@/components/molecules/profesor/FormContainer.astro";
-import { planesCopy } from "@/data/es/profesor/planes";
 
 const { id } = Astro.params;
 const supabase = createSupabaseServerClient(Astro);
@@ -60,11 +59,10 @@ const [planRes, libraryRes] = await Promise.all([
   Astro.callAction(actions.profesor.getExerciseLibrary, {})
 ]);
 
-if (planRes.error || !planRes.data) {
+const planData = (planRes as any).data;
+if (planRes.error || !planData) {
   return Astro.redirect("/profesor/planes?error=not-found");
 }
-
-const planData = planRes.data as any;
 const exercises = libraryRes.data || [];
 
 // 4. Map DB data to Form Schema and Ensure 365 days with sanitization

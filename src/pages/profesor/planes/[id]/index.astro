@@ -2,7 +2,6 @@
 import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
 import { PlanDetail } from '@/components/organisms/profesor/planes/PlanDetail.tsx';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
-import { planesCopy } from "@/data/es/profesor/planes";
 
 const { id } = Astro.params;
 const supabase = createSupabaseServerClient(Astro);
@@ -82,7 +81,6 @@ const sortedRutinas = (plan.rutinas_diarias || [])
     ejercicios_plan: (r.ejercicios_plan || []).sort((a: any, b: any) => a.orden - b.orden),
   }));
 
-const c = planesCopy.detail;
 ---
 
 <ProfesorLayout title={`${plan.nombre} | MiGym`}>

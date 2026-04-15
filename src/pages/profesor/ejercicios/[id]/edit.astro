@@ -1,7 +1,6 @@
 ---
 import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import { ExerciseForm } from "@/components/molecules/profesor/ejercicios/ExerciseForm";
-import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import CreationHeader from "@/components/molecules/profesor/CreationHeader.astro";
 import FormContainer from "@/components/molecules/profesor/FormContainer.astro";
@@ -26,12 +25,11 @@ const [exerciseRes, libraryRes] = await Promise.all([
   Astro.callAction(actions.profesor.getExerciseLibrary, {})
 ]);
 
-if (exerciseRes.error || !exerciseRes.data) {
+const exerciseData = (exerciseRes as any).data;
+if (exerciseRes.error || !exerciseData) {
   console.error("Ejercicio no encontrado:", exerciseRes.error);
   return Astro.redirect("/profesor/ejercicios");
 }
-
-const exerciseData = exerciseRes.data as any;
 const library = (libraryRes.data || []) as any[];
 
 // 3. Procesar datos de la biblioteca

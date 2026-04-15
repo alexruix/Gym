@@ -5,37 +5,37 @@ import { Button } from "@/components/ui/button";
 ---
 
 <Layout title="Sin Conexión | MiGym">
-  <main className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
+  <main class="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
     
     {/* Industrial Shell */}
-    <div className="relative group mb-12">
-      <div className="absolute -inset-8 bg-lime-500/20 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
-      <div className="relative w-32 h-32 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex items-center justify-center shadow-2xl overflow-hidden">
-        <WifiOff className="w-12 h-12 text-zinc-500" strokeWidth={1.5} />
+    <div class="relative group mb-12">
+      <div class="absolute -inset-8 bg-lime-500/20 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
+      <div class="relative w-32 h-32 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex items-center justify-center shadow-2xl overflow-hidden">
+        <WifiOff className="w-12 h-12 text-zinc-500" />
         {/* Decorative Grid Line */}
-        <div className="absolute inset-0 grid grid-cols-4 opacity-10 pointer-events-none">
-          <div className="border-r border-zinc-700 h-full" />
-          <div className="border-r border-zinc-700 h-full" />
-          <div className="border-r border-zinc-700 h-full" />
+        <div class="absolute inset-0 grid grid-cols-4 opacity-10 pointer-events-none">
+          <div class="border-r border-zinc-700 h-full" />
+          <div class="border-r border-zinc-700 h-full" />
+          <div class="border-r border-zinc-700 h-full" />
         </div>
       </div>
     </div>
 
-    <div className="max-w-xs space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-black text-zinc-100 uppercase tracking-tighter sm:text-3xl">
+    <div class="max-w-xs space-y-6">
+      <div class="space-y-2">
+        <h1 class="text-2xl font-black text-zinc-100 uppercase tracking-tighter sm:text-3xl">
           Sin señal
         </h1>
-        <p className="text-zinc-500 font-medium leading-relaxed">
+        <p class="text-zinc-500 font-medium leading-relaxed">
           Estás trabajando en modo local. Los cambios se sincronizarán en cuanto recuperes la conexión.
         </p>
       </div>
 
-      <div className="pt-8 flex flex-col gap-3">
+      <div class="pt-8 flex flex-col gap-3">
         <Button 
           variant="outline" 
           className="h-14 rounded-2xl border-zinc-800 bg-zinc-900 text-zinc-100 font-bold uppercase text-[10px] tracking-[0.2em] gap-3 hover:bg-zinc-800 hover:text-white transition-all shadow-xl group"
-          onClick="window.location.reload()"
+          id="retry-button"
         >
           <RefreshCw className="w-4 h-4 group-active:rotate-180 transition-transform duration-500" />
           Reintentar ahora
@@ -43,7 +43,7 @@ import { Button } from "@/components/ui/button";
         
         <a 
           href="/profesor" 
-          className="h-14 rounded-2xl bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold uppercase text-[10px] tracking-[0.2em] gap-3 hover:bg-white transition-all shadow-xl"
+          class="h-14 rounded-2xl bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold uppercase text-[10px] tracking-[0.2em] gap-3 hover:bg-white transition-all shadow-xl"
         >
           <Home className="w-4 h-4" />
           Ir al Inicio
@@ -52,8 +52,8 @@ import { Button } from "@/components/ui/button";
     </div>
 
     {/* Footer Deco */}
-    <div className="fixed bottom-12 left-0 right-0 flex justify-center opacity-20">
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">
+    <div class="fixed bottom-12 left-0 right-0 flex justify-center opacity-20">
+      <p class="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">
         MiGym Industrial System / 2026
       </p>
     </div>
@@ -65,6 +65,10 @@ import { Button } from "@/components/ui/button";
    * Auto-refresh check
    */
   window.addEventListener('online', () => {
+    window.location.reload();
+  });
+
+  document.getElementById('retry-button')?.addEventListener('click', () => {
     window.location.reload();
   });
 </script>

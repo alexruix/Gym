@@ -1,4 +1,3 @@
-import type { PlanFormData } from "@/lib/validators";
 
 export interface ResolvedExercise {
   ejercicio_id: string;

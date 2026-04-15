@@ -2,7 +2,6 @@
 import ProfesorLayout from "@/layouts/ProfesorLayout.astro";
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import { ProfileSection } from "@/components/organisms/profesor/ProfileSection";
-import { PublicProfileSection } from "@/components/organisms/profesor/PublicProfileSection";
 import { NotificationsSection } from "@/components/organisms/profesor/NotificationsSection";
 import { SecuritySection } from "@/components/organisms/profesor/SecuritySection";
 import { configurationCopy } from "@/data/es/profesor/configuracion";
@@ -108,7 +107,7 @@ const safeProfesor = {
 
           <section id="seguridad" class="scroll-m-8">
             <SecuritySection
-              client:load
+              client:visible
               lastPasswordUpdate={lastPasswordUpdate}
             />
             <!-- <PublicProfileSection profesor={safeProfesor} client:load /> -->
@@ -121,7 +120,7 @@ const safeProfesor = {
           <div class="h-[1px] w-full bg-border"></div>
 
           <section id="notificaciones" class="scroll-m-8">
-            <NotificationsSection profesor={safeProfesor} client:load />
+            <NotificationsSection profesor={safeProfesor} client:visible />
           </section>
 
           <!-- <div class="h-[1px] w-full bg-border"></div> -->

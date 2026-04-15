@@ -1,4 +1,4 @@
-﻿---
+---
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,6 +14,7 @@ interface Props {
   variant?: "industrial" | "heavy" | "secondary" | "primary";
   class?: string;
   uppercase?: boolean;
+  ariaLabel?: string;
 }
 
 const {
@@ -21,6 +22,7 @@ const {
   variant = "industrial",
   class: className,
   uppercase = true,
+  ariaLabel,
 } = Astro.props;
 
 const baseClasses =
@@ -47,6 +49,7 @@ const textStyle = uppercase
     textStyle,
     className,
   )}
+  aria-label={ariaLabel}
 >
   <slot />
 </a>
