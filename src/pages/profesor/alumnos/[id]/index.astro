@@ -4,6 +4,7 @@ import { AthleteHeader } from '@/components/organisms/profesor/perfil/AthleteHea
 import { StudentProfileManager } from '@/components/organisms/profesor/perfil/StudentProfileManager.tsx';
 import { InconsistencyAlert } from '@/components/molecules/InconsistencyAlert';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import type { AlumnoRow, PlanRow, ExerciseLibraryItem } from "@/types/dashboard.types";
 
 const { id } = Astro.params;
 const supabase = createSupabaseServerClient(Astro);
@@ -90,11 +91,11 @@ const [alumnoRes, subRes, libraryRes, lastSessionRes] = await Promise.all([
     .maybeSingle()
 ]);
 
-const alumno = alumnoRes.data as any;
+const alumno = alumnoRes.data as unknown as AlumnoRow;
 if (alumnoRes.error || !alumno) return Astro.redirect("/profesor/alumnos?error=not-found");
 
 const allSubscriptions = (subRes.data as any[]) || [];
-const exercises = (libraryRes.data as any[]) || [];
+const exercises = (libraryRes.data as ExerciseLibraryItem[]) || [];
 const ultimaSesion = lastSessionRes.data as any;
 
 // 3. Lógica de Negocio (Inconsistencias)
@@ -140,7 +141,9 @@ const studentData = {
   perfil_completado: alumno.perfil_completado
 };
 
-const assignedPlan = (alumno.planes && Array.isArray(alumno.planes)) ? alumno.planes[0] : (alumno.planes || null);
+const assignedPlan = (alumno.planes && Array.isArray(alumno.planes)) 
+  ? (alumno.planes[0] as unknown as PlanRow) 
+  : (alumno.planes as unknown as PlanRow || null);
 const planName = assignedPlan?.nombre;
 
 const sidebarProps = {

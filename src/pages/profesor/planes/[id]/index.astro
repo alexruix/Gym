@@ -2,6 +2,7 @@
 import ProfesorLayout from '../../../../layouts/ProfesorLayout.astro';
 import { PlanDetail } from '@/components/organisms/profesor/planes/PlanDetail.tsx';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
+import type { PlanRow } from "@/types/dashboard.types";
 
 const { id } = Astro.params;
 const supabase = createSupabaseServerClient(Astro);
@@ -68,17 +69,17 @@ const [planRes, libraryRes] = await Promise.all([
     .order("nombre", { ascending: true })
 ]);
 
-const plan = planRes.data as any;
+const plan = planRes.data as unknown as PlanRow;
 if (planRes.error || !plan) return Astro.redirect("/profesor/planes?error=not-found");
 
 const exercises = libraryRes.data || [];
 
 // 3. Ordenar rutinas y ejercicios por orden
 const sortedRutinas = (plan.rutinas_diarias || [])
-  .sort((a: any, b: any) => a.dia_numero - b.dia_numero)
-  .map((r: any) => ({
+  .sort((a, b) => a.dia_numero - b.dia_numero)
+  .map((r) => ({
     ...r,
-    ejercicios_plan: (r.ejercicios_plan || []).sort((a: any, b: any) => a.orden - b.orden),
+    ejercicios_plan: (r.ejercicios_plan || []).sort((a, b) => a.orden - b.orden),
   }));
 
 ---

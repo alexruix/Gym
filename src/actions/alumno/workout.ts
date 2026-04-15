@@ -375,8 +375,4 @@ export const workoutActions = {
     }
   }),
 
-  /** Legacy / Passthrough markers */
-  logExercise: defineAction({ accept: "json", input: sessionLogSchema, handler: async () => ({ success: true }) }),
-  commentExercise: defineAction({ accept: "json", input: commentExerciseSchema, handler: async () => ({ success: true }) }),
-  completeSession: defineAction({ accept: "json", input: completeSessionSchema, handler: async () => ({ success: true }) }),
 };

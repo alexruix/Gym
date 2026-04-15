@@ -43,7 +43,7 @@ if (!alumno) {
   console.error("AlumnoLayout: Alumno no encontrado para el usuario:", user.id);
 }
 
-const profTel = (alumno?.profesores as any)?.telefono?.replace(/\D/g, "");
+const profTel = (alumno as any)?.profesores?.telefono?.replace(/\D/g, "");
 const waLink = profTel ? `https://wa.me/${profTel}` : "#";
 ---
 

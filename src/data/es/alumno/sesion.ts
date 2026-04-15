@@ -24,6 +24,7 @@ export const sesionStrings = {
     subtitle: "¿Cómo terminó tu energía hoy?",
     summaryPlaceholder: "Escribí un resumen rápido para tu entrenador...",
     finishButton: "Finalizar Sesión",
+    processFinished: "Sesión Finalizada",
     saving: "Guardando...",
   },
   voice: {

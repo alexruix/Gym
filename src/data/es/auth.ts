@@ -1,42 +1,41 @@
 export const authCopy = {
   login: {
-    title: "Acceso a MiGym",
-    subtitle: "La plataforma para profesores que quieren crecer.",
-    emailLabel: "Tu email",
-    emailPlaceholder: "ej: nicolas@crossfitur.com",
-    btnEmail: "Continuar con Email",
-    btnGoogle: "Continuar con Google",
-    divider: "o también",
+    title: "¡Hola!",
+    subtitle: "Ingresá a tu consola de gestión",
+    emailLabel: "Correo electrónico",
+    emailPlaceholder: "tu@email.com",
+    btnEmail: "Entrar con email",
+    btnGoogle: "Entrar con Google",
+    divider: "O también",
     states: {
-      loading: "Enviando...",
       success: {
-        title: "Revisá tu correo",
-        desc: "Te enviamos un enlace mágico para entrar. No hace falta contraseña.",
-        spamHint: "¿No te llega? Pegale una mirada a la carpeta de Spam.",
-        resendBtn: "Reenviar enlace",
+        title: "Revisá tu email",
+        desc: "Te enviamos un link mágico para entrar sin contraseña.",
+        spamHint: "No olvides revisar la carpeta de Spam.",
+        resendBtn: "¿No llegó? Reintentar"
       },
       error: {
-        expired: "El enlace expiró o ya fue usado. Pedí uno nuevo.",
-        rate_limit: "Demasiados intentos seguidos. Esperá unos minutos.",
-        network: "Error de red. Checkeá tu conexión e intentá de nuevo.",
-        auth_failed: "No pudimos validar tu acceso. Intentá ingresar tu email otra vez.",
-        general: "Hubo un error inesperado. Por favor, probá de nuevo.",
-        invalidEmail: "Ingresá un email válido para poder continuar."
+        invalidEmail: "Ingresá un email válido (ej: nombre@gym.com).",
+        rate_limit: "Demasiados intentos. Esperá unos minutos.",
+        network: "Problemas de conexión. Reintentá.",
+        general: "Algo salió mal. Por favor reintentá.",
+        auth_failed: "No pudimos validar tu identidad.",
+        expired: "El link expiró o ya fue usado. Pedí uno nuevo."
       }
     }
   },
   onboarding: {
-    title: "¡Hola! Bienvenido a MiGym",
-    subtitle: "Configurá tu espacio en un segundo.",
+    title: "Casi listo",
+    subtitle: "Configurá tu perfil profesional para empezar",
     step1: {
-      label: "Tu nombre o el de tu espacio",
-      placeholder: "ej: Nicolás Varela o CrossFit Ur",
-      btn: "Empezar a usar MiGym",
-      description: "Así te verán tus alumnos dentro de la app.",
+      label: "Tu nombre profesional",
+      placeholder: "Ej: Profe Alex o Gimnasio Central",
+      description: "Este nombre lo verán tus alumnos en su dashboard.",
+      btn: "Completar perfil"
     },
     states: {
-      loading: "Creando tu espacio...",
-      error: "No pudimos guardar tus datos. Reintentá en unos segundos."
+      loading: "Guardando perfil...",
+      error: "Error al guardar el perfil. Reintentá."
     }
   }
 } as const;

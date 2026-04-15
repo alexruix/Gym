@@ -20,6 +20,7 @@ import { MobileNav } from "../components/organisms/profesor/MobileNav";
 import { NotificationDropdown } from "../components/organisms/profesor/NotificationDropdown";
 import { UserAccountMenu } from "../components/organisms/profesor/UserAccountMenu";
 import { UniversalSearch } from "../components/organisms/profesor/UniversalSearch";
+import type { ProfesorRow } from "@/types/dashboard.types";
 
 interface Props {
   title: string;
@@ -37,7 +38,7 @@ const { data: profesor } = await supabase
   .from("profesores")
   .select("nombre, foto_url, slug")
   .eq("id", user.id)
-  .single();
+  .single() as { data: ProfesorRow | null };
 
 if (!profesor) {
   // Defensa secundaria: El middleware ya debería haber filtrado esto,

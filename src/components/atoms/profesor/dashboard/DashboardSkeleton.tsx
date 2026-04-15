@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/atoms/Skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 
 /**

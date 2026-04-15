@@ -4,6 +4,7 @@ import { PlanForm } from '@/components/organisms/profesor/planes/PlanForm.tsx';
 import { createSupabaseServerClient } from "@/lib/supabase-ssr";
 import CreationHeader from "@/components/molecules/profesor/CreationHeader.astro";
 import FormContainer from "@/components/molecules/profesor/FormContainer.astro";
+import type { PlanRow } from "@/types/dashboard.types";
 
 const { id } = Astro.params;
 const supabase = createSupabaseServerClient(Astro);
@@ -59,7 +60,7 @@ const [planRes, libraryRes] = await Promise.all([
   Astro.callAction(actions.profesor.getExerciseLibrary, {})
 ]);
 
-const planData = (planRes as any).data;
+const planData = (planRes.data as unknown) as PlanRow;
 if (planRes.error || !planData) {
   return Astro.redirect("/profesor/planes?error=not-found");
 }

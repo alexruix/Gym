@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-interface PlanCardProps {
+export interface PlanCardProps {
     plan: {
         id: string;
         name: string;
@@ -22,6 +22,7 @@ interface PlanCardProps {
         isMaster?: boolean;
     };
     onEdit?: (id: string) => void;
+    onView?: (id: string) => void;
     onDelete?: (plan: any) => void;
     onDuplicate?: (id: string) => void;
 }

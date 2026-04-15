@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { SearchHeader } from "@/components/molecules/SearchHeader";
 import { PlanCard, type PlanCardProps } from "@/components/molecules/profesor/planes/PlanCard";
 import { planesCopy } from "@/data/es/profesor/planes";
@@ -21,16 +21,16 @@ export function PlanList({ planes, isProfessorView = true }: PlanListProps) {
   ];
 
   const filteredPlanes = useMemo(() => {
-    let result = planes.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+    let result = planes.filter(p => p.plan.name.toLowerCase().includes(search.toLowerCase()));
 
     return result.sort((a, b) => {
-      if (sortOrder === "nombre-asc") return a.name.localeCompare(b.name);
-      if (sortOrder === "fecha-desc" && a.createdAt && b.createdAt) {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortOrder === "nombre-asc") return a.plan.name.localeCompare(b.plan.name);
+      if (sortOrder === "fecha-desc" && a.plan.createdAt && b.plan.createdAt) {
+        return new Date(b.plan.createdAt).getTime() - new Date(a.plan.createdAt).getTime();
       }
       if (sortOrder === "alumnos-desc") {
-        const countA = a.studentsCount || 0;
-        const countB = b.studentsCount || 0;
+        const countA = a.plan.studentsCount || 0;
+        const countB = b.plan.studentsCount || 0;
         return countB - countA;
       }
       return 0;
@@ -79,11 +79,10 @@ export function PlanList({ planes, isProfessorView = true }: PlanListProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          {filteredPlanes.map(plan => (
+          {filteredPlanes.map(p => (
             <PlanCard
-              key={plan.id}
-              {...plan}
-              isProfessorView={isProfessorView}
+              key={p.plan.id}
+              {...p}
               onEdit={handleEdit}
               onView={handleView}
               onDuplicate={handleDuplicate}

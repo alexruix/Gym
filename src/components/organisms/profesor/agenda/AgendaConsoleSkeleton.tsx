@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/atoms/Skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * AgendaConsoleSkeleton: Esqueleto de la vista de agenda.
