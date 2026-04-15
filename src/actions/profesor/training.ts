@@ -25,8 +25,8 @@ export const trainingActions = {
       const user = context.locals.user; 
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" }); 
 
-      const { data, error } = await supabase
-        .from("ejercicio_plan_personalizado")
+      const { data, error } = await (supabase
+        .from("ejercicio_plan_personalizado") as any)
         .upsert({ 
           alumno_id: input.alumno_id, 
           ejercicio_plan_id: input.ejercicio_plan_id, 
@@ -67,11 +67,11 @@ export const trainingActions = {
 
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
 
-      const filteredData = (data || []).filter(log => (log.sesion as any)?.alumno_id === input.alumno_id);
+      const filteredData = (data || []).filter((log: any) => (log.sesion as any)?.alumno_id === input.alumno_id);
 
       return {
         success: true,
-        history: filteredData.map(log => ({
+        history: filteredData.map((log: any) => ({
           peso: log.peso,
           reps: log.reps,
           rpe: log.rpe,
@@ -94,7 +94,7 @@ export const trainingActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { data, error } = await supabase.rpc('clonar_metrica_semanal', {
+      const { data, error } = await (supabase as any).rpc('clonar_metrica_semanal', {
         p_alumno_id: input.alumno_id,
         p_from_week: input.from_week,
         p_to_week: input.to_week
@@ -117,16 +117,16 @@ export const trainingActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { data: current } = await supabase
-        .from("biblioteca_ejercicios")
+      const { data: current } = await (supabase
+        .from("biblioteca_ejercicios") as any)
         .select("id, parent_id")
         .eq("id", input.exercise_id)
         .single();
 
       if (!current) throw new ActionError({ code: "NOT_FOUND", message: "Ejercicio no encontrado" });
 
-      const query = supabase
-        .from("biblioteca_ejercicios")
+      const query = (supabase
+        .from("biblioteca_ejercicios") as any)
         .select("id, nombre, media_url")
         .eq("profesor_id", user.id)
         .neq("id", input.exercise_id);

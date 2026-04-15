@@ -56,14 +56,14 @@ export function useAgenda(initialTurnos: Turno[] = [], initialStudents: Student[
           const sessionId = payload.new?.sesion_id || payload.old?.sesion_id;
           if (!sessionId) return;
 
-          const { data: sessionData } = await supabase
-            .from("sesiones_instanciadas")
+          const { data: sessionData } = await (supabase
+            .from("sesiones_instanciadas") as any)
             .select("alumno_id")
             .eq("id", sessionId)
             .single();
 
-          if (sessionData?.alumno_id) {
-            queueRefresh(sessionData.alumno_id);
+          if (sessionData && (sessionData as any).alumno_id) {
+            queueRefresh((sessionData as any).alumno_id);
           }
         }
       )

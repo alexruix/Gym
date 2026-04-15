@@ -35,7 +35,7 @@ export const plansActions = {
       const emptyBlocks = (data || []).filter((b: any) => (b.bloques_ejercicios?.length || 0) === 0);
       if (emptyBlocks.length > 0) {
         const idsToDelete = emptyBlocks.map((b: any) => b.id);
-        supabase.from("bloques").delete().in("id", idsToDelete).catch(() => null);
+        void (supabase.from("bloques").delete().in("id", idsToDelete) as any);
       }
 
       return (data || []).filter((b: any) => (b.bloques_ejercicios?.length || 0) > 0);
@@ -51,8 +51,8 @@ export const plansActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { data: block, error: blockError } = await supabase
-        .from("bloques")
+      const { data: block, error: blockError } = await (supabase
+        .from("bloques") as any)
         .insert({
           profesor_id: user.id,
           nombre: input.nombre,
@@ -76,13 +76,13 @@ export const plansActions = {
         notas: e.notas || null
       }));
 
-      const { error: itemsError } = await supabase.from("bloques_ejercicios").insert(items);
+      const { error: itemsError } = await (supabase.from("bloques_ejercicios") as any).insert(items);
       if (itemsError) {
-        await supabase.from("bloques").delete().eq("id", block.id);
+        await (supabase.from("bloques") as any).delete().eq("id", (block as any).id);
         throw new ActionError({ code: "BAD_REQUEST", message: "Error al guardar ejercicios del bloque" });
       }
 
-      return { success: true, block_id: block.id };
+      return { success: true, block_id: (block as any).id };
     },
   }),
 
@@ -115,7 +115,7 @@ export const plansActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { data: planId, error } = await supabase.rpc('crear_plan_completo', {
+      const { data: planId, error } = await (supabase as any).rpc('crear_plan_completo', {
         p_profesor_id: user.id,
         p_nombre: input.nombre,
         p_duracion_semanas: input.duracion_semanas,
@@ -138,7 +138,7 @@ export const plansActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { error } = await supabase.rpc('actualizar_plan_completo', {
+      const { error } = await (supabase as any).rpc('actualizar_plan_completo', {
         p_plan_id: input.id,
         p_profesor_id: user.id,
         p_nombre: input.nombre,
@@ -166,7 +166,7 @@ export const plansActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { data: newPlanId, error } = await supabase.rpc('fork_plan', {
+      const { data: newPlanId, error } = await (supabase as any).rpc('fork_plan', {
         p_plan_id: input.planId,
         p_alumno_id: input.alumnoId,
         p_nuevo_nombre: input.nombre,
@@ -186,8 +186,8 @@ export const plansActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { data: source, error: fetchError } = await supabase
-        .from("planes")
+      const { data: source, error: fetchError } = await (supabase
+        .from("planes") as any)
         .select(`
           nombre, duracion_semanas, frecuencia_semanal,
           rutinas_diarias (
@@ -207,7 +207,7 @@ export const plansActions = {
         ejercicios: (r.ejercicios_plan || [])
       }));
 
-      const { data: newId, error: createError } = await supabase.rpc('crear_plan_completo', {
+      const { data: newId, error: createError } = await (supabase as any).rpc('crear_plan_completo', {
         p_profesor_id: user.id,
         p_nombre: `${source.nombre} (Copia)`,
         p_duracion_semanas: source.duracion_semanas,
@@ -229,7 +229,7 @@ export const plansActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { error } = await supabase.from("planes").update({ is_template: true }).eq("id", input.id).eq("profesor_id", user.id);
+      const { error } = await (supabase.from("planes") as any).update({ is_template: true }).eq("id", input.id).eq("profesor_id", user.id);
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
       return { success: true, mensaje: "Plan convertido en plantilla." };
     },

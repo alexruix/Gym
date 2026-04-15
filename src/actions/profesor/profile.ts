@@ -24,8 +24,8 @@ export const profileActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { error } = await supabase
-        .from("profesores")
+      const { error } = await (supabase
+        .from("profesores") as any)
         .update({ telefono: input.telefono || null })
         .eq("id", user.id);
 
@@ -53,8 +53,8 @@ export const profileActions = {
         if (existing) throw new ActionError({ code: "CONFLICT", message: "Ese enlace ya está en uso." });
       }
 
-      const { error } = await supabase
-        .from("profesores")
+      const { error } = await (supabase
+        .from("profesores") as any)
         .update({
           nombre: input.nombre,
           slug: input.slug || null,
@@ -105,7 +105,7 @@ export const profileActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { error } = await supabase.from("profesores").update(input).eq("id", user.id);
+      const { error } = await (supabase.from("profesores") as any).update(input).eq("id", user.id);
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
       return { success: true };
     },
@@ -120,7 +120,7 @@ export const profileActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
 
-      const { error } = await supabase.from("profesores").update(input).eq("id", user.id);
+      const { error } = await (supabase.from("profesores") as any).update(input).eq("id", user.id);
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
       return { success: true };
     },
