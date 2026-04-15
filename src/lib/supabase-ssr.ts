@@ -5,8 +5,9 @@ import type { Database } from './database.types';
 import { supabaseAdmin } from './supabase-admin';
 
 export function createSupabaseServerClient(context: { cookies: any, request: Request }): SupabaseClient<Database> {
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const env = (import.meta.env || {}) as any;
+  const supabaseUrl = env.PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = env.PUBLIC_SUPABASE_ANON_KEY;
 
   // 🛡️ HARDENING: Validación estricta de configuración
   const isValidUrl = typeof supabaseUrl === 'string' && supabaseUrl.startsWith('http');

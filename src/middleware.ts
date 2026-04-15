@@ -2,8 +2,7 @@ import { defineMiddleware } from "astro:middleware";
 import { createSupabaseServerClient } from "./lib/supabase-ssr";
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const url = new URL(context.request.url);
-  const path = url.pathname;
+  const { pathname: path } = context.url;
 
   // 🌩️ OPTIMIZACIÓN: Saltamos el middleware para assets estáticos y rutas públicas de marketing
   const isStaticAsset = path.includes('.') && 
