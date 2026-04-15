@@ -2,10 +2,9 @@ import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../../lib/supabase-ssr';
 
 export const GET: APIRoute = async (context) => {
-  const { request, redirect } = context;
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') || '/profesor';
+  const { redirect, url } = context;
+  const code = url.searchParams.get('code');
+  const next = url.searchParams.get('next') || '/profesor';
 
   if (code) {
     const supabase = createSupabaseServerClient(context);
