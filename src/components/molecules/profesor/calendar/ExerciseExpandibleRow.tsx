@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { MetricConsole } from "@/components/molecules/profesor/MetricConsole";
 import { ExerciseHistoryPanel } from "@/components/molecules/profesor/ExerciseHistoryPanel";
-import type { EjercicioDetail } from "@/hooks/profesor/useStudentCalendar";
+import type { EjercicioDetail } from "@/types/calendar";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 
 interface ExerciseExpandibleRowProps {

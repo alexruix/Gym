@@ -1,5 +1,5 @@
 import React from "react";
-import { User, Mail, Phone, CalendarDays, Edit2, MapPin } from "lucide-react";
+import { User, Edit2 } from "lucide-react";
 import { perfilCopy } from "@/data/es/alumno/perfil";
 
 interface PersonalDataProps {

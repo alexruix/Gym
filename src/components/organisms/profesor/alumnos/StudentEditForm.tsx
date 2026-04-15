@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar as CalendarIcon, Loader2, Save, X, Archive, CreditCard, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, Save, Archive, CreditCard, Clock } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 

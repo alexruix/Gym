@@ -1,5 +1,5 @@
 import React from "react";
-import { CircleCheck, Plus, Calendar as CalendarIcon, Copy, ArrowRight, Link } from "lucide-react";
+import { CircleCheck, Plus, Calendar as CalendarIcon, ArrowRight, Link } from "lucide-react";
 import { inviteStudentCopy } from "@/data/es/profesor/alumnos";
 import { Button } from "@/components/ui/button";
 import {

@@ -28,6 +28,7 @@ interface Student {
   id: string;
   nombre: string;
   turno_id: string | null;
+  dias_asistencia: string[];
 }
 
 interface AgendaHeaderActionsProps {
@@ -100,6 +101,7 @@ export function AgendaHeaderActions({ presentCount, turnos, students }: AgendaHe
         isOpen={isManagementOpen}
         onOpenChange={setIsManagementOpen}
         turnos={turnos}
+        onTurnosChange={() => window.location.reload()}
       />
 
       <LogisticsPanel
