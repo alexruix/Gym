@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { supabase } from '../../../lib/supabase';
-import { authCopy } from '../../../data/es/auth';
+import { supabase } from '@/lib/supabase';
+import { authCopy } from '@/data/es/auth';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Mail, Loader2 } from 'lucide-react';

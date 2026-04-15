@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle, ExternalLink, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { athleteProfileCopy } from "@/data/es/profesor/perfil";
 

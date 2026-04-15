@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronRight, Zap, AlertCircle, ExternalLink, Link } from "lucide-react";
+import { ChevronRight, Zap, AlertCircle, Link } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { cn, calculateAge } from "@/lib/utils";
 import { Card } from "@/components/ui/card";

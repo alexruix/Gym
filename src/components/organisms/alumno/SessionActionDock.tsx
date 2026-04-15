@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, Check, FastForward, MessageSquare } from 'lucide-react';
+import { ChevronLeft, Check, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sesionStrings } from '@/data/es/alumno/sesion';
 

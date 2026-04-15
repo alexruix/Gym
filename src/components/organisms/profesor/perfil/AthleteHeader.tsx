@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ExternalLink, CreditCard, MoreHorizontal, Pencil, ArrowLeft, Link } from "lucide-react";
+import { CreditCard, MoreHorizontal, Pencil, ArrowLeft, Link } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {

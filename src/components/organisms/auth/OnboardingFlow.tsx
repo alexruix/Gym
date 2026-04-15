@@ -1,9 +1,9 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { actions } from 'astro:actions';
-import { authCopy } from '../../../data/es/auth';
+import { authCopy } from '@/data/es/auth';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Loader2, ArrowRight, Building2, User } from 'lucide-react';
+import { Loader2, ArrowRight, User } from 'lucide-react';
 
 type Step = 1 | 2;
 
