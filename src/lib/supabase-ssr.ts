@@ -5,9 +5,24 @@ import type { Database } from './database.types';
 import { supabaseAdmin } from './supabase-admin';
 
 export function createSupabaseServerClient(context: { cookies: any, request: Request }): SupabaseClient<Database> {
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+  // 🛡️ GUARDIA DEFENSIVO: Si faltan las variables, no ejecutamos createServerClient
+  // para evitar que el proceso de Node.js muera por un error de URL inválida en el middleware.
+  if (!supabaseUrl || supabaseUrl === 'undefined' || !supabaseAnonKey) {
+    console.warn("⚠️ MiGym SSR: createSupabaseServerClient llamado sin configuración. Devolviendo Proxy defensivo.");
+    
+    return new Proxy({} as any, {
+      get(_, prop) {
+        throw new Error(`❌ Supabase SSR: Intentaste acceder a client.${String(prop)} en el servidor, pero PUBLIC_SUPABASE_URL no está configurada.`);
+      }
+    });
+  }
+
   return createServerClient<Database>(
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -33,7 +48,6 @@ export function createSupabaseServerClient(context: { cookies: any, request: Req
             });
           } catch (err) {
             // 🛡️ 防御: Si la respuesta ya se envió (ResponseSentError), ignoramos el set
-            // Esto sucede si Supabase intenta refrescar el token tarde en el ciclo de vida.
             console.warn("[supabase-ssr] No se pudo actualizar la cookie auth (Response already sent)");
           }
         },
