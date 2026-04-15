@@ -22,12 +22,12 @@ export const authActions = {
       const userEmail = user.email;
 
       // 2. Guardar los datos en la tabla profesores
-      const { error: upsertError } = await supabase
-        .from("profesores")
+      const { error: upsertError } = await (supabase
+        .from("profesores") as any)
         .upsert({
           id: userId,
           email: userEmail || '',
-          nombre: input.publicName, // Nombre público unificado
+          nombre: input.publicName, 
           updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
 

@@ -1,4 +1,4 @@
-import { useNotificationState } from "./notifications/useNotificationState";
+import { useNotificationState, type Notification } from "./notifications/useNotificationState";
 import { useNotificationSync } from "./notifications/useNotificationSync";
 import { useNotificationOperations } from "./notifications/useNotificationOperations";
 
@@ -26,13 +26,15 @@ export function useNotifications(profesorId: string) {
 
     return {
         // Data & UI State
-        notifications,
-        unreadCount,
-        loading,
+    notifications,
+    unreadCount,
+    loading,
 
-        // Actions
-        markAsRead,
-        markAllAsRead,
-        refresh
-    };
+    // Actions
+    markAsRead,
+    markAllAsRead,
+    refresh
+  };
 }
+
+export type { Notification };
