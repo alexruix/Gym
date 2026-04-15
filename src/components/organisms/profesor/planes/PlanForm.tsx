@@ -72,8 +72,8 @@ export function PlanForm({ library, initialValues, onSuccess, onCancel }: PlanFo
     // Visual feedback handled by card animations
   };
 
-  const handleAddBlockFromLibrary = (blockId: string) => {
-    actions.addBlockToRoutine(blockId);
+  const handleAddBlockFromLibrary = (block: any) => {
+    actions.addBlockToRoutine(block);
   };
 
   return (

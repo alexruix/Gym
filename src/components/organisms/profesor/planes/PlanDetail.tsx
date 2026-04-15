@@ -414,7 +414,7 @@ export function PlanDetail({ plan: initialPlan, library }: Props) {
         <SheetContent side="right" className="p-0 sm:max-w-md bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900">
            <PlanLibraryPanel
                 onSelectExercise={(id) => { addExercise(id); setIsSearchOpen(false); }}
-                onSelectBlock={(id) => { addBlockToRoutine(id); setIsSearchOpen(false); }}
+                onSelectBlock={(block) => { addBlockToRoutine(block); setIsSearchOpen(false); }}
                 library={library}
                 allowCreate={true}
                 className="h-full border-0"

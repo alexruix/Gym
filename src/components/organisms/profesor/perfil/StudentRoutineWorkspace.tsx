@@ -417,7 +417,7 @@ export function StudentRoutineWorkspace({
         <SheetContent side="right" className="p-0 sm:max-w-md bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900">
            <PlanLibraryPanel
                 onSelectExercise={(id) => { if (activeRoutineTarget) { onAdd(activeRoutineTarget, id); setIsSearchOpen(false); } }}
-                onSelectBlock={(id) => { if (activeRoutineTarget) { onAddBlock(activeRoutineTarget, id); setIsSearchOpen(false); } }}
+                onSelectBlock={(block) => { if (activeRoutineTarget) { onAddBlock(activeRoutineTarget, block.id); setIsSearchOpen(false); } }}
                 library={library}
                 allowCreate={false}
                 className="h-full border-0"

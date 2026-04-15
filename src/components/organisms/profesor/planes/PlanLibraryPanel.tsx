@@ -35,7 +35,7 @@ type ViewMode = "list" | "create-exercise" | "create-block" | "edit-block";
 
 interface PlanLibraryPanelProps {
   onSelectExercise: (exerciseId: string) => void;
-  onSelectBlock: (blockId: string) => void;
+  onSelectBlock: (block: any) => void;
   library?: Exercise[];
   currentExerciseId?: string | null;
   allowCreate?: boolean;
@@ -160,8 +160,8 @@ export function PlanLibraryPanel({
     // PlanForm will handle the UI feedback (pulse/anim).
   };
 
-  const handleSelectBlock = (id: string) => {
-    onSelectBlock(id);
+  const handleSelectBlock = (block: any) => {
+    onSelectBlock(block);
   };
 
   const toggleParent = (parentId: string) => {
@@ -240,7 +240,7 @@ export function PlanLibraryPanel({
                 search ? "text-lime-500" : "text-zinc-400 group-focus-within:text-lime-500"
               )} />
               <Input
-                placeholder={mode === "exercises" ? "Buscar técnica..." : "Buscar protocolo..."}
+                placeholder={mode === "exercises" ? "Buscar ejercicio" : "Buscar bloque"}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-11 h-12 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold text-sm shadow-sm focus-visible:ring-lime-400/20"
@@ -294,13 +294,7 @@ export function PlanLibraryPanel({
             initialData={view === "edit-block" ? editingBlockData : null}
             onSuccess={handleCreateSuccess}
             onCancel={() => setView("list")}
-            onExternalSearch={(onSelect) => {
-              // This is a special trick: we stay in BlockForm but show a mini search? 
-              // For now, let's just use the Internal Search of BlockForm if needed, 
-              // but we already refactored BlockForm to allow external search.
-              // For v1 of workspace, BlockForm has its own exercise selector or we go back to list.
-              // Logic: BlockForm already handles exercise selection via the library prop.
-            }}
+            onExternalSearch={() => {}}
           />
         ) : mode === "exercises" ? (
           <div className="p-4 space-y-1">
@@ -352,7 +346,7 @@ export function PlanLibraryPanel({
               <BlockSelectionCard
                 key={block.id}
                 block={block}
-                onSelect={() => handleSelectBlock(block.id)}
+                onSelect={() => handleSelectBlock(block)}
                 onEdit={() => handleEditBlock(block)}
               />
             ))}

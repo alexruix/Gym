@@ -30,7 +30,7 @@ export function StandardField({
       <div className="flex justify-between items-end px-1">
         <FormLabel 
           className={cn(
-            "industrial-label select-none",
+            "industrial-label-sm select-none",
             error && "text-red-500"
           )}
         >

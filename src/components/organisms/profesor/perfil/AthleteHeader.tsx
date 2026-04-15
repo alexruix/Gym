@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, Copy, ChevronRight, Plus, Mail, Phone, ArrowLeft } from "lucide-react";
+import { Zap, CreditCard, ExternalLink, Calendar, Clock, CreditCard as PaymentIcon, Copy, ChevronRight, Plus, Mail, Phone, ArrowLeft, MoreHorizontal, Pencil } from "lucide-react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { StatusBadge, type StatusType } from "@/components/molecules/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -244,37 +244,42 @@ export function AthleteHeader({ alumno, planName }: Props) {
                <Button
                 variant="heavy"
                 size="icon"
-                onClick={() => setPaymentSheetOpen(true)}
+                onClick={() => copyGuestLink(alumno.id)}
                 className="w-10 h-10 rounded-full"
                >
-                 <PaymentIcon className="w-5 h-5" />
+                 <ExternalLink className="w-5 h-5 text-zinc-400" />
                </Button>
              ) : (
                 <Button
-                  onClick={() => setPaymentSheetOpen(true)}
-                  className="h-12 md:h-14 bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950 hover:opacity-90 rounded-2xl font-bold text-[10px] uppercase tracking-widest gap-2 px-6 shadow-xl transition-all active:scale-95"
+                  variant="heavy"
+                  onClick={() => copyGuestLink(alumno.id)}
+                  className="h-12 md:h-14 rounded-2xl font-bold text-[10px] uppercase tracking-widest gap-3 px-6 shadow-sm transition-all active:scale-95"
                 >
-                  <CreditCard className="w-4 h-4 md:w-5 md:h-5" />
-                  <span className="hidden sm:inline">Cobrar cuota</span>
+                  <ExternalLink className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="hidden sm:inline">Link acceso</span>
                 </Button>
              )}
              
              {!isSticky && (
                <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-12 w-12 md:h-14 md:w-14 rounded-2xl border-2">
-                      <Plus className="w-5 h-5" />
+                    <Button variant="outline" size="icon" className="h-12 w-12 md:h-14 md:w-14 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-900 border-none transition-colors">
+                      <MoreHorizontal className="w-6 h-6 text-zinc-400" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl">
+                    <DropdownMenuItem onClick={() => setPaymentSheetOpen(true)} className="py-3 font-bold text-[10px] uppercase tracking-widest gap-3 text-zinc-950 dark:text-zinc-100">
+                      <CreditCard size={18} className="text-zinc-400" /> Cobrar cuota
+                    </DropdownMenuItem>
+                    <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2" />
                     <DropdownMenuItem onClick={() => openWhatsApp(alumno.nombre, alumno.telefono || "", { type: 'general' })} className="py-3 font-bold text-[10px] uppercase tracking-widest gap-3">
                       <WhatsappLogoIcon size={18} className="text-emerald-500" /> WhatsApp
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => copyGuestLink(alumno.id)} className="py-3 font-bold text-[10px] uppercase tracking-widest gap-3">
-                      <Copy size={18} className="text-zinc-400" /> Link Acceso
-                    </DropdownMenuItem>
                     <DropdownMenuItem asChild className="py-3 font-bold text-[10px] uppercase tracking-widest gap-3">
-                      <a href={`/profesor/alumnos/${alumno.id}/edit`}>Editar Perfil</a>
+                      <a href={`/profesor/alumnos/${alumno.id}/edit`} className="flex items-center gap-3 w-full">
+                        <Pencil size={18} className="text-zinc-400" />
+                        Editar perfil
+                      </a>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                </DropdownMenu>

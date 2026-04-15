@@ -261,13 +261,6 @@ export function AgendaConsole({ turnos: initialTurnos, students: initialStudents
 
   return (
     <>
-      {/* Title Header (Industrial Style) */}
-      <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-        <h1 className="text-4xl md:text-5xl font-black text-zinc-950 dark:text-zinc-50 tracking-tighter uppercase">
-          {agendaCopy.header.title}
-        </h1>
-      </div>
-
       {/* Skeleton durante hidratación inicial */}
       {!isMounted ? (
         <AgendaConsoleSkeleton />

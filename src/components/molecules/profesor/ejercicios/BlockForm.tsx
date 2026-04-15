@@ -5,7 +5,7 @@ import { actions } from "astro:actions";
 import { blockSchema, type BlockFormData } from "@/lib/validators/profesor";
 import { blocksCopy } from "@/data/es/profesor/ejercicios";
 import { toast } from "sonner";
-import { Loader2, Save, Plus, Trash2, Dumbbell, Box, AlertTriangle, ChevronLeft } from "lucide-react";
+import { Loader2, Save, Plus, Trash2, Dumbbell, Box, AlertTriangle, ChevronLeft, Search, X } from "lucide-react";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,10 +95,18 @@ export function BlockForm({ library, initialData, onSuccess, onCancel, onExterna
         });
     };
 
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredLibrary = React.useMemo(() => {
+        const lower = searchTerm.toLowerCase();
+        return library
+            .filter(ex => ex.nombre.toLowerCase().includes(lower))
+            .slice(0, 10);
+    }, [library, searchTerm]);
+
     const handleAddClick = () => {
-        if (onExternalSearch) {
-            onExternalSearch(addExerciseToBlock);
-        }
+        setIsSearching(true);
     };
 
     const getExerciseName = (id: string) => library.find(e => e.id === id)?.nombre || "Ejercicio";
@@ -144,7 +152,7 @@ export function BlockForm({ library, initialData, onSuccess, onCancel, onExterna
                             name="nombre"
                             render={({ field, fieldState }) => (
                                 <StandardField
-                                    label="Nombre del Protocolo"
+                                    label="Nombre del bloque"
                                     error={fieldState.error?.message}
                                     required
                                 >
@@ -218,18 +226,79 @@ export function BlockForm({ library, initialData, onSuccess, onCancel, onExterna
                         <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-900">
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-950 dark:text-white">
-                                    Técnicas ({fields.length})
+                                    Ejercicios ({fields.length})
                                 </label>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={handleAddClick}
-                                    className="rounded-xl h-9 px-3 border-zinc-200 dark:border-zinc-800 hover:border-lime-500 hover:text-lime-500 transition-all font-bold text-[9px] uppercase tracking-widest"
+                                    onClick={() => isSearching ? setIsSearching(false) : handleAddClick()}
+                                    className={cn(
+                                        "rounded-xl h-9 px-3 border-zinc-200 dark:border-zinc-800 transition-all font-bold text-[9px] uppercase tracking-widest",
+                                        isSearching ? "text-red-500 border-red-500/20" : "hover:border-lime-500 hover:text-lime-500"
+                                    )}
                                 >
-                                    <Plus className="w-3.5 h-3.5 mr-1" /> Añadir
+                                    {isSearching ? (
+                                        <><X className="w-3.5 h-3.5 mr-1" /> Cancelar</>
+                                    ) : (
+                                        <><Plus className="w-3.5 h-3.5 mr-1" /> Añadir</>
+                                    )}
                                 </Button>
                             </div>
+
+                            {isSearching && (
+                                <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                                    <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                                        <Input
+                                            autoFocus
+                                            placeholder="Buscar ejercicio técnico..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="h-12 pl-11 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus-visible:ring-lime-500 font-bold text-xs rounded-2xl"
+                                        />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 gap-1.5 max-h-[300px] overflow-y-auto no-scrollbar pb-4">
+                                        {filteredLibrary.map((ex) => (
+                                            <button
+                                                key={ex.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    addExerciseToBlock(ex.id);
+                                                    setIsSearching(false);
+                                                    setSearchTerm("");
+                                                }}
+                                                className="flex items-center gap-3 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-800/50 hover:border-lime-500/50 hover:bg-lime-500/5 dark:hover:bg-lime-500/5 transition-all text-left group"
+                                            >
+                                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center shrink-0">
+                                                    {ex.media_url ? (
+                                                        <img src={ex.media_url} className="w-full h-full object-cover rounded-xl" />
+                                                    ) : (
+                                                        <Dumbbell className="w-4 h-4 text-zinc-300 group-hover:text-lime-500 transition-colors" />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-xs font-bold text-zinc-950 dark:text-zinc-100 uppercase truncate">
+                                                        {ex.nombre}
+                                                    </span>
+                                                    <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">
+                                                        Seleccionar técnica
+                                                    </span>
+                                                </div>
+                                                <Plus className="w-4 h-4 ml-auto text-zinc-200 group-hover:text-lime-500 mr-2" />
+                                            </button>
+                                        ))}
+                                        
+                                        {filteredLibrary.length === 0 && (
+                                            <div className="py-8 text-center border-2 border-dashed border-zinc-100 dark:border-zinc-900 rounded-2xl">
+                                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Sin resultados</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="h-px bg-zinc-100 dark:bg-zinc-900 mx-2" />
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 {fields.map((field, index) => (
@@ -282,14 +351,14 @@ export function BlockForm({ library, initialData, onSuccess, onCancel, onExterna
                                     </div>
                                 ))}
 
-                                {fields.length === 0 && (
+                                {fields.length === 0 && !isSearching && (
                                     <button
                                         type="button"
                                         onClick={handleAddClick}
                                         className="w-full py-8 border-2 border-dashed border-zinc-100 dark:border-zinc-900 rounded-[2rem] flex flex-col items-center justify-center gap-2 text-zinc-300 hover:text-lime-500 hover:border-lime-500/50 transition-all"
                                     >
                                         <Dumbbell className="w-8 h-8 opacity-20" />
-                                        <p className="text-[10px] font-bold uppercase tracking-widest">Arrancá sumando ejercicios</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest">Cargar primer ejercicio</p>
                                     </button>
                                 )}
                             </div>
