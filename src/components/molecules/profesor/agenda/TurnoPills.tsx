@@ -17,8 +17,8 @@ export function TurnoPills({ turnos, activeTurnoId, onTurnoSelect }: TurnoPillsP
     if (turnos.length === 0) return null;
 
     return (
-        <div className="sticky top-[116px] md:top-[144px] z-20 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-50 dark:border-zinc-900 -mx-6 mb-8 overflow-hidden">
-            <div className="flex overflow-x-auto hide-scrollbar px-6 py-3 gap-2 items-center">
+        <div className="sticky top-[136px] md:top-[164px] z-20 bg-white dark:bg-zinc-950 border-b border-zinc-100 dark:border-zinc-900 -mx-6 mb-8 overflow-hidden">
+            <div className="flex overflow-x-auto hide-scrollbar px-6 py-4 gap-3 items-center">
                 {turnos.map((turno) => {
                     const isActive = activeTurnoId === turno.id;
                     return (
@@ -26,13 +26,13 @@ export function TurnoPills({ turnos, activeTurnoId, onTurnoSelect }: TurnoPillsP
                             key={turno.id}
                             onClick={() => onTurnoSelect(turno.id)}
                             className={cn(
-                                "flex-none h-10 px-4 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all border shrink-0",
+                                "flex-none h-10 px-6 rounded-full font-bold uppercase text-[9px] tracking-[0.15em] transition-all shrink-0 flex items-center gap-2",
                                 isActive
-                                    ? "bg-lime-500 text-zinc-950 border-lime-500 shadow-lg shadow-lime-500/10"
-                                    : "bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                                    ? "bg-zinc-950 text-white border-zinc-950 shadow-lg shadow-zinc-950/20"
+                                    : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600"
                             )}
                         >
-                            <span className="mr-1.5 opacity-60">{turno.hora_inicio.slice(0, 5)}</span>
+                            <span className={cn("opacity-60", isActive ? "text-lime-400" : "text-zinc-400")}>{turno.hora_inicio.slice(0, 5)}</span>
                             {turno.nombre}
                         </button>
                     );

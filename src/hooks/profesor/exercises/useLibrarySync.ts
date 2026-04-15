@@ -10,7 +10,7 @@ export function useLibrarySync(setExercises: (data: any[]) => void) {
     const refreshData = useCallback(async (silent = true) => {
         if (!silent) setIsLoading(true);
         try {
-            const { data, error } = await actions.ejercicios.getExerciseLibrary();
+            const { data, error } = await actions.profesor.getExerciseLibrary();
             if (!error && data) {
                 setExercises(data);
             }

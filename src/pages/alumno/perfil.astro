@@ -33,20 +33,20 @@ if (error || !alumnoData) {
 const { data: turnosData } = await supabase
   .from("turnos")
   .select("*")
-  .eq("profesor_id", alumnoData.profesor_id)
+  .eq("profesor_id", (alumnoData as any).profesor_id)
   .order("hora_inicio", { ascending: true });
 
 // Fetch current occupancy per shift for this professor
 const { data: occupancyRaw } = await supabase
   .from("alumnos")
   .select("turno_id")
-  .eq("profesor_id", alumnoData.profesor_id)
+  .eq("profesor_id", (alumnoData as any).profesor_id)
   .not("turno_id", "is", null);
 
 const occupancyMap: Record<string, number> = {};
 occupancyRaw?.forEach(row => {
-   if (row.turno_id) {
-     occupancyMap[row.turno_id] = (occupancyMap[row.turno_id] || 0) + 1;
+   if ((row as any).turno_id) {
+     occupancyMap[(row as any).turno_id] = (occupancyMap[(row as any).turno_id] || 0) + 1;
    }
 });
 

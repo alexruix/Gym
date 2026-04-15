@@ -120,15 +120,23 @@ export const financeActions = {
       });
 
       const allPayments = (alumnosRes.data || []).flatMap((a: any) => a.pagos || []);
+      const morososList = processedAlumnos.filter((a: any) => a.is_moroso);
+
       const metrics = {
         ingresosPagados: allPayments
           .filter((p: any) => p.estado === "pagado" && p.fecha_pago?.startsWith(currentMonthKey))
           .reduce((sum: number, p: any) => sum + (Number(p.monto) || 0), 0),
         ingresosPendientes: processedAlumnos.reduce((acc: number, a: any) => acc + (a.pago_activo?.estado !== 'pagado' ? (a.pago_activo?.monto || a.monto || 0) : 0), 0),
-        totalMorosos: processedAlumnos.filter((a: any) => a.is_moroso).length
+        totalMorosos: morososList.length,
+        morosos: morososList
       };
 
-      return { alumnos: processedAlumnos, subscriptions: subsRes.data || [], metrics };
+      return { 
+        alumnos: processedAlumnos, 
+        subscriptions: subsRes.data || [], 
+        metrics,
+        lastUpdated: new Date().toISOString()
+      };
     }
   }),
 
@@ -216,5 +224,25 @@ export const financeActions = {
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
       return { success: true, nombre: nombreFinal };
     },
+  }),
+
+  /** registrarNotificacion: Actualiza el timestamp del último recordatorio de pago. */
+  registrarNotificacion: defineAction({
+    accept: "json",
+    input: z.object({ alumno_id: z.string().uuid() }),
+    handler: async (input, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: "No autorizado" });
+
+      const { error } = await (supabase as any)
+        .from("alumnos")
+        .update({ ultimo_recordatorio_pago_at: new Date().toISOString() })
+        .eq("id", input.alumno_id)
+        .eq("profesor_id", user.id);
+
+      if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
+      return { success: true };
+    }
   }),
 };

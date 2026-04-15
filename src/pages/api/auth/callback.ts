@@ -20,7 +20,7 @@ export const GET: APIRoute = async (context) => {
         .maybeSingle();
 
       if (profData) {
-        if (!profData.nombre) return redirect('/onboarding');
+        if (!(profData as any).nombre) return redirect('/onboarding');
         return redirect(next);
       }
 
@@ -43,10 +43,10 @@ export const GET: APIRoute = async (context) => {
 
         if (alumByEmail) {
           // Vínculo Vital: Asociamos la identidad de Auth con la ficha de MiGym
-          await supabase
+          await (supabase as any)
             .from('alumnos')
             .update({ user_id: user.id })
-            .eq('id', alumByEmail.id);
+            .eq('id', (alumByEmail as any).id);
           
           return redirect('/alumno');
         }

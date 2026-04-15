@@ -33,7 +33,7 @@ export function usePaymentOperations(
 
     const registrarCobro = React.useCallback(async (alumnoId: string, pagoId: string) => {
         await runAction(async () => {
-            const { error } = await actions.pagos.registrarCobro({ 
+            const { error } = await actions.profesor.registrarCobro({ 
                 alumno_id: alumnoId, 
                 pago_id: pagoId 
             });

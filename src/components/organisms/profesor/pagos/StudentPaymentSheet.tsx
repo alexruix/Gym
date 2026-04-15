@@ -62,7 +62,7 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
   const handleCobrar = async (pagoId: string) => {
     setIsCharging(true);
     try {
-      const { data, error } = await actions.pagos.registrarCobro({ alumno_id: alumno.id, pago_id: pagoId });
+      const { data, error } = await actions.profesor.registrarCobro({ alumno_id: alumno.id, pago_id: pagoId });
       if (error) { toast.error(pagosCopy.notifications.errorRegistering); return; }
 
       if (data?.success) {
@@ -120,7 +120,7 @@ export function StudentPaymentSheet({ isOpen, onOpenChange, alumno, onPaymentSuc
     }
 
     try {
-      actions.pagos.registrarNotificacion({ alumno_id: alumno.id }).catch(console.error);
+      actions.profesor.registrarNotificacion({ alumno_id: alumno.id }).catch(console.error);
 
       await openWhatsApp(alumno.nombre, alumno.telefono, { type: 'payment' });
 

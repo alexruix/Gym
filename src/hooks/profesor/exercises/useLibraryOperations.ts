@@ -27,7 +27,7 @@ export function useLibraryOperations(
         setExercises((prev: Exercise[]) => prev.map(ex => ex.id === id ? { ...ex, is_favorite: isFavorite } : ex));
         
         try {
-            const { error } = await actions.ejercicios.toggleFavorite({ id, isFavorite });
+            const { error } = await actions.profesor.toggleFavorite({ id, isFavorite });
             if (error) throw error;
             toast.success(isFavorite ? "Lo guardaste en favoritos" : "Quitado de favoritos");
         } catch (err) {
@@ -46,7 +46,7 @@ export function useLibraryOperations(
         setExercises((prev: Exercise[]) => prev.filter(ex => ex.id !== id));
         
         try {
-            const { error } = await actions.ejercicios.deleteExercise({ id });
+            const { error } = await actions.profesor.deleteExercise({ id });
             if (error) throw error;
             toast.success("Borraste el ejercicio");
         } catch (err) {
@@ -61,7 +61,7 @@ export function useLibraryOperations(
 
         const toastId = toast.loading("Duplicando...");
         try {
-            const { data: result, error } = await actions.ejercicios.createExercise({
+            const { data: result, error } = await actions.profesor.createExercise({
                 nombre: `${ex.nombre} (Copia)`,
                 descripcion: ex.descripcion || "",
                 media_url: ex.media_url || "",

@@ -12,7 +12,7 @@ export function usePwaBadging() {
 
     const updateBadge = async () => {
       try {
-        const { data, error } = await actions.pagos.getPaymentsData();
+        const { data, error } = await actions.profesor.getPaymentsData();
         if (error) return;
 
         const overdueCount = data.metrics.totalMorosos || 0;

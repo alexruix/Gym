@@ -97,7 +97,7 @@ export function ExerciseDialog({
     async function fetchLibrary() {
         setIsLoading(true);
         try {
-            const { data } = await actions.ejercicios.getExerciseLibrary();
+            const { data } = await actions.profesor.getExerciseLibrary();
             if (data) setInternalLibrary(data as any);
         } catch (err) {
             console.error("[ExerciseDialog] Error cargando biblioteca:", err);

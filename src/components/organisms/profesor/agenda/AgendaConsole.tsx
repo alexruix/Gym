@@ -261,6 +261,13 @@ export function AgendaConsole({ turnos: initialTurnos, students: initialStudents
 
   return (
     <>
+      {/* Title Header (Industrial Style) */}
+      <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+        <h1 className="text-4xl md:text-5xl font-black text-zinc-950 dark:text-zinc-50 tracking-tighter uppercase">
+          {agendaCopy.header.title}
+        </h1>
+      </div>
+
       {/* Skeleton durante hidratación inicial */}
       {!isMounted ? (
         <AgendaConsoleSkeleton />
@@ -270,50 +277,49 @@ export function AgendaConsole({ turnos: initialTurnos, students: initialStudents
         itemLabel="Alumnos"
         storageKey="agenda-v2"
         forceRender={true}
-        searchPlaceholder="Buscá a tus alumnos por nombre..."
+        searchPlaceholder={agendaCopy.modals.logistics.searchPlaceholder}
         renderGrid={(items) => renderBlocks(items as Student[])}
         renderTable={(items) => renderList(items as Student[])}
         searchSuffix={
-          <div className="flex items-center gap-3 px-4 py-2 bg-lime-50 border border-lime-100 rounded-2xl shadow-sm h-12 md:h-14">
-            <Users className="w-4 h-4 text-lime-600" />
+          <div className="flex items-center gap-4 px-6 bg-lime-50 border border-lime-100 dark:bg-lime-500/10 dark:border-lime-500/20 rounded-[1.5rem] shadow-sm h-14 md:h-16 group transition-all hover:bg-lime-100">
+            <div className="w-10 h-10 rounded-full bg-white dark:bg-zinc-900 flex items-center justify-center shadow-sm">
+                <Users className="w-5 h-5 text-lime-600" />
+            </div>
             <div className="flex flex-col">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-lime-600 leading-none">
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-lime-600 leading-tight">
                 Alumnos
               </span>
-              <span className="text-sm font-bold text-zinc-900 leading-none mt-1">
+              <span className="text-xl font-black text-zinc-950 dark:text-zinc-50 leading-tight">
                 {currentStudents.length}
               </span>
             </div>
           </div>
         }
         renderCreateAction={() => (
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-3">
             <Button
-              variant="outline"
               onClick={() => setIsLogisticsOpen(true)}
-              className="h-12 md:h-14 px-5 rounded-2xl border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-all active:scale-95 group"
-              title="Logística masiva"
+              className="h-14 md:h-16 px-8 rounded-[1.5rem] bg-zinc-950 text-white hover:bg-zinc-800 shadow-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center gap-2 group"
             >
-              <ListChecks className="w-5 h-5 text-zinc-400 group-hover:text-lime-600 transition-colors" />
-              <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-zinc-600 group-hover:text-zinc-900 hidden sm:inline">{logCopy.trigger}</span>
+              <ListChecks className="w-5 h-5 text-lime-500 group-hover:rotate-12 transition-transform" />
+              {agendaCopy.modals.logistics.trigger}
             </Button>
 
             <Button
               variant="outline"
               onClick={() => setIsImportOpen(true)}
-              className="h-12 md:h-14 px-5 rounded-2xl border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-all active:scale-95 group"
+              className="h-14 md:h-16 px-6 rounded-[1.5rem] border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-all active:scale-95 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 group"
             >
               <FileSpreadsheet className="w-5 h-5 text-zinc-400 group-hover:text-lime-600 transition-colors" />
-              <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-zinc-600 group-hover:text-zinc-900 hidden sm:inline">Importar</span>
+              Importar
             </Button>
 
             <Button
               variant="outline"
               onClick={() => setIsManagementOpen(true)}
-              className="h-12 md:h-14 w-12 md:w-14 p-0 rounded-2xl border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-all active:scale-95 group"
-              title="Configuración de bloques"
+              className="h-14 md:h-16 w-14 md:w-16 p-0 rounded-[1.5rem] border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-all active:scale-95 group"
             >
-              <Settings className="w-5 h-5 text-zinc-400 group-hover:text-zinc-950 transition-colors" />
+              <Settings className="w-6 h-6 text-zinc-400 group-hover:text-zinc-950 group-hover:rotate-45 transition-all" />
             </Button>
           </div>
         )}

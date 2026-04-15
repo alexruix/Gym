@@ -47,7 +47,7 @@ export function ExerciseSelectorDialog({
   async function loadExercises() {
     setLoading(true);
     try {
-      const { data } = await actions.ejercicios.getExerciseLibrary();
+      const { data } = await actions.profesor.getExerciseLibrary();
       if (data) setExercises(data as any);
     } catch (err) {
       console.error("Error cargando ejercicios:", err);

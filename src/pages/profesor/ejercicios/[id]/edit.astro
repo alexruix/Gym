@@ -49,7 +49,7 @@ const initialValues = {
 };
 
 import { actions } from "astro:actions";
-const { data: exercises } = await Astro.callAction(actions.ejercicios.getExerciseLibrary, {});
+const { data: exercises } = await Astro.callAction(actions.profesor.getExerciseLibrary, {});
 const existingTags = Array.from(new Set(((exercises || []) as any[]).flatMap(ex => ex.tags || []))).sort() as string[];
 const mainExercises = (exercises || []).filter(ex => !ex.parent_id);
 

@@ -70,7 +70,7 @@ export function AlertCenter({ expiringPayments, atRiskStudents, noPlanStudents, 
                                 onClick={async () => {
                                     setLoadingId(alert.id);
                                     try {
-                                        const { error } = await actions.pagos.registrarCobro({ 
+                                        const { error } = await actions.profesor.registrarCobro({ 
                                             alumno_id: alert.id, 
                                             pago_id: alert.pagoId 
                                         });

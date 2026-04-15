@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MoveHorizontal, ArrowRight, Dumbbell, MoreVertical, Zap } from "lucide-react";
+import { MoveHorizontal, ArrowRight, Dumbbell, MoreVertical, Zap, UserIcon } from "lucide-react";
 import { StatusRing } from "@/components/atoms/profesor/StatusRing";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,25 +29,14 @@ export function AgendaStudentCard({ student, session, onViewRoutine, onChangeTur
   const t = agendaCopy.studentCard;
   const progress = session?.progress ?? 0;
   
-  // Swipe Logic (Native feel without dependencies)
+  // Swipe Logic remains for mobile feel
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [translateX, setTranslateX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
-  const [bounceHint, setBounceHint] = useState(false);
 
-  // Bounce hint on mount
-  useEffect(() => {
-     const timer = setTimeout(() => setBounceHint(true), 1000);
-     const timerEnd = setTimeout(() => setBounceHint(false), 1400);
-     return () => { clearTimeout(timer); clearTimeout(timerEnd); };
-  }, []);
-
-  const minSwipeDistance = 50;
   const maxActionWidth = 80;
 
   const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
     setIsSwiping(true);
   };
@@ -56,59 +45,48 @@ export function AgendaStudentCard({ student, session, onViewRoutine, onChangeTur
     if (!touchStart) return;
     const currentTouch = e.targetTouches[0].clientX;
     const diff = currentTouch - touchStart;
-    
-    // Clamp the translation to action widths
     const clampedDiff = Math.max(-maxActionWidth, Math.min(maxActionWidth, diff));
     setTranslateX(clampedDiff);
   };
 
   const onTouchEnd = () => {
     setIsSwiping(false);
-    if (!touchStart || !touchEnd) {
-        // Reset if didn't move enough
-        if (Math.abs(translateX) < minSwipeDistance) {
-            setTranslateX(0);
-        } else {
-            // Keep open if swiped enough
-            setTranslateX(translateX > 0 ? maxActionWidth : -maxActionWidth);
-        }
-        return;
+    if (Math.abs(translateX) < 40) {
+        setTranslateX(0);
+    } else {
+        setTranslateX(translateX > 0 ? maxActionWidth : -maxActionWidth);
     }
   };
 
-  // Close swipe actions when clicking outside would be ideal, but for now, click to toggle/reset
   const resetSwipe = () => setTranslateX(0);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-900 group">
+    <div className="relative overflow-hidden rounded-[1.5rem] border border-zinc-100 dark:border-zinc-900 group shadow-sm bg-white dark:bg-zinc-950">
       
-      {/* BACKGROUND ACTIONS (Revealed via Swipe) */}
-      <div className="absolute inset-0 flex justify-between items-center px-4">
-        {/* Left Action: Change Turno */}
+      {/* BACKGROUND ACTIONS */}
+      <div className="absolute inset-0 flex justify-between items-center px-4 bg-zinc-50 dark:bg-zinc-900/50">
         <button 
             onClick={() => { onChangeTurno(student.id); resetSwipe(); }}
-            className="flex flex-col items-center justify-center w-[70px] h-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
+            className="flex flex-col items-center justify-center w-[70px] h-full text-zinc-400 hover:text-zinc-600 transition-colors"
         >
             <MoveHorizontal className="w-5 h-5 mb-1" />
             <span className="text-[8px] font-black uppercase tracking-tight">Turno</span>
         </button>
 
-        {/* Right Action: View Routine */}
         <button 
             onClick={() => { onViewRoutine(student.id); resetSwipe(); }}
-            className="flex flex-col items-center justify-center w-[70px] h-full bg-lime-500 text-zinc-950"
+            className="flex flex-col items-center justify-center w-[70px] h-full text-lime-600 hover:text-lime-700 transition-colors"
         >
             <ArrowRight className="w-5 h-5 mb-1" />
             <span className="text-[8px] font-black uppercase tracking-tight">Ver</span>
         </button>
       </div>
 
-      {/* FOREGROUND CONTENT (The Card) */}
+      {/* FOREGROUND CONTENT */}
       <div
         className={cn(
-          "relative z-10 flex items-center p-3 bg-white dark:bg-zinc-950 transition-all duration-300 select-none touch-pan-y shadow-sm",
+          "relative z-10 flex items-center p-3 sm:p-4 bg-white dark:bg-zinc-950 transition-all duration-300 select-none touch-pan-y",
           isSwiping ? "transition-none" : "transition-transform ease-out",
-          bounceHint && "-translate-x-4", // Hint bounce
           active && "border-l-4 border-l-lime-500"
         )}
         style={{ transform: `translateX(${translateX}px)` }}
@@ -117,55 +95,57 @@ export function AgendaStudentCard({ student, session, onViewRoutine, onChangeTur
         onTouchEnd={onTouchEnd}
         onClick={() => translateX !== 0 && resetSwipe()}
       >
-        {/* Left Side: Avatar & Name */}
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="relative shrink-0">
-            <StatusRing progress={progress} size="sm" />
-            <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[8px] font-black text-zinc-900 dark:text-zinc-50">{Math.round(progress)}</span>
+        {/* Avatar & Name */}
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="relative shrink-0 w-12 h-12 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+            {/* Placeholder for Avatar style from image */}
+            <div className="w-full h-full flex items-center justify-center bg-zinc-200 dark:bg-zinc-800">
+                <UserIcon className="w-6 h-6 text-zinc-400" />
             </div>
-          </div>
-          <div className="flex flex-col min-w-0">
-            <h3 className="font-bold text-base text-zinc-950 dark:text-zinc-50 truncate tracking-tight leading-tight">
-                {student.nombre}
-            </h3>
-            {session?.coreExercise ? (
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium truncate flex items-center gap-1.5 uppercase tracking-tighter">
-                    <Dumbbell className="w-2.5 h-2.5 text-lime-600" />
-                    {session.coreExercise.nombre} 
-                    <span className="text-zinc-900 dark:text-zinc-200 font-bold ml-1">
-                        {session.coreExercise.peso_real || session.coreExercise.peso_target || "0"}KG
-                    </span>
-                </p>
-            ) : (
-                <p className="text-[10px] text-zinc-400 italic uppercase">Sin actividad</p>
+            {/* Overlay progress if training */}
+            {progress > 0 && (
+                <div className="absolute inset-0 ring-2 ring-lime-500 ring-inset opacity-50" />
             )}
           </div>
+
+          <div className="flex flex-col min-w-0">
+            <h3 className="font-bold text-lg text-zinc-950 dark:text-zinc-50 truncate tracking-tight leading-none mb-1 text-nowrap">
+                {student.nombre}
+            </h3>
+            <div className="flex items-center gap-2">
+                <span className={cn(
+                    "text-[10px] font-bold uppercase tracking-widest",
+                    session?.coreExercise ? "text-lime-600" : "text-zinc-400"
+                )}>
+                    {session?.coreExercise ? session.coreExercise.nombre : "SIN ACTIVIDAD"}
+                </span>
+                {session?.coreExercise && (
+                    <span className="text-[10px] bg-zinc-100 dark:bg-zinc-900 px-1.5 py-0.5 rounded text-zinc-600 dark:text-zinc-400 font-black">
+                        {session.coreExercise.peso_real || session.coreExercise.peso_target || "0"}KG
+                    </span>
+                )}
+            </div>
+          </div>
         </div>
 
-        {/* Right Side: Desktop Actions Only */}
-        <div className="hidden md:flex items-center gap-2">
+        {/* Industrial Buttons (Desktop & Mobile) */}
+        <div className="flex items-center gap-2 ml-4">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg text-zinc-300 hover:text-zinc-950 transition-colors"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-950 hover:text-white transition-all active:scale-95"
               onClick={(e) => { e.stopPropagation(); onChangeTurno(student.id); }}
             >
-              <MoveHorizontal className="w-4 h-4" />
+              <MoveHorizontal className="w-5 h-5" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg bg-zinc-50 dark:bg-zinc-900 hover:bg-lime-500 hover:text-zinc-950 transition-all"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-950 hover:text-white transition-all active:scale-95"
               onClick={(e) => { e.stopPropagation(); onViewRoutine(student.id); }}
             >
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-5 h-5" />
             </Button>
-        </div>
-
-        {/* Swipe Handle Indicator (Mobile only) */}
-        <div className="md:hidden flex items-center justify-center px-1 text-zinc-200">
-             <div className="w-1 h-6 bg-zinc-100 dark:bg-zinc-800 rounded-full" />
         </div>
       </div>
     </div>

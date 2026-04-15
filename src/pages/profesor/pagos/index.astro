@@ -8,7 +8,7 @@ import { pagosCopy } from "@/data/es/profesor/pagos";
 // ─── Hybrid Hydration ────────────────────────────────────────────────────────
 // Obtenemos el estado inicial en el servidor para un LCP instantáneo.
 // Luego el PaymentsConsole toma el control para refrescos silenciosos.
-const { data: initialData, error } = await Astro.callAction(actions.pagos.getPaymentsData, {});
+const { data: initialData, error } = await Astro.callAction(actions.profesor.getPaymentsData, {});
 
 if (error) {
   console.error("[Pagos:Index] Error inicializando datos:", error);

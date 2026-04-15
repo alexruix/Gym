@@ -32,7 +32,7 @@ export function usePaymentReminders(
         const mensaje = whatsappMessages.payments.reminder(nombrePila, monto);
 
         // 2. Telemetría (Fire & Forget)
-        actions.pagos.registrarNotificacion({ alumno_id: alumno.id }).catch(console.error);
+        actions.profesor.registrarNotificacion({ alumno_id: alumno.id }).catch(console.error);
         
         // 3. Actualización Inmediata (Telemetría Local)
         setData((prev: any) => ({

@@ -85,7 +85,7 @@ export function PlanLibraryPanel({
   async function fetchLibrary() {
     setIsLoading(true);
     try {
-      const { data } = await actions.ejercicios.getExerciseLibrary();
+      const { data } = await actions.profesor.getExerciseLibrary();
       if (data) setInternalLibrary(data as any);
     } catch (err) {
       console.error("[PlanLibraryPanel] Error loading library:", err);

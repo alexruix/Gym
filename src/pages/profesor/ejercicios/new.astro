@@ -13,7 +13,7 @@ if (!userId) {
 }
 
 import { actions } from "astro:actions";
-const { data: rawExercises } = await Astro.callAction(actions.ejercicios.getExerciseLibrary, {});
+const { data: rawExercises } = await Astro.callAction(actions.profesor.getExerciseLibrary, {});
 const exercises = (rawExercises || []) as any[];
 
 // Extraer categorías únicas para el selector

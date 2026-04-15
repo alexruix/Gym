@@ -10,7 +10,7 @@ export function usePaymentSync(setData: (data: any) => void) {
     const refreshData = React.useCallback(async (silent = false) => {
         if (!silent) setIsRefreshing(true);
         try {
-            const { data, error } = await actions.pagos.getPaymentsData();
+            const { data, error } = await actions.profesor.getPaymentsData();
             if (error) throw error;
             if (data) setData(data);
         } catch (err) {
