@@ -25,10 +25,14 @@ function getAdminClient() {
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseServiceKey || supabaseServiceKey === 'undefined') {
+  // 🛡️ HARDENING: Validación estricta de URL y KEY
+  const isValidUrl = typeof supabaseUrl === 'string' && supabaseUrl.startsWith('http');
+  const isValidKey = typeof supabaseServiceKey === 'string' && supabaseServiceKey.length > 0 && supabaseServiceKey !== 'undefined';
+
+  if (!isValidUrl || !isValidKey) {
     // No lanzamos error aquí para permitir que el middleware se cargue.
     // Solo explotará si realmente se intenta usar una operación de admin.
-    console.warn("⚠️ MiGym Admin: SUPABASE_SERVICE_ROLE_KEY no detectada.");
+    console.warn("⚠️ MiGym Admin: Falta configuración (URL o ServiceKey).");
     return null;
   }
 

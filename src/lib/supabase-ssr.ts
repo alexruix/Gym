@@ -8,14 +8,16 @@ export function createSupabaseServerClient(context: { cookies: any, request: Req
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-  // 🛡️ GUARDIA DEFENSIVO: Si faltan las variables, no ejecutamos createServerClient
-  // para evitar que el proceso de Node.js muera por un error de URL inválida en el middleware.
-  if (!supabaseUrl || supabaseUrl === 'undefined' || !supabaseAnonKey) {
+  // 🛡️ HARDENING: Validación estricta de configuración
+  const isValidUrl = typeof supabaseUrl === 'string' && supabaseUrl.startsWith('http');
+  const isValidKey = typeof supabaseAnonKey === 'string' && supabaseAnonKey.length > 0 && supabaseAnonKey !== 'undefined';
+
+  if (!isValidUrl || !isValidKey) {
     console.warn("⚠️ MiGym SSR: createSupabaseServerClient llamado sin configuración. Devolviendo Proxy defensivo.");
     
     return new Proxy({} as any, {
       get(_, prop) {
-        throw new Error(`❌ Supabase SSR: Intentaste acceder a client.${String(prop)} en el servidor, pero PUBLIC_SUPABASE_URL no está configurada.`);
+        throw new Error(`❌ Supabase SSR: Intentaste acceder a client.${String(prop)} en el servidor, pero PUBLIC_SUPABASE_URL no está configurada correctamente.`);
       }
     });
   }

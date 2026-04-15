@@ -13,9 +13,13 @@ function getSupabaseClient() {
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || supabaseUrl === 'undefined') {
+  // 🛡️ HARDENING: Validación estricta de configuración
+  const isValidUrl = typeof supabaseUrl === 'string' && supabaseUrl.startsWith('http');
+  const isValidKey = typeof supabaseAnonKey === 'string' && supabaseAnonKey.length > 0 && supabaseAnonKey !== 'undefined';
+
+  if (!isValidUrl || !isValidKey) {
     // No lanzamos error aquí para evitar crashear el proceso de importación
-    console.warn("⚠️ MiGym Supabase: Esperando variables de entorno...");
+    console.warn("⚠️ MiGym Supabase: Esperando configuración válida.");
     return null;
   }
 
