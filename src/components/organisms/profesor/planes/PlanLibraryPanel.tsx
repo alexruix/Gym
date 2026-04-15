@@ -294,7 +294,6 @@ export function PlanLibraryPanel({
             initialData={view === "edit-block" ? editingBlockData : null}
             onSuccess={handleCreateSuccess}
             onCancel={() => setView("list")}
-            onExternalSearch={() => {}}
           />
         ) : mode === "exercises" ? (
           <div className="p-4 space-y-1">
