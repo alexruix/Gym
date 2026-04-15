@@ -5,6 +5,7 @@ import vercel from '@astrojs/vercel';
 
 export default defineConfig({
   site: 'https://migym-app.vercel.app',
+  base: '/',
   integrations: [react()],
   adapter: vercel(),
   output: 'server',
