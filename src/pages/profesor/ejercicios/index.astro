@@ -8,15 +8,7 @@ import { exerciseLibraryCopy } from "@/data/es/profesor/ejercicios";
 const user = Astro.locals.user;
 if (!user) return Astro.redirect("/login");
 
-import { actions } from "astro:actions";
-
-const { data: exercises, error } = await Astro.callAction(actions.profesor.getExerciseLibrary, {});
-
-if (error) {
-  console.error("Error cargando ejercicios:", error);
-}
-
-const mappedExercises = exercises || [];
+const mappedExercises: any[] = [];
 ---
 
 <ProfesorLayout title={`${exerciseLibraryCopy.header.title} | MiGym`}>

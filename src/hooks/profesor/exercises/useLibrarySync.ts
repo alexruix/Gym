@@ -21,8 +21,9 @@ export function useLibrarySync(setExercises: (data: any[]) => void) {
         }
     }, [setExercises]);
 
-    // Auto-refresh al recuperar foco (Consola Viva)
+    // Initialize unmounted data and auto-refresh on focus
     useEffect(() => {
+        refreshData(false); // Initial load (not silent, to trigger skeleton if empty)
         const handleFocus = () => refreshData(true);
         window.addEventListener("focus", handleFocus);
         return () => window.removeEventListener("focus", handleFocus);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FileText, Plus, Layers, Target, Clock } from "lucide-react";
 import { planesCopy } from "@/data/es/profesor/planes";
 import { PlanCard } from "@/components/molecules/profesor/planes/PlanCard";
@@ -24,10 +24,37 @@ interface Props {
  */
 export function PlanesDashboard({ planes: initialPlanes }: Props) {
   const [planes, setPlanes] = useState<PlanRowData[]>(initialPlanes);
+  const [hasInit, setHasInit] = useState(initialPlanes.length > 0);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [isReloading, setIsReloading] = useState(false);
+  const [isReloading, setIsReloading] = useState(!hasInit);
   const [activeCategory, setActiveCategory] = useState("all");
   const [isFabOpen, setIsFabOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(18);
+
+  useEffect(() => {
+    setVisibleCount(18);
+  }, [activeCategory]);
+
+  useEffect(() => {
+    if (!hasInit) {
+      actions.profesor.getPlanes().then(({ data, error }) => {
+        if (!error && data) {
+          const mapped: PlanRowData[] = data.map((p: any) => ({
+             id: p.id,
+             name: p.nombre,
+             duration: p.duracion_semanas || 4,
+             frequency: p.frecuencia_semanal || 3,
+             studentsCount: Array.isArray(p.alumnos) ? p.alumnos.length : 0,
+             createdAt: p.created_at,
+             isMaster: p.profesor_id === null
+          }));
+          setPlanes(mapped);
+        }
+        setIsReloading(false);
+        setHasInit(true);
+      });
+    }
+  }, [hasInit]);
 
   // Hooks Core
   const deleteFlow = useDeleteWithConfirm<PlanRowData>({
@@ -146,20 +173,46 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
         renderGrid={(items) => isReloading ? (
             <PlanesDashboardSkeleton viewMode="grid" />
         ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {items.map(plan => (
-                    <PlanCard key={plan.id} plan={plan} onDelete={deleteFlow.setItemToDelete} onDuplicate={handleDuplicate} />
-                ))}
+            <div className="pb-32">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {items.slice(0, visibleCount).map(plan => (
+                        <PlanCard key={plan.id} plan={plan} onDelete={deleteFlow.setItemToDelete} onDuplicate={handleDuplicate} />
+                    ))}
+                </div>
+                {visibleCount < items.length && (
+                    <div className="flex justify-center pt-8 pb-4">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setVisibleCount(v => v + 18)}
+                            className="border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-8 py-6 text-sm font-bold uppercase tracking-widest text-zinc-500 hover:text-lime-500 hover:border-lime-500 hover:bg-lime-500/5 transition-all w-full md:w-auto"
+                        >
+                            Cargar Más Planes
+                        </Button>
+                    </div>
+                )}
             </div>
         )}
         renderTable={(items) => isReloading ? (
             <PlanesDashboardSkeleton viewMode="table" />
         ) : (
-            <PlanesTable 
-                planes={items} 
-                onDelete={deleteFlow.setItemToDelete}
-                onDuplicate={handleDuplicate}
-            />
+            <div className="pb-32">
+                <PlanesTable 
+                    planes={items.slice(0, visibleCount)} 
+                    onDelete={deleteFlow.setItemToDelete}
+                    onDuplicate={handleDuplicate}
+                />
+                {visibleCount < items.length && (
+                    <div className="flex justify-center pt-8 pb-4">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setVisibleCount(v => v + 18)}
+                            className="border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-8 py-6 text-sm font-bold uppercase tracking-widest text-zinc-500 hover:text-lime-500 hover:border-lime-500 hover:bg-lime-500/5 transition-all w-full md:w-auto"
+                        >
+                            Cargar Más Planes
+                        </Button>
+                    </div>
+                )}
+            </div>
         )}
       />
 

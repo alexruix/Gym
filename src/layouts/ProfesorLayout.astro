@@ -121,6 +121,7 @@ const currentPath = Astro.url.pathname;
             return (
               <a
                 href={item.href}
+                data-astro-prefetch="hover"
                 class={`flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200 group ${
                   isActive
                     ? "bg-primary text-primary-foreground shadow-lg shadow-black/5"
@@ -159,7 +160,7 @@ const currentPath = Astro.url.pathname;
         >
           <!-- Mobile Left -->
           <div class="flex items-center gap-2 lg:hidden">
-            <MobileNav client:load currentPath={currentPath} />
+            <MobileNav client:idle currentPath={currentPath} />
             <a
               href="/profesor"
               class="font-bold text-xl tracking-tighter shrink-0"
@@ -173,7 +174,7 @@ const currentPath = Astro.url.pathname;
 
         <!-- Middle Section (Search) -->
         <div class="flex-1 flex justify-end lg:justify-start">
-          <UniversalSearch client:load transition:persist="search" />
+          <UniversalSearch client:idle transition:persist="search" />
         </div>
 
         <!-- Right Actions -->
@@ -181,11 +182,11 @@ const currentPath = Astro.url.pathname;
           class="flex items-center gap-3 shrink-0 transition-all duration-300 has-[:hover]:scale-105"
         >
           <div transition:persist="notifs">
-            <NotificationDropdown client:load profesorId={user.id} />
+            <NotificationDropdown client:idle profesorId={user.id} />
           </div>
           <div class="h-8 w-[1px] bg-zinc-200 mx-1"></div>
           <div transition:persist="user-menu">
-            <UserAccountMenu client:load profesor={safeProfesor} />
+            <UserAccountMenu client:idle profesor={safeProfesor} />
           </div>
         </div>
       </header>

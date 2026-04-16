@@ -62,7 +62,7 @@ const c = dashboardCopy.header;
         {c.actions.newStudent}
       </ActionLink>
       <ActionLink href="/profesor/planes/new" variant="primary" uppercase>
-        <Plus className="w-4 h-4" client:load />
+        <Plus className="w-4 h-4" client:idle />
         {c.actions.createPlan}
       </ActionLink>
     </PageHeader>
@@ -73,7 +73,7 @@ const c = dashboardCopy.header;
 
     <!-- Dashboard Console (Reactive Orchestrator) -->
     <DashboardConsole 
-      client:load 
+      client:idle 
       initialData={data} 
     />
 

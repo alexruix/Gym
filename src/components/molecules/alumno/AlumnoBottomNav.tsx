@@ -41,6 +41,7 @@ export function AlumnoBottomNav({ currentPath }: AlumnoBottomNavProps) {
             <a
               key={item.href}
               href={item.href}
+              data-astro-prefetch="hover"
               className={cn(
                 "flex-1 flex flex-col items-center justify-center py-3 px-2 rounded-full transition-all duration-500 scale-95 hover:scale-100 relative group",
                 item.isActive

@@ -10,22 +10,7 @@ import { planesCopy } from "@/data/es/profesor/planes";
 const user = Astro.locals.user;
 if (!user) return Astro.redirect("/login");
 
-const { data: planesData, error } = await Astro.callAction(actions.profesor.getPlanes, {});
-
-if (error) {
-  console.error("Error cargando planes:", error);
-}
-
-// Map to component format
-const mappedPlanes: PlanRowData[] = (planesData || []).map((p: any) => ({
-  id: p.id,
-  name: p.nombre,
-  duration: p.duracion_semanas || 4,
-  frequency: p.frecuencia_semanal || 3,
-  studentsCount: Array.isArray(p.alumnos) ? p.alumnos.length : 0,
-  createdAt: p.created_at,
-  isMaster: p.profesor_id === null
-}));
+const mappedPlanes: PlanRowData[] = [];
 
 const c = planesCopy.list.header;
 ---

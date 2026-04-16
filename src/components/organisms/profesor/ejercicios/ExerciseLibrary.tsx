@@ -50,6 +50,12 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [visibleCount, setVisibleCount] = useState(18);
+
+  // Reset pagination when filtering
+  useEffect(() => {
+    setVisibleCount(18);
+  }, [searchQuery, activeFilter, muscleFilter]);
 
   // Sync local search when global state changes (e.g. clear)
   useEffect(() => {
@@ -336,8 +342,9 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
               </div>
             </div>
           ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 pb-32">
-              {displayParents.map((parent) => (
+            <div className="pb-32">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+                {displayParents.slice(0, visibleCount).map((parent) => (
                 <div key={parent.id} className="space-y-4 group">
                   <ExerciseCard
                     exercise={parent}
@@ -364,16 +371,39 @@ export function ExerciseLibrary({ initialExercises }: { initialExercises: any[] 
                   )}
                 </div>
               ))}
+              </div>
+              {visibleCount < displayParents.length && (
+                <div className="flex justify-center pt-8 pb-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setVisibleCount(v => v + 18)}
+                    className="border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-8 py-6 text-sm font-bold uppercase tracking-widest text-zinc-500 hover:text-lime-500 hover:border-lime-500 hover:bg-lime-500/5 transition-all w-full md:w-auto"
+                  >
+                    Cargar Más Ejercicios
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="pb-32 animate-in slide-in-from-bottom-4 duration-500">
               <StandardTable
-                data={allFiltered}
+                data={allFiltered.slice(0, visibleCount)}
                 columns={columns}
                 entityName="Ejercicios"
                 hideSearch={true}
                 responsiveMode="scroll"
               />
+              {visibleCount < allFiltered.length && (
+                <div className="flex justify-center pt-8 pb-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setVisibleCount(v => v + 18)}
+                    className="border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl px-8 py-6 text-sm font-bold uppercase tracking-widest text-zinc-500 hover:text-lime-500 hover:border-lime-500 hover:bg-lime-500/5 transition-all w-full md:w-auto"
+                  >
+                    Cargar Más Ejercicios
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
