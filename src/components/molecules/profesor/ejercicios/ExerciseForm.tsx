@@ -66,12 +66,12 @@ export function ExerciseForm({ initialValues, parents = [], existingTags = [], o
                             <FormControl><Input placeholder={copy.placeholders.nombre} {...field} value={field.value || ""} className="font-bold text-lg h-14 rounded-2xl" /></FormControl>
                         </StandardField>
                     )} />
-                    <FormField control={form.control} name="parent_id" render={({ field }) => (
+                    {/* <FormField control={form.control} name="parent_id" render={({ field }) => (
                         <StandardField label="Vínculo (Opcional)" hint="Define si es variante de otro ejercicio">
                             <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-14 rounded-2xl font-bold uppercase tracking-widest text-[9px]"><SelectValue placeholder="Sin padre (Ejercicio base)" /></SelectTrigger></FormControl>
                             <SelectContent className="rounded-2xl p-2"><SelectItem value="none" className="rounded-xl">Ejercicio base</SelectItem><SelectSeparator />{parents.map(p => <SelectItem key={p.id} value={p.id} className="rounded-xl">{p.nombre}</SelectItem>)}</SelectContent></Select>
                         </StandardField>
-                    )} />
+                    )} /> */}
                 </div>
 
                 {/* 3. DESCRIPCIÓN */}
