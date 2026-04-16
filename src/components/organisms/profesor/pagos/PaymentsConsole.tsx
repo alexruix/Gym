@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState, useRef, useMemo, useCallback } from "react";
 import { 
   RefreshCcw, 
   ArrowDown, 
@@ -72,9 +72,9 @@ export function PaymentsConsole({ initialData }: Props) {
   } = usePayments(initialData);
 
   // 1. Pull-to-refresh Logic
-  const [pullDistance, setPullDistance] = React.useState(0);
-  const touchStart = React.useRef<number | null>(null);
-  const isPulling = React.useRef(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const touchStart = useRef<number | null>(null);
+  const isPulling = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (window.scrollY === 0) {
@@ -103,7 +103,7 @@ export function PaymentsConsole({ initialData }: Props) {
   const formatCurrency = (amount: number) => 
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(amount);
 
-  const lastUpdatedText = React.useMemo(() => {
+  const lastUpdatedText = useMemo(() => {
     if (!data.lastUpdated) return "";
     const date = new Date(data.lastUpdated);
     return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
@@ -127,7 +127,7 @@ export function PaymentsConsole({ initialData }: Props) {
 
   const { openWhatsApp } = useStudentActions();
 
-  const handleEnviarRecordatorio = React.useCallback((alumno: AlumnoPago) => {
+  const handleEnviarRecordatorio = useCallback((alumno: AlumnoPago) => {
     enviarRecordatorio(alumno);
   }, [enviarRecordatorio]);
 

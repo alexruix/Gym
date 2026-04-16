@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useCallback, type Dispatch, type SetStateAction } from "react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
 
@@ -26,12 +26,12 @@ interface PaymentsData {
  * usePaymentOperations: Motor de mutaciones financieras y recálculo reactivo.
  */
 export function usePaymentOperations(
-    setData: React.Dispatch<React.SetStateAction<PaymentsData>>,
+    setData: Dispatch<SetStateAction<PaymentsData>>,
     runAction: any,
     refreshData: (silent?: boolean) => void
 ) {
 
-    const registrarCobro = React.useCallback(async (alumnoId: string, pagoId: string) => {
+    const registrarCobro = useCallback(async (alumnoId: string, pagoId: string) => {
         await runAction(async () => {
             const { error } = await actions.profesor.registrarCobro({ 
                 alumno_id: alumnoId, 
@@ -79,7 +79,7 @@ export function usePaymentOperations(
         });
     }, [runAction, refreshData, setData]);
 
-    const syncStudentData = React.useCallback((alumnoId: string, updates: Partial<AlumnoPago>) => {
+    const syncStudentData = useCallback((alumnoId: string, updates: Partial<AlumnoPago>) => {
         setData(prev => ({
             ...prev,
             alumnos: prev.alumnos.map(a => a.id === alumnoId ? { ...a, ...updates } : a)

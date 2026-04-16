@@ -43,9 +43,6 @@ const emptyData: any = {
 
 const profesorNombre = (profesorData.data as any)?.nombre?.split(" ")[0] ?? "profe";
 const data = initialData.data ?? emptyData;
-const hasPlans = (planesCountData.count || 0) > 0;
-const hasStudents = (data.stats?.activeStudents || 0) > 0;
-
 const c = dashboardCopy.header;
 ---
 

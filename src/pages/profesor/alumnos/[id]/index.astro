@@ -146,16 +146,6 @@ const assignedPlan = (alumno.planes && Array.isArray(alumno.planes))
   : (alumno.planes as unknown as PlanRow || null);
 const planName = assignedPlan?.nombre;
 
-const sidebarProps = {
-  alumno: {
-    id: alumno.id,
-    email: alumno.email,
-    telefono: alumno.telefono,
-    fecha_inicio: alumno.fecha_inicio,
-    dia_pago: alumno.dia_pago,
-    notas: alumno.notas || "",
-  }
-};
 ---
 
 <ProfesorLayout title={`${alumno.nombre} - Ficha del Alumno | MiGym`}>

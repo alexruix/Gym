@@ -1,5 +1,4 @@
-import * as React from "react";
-import { useCallback } from "react";
+import { useCallback, type Dispatch, type SetStateAction } from "react";
 import { actions } from "astro:actions";
 import { whatsappMessages } from "@/data/es/profesor/mensajes";
 import { useStudentActions } from "@/hooks/useStudentActions";
@@ -20,11 +19,11 @@ interface AlumnoPago {
  * usePaymentReminders: Inteligencia de cobranza proactiva.
  */
 export function usePaymentReminders(
-    setData: React.Dispatch<React.SetStateAction<any>>
+    setData: Dispatch<SetStateAction<any>>
 ) {
     const { openWhatsApp } = useStudentActions();
 
-    const enviarRecordatorio = React.useCallback((alumno: AlumnoPago) => {
+    const enviarRecordatorio = useCallback((alumno: AlumnoPago) => {
         const monto = alumno.pago_activo?.monto || alumno.monto || 0;
         const nombrePila = alumno.nombre.split(" ")[0];
 
