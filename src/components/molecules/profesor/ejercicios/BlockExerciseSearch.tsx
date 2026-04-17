@@ -46,7 +46,7 @@ export function BlockExerciseSearch({
     return (
         <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
             <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-widest text-lime-600">Buscando técnica...</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-lime-600">Buscando ejercicios...</span>
                 <Button
                     type="button"
                     variant="ghost"

@@ -1,4 +1,4 @@
-import { Copy, Plus, Dumbbell } from "lucide-react";
+import { Copy, Plus, Dumbbell, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExerciseCard } from "@/components/molecules/profesor/planes/ExerciseCard";
 import { ActionBridge } from "@/components/molecules/profesor/planes/ActionBridge";
@@ -40,11 +40,19 @@ export function PlanRoutineEditor({
   return (
     <section className="space-y-8">
       <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center justify-between">
-        <div className="space-y-1">
+        <div className="space-y-1 group relative">
           <span className="text-[10px] font-bold uppercase tracking-widest text-lime-500">Semana {currentWeek}</span>
-          <h2 className="text-2xl font-bold tracking-tighter text-zinc-950 dark:text-zinc-100 uppercase">
-            Rutina {activeDiaAbsoluto - (currentWeek - 1) * freqSemanal}
-          </h2>
+          <div className="relative flex items-center gap-3 max-w-fit group">
+            <div className="relative">
+              <input
+                {...form.register(`rutinas.${routineIdx}.nombre_dia`)}
+                placeholder={`Rutina ${activeDiaAbsoluto - (currentWeek - 1) * freqSemanal}`}
+                className="text-2xl font-bold tracking-tighter text-zinc-950 dark:text-zinc-100 uppercase bg-transparent border-none focus:ring-0 focus:outline-none w-full placeholder:text-zinc-300 dark:placeholder:text-zinc-800 pr-4"
+              />
+              <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-zinc-100 dark:bg-zinc-900 group-focus-within:bg-lime-500 transition-colors" />
+            </div>
+            <Pencil className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-600 shrink-0 opacity-90 group-focus-within:opacity-0 transition-opacity" />
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
