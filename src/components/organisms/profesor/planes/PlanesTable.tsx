@@ -28,6 +28,7 @@ export interface PlanRowData {
   studentsCount: number;
   createdAt: string;
   isMaster?: boolean;
+  mainExercises?: string[];
 }
 
 interface Props {

@@ -39,15 +39,28 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
     if (!hasInit) {
       actions.profesor.getPlanes().then(({ data, error }) => {
         if (!error && data) {
-          const mapped: PlanRowData[] = data.map((p: any) => ({
-             id: p.id,
-             name: p.nombre,
-             duration: p.duracion_semanas || 4,
-             frequency: p.frecuencia_semanal || 3,
-             studentsCount: Array.isArray(p.alumnos) ? p.alumnos.length : 0,
-             createdAt: p.created_at,
-             isMaster: p.profesor_id === null
-          }));
+          const mapped: PlanRowData[] = data.map((p: any) => {
+             // Extraer hasta 4 ejercicios representativos
+             const exercisesSet = new Set<string>();
+             p.rutinas_diarias?.forEach((r: any) => {
+               r.ejercicios_plan?.forEach((e: any) => {
+                 if (e.biblioteca_ejercicios?.nombre && exercisesSet.size < 4) {
+                   exercisesSet.add(e.biblioteca_ejercicios.nombre);
+                 }
+               });
+             });
+
+             return {
+               id: p.id,
+               name: p.nombre,
+               duration: p.duracion_semanas || 4,
+               frequency: p.frecuencia_semanal || 3,
+               studentsCount: Array.isArray(p.alumnos) ? p.alumnos.length : 0,
+               createdAt: p.created_at,
+               isMaster: p.is_template,
+               mainExercises: Array.from(exercisesSet)
+             };
+          });
           setPlanes(mapped);
         }
         setIsReloading(false);
@@ -100,6 +113,23 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
     { label: "Por alumnos", value: "students-desc" },
     { label: "Por duración", value: "duration-desc" },
   ];
+
+  const { execute: runImport, isPending: isImporting } = useAsyncAction();
+
+  const handleImportLibrary = () => {
+    runImport(
+      async () => {
+        const { data: result, error } = await actions.profesor.importLibraryPlans();
+        if (error) throw new Error(error.message || "Error al importar biblioteca");
+        if (result?.success) {
+          // Recargar para ver los nuevos planes
+          setIsReloading(true);
+          setHasInit(false); // Disparar re-fetch silencioso
+        }
+      },
+      { loadingMsg: "Importando biblioteca...", successMsg: "Biblioteca importada con éxito" }
+    );
+  };
 
   const handleSort = (items: PlanRowData[], order: string) =>
     [...items].sort((a, b) => {
@@ -169,7 +199,20 @@ export function PlanesDashboard({ planes: initialPlanes }: Props) {
           </div>
         )}
         emptyIcon={<FileText className="w-12 h-12" />}
-        emptyTitle="No se encontraron planes"
+        emptyTitle={activeCategory === "master" ? "No tenés plantillas maestras" : planesCopy.list.table.empty}
+        emptyAction={
+            (activeCategory === "master" || planes.length === 0) && (
+                <Button
+                    onClick={handleImportLibrary}
+                    disabled={isImporting}
+                    variant="outline"
+                    className="h-14 rounded-2xl border-2 border-lime-500/30 bg-lime-500/5 hover:bg-lime-500 hover:text-zinc-950 hover:border-lime-500 text-lime-600 dark:text-lime-400 font-bold uppercase tracking-widest text-xs px-8 shadow-xl shadow-lime-500/10 transition-all active:scale-95"
+                >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {planesCopy.list.table.emptyLibraryBtn}
+                </Button>
+            )
+        }
         renderGrid={(items) => isReloading ? (
             <PlanesDashboardSkeleton viewMode="grid" />
         ) : (

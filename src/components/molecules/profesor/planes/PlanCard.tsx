@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Layers, Users, MoreHorizontal, Pencil, Trash2, Copy, MoveHorizontal, ArrowRight } from "lucide-react";
+import { FileText, Layers, Users, MoreHorizontal, Pencil, Trash2, Copy, ArrowRight, Clock, Target } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,7 @@ export interface PlanCardProps {
         studentsCount: number;
         createdAt: string;
         isMaster?: boolean;
+        mainExercises?: string[];
     };
     onEdit?: (id: string) => void;
     onView?: (id: string) => void;
@@ -69,7 +70,7 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
     const resetSwipe = () => setTranslateX(0);
 
     return (
-        <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-zinc-100 dark:border-zinc-900 group">
+        <div className="relative overflow-hidden rounded-3xl border border-zinc-100 dark:border-zinc-900 group shadow-sm hover:shadow-md transition-shadow duration-300 bg-white dark:bg-zinc-950">
             
             {/* BACK ACTIONS (Revealed via Swipe) */}
             <div className="absolute inset-0 flex justify-between items-center px-4">
@@ -84,16 +85,12 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
 
                 {/* Right Action: Delete */}
                 <button 
-                    onClick={() => { if (!plan.isMaster) onDelete?.(plan); resetSwipe(); }}
-                    disabled={plan.isMaster}
-                    className={cn(
-                        "flex flex-col items-center justify-center w-[70px] h-full transition-all active:scale-90",
-                        plan.isMaster ? "bg-zinc-200 text-zinc-400 cursor-not-allowed" : "bg-red-600 text-white"
-                    )}
+                    onClick={() => { onDelete?.(plan); resetSwipe(); }}
+                    className="flex flex-col items-center justify-center w-[70px] h-full bg-red-600 text-white transition-all active:scale-90"
                 >
                     <Trash2 className="w-5 h-5 mb-1" />
                     <span className="text-[8px] font-black uppercase tracking-tight">
-                        {plan.isMaster ? "Bloqueado" : "Borrar"}
+                        Borrar
                     </span>
                 </button>
             </div>
@@ -101,7 +98,7 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
             {/* FOREGROUND CONTENT */}
             <div
                 className={cn(
-                    "relative z-10 flex flex-col md:flex-col bg-white dark:bg-zinc-950 transition-all duration-300 select-none touch-pan-y shadow-sm h-full",
+                    "relative z-10 flex flex-col bg-white dark:bg-zinc-950 transition-all duration-300 select-none touch-pan-y h-full",
                     isSwiping ? "transition-none" : "transition-transform ease-out",
                     bounceHint && "translate-x-2"
                 )}
@@ -111,84 +108,100 @@ export function PlanCard({ plan, onDelete, onDuplicate }: PlanCardProps) {
                 onTouchEnd={onTouchEnd}
                 onClick={() => translateX !== 0 && resetSwipe()}
             >
-                {/* Visual Area (Desktop Only) */}
-                <div className="hidden md:flex aspect-[16/10] w-full bg-zinc-50 dark:bg-zinc-900 items-center justify-center relative overflow-hidden shrink-0 border-b border-zinc-100 dark:border-zinc-800/50">
-                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-200/50 via-transparent to-lime-500/5 dark:from-zinc-800/50 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
-                    <Layers className="w-24 h-24 text-zinc-200 dark:text-zinc-800/40 -rotate-6 group-hover:rotate-0 group-hover:scale-110 transition-all duration-700 pointer-events-none" />
-                </div>
-
-                {/* Content Area */}
-                <div className="flex flex-row md:flex-col items-center md:items-stretch p-3 md:p-6 gap-3 md:gap-4 flex-1">
-                    {/* Name & ID Section */}
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-bold text-base md:text-xl text-zinc-950 dark:text-zinc-50 line-clamp-1 tracking-tight leading-none group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                {/* Main Content Area */}
+                <div className="flex flex-col p-5 md:p-6 gap-5 h-full">
+                    
+                    {/* Header: Name & Metadata */}
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-start justify-between gap-4">
+                            <h3 className="font-bold text-xl md:text-2xl text-zinc-950 dark:text-zinc-50 tracking-tight leading-tight group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
                                 <a href={`/profesor/planes/${plan.id}`}>{plan.name}</a>
                             </h3>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 shrink-0">
+                                        <MoreHorizontal className="h-5 h-5 text-zinc-400" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-52 p-2 rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-2xl bg-white dark:bg-zinc-950 font-bold z-50">
+                                    <DropdownMenuItem asChild>
+                                        <a href={`/profesor/planes/${plan.id}/edit`} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
+                                            <Pencil className="h-4 w-4 text-zinc-400" />
+                                            <span>Editar plan</span>
+                                        </a>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onDuplicate?.(plan.id)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer text-lime-600 dark:text-lime-400">
+                                        <Copy className="h-4 w-4" />
+                                        <span>Duplicar</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
+                                    <DropdownMenuItem onClick={() => onDelete?.(plan)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer text-red-500">
+                                        <Trash2 className="h-4 w-4" />
+                                        <span>Eliminar</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 flex items-center gap-1.5">
+                                <Clock className="w-3 h-3" />
+                                {plan.duration} semanas
+                            </span>
+                            <span className="text-zinc-200 dark:text-zinc-800">•</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 flex items-center gap-1.5">
+                                <Layers className="w-3 h-3" />
+                                {plan.frequency} días/sem
+                            </span>
                             {plan.isMaster && (
-                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-black bg-lime-500 text-black uppercase tracking-widest animate-pulse">
-                                    MiGym
+                                <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black bg-lime-400 text-zinc-950 uppercase tracking-widest border border-lime-500/20">
+                                    MiGym Plan
                                 </span>
                             )}
-                            <div className="hidden md:block">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 shrink-0">
-                                            <MoreHorizontal className="h-4 w-4 text-zinc-400" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-52 p-2 rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-2xl bg-white dark:bg-zinc-950 font-bold z-50">
-                                        <DropdownMenuItem asChild>
-                                            <a href={`/profesor/planes/${plan.id}/edit`} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
-                                                <Pencil className="h-4 w-4 text-zinc-400" />
-                                                <span>Editar</span>
-                                            </a>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => onDuplicate?.(plan.id)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer text-lime-600 dark:text-lime-400">
-                                            <Copy className="h-4 w-4" />
-                                            <span>Duplicar</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800 mx-1" />
-                                        <DropdownMenuItem onClick={() => onDelete?.(plan)} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer text-red-500">
-                                            <Trash2 className="h-4 w-4" />
-                                            <span>Eliminar</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
                         </div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-                           {plan.duration} semanas • {plan.frequency}d/sem
-                        </p>
                     </div>
 
-                    {/* Quick Stats (Horizontal on mobile) */}
-                    <div className="flex items-center gap-2 shrink-0">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                            <Users className="w-3 h-3 text-lime-500" />
-                            <span className="text-[10px] font-black text-zinc-900 dark:text-zinc-50">{plan.studentsCount}</span>
+                    {/* Technical Content: Exercises (The core value) */}
+                    <div className="flex flex-col gap-3 py-4 border-y border-zinc-50 dark:border-zinc-900/50">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
+                            Estructura de ejercicios
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                            {plan.mainExercises && plan.mainExercises.length > 0 ? (
+                                plan.mainExercises.map((ex, i) => (
+                                    <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-800/50">
+                                        {ex}
+                                    </span>
+                                ))
+                            ) : (
+                                <span className="text-xs text-zinc-400 italic font-medium">
+                                    Sin ejercicios cargados todavía
+                                </span>
+                            )}
                         </div>
-                        <a 
-                            href={`/profesor/planes/${plan.id}`}
-                            className="flex md:hidden h-10 w-10 items-center justify-center bg-zinc-100 dark:bg-zinc-900 rounded-xl text-zinc-400 active:bg-lime-500 active:text-zinc-950 transition-colors"
+                    </div>
+
+                    {/* Operational Data: Students */}
+                    <div className="flex items-center justify-between mt-auto">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-lime-50 dark:bg-lime-950/20 rounded-xl border border-lime-100 dark:border-lime-900/30">
+                            <Users className="w-4 h-4 text-lime-600 dark:text-lime-400" />
+                            <span className="text-[11px] font-black text-lime-700 dark:text-lime-400 uppercase tracking-tight">
+                                {plan.studentsCount} {plan.studentsCount === 1 ? 'Alumno asignado' : 'Alumnos asignados'}
+                            </span>
+                        </div>
+                        
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            asChild
+                            className="text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-lime-600 dark:hover:text-lime-400 h-9 px-4 rounded-xl"
                         >
-                            <ArrowRight className="w-4 h-4" />
-                        </a>
+                            <a href={`/profesor/planes/${plan.id}`} className="flex items-center gap-2">
+                                Ver detalles
+                                <ArrowRight className="w-3.5 h-3.5" />
+                            </a>
+                        </Button>
                     </div>
-                </div>
-
-                {/* Footer (Desktop Only) */}
-                <div className="hidden md:flex p-6 pt-0 border-t border-zinc-50 dark:border-zinc-900 items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-tighter text-zinc-400 dark:text-zinc-500">
-                        ID: {plan.id.slice(0, 8)}
-                    </span>
-                    <Button
-                        variant="link"
-                        asChild
-                        className="h-auto p-0 text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 hover:text-lime-600 dark:hover:text-lime-400 transition-colors no-underline"
-                    >
-                        <a href={`/profesor/planes/${plan.id}`}>Ver detalles</a>
-                    </Button>
                 </div>
             </div>
         </div>

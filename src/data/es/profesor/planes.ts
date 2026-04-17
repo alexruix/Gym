@@ -12,8 +12,9 @@ export const planesCopy = {
     table: {
       title: "Todas las planificaciones",
       searchPlaceholder: "Buscar por nombre...",
-      empty: "Todavía no tenés planes creados.",
-      emptySearch: "No encontramos planes con ese nombre.",
+      empty: "Todavía no hay planes creados",
+      emptyLibraryBtn: "Importar desde la Biblioteca",
+      emptySearch: "No encontramos planes con ese nombre",
       columns: {
         name: "Nombre del plan",
         frequency: "Días / Semana",

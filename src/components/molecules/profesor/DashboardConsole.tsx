@@ -49,6 +49,7 @@ interface DashboardConsoleProps<T extends BaseEntity> {
     emptyIcon?: React.ReactNode;
     emptyTitle?: string;
     emptyDescription?: string;
+    emptyAction?: React.ReactNode;
     searchSuffix?: React.ReactNode;
     /** Si es true, renderiza la vista incluso si la lista estÃ¡ vacÃ­a (util para la Agenda) */
     forceRender?: boolean;
@@ -75,6 +76,7 @@ export function DashboardConsole<T extends BaseEntity>({
     emptyIcon,
     emptyTitle,
     emptyDescription,
+    emptyAction,
     searchSuffix,
     forceRender = false
 }: DashboardConsoleProps<T>) {
@@ -290,9 +292,14 @@ export function DashboardConsole<T extends BaseEntity>({
                                 {emptyTitle || `Sin ${itemLabel} encontrados`}
                             </h3>
                             <p className="industrial-description max-w-sm mx-auto px-6">
-                                {emptyDescription || "Todavía no hay datos cargados en esta sección."}
+                                {emptyDescription || "Crealos o importalos desde la biblioteca"}
                             </p>
                         </div>
+                        {emptyAction && (
+                            <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-300">
+                                {emptyAction}
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">

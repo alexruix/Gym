@@ -9,7 +9,7 @@ import {
   importPlansSchema 
 } from "@/lib/validators/profesor";
 import { planesCopy } from "@/data/es/profesor/planes";
-import { masterPlans } from "@/data/es/profesor/plan-master";
+import masterPlans from "@/data/es/profesor/master-plans.json";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const normalizeStr = (str: string) =>
@@ -291,7 +291,49 @@ export const plansActions = {
     }
   }),
 
-  /** getPlanes: Fetch unificado (Propios + Master Globales) con Silent Sync. */
+
+  /** importLibraryPlans: Carga manual de los planes maestros desde el JSON. */
+  importLibraryPlans: defineAction({
+    accept: "json",
+    handler: async (_, context) => {
+      const supabase = createSupabaseServerClient(context);
+      const user = context.locals.user;
+      if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
+
+      // 1. Obtener ejercicios maestros para resolución de IDs
+      const { data: exercises } = await (supabase.from("biblioteca_ejercicios").select("id, nombre").is("profesor_id", null) as any);
+      const exMap = new Map((exercises || []).map((ex: any) => [normalizeStr(ex.nombre), ex.id]));
+
+      // 2. Importar cada plan del JSON
+      let count = 0;
+      for (const plan of masterPlans) {
+        const mappedRutinas = plan.rutinas.map(r => ({
+          ...r,
+          ejercicios: r.ejercicios.map(e => ({
+            ...e,
+            ejercicio_id: exMap.get(normalizeStr(e.nombre))
+          })).filter(e => !!e.ejercicio_id)
+        })).filter(r => r.ejercicios.length > 0);
+
+        if (mappedRutinas.length > 0) {
+          const { error: rpcErr } = await (supabase as any).rpc("crear_plan_completo", {
+            p_profesor_id: user.id,
+            p_nombre: plan.nombre,
+            p_duracion_semanas: plan.duracion_semanas,
+            p_frecuencia_semanal: plan.frecuencia_semanal,
+            p_rutinas: mappedRutinas,
+            p_rotaciones: []
+          });
+
+          if (!rpcErr) count++;
+        }
+      }
+
+      return { success: true, count };
+    }
+  }),
+
+  /** getPlanes: Fetch unificado de planes del profesor. */
   getPlanes: defineAction({
     accept: "json",
     handler: async (_, context) => {
@@ -299,53 +341,6 @@ export const plansActions = {
       const user = context.locals.user;
       if (!user) throw new ActionError({ code: "UNAUTHORIZED", message: planesCopy.actions.error.unauthorized });
 
-      // Silent Sync for Master Plans
-      const runMasterPlansSync = async () => {
-        // 1. Obtener ejercicios maestros para resolución de IDs
-        const { data: exercises } = await supabase.from("biblioteca_ejercicios").select("id, nombre").is("profesor_id", null);
-        if (!exercises?.length) return;
-        const exMap = new Map((exercises as any[]).map(ex => [normalizeStr(ex.nombre), ex.id]));
-
-        // 2. Verificar planes maestros existentes
-        const { data: existingMasterPlanes } = await supabase.from("planes").select("nombre").is("profesor_id", null);
-        const existingNames = new Set(((existingMasterPlanes || []) as any[]).map(p => normalizeStr(p.nombre)));
-
-        const missingMasterPlanes = masterPlans.filter(p => !existingNames.has(normalizeStr(p.nombre)));
-
-        if (missingMasterPlanes.length > 0) {
-          console.log(`[Plans Sync] Detectados ${missingMasterPlanes.length} planes maestros faltantes.`);
-          
-          for (const plan of missingMasterPlanes) {
-            // Mapear rutinas con IDs de ejercicios resueltos
-            const mappedRutinas = plan.rutinas.map(r => ({
-              ...r,
-              ejercicios: r.ejercicios.map(e => ({
-                ...e,
-                ejercicio_id: exMap.get(normalizeStr(e.nombre))
-              })).filter(e => !!e.ejercicio_id) // Solo si pudimos resolver el ID
-            })).filter(r => r.ejercicios.length > 0);
-
-            if (mappedRutinas.length > 0) {
-              const { error: rpcErr } = await (supabaseAdmin as any).rpc('crear_plan_completo', {
-                p_profesor_id: null, // Global
-                p_nombre: plan.nombre,
-                p_duracion_semanas: plan.duracion_semanas,
-                p_frecuencia_semanal: plan.frecuencia_semanal,
-                p_rutinas: mappedRutinas,
-                p_rotaciones: plan.rotaciones || []
-              });
-
-              if (rpcErr) console.error(`[Plans Sync] Error al crear plan ${plan.nombre}:`, rpcErr.message);
-            }
-          }
-          console.log("[Plans Sync] Sincronización de planes maestros finalizada.");
-        }
-      };
-
-      // Ejecutar sync de forma silenciosa
-      runMasterPlansSync().catch(console.error);
-
-      // Fetch de Planes (Propios + Globales)
       const { data, error } = await supabase
         .from("planes")
         .select(`
@@ -358,7 +353,7 @@ export const plansActions = {
             )
           )
         `)
-        .or(`profesor_id.eq.${user.id},profesor_id.is.null`)
+        .eq("profesor_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw new ActionError({ code: "BAD_REQUEST", message: error.message });
